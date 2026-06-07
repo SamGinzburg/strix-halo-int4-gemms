@@ -20,7 +20,7 @@ Generated assembly and Triton IR are checked in for reproducibility. Do not
 hand-edit generated ``.s``, ``.ttir``, ``.ttgir``, or ``.llir`` files. Change
 the registry or generator scripts, regenerate, and commit matching metadata.
 
-Regenerate the full matrix from a local Triton checkout:
+Regenerate the dense matrix from a local Triton checkout:
 
 .. code-block:: bash
 
@@ -30,13 +30,26 @@ Regenerate the full matrix from a local Triton checkout:
 The wrapper invokes ``scripts/generate_matrix.py --clean`` by default. Use
 ``--dry-run`` to inspect the underlying command without compiling kernels.
 
+Regenerate the packaged ragged artifact set separately:
+
+.. code-block:: bash
+
+   TRITON_CHECKOUT=/path/to/triton
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean --no-triton-artifacts
+
+The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
+matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
+into wheel-packaged ``.hsaco`` objects alongside the dense matrix.
+
 Wheel Contents
 --------------
 
-The wheel is runtime-only. It bundles the dispatch shared library, the
-``kernels/hsaco/*.hsaco`` code objects, and the ``kernels/amdgcn/*.json`` launch
-metadata that the dispatcher reads at run time (about 28 MB total). The
-generation provenance — ``*.s`` assembly and the ``kernels/triton/`` IR — stays
+The wheel is runtime-only. During wheel build, CMake globs every
+``kernels/amdgcn/*.s`` file, assembles it with ROCm ``llvm-mc``, links it with
+``lld``, and installs the resulting ``kernels/hsaco/*.hsaco`` code objects.
+The wheel bundles those code objects, the dispatch shared library, and the
+``kernels/amdgcn/*.json`` launch metadata that the dispatcher reads at run
+time (about 28 MB total). The generation provenance — ``*.s`` assembly and the ``kernels/triton/`` IR — stays
 in the git repository and is excluded from the wheel by the CMake install rules;
 it is never read at run time, and keeping it out of the wheel is what keeps the
 artifact under PyPI's 100 MB per-file limit.

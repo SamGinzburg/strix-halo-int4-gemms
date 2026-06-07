@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
+from .ragged_artifacts import RAGGED_BWD, RAGGED_FWD, ragged_kernel_id
 from .template_config import LaunchShape
 
 
@@ -85,6 +86,60 @@ def load_dispatch_library(path: str | Path | None = None) -> ctypes.CDLL:
         ctypes.c_void_p,
     ]
     library.amd_strix_halo_kernels_launch_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+    ]
+    library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+    ]
+    library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.restype = ctypes.c_int
     return library
 
 
@@ -324,6 +379,312 @@ def launch_hsaco(
     )
     if rc != 0:
         raise RuntimeError(_library_last_error(library))
+
+
+def _cdiv(x: int, y: int) -> int:
+    return (x + y - 1) // y
+
+
+def _ragged_artifact_symbol(kernel_id: str, *, root: str | Path | None = None) -> tuple[Path, dict[str, Any], str]:
+    hsaco_path = hsaco_path_for_kernel_id(kernel_id, root=root)
+    if not hsaco_path.exists():
+        raise RuntimeError(f"compiled ragged HSACO code object is not installed at {hsaco_path}")
+    artifact = _artifact_metadata(kernel_id, root=root)
+    if artifact.get("family") != "ragged_dot_int4":
+        raise RuntimeError(f"{kernel_id} metadata is not a ragged int4 artifact")
+    symbol = artifact.get("amdgcn_symbol")
+    if not isinstance(symbol, str) or not symbol:
+        raise RuntimeError(f"{kernel_id} metadata is missing amdgcn_symbol")
+    return hsaco_path, artifact, symbol
+
+
+def _ragged_runtime_scalar_args(kernel_id: str, artifact: dict[str, Any]) -> tuple[str, ...]:
+    layout = artifact.get("kernel_arg_layout")
+    if isinstance(layout, dict):
+        args = layout.get("runtime_scalar_args")
+        if isinstance(args, list) and all(isinstance(arg, str) for arg in args):
+            return tuple(args)
+
+    scale = artifact.get("scale")
+    subchannel = scale.get("subchannel_size") if isinstance(scale, dict) else None
+    mode = artifact.get("mode")
+    # Backward-compatible fallback for the current GST1/SK1 packaged matrix.
+    if mode == RAGGED_FWD:
+        if subchannel is not None:
+            return ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS")
+        return ("M", "N", "K_PACKED", "NUM_TASKS")
+    if mode == RAGGED_BWD:
+        if subchannel is not None:
+            return ("M", "N", "K_PACKED", "SCALE_COLS")
+        return ("M", "N", "K_PACKED")
+    raise RuntimeError(f"{kernel_id} metadata has unsupported ragged mode {mode!r}")
+
+
+def launch_ragged_fwd_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    lhs_ptr: int,
+    rhs_ptr: int,
+    lhs_scale_ptr: int,
+    rhs_scale_ptr: int,
+    task_group_ids_ptr: int,
+    task_block_starts_ptr: int,
+    task_actual_starts_ptr: int,
+    task_actual_ends_ptr: int,
+    out_ptr: int,
+    m: int,
+    n: int,
+    k_packed: int,
+    scale_cols: int,
+    num_tasks: int,
+    has_scale_cols_arg: bool,
+    library_path: str | Path | None = None,
+) -> None:
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        ctypes.c_void_p(int(lhs_ptr)),
+        ctypes.c_void_p(int(rhs_ptr)),
+        ctypes.c_void_p(int(lhs_scale_ptr)),
+        ctypes.c_void_p(int(rhs_scale_ptr)),
+        ctypes.c_void_p(int(task_group_ids_ptr)),
+        ctypes.c_void_p(int(task_block_starts_ptr)),
+        ctypes.c_void_p(int(task_actual_starts_ptr)),
+        ctypes.c_void_p(int(task_actual_ends_ptr)),
+        ctypes.c_void_p(int(out_ptr)),
+        int(m),
+        int(n),
+        int(k_packed),
+        int(scale_cols),
+        int(num_tasks),
+        int(has_scale_cols_arg),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+def launch_ragged_bwd_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    lhs_ptr: int,
+    rhs_ptr: int,
+    lhs_scale_ptr: int,
+    rhs_scale_ptr: int,
+    group_sizes_ptr: int,
+    out_ptr: int,
+    m: int,
+    n: int,
+    k_packed: int,
+    scale_cols: int,
+    has_scale_cols_arg: bool,
+    library_path: str | Path | None = None,
+) -> None:
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        ctypes.c_void_p(int(lhs_ptr)),
+        ctypes.c_void_p(int(rhs_ptr)),
+        ctypes.c_void_p(int(lhs_scale_ptr)),
+        ctypes.c_void_p(int(rhs_scale_ptr)),
+        ctypes.c_void_p(int(group_sizes_ptr)),
+        ctypes.c_void_p(int(out_ptr)),
+        int(m),
+        int(n),
+        int(k_packed),
+        int(scale_cols),
+        int(has_scale_cols_arg),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+def launch_ragged_fwd_kernel(
+    lhs: Any,
+    rhs: Any,
+    *,
+    group_info: Any,
+    a_scale: Any,
+    b_scale: Any,
+    out: Any,
+    scale: Any,
+    config: Any,
+    layout: GemmLayout,
+    variant: str,
+    rows: int,
+    cols: int,
+    k_packed: int,
+    scale_cols: int,
+    root: str | Path | None = None,
+    library_path: str | Path | None = None,
+    stream: Any | None = None,
+) -> Any:
+    torch = _torch()
+    if not torch.cuda.is_available() or not getattr(lhs, "is_cuda", False):
+        raise RuntimeError("native ragged kernels require CUDA/HIP tensors")
+    a_scale = _require_bfloat16_scale(torch, "a_scale", _require_contiguous("a_scale", a_scale))
+    b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
+    out = _require_contiguous("out", out)
+    kernel_id = ragged_kernel_id(
+        mode=RAGGED_FWD,
+        layout=layout,
+        scale=scale,
+        config=config,
+        variant=variant,
+        output_dtype="bfloat16",
+    )
+    hsaco_path, artifact, symbol = _ragged_artifact_symbol(kernel_id, root=root)
+    block_size = _block_size_for_artifact(kernel_id, artifact)
+    shared_memory_bytes = _shared_memory_bytes_for_artifact(kernel_id, artifact)
+    runtime_scalar_args = _ragged_runtime_scalar_args(kernel_id, artifact)
+    has_scale_cols_arg = "SCALE_COLS" in runtime_scalar_args
+    grid = (group_info.num_tasks * _cdiv(cols, config.block_n), 1, 1)
+    if grid[0] == 0:
+        return out
+    launch_ragged_fwd_hsaco(
+        hsaco_path=hsaco_path,
+        symbol=symbol,
+        device_index=_device_index(lhs),
+        grid=grid,
+        block=(block_size, 1, 1),
+        shared_memory_bytes=shared_memory_bytes,
+        stream_handle=_stream_handle(torch, lhs, stream),
+        lhs_ptr=lhs.data_ptr(),
+        rhs_ptr=rhs.data_ptr(),
+        lhs_scale_ptr=a_scale.data_ptr(),
+        rhs_scale_ptr=b_scale.data_ptr(),
+        task_group_ids_ptr=group_info.group_id.data_ptr(),
+        task_block_starts_ptr=group_info.block_start.data_ptr(),
+        task_actual_starts_ptr=group_info.actual_start.data_ptr(),
+        task_actual_ends_ptr=group_info.actual_end.data_ptr(),
+        out_ptr=out.data_ptr(),
+        m=rows,
+        n=cols,
+        k_packed=k_packed,
+        scale_cols=scale_cols,
+        num_tasks=group_info.num_tasks,
+        has_scale_cols_arg=has_scale_cols_arg,
+        library_path=library_path,
+    )
+    return out
+
+
+def launch_ragged_bwd_kernel(
+    lhs: Any,
+    rhs: Any,
+    group_sizes: Any,
+    *,
+    a_scale: Any,
+    b_scale: Any,
+    out: Any,
+    scale: Any,
+    config: Any,
+    layout: GemmLayout,
+    variant: str,
+    rows: int,
+    cols: int,
+    k_packed: int,
+    scale_cols: int,
+    root: str | Path | None = None,
+    library_path: str | Path | None = None,
+    stream: Any | None = None,
+) -> Any:
+    torch = _torch()
+    if not torch.cuda.is_available() or not getattr(lhs, "is_cuda", False):
+        raise RuntimeError("native ragged kernels require CUDA/HIP tensors")
+    a_scale = _require_bfloat16_scale(torch, "a_scale", _require_contiguous("a_scale", a_scale))
+    b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
+    out = _require_contiguous("out", out)
+    kernel_id = ragged_kernel_id(
+        mode=RAGGED_BWD,
+        layout=layout,
+        scale=scale,
+        config=config,
+        variant=variant,
+        output_dtype="float32",
+    )
+    hsaco_path, artifact, symbol = _ragged_artifact_symbol(kernel_id, root=root)
+    block_size = _block_size_for_artifact(kernel_id, artifact)
+    shared_memory_bytes = _shared_memory_bytes_for_artifact(kernel_id, artifact)
+    runtime_scalar_args = _ragged_runtime_scalar_args(kernel_id, artifact)
+    has_scale_cols_arg = "SCALE_COLS" in runtime_scalar_args
+    groups = int(lhs.shape[0])
+    grid = (groups * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n), config.split_k, 1)
+    if grid[0] == 0:
+        return out
+    launch_ragged_bwd_hsaco(
+        hsaco_path=hsaco_path,
+        symbol=symbol,
+        device_index=_device_index(lhs),
+        grid=grid,
+        block=(block_size, 1, 1),
+        shared_memory_bytes=shared_memory_bytes,
+        stream_handle=_stream_handle(torch, lhs, stream),
+        lhs_ptr=lhs.data_ptr(),
+        rhs_ptr=rhs.data_ptr(),
+        lhs_scale_ptr=a_scale.data_ptr(),
+        rhs_scale_ptr=b_scale.data_ptr(),
+        group_sizes_ptr=group_sizes.data_ptr(),
+        out_ptr=out.data_ptr(),
+        m=rows,
+        n=cols,
+        k_packed=k_packed,
+        scale_cols=scale_cols,
+        has_scale_cols_arg=has_scale_cols_arg,
+        library_path=library_path,
+    )
+    return out
+
+
+def _shared_memory_bytes_for_artifact(kernel_id: str, artifact: dict[str, Any]) -> int:
+    launch_metadata = artifact.get("launch_metadata")
+    if not isinstance(launch_metadata, dict):
+        raise RuntimeError(f"{kernel_id} metadata is missing launch_metadata")
+    shared_memory_bytes = launch_metadata.get("shared_memory_bytes")
+    if not isinstance(shared_memory_bytes, int) or shared_memory_bytes < 0:
+        raise RuntimeError(f"{kernel_id} metadata has invalid shared_memory_bytes")
+    return shared_memory_bytes
+
+
+def _block_size_for_artifact(kernel_id: str, artifact: dict[str, Any]) -> int:
+    launch_metadata = artifact.get("launch_metadata")
+    if not isinstance(launch_metadata, dict):
+        raise RuntimeError(f"{kernel_id} metadata is missing launch_metadata")
+    num_warps = launch_metadata.get("num_warps")
+    if not isinstance(num_warps, int) or num_warps <= 0:
+        raise RuntimeError(f"{kernel_id} metadata has invalid num_warps")
+    return num_warps * THREADS_PER_WARP
 
 
 def launch_generated_kernel(

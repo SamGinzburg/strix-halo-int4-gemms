@@ -4,7 +4,7 @@ API Reference
 Calling Guide
 -------------
 
-Dense generated kernels and ragged Triton-JIT kernels are separate API
+Dense generated kernels and ragged grouped kernels are separate API
 families:
 
 * ``mm(...)`` selects a native dense kernel for plain GEMM or
@@ -16,12 +16,13 @@ families:
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
   lazy ``torch.library.custom_op``. It does not register autograd.
-* ``ragged_dot_int4(...)`` and ``ragged_dot_int4_bwd(...)`` are Triton-JIT
-  ragged kernels. They are not packaged HSACO artifacts.
+* ``ragged_dot_int4(...)`` and ``ragged_dot_int4_bwd(...)`` prefer packaged
+  ragged HSACO artifacts for generated configs and fall back to Triton JIT
+  unless ``use_native=True`` is passed.
 
 Dense native kernels support ``GemmLayout.NN``, ``GemmLayout.NT``, and
-``GemmLayout.TN``. Ragged int4 kernels support ``NN``, ``NT``, ``TN``, and
-``TT``. Native ``TT`` dispatch is not generated.
+``GemmLayout.TN``. Ragged native/JIT kernels support ``NN``, ``NT``,
+``TN``, and ``TT``. Dense native ``TT`` dispatch is not generated.
 
 The dense native launch contract is checked against the selected kernel:
 
@@ -68,7 +69,8 @@ Dense autotuning uses the same contract:
    out = explicit_mm(a, b, kernel=result.best_kernel, a_scale=a_scale, b_scale=b_scale)
 
 Ragged autotuning uses Triton-JIT candidate configs rather than packaged dense
-artifacts:
+artifacts. The packaged ragged matrix is regenerated from the same configs
+for the default native path:
 
 .. code-block:: python
 

@@ -4,15 +4,24 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2880 generated kernels:
+The checked-in native matrix contains 2880 dense generated kernels plus 80
+ragged generated artifacts:
 
-* dtypes: ``int4 x int4`` and ``int8 x int8``;
+* dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
 * scales: BF16 per-channel plus BF16 subchannel scales ``32``, ``64``,
   ``128``, and ``256``;
 * epilogues: plain scaled GEMM, ReLU^2, and fused SwiGLU up/gate;
 * schedules: standard plus an opt-in persistent schedule for plain int4 GEMM;
 * split-K: ``1``, ``2``, ``4``, and ``8`` for plain GEMM.
+
+The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
+``TT`` layouts, BF16 per-channel plus BF16 subchannel scales ``32``, ``64``,
+``128``, and ``256``, and both ``evenk`` and ``maskk`` variants.
+``RaggedDotConfig()`` and ``RaggedBwdDotConfig()`` are the packaged tile
+source of truth. The packaged forward config is
+``BM64_BN256_BK64_GST1_W8_S3`` and stores BF16. The packaged backward config
+is ``BM64_BN256_BK64_W8_S3_SK1`` and stores FP32.
 
 The native registry includes both ``evenk`` and ``maskk`` artifact labels for
 regeneration/debugging history. Public dense selection, ``mm(...)``, and
@@ -109,6 +118,30 @@ The dense tile-size families generated for each native layout are:
      - ``32`` or ``64``
      - ``1``
 
+Ragged artifact families are generated separately from the dense registry:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Mode
+     - Layouts
+     - Scales
+     - Config
+     - Variants
+     - Output
+   * - forward M-ragged
+     - ``NN``, ``NT``, ``TN``, ``TT``
+     - per-channel, subchannel ``32/64/128/256``
+     - ``BM64_BN256_BK64_GST1_W8_S3``
+     - ``evenk``, ``maskk``
+     - BF16
+   * - backward K-ragged
+     - ``NN``, ``NT``, ``TN``, ``TT``
+     - per-channel, subchannel ``32/64/128/256``
+     - ``BM64_BN256_BK64_W8_S3_SK1``
+     - ``evenk``, ``maskk``
+     - FP32
+
 Shape Contract
 --------------
 
@@ -147,8 +180,8 @@ Layouts
 
 Packaged dense native dispatch supports ``NN``, ``NT``, and ``TN``.
 ``GemmLayout.TT`` exists as a metadata value, but dense packaged native
-dispatch is generated only for ``NN``, ``NT``, and ``TN``. The ragged
-Triton-JIT paths support ``TT``.
+dispatch is generated only for ``NN``, ``NT``, and ``TN``. Ragged packaged
+HSACO and JIT fallback paths support ``NN``, ``NT``, ``TN``, and ``TT``.
 
 .. list-table::
    :header-rows: 1
@@ -170,9 +203,9 @@ Triton-JIT paths support ``TT``.
      - ``(K, N)``
      - ``(M, N)``
    * - ``TT``
-     - reserved
-     - reserved
-     - not packaged
+     - ``(K, M)``
+     - ``(N, K)``
+     - ragged packaged/JIT only
 
 Packed int4 operands halve the logical K dimension:
 
@@ -191,6 +224,9 @@ Packed int4 operands halve the logical K dimension:
    * - ``TN``
      - ``(K / 2, M)``
      - ``(K / 2, N)``
+   * - ``TT``
+     - ``(K / 2, M)``
+     - ``(N, K / 2)``
 
 Scales and Outputs
 ------------------

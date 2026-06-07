@@ -5,19 +5,20 @@ from functools import lru_cache
 from typing import Any
 
 from .metadata import GemmLayout, ScaleMode, ScaleSpec
+from .ragged_artifacts import RAGGED_BWD, RAGGED_EVEN_K, RAGGED_FWD, RAGGED_MASK_K
 
 
 @dataclass(frozen=True, slots=True)
 class RaggedDotConfig:
     """Triton launch configuration for forward ragged int4 dot."""
 
-    block_m: int = 16
-    block_n: int = 128
-    block_k: int = 32
+    block_m: int = 64
+    block_n: int = 256
+    block_k: int = 64
     align_tile: int = 8
     group_size_tasks: int = 1
     enable_even_k_fast_path: bool = True
-    num_warps: int = 4
+    num_warps: int = 8
     num_stages: int = 3
 
     def __post_init__(self) -> None:
@@ -39,11 +40,11 @@ class RaggedDotConfig:
 class RaggedBwdDotConfig:
     """Triton launch configuration for K-ragged split-K int4 backward dot."""
 
-    block_m: int = 32
-    block_n: int = 128
+    block_m: int = 64
+    block_n: int = 256
     block_k: int = 64
     split_k: int = 1
-    num_warps: int = 4
+    num_warps: int = 8
     num_stages: int = 3
     enable_even_k_fast_path: bool = True
 
@@ -86,6 +87,25 @@ def _triton() -> tuple[Any, Any]:
     except ImportError as exc:
         raise RuntimeError("triton is required for ragged_dot_int4") from exc
     return triton, tl
+
+
+def _have_triton() -> bool:
+    try:
+        import triton  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def _cdiv(x: int, y: int) -> int:
+    return (x + y - 1) // y
+
+
+def _raise_or_fallback(use_native: bool | None, exc: Exception) -> None:
+    if use_native is True:
+        raise exc
+
 
 
 def _is_integer_dtype(torch: Any, dtype: Any) -> bool:
@@ -184,6 +204,7 @@ def calculate_group_info(
     *,
     tid_size: int | None = None,
     align_tile: int = 8,
+    allow_triton: bool = True,
 ) -> RaggedGroupInfo:
     """Calculate aligned row-block assignments.
 
@@ -197,6 +218,11 @@ def calculate_group_info(
     If ``tid_size`` is omitted, output tensors are sized to exactly
     ``num_tasks``. If it is provided, it must be at least ``num_tasks`` and the
     extra slots are zero-filled with ``actual_size == 0``.
+
+    For CUDA inputs the task tensors are built with a Triton kernel by default;
+    set ``allow_triton=False`` to use the pure-PyTorch path instead (identical
+    results), which the native HSACO ragged dispatch uses so it does not require
+    Triton at runtime.
     """
 
     torch = _torch()
@@ -255,7 +281,7 @@ def calculate_group_info(
         return _empty_group_info(torch, device=sizes.device, capacity=0, num_tasks=num_tasks)
 
     info = _empty_group_info(torch, device=sizes.device, capacity=capacity, num_tasks=num_tasks)
-    if sizes.is_cuda:
+    if sizes.is_cuda and allow_triton and _have_triton():
         triton, _ = _triton()
         block_tasks = 256
         search_steps = max(1, groups.bit_length())
@@ -991,8 +1017,11 @@ def ragged_dot_int4(
     layout: GemmLayout = GemmLayout.NN,
     out: Any | None = None,
     output_dtype: Any | None = None,
+    use_native: bool | None = None,
+    native_root: str | None = None,
+    native_library_path: str | None = None,
 ) -> Any:
-    """Forward grouped ragged int4 dot using Triton ``tl.dot_scaled``.
+    """Forward grouped ragged int4 dot using packaged HSACO or Triton ``tl.dot_scaled``.
 
     For ``layout=GemmLayout.NN``, ``lhs`` has shape ``(M, K / 2)`` and
     ``rhs`` has shape ``(G, K / 2, N)``. ``NT``, ``TN``, and ``TT`` use the
@@ -1008,13 +1037,13 @@ def ragged_dot_int4(
     * subchannel ``S``: ``a_scale[M, ceil(K / S)]`` and weight-matched
       ``b_scale[G, ceil(K / S), N]``.
 
-    This is a Triton-JIT path, not a packaged HSACO dispatch path. It does not
-    register autograd.
+    By default the function uses a packaged HSACO artifact when available and
+    falls back to Triton JIT otherwise. Set ``use_native=True`` to require the
+    packaged path. It does not register autograd.
     """
 
     layout = _check_layout(layout)
     torch = _torch()
-    triton, _ = _triton()
 
     _require_cuda_tensor(torch, "lhs", lhs)
     _require_cuda_tensor(torch, "rhs", rhs)
@@ -1036,7 +1065,13 @@ def ragged_dot_int4(
     _validate_group_sizes(torch, group_sizes, groups=groups, rows=rows)
     if group_sizes.device != lhs.device:
         group_sizes = group_sizes.to(device=lhs.device)
-    group_info = calculate_group_info(group_sizes, config.block_m, align_tile=config.align_tile)
+    try_native = use_native is not False and a_scale is not None and b_scale is not None
+    group_info = calculate_group_info(
+        group_sizes,
+        config.block_m,
+        align_tile=config.align_tile,
+        allow_triton=not try_native,
+    )
 
     _require_bfloat16_scale(torch, "a_scale", a_scale)
     _require_bfloat16_scale(torch, "b_scale", b_scale)
@@ -1054,7 +1089,7 @@ def ragged_dot_int4(
     if scale.mode is ScaleMode.SUBCHANNEL:
         if subchannel % 2 != 0:
             raise ValueError("subchannel_size must be even for packed int4 operands")
-        scale_cols = triton.cdiv(logical_k, subchannel)
+        scale_cols = _cdiv(logical_k, subchannel)
     _validate_scale_shapes(
         a_scale=a_scale,
         b_scale=b_scale,
@@ -1084,16 +1119,49 @@ def ragged_dot_int4(
         if not out.is_contiguous():
             raise ValueError("out must be contiguous")
 
-    grid = (
-        group_info.num_tasks * triton.cdiv(cols, config.block_n),
-    )
-    if grid[0] == 0:
+    if group_info.num_tasks == 0:
         return out
 
     use_even_k_fast_path = _can_use_even_k_fast_path(
         logical_k=logical_k,
         scale=scale,
         config=config,
+    )
+    variant = RAGGED_EVEN_K if use_even_k_fast_path else RAGGED_MASK_K
+    if try_native:
+        if output_dtype is not torch.bfloat16:
+            if use_native is True:
+                raise ValueError("native ragged forward dispatch currently supports torch.bfloat16 output only")
+        else:
+            try:
+                from .native import launch_ragged_fwd_kernel
+
+                return launch_ragged_fwd_kernel(
+                    lhs,
+                    rhs,
+                    group_info=group_info,
+                    a_scale=a_scale,
+                    b_scale=b_scale,
+                    out=out,
+                    scale=scale,
+                    config=config,
+                    layout=layout,
+                    variant=variant,
+                    rows=rows,
+                    cols=cols,
+                    k_packed=k_packed,
+                    scale_cols=scale_cols,
+                    root=native_root,
+                    library_path=native_library_path,
+                )
+            except Exception as exc:
+                _raise_or_fallback(use_native, exc)
+    elif use_native is True:
+        raise ValueError("native ragged forward dispatch requires a_scale and b_scale")
+
+    triton, _ = _triton()
+    grid = (
+        group_info.num_tasks * _cdiv(cols, config.block_n),
     )
     if use_even_k_fast_path:
         kernel = _ragged_dot_int4_even_k_kernel()
@@ -1172,6 +1240,9 @@ def ragged_dot_int4_bwd(
     config: RaggedBwdDotConfig = RaggedBwdDotConfig(),
     layout: GemmLayout = GemmLayout.NN,
     out: Any | None = None,
+    use_native: bool | None = None,
+    native_root: str | None = None,
+    native_library_path: str | None = None,
 ) -> Any:
     """Grouped K-ragged split-K int4 dot for backward-style reductions.
 
@@ -1195,7 +1266,6 @@ def ragged_dot_int4_bwd(
 
     layout = _check_layout(layout)
     torch = _torch()
-    triton, _ = _triton()
 
     _require_cuda_tensor(torch, "lhs", lhs)
     _require_cuda_tensor(torch, "rhs", rhs)
@@ -1229,7 +1299,7 @@ def ragged_dot_int4_bwd(
         subchannel = scale.subchannel_size or 0
         if subchannel % 2 != 0:
             raise ValueError("subchannel_size must be even for packed int4 operands")
-        scale_cols = triton.cdiv(logical_k_capacity, subchannel)
+        scale_cols = _cdiv(logical_k_capacity, subchannel)
     else:
         subchannel = 0
         scale_cols = 1
@@ -1260,11 +1330,8 @@ def ragged_dot_int4_bwd(
     if config.split_k > 1:
         out.zero_()
 
-    grid = (
-        groups * triton.cdiv(rows, config.block_m) * triton.cdiv(cols, config.block_n),
-        config.split_k,
-    )
-    if grid[0] == 0:
+    grid_x = groups * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n)
+    if grid_x == 0:
         return out
 
     use_even_k_fast_path = _can_use_bwd_even_k_fast_path(
@@ -1272,6 +1339,39 @@ def ragged_dot_int4_bwd(
         group_sizes=host_group_sizes,
         scale=scale,
         config=config,
+    )
+    variant = RAGGED_EVEN_K if use_even_k_fast_path else RAGGED_MASK_K
+    if use_native is not False and a_scale is not None and b_scale is not None:
+        try:
+            from .native import launch_ragged_bwd_kernel
+
+            return launch_ragged_bwd_kernel(
+                lhs,
+                rhs,
+                group_sizes,
+                a_scale=a_scale,
+                b_scale=b_scale,
+                out=out,
+                scale=scale,
+                config=config,
+                layout=layout,
+                variant=variant,
+                rows=rows,
+                cols=cols,
+                k_packed=k_packed,
+                scale_cols=scale_cols,
+                root=native_root,
+                library_path=native_library_path,
+            )
+        except Exception as exc:
+            _raise_or_fallback(use_native, exc)
+    elif use_native is True:
+        raise ValueError("native ragged backward dispatch requires a_scale and b_scale")
+
+    triton, _ = _triton()
+    grid = (
+        grid_x,
+        config.split_k,
     )
     _ragged_dot_int4_bwd_kernel()[grid](
         lhs,

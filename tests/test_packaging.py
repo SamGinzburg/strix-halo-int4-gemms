@@ -84,6 +84,21 @@ def test_native_dispatcher_loads_hip_runtime_dynamically() -> None:
     assert "libamdhip64.so" in dispatch
 
 
+def test_native_dispatcher_exports_ragged_hsaco_entrypoints() -> None:
+    native_py = (REPO_ROOT / "src" / "amd_strix_halo_kernels" / "native.py").read_text()
+    dispatch = (REPO_ROOT / "native" / "src" / "dispatch.cpp").read_text()
+
+    assert "amd_strix_halo_kernels_launch_ragged_fwd_hsaco" in dispatch
+    assert "amd_strix_halo_kernels_launch_ragged_bwd_hsaco" in dispatch
+    assert "library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.argtypes" in native_py
+    assert "library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.argtypes" in native_py
+    assert "runtime_scalar_args" in native_py
+    assert "has_scale_cols_arg" in native_py
+    assert "params_without_scale_cols" in dispatch
+    assert "params_with_scale_cols" in dispatch
+    assert "&num_tasks" in dispatch
+
+
 def test_check_wheel_portability_accepts_python_abi_neutral_tag(tmp_path) -> None:
     wheel_path = tmp_path / "example-0.1.0-py3-none-linux_x86_64.whl"
     with zipfile.ZipFile(wheel_path, "w") as wheel:

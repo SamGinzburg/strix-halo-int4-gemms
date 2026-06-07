@@ -12,7 +12,12 @@ TRITON_TEXT_ARTIFACT_EXTENSIONS = {
     "llir": ".llir",
 }
 TRITON_TEXT_ARTIFACT_PATTERNS = tuple(f"*{extension}" for extension in TRITON_TEXT_ARTIFACT_EXTENSIONS.values())
-GENERIC_AMDGCN_SYMBOLS = ("_int4_scaled_gemm_persistent", "_int4_scaled_gemm", "_int8_scaled_gemm")
+GENERIC_AMDGCN_SYMBOLS = (
+    "_int4_scaled_gemm_persistent",
+    "_int4_scaled_gemm",
+    "_int8_scaled_gemm",
+    "kernel",
+)
 
 
 def display_path(path: Path, *, root: Path | None = None) -> str:
@@ -68,18 +73,24 @@ def amdgcn_symbol_for_kernel_id(kernel_id: str) -> str:
 
 def uniquify_amdgcn_symbols(amdgcn: str, *, kernel_id: str) -> tuple[str, str]:
     replacement = amdgcn_symbol_for_kernel_id(kernel_id)
-    globals_ = set(re.findall(r"(?m)^\s*\.globl\s+([A-Za-z0-9_.$]+)", amdgcn))
-    if globals_:
-        matches = [symbol for symbol in GENERIC_AMDGCN_SYMBOLS if symbol in globals_]
-    else:
+    declared_symbols = set(re.findall(r"(?m)^\s*\.globl\s+([A-Za-z0-9_.$]+)", amdgcn))
+    declared_symbols.update(re.findall(r"(?m)^\s*\.name:\s+([A-Za-z0-9_.$]+)", amdgcn))
+    declared_symbols.update(re.findall(r"(?m)^\s*\.amdhsa_kernel\s+([A-Za-z0-9_.$]+)", amdgcn))
+    declared_symbols.update(symbol.removesuffix(".kd") for symbol in re.findall(r"(?m)^\s*\.symbol:\s+([A-Za-z0-9_.$]+)", amdgcn))
+    declared_symbols.update(re.findall(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_.$]*):", amdgcn))
+    matches = [symbol for symbol in GENERIC_AMDGCN_SYMBOLS if symbol in declared_symbols]
+    if not matches:
+        legacy_symbols = tuple(symbol for symbol in GENERIC_AMDGCN_SYMBOLS if symbol != "kernel")
         matches = [
             symbol
-            for symbol in GENERIC_AMDGCN_SYMBOLS
+            for symbol in legacy_symbols
             if re.search(rf"(?<![A-Za-z0-9_.$]){re.escape(symbol)}(?![A-Za-z0-9_.$])", amdgcn)
         ]
     if len(matches) != 1:
         raise ValueError(f"expected exactly one generic AMDGCN symbol in {kernel_id}; found {matches}")
-    return amdgcn.replace(matches[0], replacement), replacement
+    generic_symbol = matches[0]
+    pattern = rf"(?<![A-Za-z0-9_.$]){re.escape(generic_symbol)}(?![A-Za-z0-9_$])"
+    return re.sub(pattern, replacement, amdgcn), replacement
 
 
 def clean_generated_outputs(out_dir: Path, triton_out_dir: Path | None) -> int:

@@ -151,6 +151,27 @@ def test_calculate_group_info_rejects_small_tid_size() -> None:
         calculate_group_info(group_sizes, tile=32, tid_size=2, align_tile=8)
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA/HIP to compare the Triton build path")
+@pytest.mark.parametrize(
+    "sizes,tile,tid_size",
+    [
+        ([512] * 8, 64, None),
+        ([300, 0, 1000, 17, 2779], 64, None),
+        ([1] * 16, 32, None),
+        ([4096], 128, None),
+        ([7, 9, 0, 40], 16, None),
+        ([512] * 8, 64, 600),
+    ],
+)
+def test_calculate_group_info_torch_matches_triton_on_cuda(sizes, tile, tid_size) -> None:
+    gs = torch.tensor(sizes, dtype=torch.int32, device="cuda")
+    triton_info = calculate_group_info(gs, tile, tid_size=tid_size, allow_triton=True)
+    torch_info = calculate_group_info(gs, tile, tid_size=tid_size, allow_triton=False)
+    assert triton_info.num_tasks == torch_info.num_tasks
+    for field in ("group_id", "block_start", "actual_start", "actual_end", "start_within_block", "actual_size"):
+        assert torch.equal(getattr(triton_info, field), getattr(torch_info, field)), field
+
+
 def test_ragged_dot_config_rejects_invalid_swizzle_width() -> None:
     with pytest.raises(ValueError, match="group_size_tasks must be positive"):
         RaggedDotConfig(group_size_tasks=0)

@@ -19,6 +19,7 @@ from .benchmarking import (
 )
 from .heuristics import kernel_supports_shape
 from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode, ScaleSpec
+from .ragged_artifacts import ragged_config_label
 from .native import amdgcn_metadata_path_for_kernel_id, launch_generated_kernel
 from .quant import fake_quant_int, pack_int4_k_major
 from .ragged import (
@@ -64,7 +65,7 @@ class RaggedAutotuneCandidate:
 
     @property
     def config_label(self) -> str:
-        return _ragged_config_label(self.config)
+        return ragged_config_label(self.config)
 
     @property
     def kernel_id(self) -> str:
@@ -518,13 +519,6 @@ def _normalize_ragged_candidates(
         else:
             raise TypeError(f"unsupported ragged autotune candidate {candidate!r}")
     return tuple(normalized)
-
-
-def _ragged_config_label(config: RaggedDotConfig | RaggedBwdDotConfig) -> str:
-    base = f"BM{config.block_m}_BN{config.block_n}_BK{config.block_k}"
-    if isinstance(config, RaggedDotConfig):
-        return f"{base}_GST{config.group_size_tasks}_W{config.num_warps}_S{config.num_stages}"
-    return f"{base}_W{config.num_warps}_S{config.num_stages}_SK{config.split_k}"
 
 
 def _pack_ragged_fwd_rhs(torch: Any, b_q: Any, layout: GemmLayout) -> Any:

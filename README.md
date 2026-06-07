@@ -5,13 +5,18 @@ Strix Halo (`gfx1151`). The package focuses on fast quantized GEMMs: particularl
 `int4 x int4`, with `int8 x int8` support as well. Per-channel and subchannel
 quant with BF16 scales, optional ReLU^2, and fused SwiGLU up/gate epilogues.
 
-Why? Well, GFX1151 has 2x the throughput with int4 MMA---a feature that essentially no ML framework or DSL supports (largely because the rest of the industry moved to block scaled fp4).
+GFX1151 exposes higher theoretical throughput for int4 MMA than for int8 or
+BF16 GEMM. This package provides generated kernels that use that path
+directly, with explicit quantized inputs and BF16 scale tensors.
 
-This package lets you use int4xint4 mma on GFX1151, unlocking a ~2x speedup over int8/bf16 (which run at equivalent rates on GFX1151).
+The artifacts are generated with a custom Triton branch that adds int4
+`dot_scaled` lowering for Strix Halo and includes additional AMD backend
+optimizations. Regeneration requires that branch; installing and launching a
+built wheel does not require Triton.
 
-To generate this, I vibe coded a custom Triton fork, where I added support for int4 mma on GFX1151, and another small epilogue optimization in the AMD backend. The Triton kernels used to generate these GEMMs will only compile with this fork of Triton. OAI is extremely unlikely to upstream the int4 support, but the epilogue optimization could maybe be upstreamed if I get free time later.
-
-Disclaimer: This package is largely vibe coded, with unit tests used to verify numerics. I didn't thoroughly audit all of it, because I don't have the time and it seems to work as-is.
+Status: this is an experimental, hardware-specific package. Numerics are
+covered by focused tests and random fake-quant references, but callers should
+treat the APIs and generated matrix as evolving while the library matures.
 
 The Python package provides:
 
@@ -108,11 +113,11 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `mm(...)` | Surface API for regular single-output GEMMs. Supports plain GEMM and ReLU^2. |
 | `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
-| `ragged_dot_int4(...)` | Forward Triton-JIT kernel for grouped ragged packed-int4 dot. |
-| `ragged_dot_int4_bwd(...)` | K-ragged split-K Triton-JIT kernel (targeted at BWD) |
+| `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
+| `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `calculate_group_info(...)` | Build compact aligned row-block tasks from `group_sizes`. |
-| `autotune(...)` | Benchmark compatible packaged kernels for one shape. |
-| `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidates for one shape. |
+| `autotune(...)` | Benchmark compatible packaged dense kernels for one shape. |
+| `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidate configs for one shape. |
 | `default_registry` | Metadata registry for dtype, layout, scale mode, epilogue, schedule, tile, `split_k`, and `even_k`. |
 | `torch_gemm(...)` | Lazy `torch.library.custom_op` wrapper around native dispatch. |
 | `dispatch_runtime_status()` | Inspect HIP and packaged code-object availability. |
@@ -141,9 +146,9 @@ Dense native dispatch works with already-quantized tensors. The selected
 | `GemmLayout.NT` | `(M, K)` | `(N, K)` | `(M, K / 2)` | `(N, K / 2)` |
 | `GemmLayout.TN` | `(K, M)` | `(K, N)` | `(K / 2, M)` | `(K / 2, N)` |
 
-Packaged native dispatch supports `GemmLayout.NN`, `GemmLayout.NT`, and
-`GemmLayout.TN`; `GemmLayout.TT` is available only in the ragged Triton-JIT
-paths.
+Packaged dense native dispatch supports `GemmLayout.NN`, `GemmLayout.NT`, and
+`GemmLayout.TN`. Ragged packaged HSACO and Triton-JIT fallback paths support
+`GemmLayout.NN`, `GemmLayout.NT`, `GemmLayout.TN`, and `GemmLayout.TT`.
 
 `mm(...)` selects a compatible standard or persistent kernel from the registry:
 
@@ -291,8 +296,13 @@ training-oriented paths; hidden copies would make timings misleading.
 
 ## Ragged Dot
 
-`ragged_dot_int4(...)` is a forward Triton-JIT implementation for grouped
-ragged dot, modeled after the `jax.lax.ragged_dot` API shape:
+`ragged_dot_int4(...)` is a forward grouped ragged dot API, modeled after the
+`jax.lax.ragged_dot` shape contract. By default it launches a packaged HSACO
+artifact when the requested layout, scale mode, config, and even-K/masked
+variant are in the generated matrix; otherwise it falls back to Triton JIT. Set
+`use_native=True` to require packaged HSACO and fail instead of falling back.
+Set `use_native=False` to force JIT compilation. `RaggedDotConfig()` and
+`RaggedBwdDotConfig()` default to the shipped precompiled tiles.
 
 ```python
 from amd_strix_halo_kernels import GemmLayout, RaggedDotConfig, ScaleMode, ScaleSpec, ragged_dot_int4
@@ -304,39 +314,41 @@ out = ragged_dot_int4(
     a_scale=a_scale,     # BF16, shape (M,)
     b_scale=b_scale,     # BF16, shape (G, N)
     scale=ScaleSpec(ScaleMode.PER_CHANNEL),
-    config=RaggedDotConfig(block_m=16, block_n=128, block_k=32, group_size_tasks=1),
+    config=RaggedDotConfig(),
     layout=GemmLayout.NN,
+    use_native=True,
 )
 ```
 
 Rows of `lhs_packed` are partitioned contiguously by `group_sizes`; rows in
 group `g` multiply `rhs_packed[g]`. Subchannel scales use
 `a_scale[M, ceil(K / S)]` and weight-matched
-`b_scale[G, ceil(K / S), N]`. This path uses
+`b_scale[G, ceil(K / S), N]`. The kernel uses
 `tl.dot_scaled(..., "int4", ..., "int4", out_dtype=tl.int32)`, applies BF16
-scales in FP32, and returns a PyTorch tensor. It is not a packaged HSACO path
-and does not provide autograd.
+scales in FP32, and stores BF16 for the packaged forward artifacts. Autograd is
+not registered.
 
 The launch uses `calculate_group_info(group_sizes, tile, align_tile=8)` to
 build compact task ids instead of a rectangular `max_group_size x G` grid.
 Each task contains `(group_id, block_start, actual_start, actual_end,
 start_within_block, actual_size)`. `block_start` is aligned down to the
 `block_m` tile boundary, while the kernel masks rows outside
-`[actual_start, actual_end)`.
+`[actual_start, actual_end)`. `calculate_group_info(..., allow_triton=False)`
+uses the pure-Torch path, so native dispatch does not require Triton to build
+this metadata.
 
-The Triton kernel takes logical `N`, packed `K`, scale-column count, and task
-count as runtime arguments. It does not bake `M`, `N`, or `K` into the compiled
-kernel. `RaggedDotConfig.group_size_tasks` controls the 1D L2 tile swizzle over
-compact row tasks and N tiles; tune it per shape if this path is used for
-performance experiments.
+The ragged kernels take logical `N`, packed `K`, scale-column count, and task
+count as runtime arguments. They do not bake `M`, `N`, or `K` into the compiled
+artifact. `RaggedDotConfig.group_size_tasks` controls the 1D L2 tile swizzle
+over compact row tasks and N tiles.
 
 When `RaggedDotConfig.enable_even_k_fast_path=True`, the library automatically
-uses an even-K fast path when `K % BLOCK_K == 0`. Subchannel fast-path dispatch
+uses an even-K artifact when `K % BLOCK_K == 0`. Subchannel fast-path dispatch
 also requires `K % SUBCHANNEL == 0` and a scale chunk size compatible with
 `BLOCK_K`. This fast path still receives `N` and packed `K` as runtime
 arguments. It keeps row and column predicates for irregular `group_sizes` and
-edge `N` tiles; only K predicates are removed inside the Triton kernel.
-Shapes with ragged K use the fully masked ragged kernel.
+edge `N` tiles; only K predicates are removed inside the kernel. Shapes with
+ragged K use the fully masked artifact.
 
 `ragged_dot_int4(...)` supports `NN`, `NT`, `TN`, and `TT` packed operand
 layouts. The transposed layouts follow the same packed-K conventions as dense
@@ -346,12 +358,14 @@ row or output-column axis.
 `ragged_dot_int4_bwd(...)` covers backward-style K-ragged reductions. Each
 group computes `out[g] = op(lhs[g]) @ op(rhs[g])` with output shape `(M, N)`
 and a group-specific reduction length `group_sizes[g]`. Operands are padded to
-a shared packed-K capacity. With `RaggedBwdDotConfig.enable_even_k_fast_path`
-enabled, the training-oriented fast path removes K masks when every non-empty
-group length is a multiple of `BLOCK_K`; subchannel scales additionally require
-each non-empty group length to be a multiple of the subchannel size. Other
-shapes use the masked K-ragged path. `split_k > 1` accumulates FP32 partials
-with atomics. Packed grouped operand shapes are:
+a shared packed-K capacity. It also prefers packaged HSACO for generated
+configs and falls back to JIT unless `use_native=True`. With
+`RaggedBwdDotConfig.enable_even_k_fast_path` enabled, the training-oriented fast
+path removes K masks when every non-empty group length is a multiple of
+`BLOCK_K`; subchannel scales additionally require each non-empty group length
+to be a multiple of the subchannel size. Other shapes use the masked K-ragged
+path. Packaged backward artifacts use `SPLIT_K=1` and store FP32 outputs.
+Packed grouped operand shapes are:
 
 - `NN`: `lhs[G, M, K / 2]`, `rhs[G, K / 2, N]`
 - `NT`: `lhs[G, M, K / 2]`, `rhs[G, N, K / 2]`
@@ -385,9 +399,10 @@ operands are padded to a per-group `k_capacity`, which defaults to
 
 ## Kernel Coverage
 
-The checked-in matrix currently contains 2880 generated kernels:
+The checked-in matrix currently contains 2880 dense generated kernels plus
+80 ragged generated artifacts:
 
-- dtypes: `int4 x int4`, `int8 x int8`,
+- dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
 - scale modes: BF16 per-channel and BF16 subchannel scales `32`, `64`, `128`,
   and `256`,
@@ -395,12 +410,19 @@ The checked-in matrix currently contains 2880 generated kernels:
 - schedules: standard plus opt-in persistent schedule for plain int4 GEMM,
 - split-K: `1`, `2`, `4`, and `8` for plain GEMM.
 
-Non-split kernels write BF16 outputs. Split-K kernels write FP32 because their
-partial tiles are reduced with FP32 atomics.
+Ragged artifacts cover forward and backward modes, `NN`/`NT`/`TN`/`TT`
+layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
+`evenk` and `maskk` variants. The dataclass defaults are the packaged tile
+source of truth. The default packaged forward config is
+`BM64_BN256_BK64_GST1_W8_S3` and stores BF16. The default packaged backward
+config is `BM64_BN256_BK64_W8_S3_SK1` and stores FP32.
+
+Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
+because their partial tiles are reduced with FP32 atomics.
 
 `GemmLayout.TT` is present as a metadata value, but dense packaged native
-dispatch is generated only for `NN`, `NT`, and `TN`. The ragged Triton-JIT paths
-support `TT`.
+dispatch is generated only for `NN`, `NT`, and `TN`. Ragged packaged HSACO and
+JIT fallback paths support `TT`.
 
 ## Performance Snapshot
 
@@ -408,8 +430,10 @@ The table below reports the latest packaged-native 4096x4096x4096 autotune
 results measured with `triton.testing.do_bench`, prepacked operands, BF16 scale
 tensors, and preallocated outputs.
 
-All benchmarks are run on a Framework Strix Halo desktop.
-I didn't lock clock frequencies or dive too much into getting exact results. The takeaway is that int4 MMA has roughly 2x the flops of int8 or bf16 on GFX1151 (as per the RDNA3.5 spec).
+All benchmarks are run on a Framework Strix Halo desktop. Clocks were not
+pinned, so treat the table as a throughput snapshot rather than a lab-grade
+hardware characterization. The key result is that int4 MMA provides roughly
+2x the throughput of int8 or BF16 on this target.
 
 | Kernel | Scale | Tile | Runtime | TOPS |
 | --- | --- | --- | ---: | ---: |
@@ -486,7 +510,14 @@ repository:
 ```bash
 TRITON_CHECKOUT=/path/to/triton
 uv run --project "$TRITON_CHECKOUT" python scripts/regenerate_amdgcn.py
+uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean --no-triton-artifacts
 ```
+
+`scripts/regenerate_amdgcn.py` regenerates the dense matrix.
+`scripts/generate_ragged_amdgcn.py` regenerates the ragged `.s` and `.json`
+artifact set. Wheel builds assemble every `kernels/amdgcn/*.s` file into
+`kernels/hsaco/*.hsaco` with ROCm `llvm-mc`/`lld`, then install the `.hsaco`
+files plus matching JSON metadata.
 
 The generated artifacts are checked in under `kernels/amdgcn/` and
 `kernels/triton/`. Do not hand-edit generated assembly or Triton IR; update the

@@ -1,0 +1,80 @@
+{
+  "amdgcn_stats": {
+    "iu4_wmma": 32,
+    "lines": 1815,
+    "waitcnt": 85
+  },
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3",
+  "arch": "gfx1151",
+  "asm_keys": [
+    "amdgcn",
+    "hsaco",
+    "llir",
+    "source",
+    "ttgir",
+    "ttir"
+  ],
+  "config": {
+    "align_tile": 8,
+    "block_k": 64,
+    "block_m": 64,
+    "block_n": 256,
+    "enable_even_k_fast_path": false,
+    "group_size_tasks": 1,
+    "num_stages": 3,
+    "num_warps": 8
+  },
+  "config_label": "BM64_BN256_BK64_GST1_W8_S3",
+  "family": "ragged_dot_int4",
+  "kernel_arg_layout": {
+    "by_value_arg_count": 5,
+    "by_value_offsets": [
+      72,
+      76,
+      80,
+      84,
+      88
+    ],
+    "hidden_global_buffer_offsets": [
+      96,
+      104
+    ],
+    "runtime_scalar_args": [
+      "M",
+      "N",
+      "K_PACKED",
+      "SCALE_COLS",
+      "NUM_TASKS"
+    ]
+  },
+  "kernel_id": "gfx1151_ragged_int4_fwd_tt_sc64_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3",
+  "launch_metadata": {
+    "dynamic_grid": 1,
+    "grid_x": 0,
+    "grid_y": 0,
+    "num_ctas": 1,
+    "num_warps": 8,
+    "persistent": 0,
+    "shared_memory_bytes": 2048
+  },
+  "layout": "tt",
+  "mode": "fwd",
+  "output_dtype": "bfloat16",
+  "rhs_subchannel_scale_layout": "kgroup_output",
+  "runtime_shape_args": [
+    "M",
+    "N",
+    "K_PACKED",
+    "SCALE_COLS",
+    "NUM_TASKS"
+  ],
+  "scale": {
+    "mode": "subchannel",
+    "subchannel_size": 64
+  },
+  "shape_specialization": "runtime",
+  "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
+  "status": "generated",
+  "triton_artifacts": {},
+  "variant": "maskk"
+}

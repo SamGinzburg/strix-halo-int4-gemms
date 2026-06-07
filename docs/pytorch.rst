@@ -31,10 +31,10 @@ Which API to Call
      - Native HSACO, no autograd registration
    * - ``ragged_dot_int4(...)``
      - Forward M-ragged grouped int4 dot
-     - Triton-JIT, ``NN``/``NT``/``TN``/``TT``
+     - Packaged HSACO for generated configs, JIT fallback, ``NN``/``NT``/``TN``/``TT``
    * - ``ragged_dot_int4_bwd(...)``
      - Backward-style K-ragged grouped int4 dot
-     - Triton-JIT, ``NN``/``NT``/``TN``/``TT``
+     - Packaged HSACO for generated configs, JIT fallback, ``NN``/``NT``/``TN``/``TT``
    * - ``autotune(...)``
      - Time dense packaged kernels for one logical shape
      - Native HSACO candidates only
@@ -254,10 +254,14 @@ does not register autograd.
 Ragged Dot
 ----------
 
-``ragged_dot_int4(...)`` is a forward Triton-JIT kernel for grouped
-ragged dot. It follows the same high-level shape model as
-``jax.lax.ragged_dot``: ``group_sizes`` partitions the rows of ``lhs`` into
-contiguous groups, and group ``g`` multiplies ``rhs[g]``.
+``ragged_dot_int4(...)`` is a forward grouped ragged dot API. It follows the
+same high-level shape model as ``jax.lax.ragged_dot``: ``group_sizes``
+partitions the rows of ``lhs`` into contiguous groups, and group ``g``
+multiplies ``rhs[g]``. By default it launches packaged HSACO for generated
+configs and falls back to Triton JIT when no matching artifact is present. Pass
+``use_native=True`` to require packaged HSACO; pass ``use_native=False`` to
+force JIT. ``RaggedDotConfig()`` and ``RaggedBwdDotConfig()`` default to
+the shipped precompiled tiles.
 
 .. code-block:: python
 
@@ -273,15 +277,16 @@ contiguous groups, and group ``g`` multiplies ``rhs[g]``.
        a_scale=a_scale,
        b_scale=b_scale,
        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
-       config=RaggedDotConfig(block_m=16, block_n=128, block_k=32, group_size_tasks=1),
+       config=RaggedDotConfig(),
        layout=GemmLayout.NN,
+       use_native=True,
    )
 
 Per-channel scales use ``a_scale[M]`` and ``b_scale[G, N]``. Subchannel scales
 use ``a_scale[M, ceil(K / S)]`` and weight-matched
-``b_scale[G, ceil(K / S), N]``. This path uses Triton ``tl.dot_scaled`` with
-int32 accumulation, then applies BF16 scales in FP32 before storing BF16 or
-FP32 output. It is a Triton-JIT path, not a packaged HSACO dispatch path.
+``b_scale[G, ceil(K / S), N]``. The kernel uses Triton ``tl.dot_scaled`` with
+int32 accumulation, then applies BF16 scales in FP32. Packaged forward artifacts
+store BF16 output; the JIT fallback can also store FP32 when requested.
 Autograd is not registered.
 
 Internally, ``calculate_group_info(group_sizes, tile, align_tile=8)`` builds
@@ -289,7 +294,7 @@ a compact task list with ``group_id``, ``block_start``,
 ``actual_start``, ``actual_end``, ``start_within_block``, and ``actual_size``.
 The ragged kernel launches over those tasks, so empty groups and uneven group
 sizes do not expand into a rectangular ``max_group_size x G`` launch grid.
-The Triton kernel receives logical ``N``, packed ``K``, scale-column count, and
+The ragged kernels receive logical ``N``, packed ``K``, scale-column count, and
 task count as runtime arguments rather than shape-specializing on ``M``, ``N``,
 or ``K``. ``RaggedDotConfig.group_size_tasks`` controls the 1D L2 swizzle over
 compact row tasks and N tiles.
@@ -300,7 +305,7 @@ scales also require ``K % SUBCHANNEL == 0`` and a scale chunk size compatible
 with ``BLOCK_K``. The fast path still passes ``N`` and packed ``K`` as runtime
 arguments. It keeps row and column predicates for irregular ``group_sizes`` and
 edge ``N`` tiles; only K predicates are removed inside the kernel. Shapes with
-ragged K use the fully masked ragged kernel.
+ragged K use the fully masked ragged artifact or JIT kernel.
 
 ``ragged_dot_int4(...)`` supports ``NN``, ``NT``, ``TN``, and ``TT`` packed
 operand layouts. Transposed operands use the same packed-K conventions as the
@@ -309,13 +314,15 @@ dense GEMM APIs.
 ``ragged_dot_int4_bwd(...)`` is the backward-style K-ragged companion. Each
 group computes ``out[g] = op(lhs[g]) @ op(rhs[g])`` with output shape
 ``(M, N)`` and reduction length ``group_sizes[g]``. Operands are padded to a
-common packed-K capacity. With
+common packed-K capacity. It uses packaged HSACO for the generated
+``BM64_BN256_BK64_W8_S3_SK1`` configs and falls back to JIT otherwise, unless
+``use_native=True`` is passed. With
 ``RaggedBwdDotConfig.enable_even_k_fast_path`` enabled, the
 training-oriented fast path removes K masks when every non-empty group length
 is a multiple of ``BLOCK_K``; subchannel scales additionally require each
 non-empty group length to be a multiple of the subchannel size. Other shapes
-use the masked K-ragged path. ``split_k > 1`` accumulates FP32 partials with
-atomics. The grouped packed operand shapes are:
+use the masked K-ragged path. Packaged backward artifacts store FP32 output.
+The grouped packed operand shapes are:
 
 * ``NN``: ``lhs[G, M, K / 2]`` and ``rhs[G, K / 2, N]``;
 * ``NT``: ``lhs[G, M, K / 2]`` and ``rhs[G, N, K / 2]``;
@@ -323,8 +330,11 @@ atomics. The grouped packed operand shapes are:
 * ``TT``: ``lhs[G, K / 2, M]`` and ``rhs[G, N, K / 2]``.
 
 Use ``autotune_ragged_dot(...)`` when the goal is to pick a fast Triton-JIT
-ragged configuration for one shape. It supports both ``RaggedDotMode.FWD`` and
-``RaggedDotMode.BWD``, benchmarks candidate ``RaggedDotConfig`` or
+ragged configuration for one shape. The packaged ragged matrix currently uses
+the default generated configs described above; autotuning remains a JIT timing
+API for exploring additional configs before regenerating artifacts. It
+supports both ``RaggedDotMode.FWD`` and ``RaggedDotMode.BWD``, benchmarks
+candidate ``RaggedDotConfig`` or
 ``RaggedBwdDotConfig`` values with ``triton.testing.do_bench``, and returns the
 best candidate plus all timing records. Forward group sizes must sum to
 ``M``. For backward autotuning, ``k`` is the logical total reduction work and

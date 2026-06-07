@@ -48,11 +48,12 @@ It then benchmarks each launchable candidate with ``triton.testing.do_bench``.
        benchmark_db_path="benchmarks/local_autotune.json",
    )
 
-``autotune_ragged_dot(...)`` is the ragged Triton-JIT API. In forward mode,
-``group_sizes`` partitions ``M`` rows. In backward mode, ``group_sizes``
-partitions logical ``K`` and the synthetic benchmark pads each group to
-``k_capacity``. This API benchmarks ``RaggedDotConfig`` or
-``RaggedBwdDotConfig`` candidates, not packaged HSACO artifacts.
+``autotune_ragged_dot(...)`` is the ragged Triton-JIT timing API. In forward
+mode, ``group_sizes`` partitions ``M`` rows. In backward mode,
+``group_sizes`` partitions logical ``K`` and the synthetic benchmark pads
+each group to ``k_capacity``. This API benchmarks ``RaggedDotConfig`` or
+``RaggedBwdDotConfig`` candidates. The packaged ragged HSACO matrix is
+generated from selected configs after tuning.
 
 Peak 4096^3 Results
 -------------------
@@ -109,8 +110,10 @@ Peak 4096^3 Results
 Ragged Dot Results
 ------------------
 
-The ragged-dot rows below use Triton-JIT rather than packaged HSACO dispatch.
-Timings use 8 RHS groups, prepacked operands, BF16 scales, preallocated
+The ragged-dot rows below are Triton-JIT tuning records, not separate native
+dispatch timings. The packaged ragged HSACO artifacts cover the default
+generated configs so installed wheels can avoid JIT compilation for those
+paths. Timings use 8 RHS groups, prepacked operands, BF16 scales, preallocated
 outputs, and exclude quantization/packing. The checked-in sweep contains 816
 candidate timing records across 3 runtime shapes, balanced/uneven group-size
 patterns, all four layouts, per-channel/subchannel-256 scales, forward

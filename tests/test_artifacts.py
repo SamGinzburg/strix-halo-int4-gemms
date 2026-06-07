@@ -100,6 +100,24 @@ _int4_scaled_gemm_persistent:
     assert "amd_strix_halo_gfx1151_persistent.kd" in rewritten
 
 
+def test_uniquify_amdgcn_symbols_handles_nested_ragged_kernel_symbol() -> None:
+    amdgcn = """
+        .globl  kernel
+kernel:
+        .amdhsa_kernel kernel
+                .amdhsa_kernarg_size 112
+        .end_amdhsa_kernel
+    .symbol:         kernel.kd
+"""
+    rewritten, symbol = uniquify_amdgcn_symbols(amdgcn, kernel_id="gfx1151_ragged_example")
+
+    assert symbol == amdgcn_symbol_for_kernel_id("gfx1151_ragged_example")
+    assert ".amdhsa_kernel " + symbol in rewritten
+    assert ".end_amdhsa_kernel" in rewritten
+    assert ".end_amdhsa_" + symbol not in rewritten
+    assert "kernel.kd" not in rewritten
+
+
 def test_uniquify_amdgcn_symbols_rejects_missing_or_ambiguous_symbols() -> None:
     with pytest.raises(ValueError, match="exactly one"):
         uniquify_amdgcn_symbols("no kernel here", kernel_id="gfx1151_missing")

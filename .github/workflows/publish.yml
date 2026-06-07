@@ -1,0 +1,71 @@
+name: Publish wheel
+
+# The wheel embeds gfx1151 HSACO code objects that can only be assembled on a
+# ROCm host (llvm-mc + ld.lld), so it is built locally with
+# `uv run --extra publish python scripts/build_release.py` and attached to a
+# GitHub Release.
+#
+# Publishing a GitHub Release does NOT push to PyPI. This workflow is manual
+# only: run it (workflow_dispatch) to take the manylinux wheel already attached
+# to a release tag and upload it to TestPyPI or PyPI via Trusted Publishing
+# (OIDC) — no API token is stored.
+#
+# One-time setup: register this repo + workflow as a trusted publisher on PyPI
+# (and TestPyPI) and create matching `pypi` / `testpypi` GitHub environments.
+# See RELEASING.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Index to publish to
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+      tag:
+        description: Release tag to fetch the wheel from
+        required: true
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # mint the OIDC token for Trusted Publishing
+      contents: read    # gh release download
+    environment:
+      name: ${{ inputs.target == 'pypi' && 'pypi' || 'testpypi' }}
+    steps:
+      - name: Download release wheel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" --pattern '*.whl' --dir dist
+          ls -l dist
+
+      - name: Verify only repaired manylinux wheels are present
+        run: |
+          shopt -s nullglob
+          manylinux=(dist/*manylinux*.whl)
+          if [ ${#manylinux[@]} -eq 0 ]; then
+            echo "::error::no manylinux wheel attached to ${{ inputs.tag }}; build with scripts/build_release.py and attach the repaired wheel"
+            exit 1
+          fi
+          raw=(dist/*-linux_*.whl)
+          if [ ${#raw[@]} -gt 0 ]; then
+            echo "::error::raw linux_* wheel present; attach only auditwheel-repaired manylinux wheels"
+            exit 1
+          fi
+
+      - name: Publish to PyPI
+        if: inputs.target == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publish to TestPyPI
+        if: inputs.target == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/

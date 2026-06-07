@@ -1,0 +1,43 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+docs/_build/
+build/
+dist/
+wheels/
+wheelhouse/
+*.egg-info
+
+# Native/CMake build products
+_skbuild/
+cmake-build-*/
+*.o
+*.so
+*.a
+*.dylib
+*.dll
+
+# Local Triton/ROCm scratch outputs
+.triton/
+.triton_cache/
+triton_dumps/
+triton_dump/
+kernels/hsaco/
+kernels/triton/tmp/
+kernels/triton/dumps/
+kernels/triton/.tmp/
+
+# Local benchmark experiments; checked-in benchmark DBs stay explicit
+benchmarks/local_*.json
+benchmarks/*_scratch.json
+
+# Virtual environments
+.venv
+LOG.md
+TODO.md
+GARBAGE.log

@@ -1,0 +1,106 @@
+[project]
+name = "amd-strix-halo-kernels"
+version = "0.1.0"
+description = "Quantized int4/int8 GEMM kernels for AMD Strix Halo (gfx1151), with a kernel registry and generation tooling"
+readme = "README.md"
+authors = [
+    { name = "Sam Ginzburg", email = "ginzburg.sam@gmail.com" }
+]
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+keywords = ["amd", "rocm", "strix-halo", "int4", "gemm", "mma"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/SamGinzburg/strix-halo-int4-gemms"
+Repository = "https://github.com/SamGinzburg/strix-halo-int4-gemms"
+Issues = "https://github.com/SamGinzburg/strix-halo-int4-gemms/issues"
+
+[project.optional-dependencies]
+torch = ["torch"]
+publish = ["auditwheel>=6.0", "patchelf>=0.17", "twine>=6.0"]
+# ROCm 7.2 / gfx1151 (Strix Halo) runtime stack for running native + Triton
+# tests on hardware. Wheels are cp312-only; install with `uv sync --extra rocm`.
+rocm = [
+    "numpy>=1.26,<2.0",
+    "torch @ https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/torch-2.9.1%2Brocm7.2.0.lw.git7e1940d4-cp312-cp312-linux_x86_64.whl ; platform_system == 'Linux' and python_version >= '3.12' and python_version < '3.13'",
+    "triton @ https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/triton-3.5.1%2Brocm7.2.0.gita272dfa8-cp312-cp312-linux_x86_64.whl ; platform_system == 'Linux' and python_version >= '3.12' and python_version < '3.13'",
+]
+# Same ROCm stack as `rocm`, but with the custom Strix Halo Triton fork instead
+# of the stock ROCm Triton. The fork adds int4 dot_scaled WMMA and the constexpr
+# scale-chunk path required by the subchannel-scale ragged kernels (and by
+# artifact regeneration). NOTE: this builds Triton from source (~30 min, needs a
+# full build toolchain); the `rocm` extra above uses the prebuilt stock Triton
+# wheel and the subchannel-ragged tests skip via a capability guard when that
+# fork support is absent. See https://github.com/SamGinzburg/triton/tree/amd-strix-halo
+rocm-triton-fork = [
+    "numpy>=1.26,<2.0",
+    "torch @ https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/torch-2.9.1%2Brocm7.2.0.lw.git7e1940d4-cp312-cp312-linux_x86_64.whl ; platform_system == 'Linux' and python_version >= '3.12' and python_version < '3.13'",
+    "triton @ git+https://github.com/SamGinzburg/triton@amd-strix-halo",
+]
+
+[project.scripts]
+amd-strix-halo-kernels = "amd_strix_halo_kernels.cli:main"
+
+[tool.uv]
+# The `rocm` and `rocm-triton-fork` extras both pin `triton` but to different
+# sources (stock ROCm wheel vs the Strix Halo git fork), so they are mutually
+# exclusive. Declaring the conflict lets uv lock both without treating the two
+# triton URLs as contradictory.
+conflicts = [
+    [
+        { extra = "rocm" },
+        { extra = "rocm-triton-fork" },
+    ],
+]
+# The ROCm torch wheel hard-pins triton==3.5.1+rocm7.2.0 in its metadata, which
+# would make the `rocm-triton-fork` extra (Strix Halo Triton fork, 3.7.0)
+# unsatisfiable. torch runs fine against the fork at runtime, so drop torch's
+# triton pin here and let each extra choose its own triton. Keep this list in
+# sync with the wheel's other declared deps.
+[[tool.uv.dependency-metadata]]
+name = "torch"
+version = "2.9.1+rocm7.2.0.lw.git7e1940d4"
+requires-dist = [
+    "filelock",
+    "typing-extensions>=4.10.0",
+    "setuptools; python_version >= '3.12'",
+    "sympy>=1.13.3",
+    "networkx>=2.5.1",
+    "jinja2",
+    "fsspec>=0.8.5",
+]
+
+[build-system]
+requires = ["scikit-build-core>=0.12.2"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.source-dir = "native"
+
+[tool.scikit-build.wheel]
+packages = ["src/amd_strix_halo_kernels"]
+py-api = "py3"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+docs = [
+    "sphinx>=8.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,318 @@
+{
+  "best": {
+    "kernel_id": "gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+    "max_abs_diff": 509.28125,
+    "max_rel_diff": 0.003889158135280013,
+    "metadata": {
+      "device": "Radeon 8060S Graphics",
+      "dropped_nonpositive_sample_count": 0,
+      "dtype": "int8",
+      "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+      "output_dtype": "bfloat16",
+      "raw_sample_count": 13,
+      "rep_ms": 100,
+      "runtime_ms_max": 5.269183158874512,
+      "runtime_ms_mean": 5.239759665269118,
+      "runtime_ms_median": 5.242595195770264,
+      "runtime_ms_min": 5.214041233062744,
+      "runtime_ms_p20": 5.224069404602051,
+      "runtime_ms_p80": 5.254388427734375,
+      "sample_count": 13,
+      "scale": "pc",
+      "tile": "bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+      "torch_hip": "7.2.26015-fc0010cf6a",
+      "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+      "warmup_ms": 25
+    },
+    "runtime_ms": 5.242595195770264,
+    "shape": {
+      "k": 4096,
+      "m": 4096,
+      "n": 4096
+    },
+    "tops": 26.215824098508694
+  },
+  "best_artifacts": {
+    "llir": "kernels/triton/tuned/gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk_m4096_n4096_k4096.llir",
+    "source": "kernels/triton/tuned/gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk_m4096_n4096_k4096.py",
+    "ttgir": "kernels/triton/tuned/gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk_m4096_n4096_k4096.ttgir",
+    "ttir": "kernels/triton/tuned/gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk_m4096_n4096_k4096.ttir"
+  },
+  "failures": [],
+  "records": [
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 509.28125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 13,
+        "rep_ms": 100,
+        "runtime_ms_max": 5.269183158874512,
+        "runtime_ms_mean": 5.239759665269118,
+        "runtime_ms_median": 5.242595195770264,
+        "runtime_ms_min": 5.214041233062744,
+        "runtime_ms_p20": 5.224069404602051,
+        "runtime_ms_p80": 5.254388427734375,
+        "sample_count": 13,
+        "scale": "pc",
+        "tile": "bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 5.242595195770264,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 26.215824098508694
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_pc_relu2_bm64_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 509.28125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 15,
+        "rep_ms": 100,
+        "runtime_ms_max": 5.359496116638184,
+        "runtime_ms_mean": 5.301855373382568,
+        "runtime_ms_median": 5.2967529296875,
+        "runtime_ms_min": 5.2356648445129395,
+        "runtime_ms_p20": 5.275439357757568,
+        "runtime_ms_p80": 5.332309627532959,
+        "sample_count": 15,
+        "scale": "pc",
+        "tile": "bm64_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 5.2967529296875,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 25.947775041889425
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_pc_relu2_bm128_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 509.28125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 6,
+        "rep_ms": 100,
+        "runtime_ms_max": 13.759095191955566,
+        "runtime_ms_mean": 13.628958066304525,
+        "runtime_ms_median": 13.628968238830566,
+        "runtime_ms_min": 13.511462211608887,
+        "runtime_ms_p20": 13.582052230834961,
+        "runtime_ms_p80": 13.663202285766602,
+        "sample_count": 6,
+        "scale": "pc",
+        "tile": "bm128_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 13.628968238830566,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 10.084325611708444
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_pc_relu2_bm128_bn512_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 509.28125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 2,
+        "rep_ms": 100,
+        "runtime_ms_max": 47.977508544921875,
+        "runtime_ms_mean": 47.82587432861328,
+        "runtime_ms_median": 47.82587432861328,
+        "runtime_ms_min": 47.67424011230469,
+        "runtime_ms_p20": 47.734893798828125,
+        "runtime_ms_p80": 47.91685485839844,
+        "sample_count": 2,
+        "scale": "pc",
+        "tile": "bm128_bn512_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 47.82587432861328,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 2.873736348815122
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_sc256_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 505.78125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 14,
+        "rep_ms": 100,
+        "runtime_ms_max": 5.886713981628418,
+        "runtime_ms_mean": 5.828666039875576,
+        "runtime_ms_median": 5.84199595451355,
+        "runtime_ms_min": 5.72435188293457,
+        "runtime_ms_p20": 5.804760360717774,
+        "runtime_ms_p80": 5.8623885154724125,
+        "sample_count": 14,
+        "scale": "sc256",
+        "tile": "bm64_bn256_bk64_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 5.84199595451355,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 23.52602681380053
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_sc256_relu2_bm64_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 505.78125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 14,
+        "rep_ms": 100,
+        "runtime_ms_max": 5.905808925628662,
+        "runtime_ms_mean": 5.833556481770107,
+        "runtime_ms_median": 5.831409931182861,
+        "runtime_ms_min": 5.797234058380127,
+        "runtime_ms_p20": 5.813700866699219,
+        "runtime_ms_p80": 5.849695014953613,
+        "sample_count": 14,
+        "scale": "sc256",
+        "tile": "bm64_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 5.831409931182861,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 23.56873467890834
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_sc256_relu2_bm128_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 505.78125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 2,
+        "rep_ms": 100,
+        "runtime_ms_max": 39.56789779663086,
+        "runtime_ms_mean": 39.455894470214844,
+        "runtime_ms_median": 39.455894470214844,
+        "runtime_ms_min": 39.34389114379883,
+        "runtime_ms_p20": 39.388692474365236,
+        "runtime_ms_p80": 39.52309646606445,
+        "sample_count": 2,
+        "scale": "sc256",
+        "tile": "bm128_bn256_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 39.455894470214844,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 3.4833566775618867
+    },
+    {
+      "kernel_id": "gfx1151_int8xint8_nn_sc256_relu2_bm128_bn512_bk32_gm4_w8_s3_weu2_sk1_evenk",
+      "max_abs_diff": 505.78125,
+      "max_rel_diff": 0.003889158135280013,
+      "metadata": {
+        "device": "Radeon 8060S Graphics",
+        "dropped_nonpositive_sample_count": 0,
+        "dtype": "int8",
+        "input_distribution": "randn_bf16_fake_quant_scale_0.1",
+        "output_dtype": "bfloat16",
+        "raw_sample_count": 1,
+        "rep_ms": 100,
+        "runtime_ms_max": 61.446815490722656,
+        "runtime_ms_mean": 61.446815490722656,
+        "runtime_ms_median": 61.446815490722656,
+        "runtime_ms_min": 61.446815490722656,
+        "runtime_ms_p20": 61.446815490722656,
+        "runtime_ms_p80": 61.446815490722656,
+        "sample_count": 1,
+        "scale": "sc256",
+        "tile": "bm128_bn512_bk32_gm4_w8_s3_weu2_sk1_evenk",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25
+      },
+      "runtime_ms": 61.446815490722656,
+      "shape": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "tops": 2.236714016412303
+    }
+  ],
+  "shape": {
+    "k": 4096,
+    "m": 4096,
+    "n": 4096
+  },
+  "summary": {
+    "count": 8,
+    "max_tops": 26.215824098508694,
+    "mean_tops": 14.742061660950593
+  }
+}

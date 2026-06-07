@@ -1,0 +1,75 @@
+{
+  "a_dtype": "int4",
+  "acc_dtype": "int32",
+  "amdgcn_stats": {
+    "iu4_wmma": 8,
+    "iu8_wmma": 0,
+    "lines": 1220,
+    "waitcnt": 24
+  },
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk",
+  "arch": "gfx1151",
+  "asm_keys": [
+    "amdgcn",
+    "hsaco",
+    "llir",
+    "source",
+    "ttgir",
+    "ttir"
+  ],
+  "assembly_path": "kernels/amdgcn/gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk.s",
+  "b_dtype": "int4",
+  "epilogue": "none",
+  "generation_shape": {
+    "k": 128,
+    "m": 64,
+    "n": 128
+  },
+  "kernel_id": "gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk",
+  "launch_metadata": {
+    "grid_x": 1,
+    "grid_y": 1,
+    "num_ctas": 1,
+    "num_sms": 0,
+    "num_warps": 16,
+    "persistent": 0,
+    "shared_memory_bytes": 3072
+  },
+  "layout": "nn",
+  "measured_tops": null,
+  "notes": "",
+  "output_dtype": "bfloat16",
+  "rhs_subchannel_scale_layout": "kgroup_output",
+  "runtime_shape_args": [
+    "M",
+    "N",
+    "K"
+  ],
+  "scale": {
+    "mode": "subchannel",
+    "subchannel_size": 32
+  },
+  "scale_dtype": "bfloat16",
+  "schedule": "standard",
+  "shape_specialization": "runtime",
+  "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
+  "status": "generated",
+  "tile": {
+    "block_k": 128,
+    "block_m": 64,
+    "block_n": 128,
+    "even_k": true,
+    "group_size_m": 1,
+    "num_stages": 2,
+    "num_warps": 16,
+    "split_k": 1,
+    "waves_per_eu": 2
+  },
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk.llir",
+    "source": "kernels/triton/gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk.py",
+    "ttgir": "kernels/triton/gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk.ttgir",
+    "ttir": "kernels/triton/gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk.ttir"
+  },
+  "triton_kernel_name": "triton_gfx1151_int4xint4_nn_sc32_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk"
+}

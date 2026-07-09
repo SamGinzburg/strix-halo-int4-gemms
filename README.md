@@ -10,6 +10,12 @@ BF16 GEMM (which have equal peak throughputs---so no speedup from int8 over bf16
 This package provides generated kernels that use int4 MMA---actually providing a speedup on GFX1151,
 with support for quantized inputs and BF16 scale tensors.
 
+Why? Well it turns out that for the most part, major ML frameworks (e.g., torch, jax) don't have adequate support for int4 mma (i.e., W4A4).
+Mainstream kernel compilers like Triton do not support int4 mma either. INT4 W4A8 and W4A16 kernels are fairly common on Hopper, but the activations are performed in FP8 or bf16 as WGMMA does not support int4.
+
+So I vibe coded a patch to Triton to support int4 mma, generated ~a few thousand kernels, and linked them into this wheel for hobbyist usage.
+Hopefully this is useful to others as well.
+
 ***
 ⚠️ ⚠️ ⚠️ This repo is largely vibe coded with prompts/inputs that I provided. ⚠️ ⚠️ ⚠️ 
 

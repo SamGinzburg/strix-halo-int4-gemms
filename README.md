@@ -6,17 +6,21 @@ Strix Halo (`gfx1151`). The package focuses on fast quantized GEMMs: particularl
 quant with BF16 scales, optional ReLU^2, and fused SwiGLU up/gate epilogues.
 
 GFX1151 exposes higher theoretical throughput for int4 MMA than for int8 or
-BF16 GEMM. This package provides generated kernels that use that path
-directly, with explicit quantized inputs and BF16 scale tensors.
+BF16 GEMM (which have equal peak throughputs---so no speedup from int8 over bf16).
+This package provides generated kernels that use int4 MMA---actually providing a speedup on GFX1151,
+with support for quantized inputs and BF16 scale tensors.
 
-The artifacts are generated with a custom Triton branch that adds int4
-`dot_scaled` lowering for Strix Halo and includes additional AMD backend
-optimizations. Regeneration requires that branch; installing and launching a
+***
+⚠️ ⚠️ ⚠️ This repo is largely vibe coded with prompts/inputs that I provided. ⚠️ ⚠️ ⚠️ 
+
+I did verify numerics with a combination of unit tests and training some toy models locally on my machine.
+See `tests/` for more details on verification. I did not manually read or audit all of the code.
+***
+
+Kernels are generated with a [custom Triton branch](https://github.com/SamGinzburg/triton/tree/amd-strix-halo) that adds int4
+`dot_scaled` for Strix Halo/GFX1151 and includes one additional AMD backend
+optimization (OptimizeEpilogue---see `wmma-v1-store-layout.mlir` to understand the optimization better). Regeneration requires installing that branch; installing and launching a
 built wheel does not require Triton.
-
-Status: this is an experimental, hardware-specific package. Numerics are
-covered by focused tests and random fake-quant references, but callers should
-treat the APIs and generated matrix as evolving while the library matures.
 
 The Python package provides:
 
@@ -24,15 +28,6 @@ The Python package provides:
 - a registry of pregenerated kernel metadata,
 - benchmark/autotune helpers for selecting kernels by shape,
 - checked-in Triton source, text IR, AMDGCN assembly, and benchmark records.
-
-Full documentation is built with Sphinx:
-
-```bash
-uv run --group docs sphinx-build -b html docs docs/_build/html
-```
-
-Open `docs/_build/html/index.html` after the build, or read the source pages in
-`docs/`.
 
 ## Installation
 
@@ -55,6 +50,8 @@ HSACO code objects, and the per-kernel JSON launch metadata. The AMDGCN
 assembly and Triton IR used to generate those objects live in the repository,
 not the wheel.
 
+Compiling the vendored triton kernel with int4 mma requires the fork of Triton referenced above.
+
 Check native runtime availability:
 
 ```python
@@ -65,7 +62,7 @@ print(dispatch_runtime_status())
 
 ## Quick Start
 
-The native kernels expect already-quantized integer tensors and BF16 scale
+The native kernels expect pre-quantized int4 tensors and BF16 scale
 tensors. For int4, pack operands along the logical K dimension.
 
 ```python
@@ -229,11 +226,11 @@ For example, a kernel with `BM64_BN512_BK32_SK1` accepts `M=128`,
 `N=1024`, `K=64`, but rejects `M=96` and `N=768`. A `SK4` kernel with
 `BK32` requires `K % 128 == 0`.
 
-The public selector and autotuner return only `even_k` native artifacts that
-satisfy this contract. `Epilogue.RELU2` and `fused_swiglu_up_gate(...)` support
-only `SPLIT_K=1`; plain GEMM supports `SPLIT_K=1,2,4,8`. Non-split kernels
+`Epilogue.RELU2` and `fused_swiglu_up_gate(...)` support
+only `SPLIT_K=1`; plain GEMM supports `SPLIT_K=1,2,4,8`. Non split-K kernels
 write BF16 outputs, while split-K kernels write FP32 outputs because partial
-tiles are reduced with FP32 atomics.
+tiles are reduced with FP32 atomics. Decompose-K is not used because we aren't
+fusing anything into epilogues here.
 
 Reference mode (`use_reference=True`) is available for arbitrary-shape
 correctness checks and does not require native HSACO launchability.

@@ -50,7 +50,7 @@ def test_torch_op_identifiers() -> None:
 
 
 def test_enum_members_and_values() -> None:
-    assert [m.value for m in OperandDType] == ["int4", "int8"]
+    assert [m.value for m in OperandDType] == ["bf16", "int4", "int8"]
     assert [m.value for m in ScaleMode] == ["per_channel", "subchannel"]
     assert [m.value for m in Epilogue] == ["none", "relu2", "swiglu"]
     assert [m.value for m in GemmLayout] == ["nn", "nt", "tn", "tt"]

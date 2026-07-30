@@ -1,8 +1,8 @@
 {
   "amdgcn_stats": {
     "iu4_wmma": 32,
-    "lines": 1552,
-    "waitcnt": 51
+    "lines": 2513,
+    "waitcnt": 84
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3",
   "arch": "gfx1151",
@@ -75,6 +75,11 @@
   "shape_specialization": "runtime",
   "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
   "status": "generated",
-  "triton_artifacts": {},
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.llir",
+    "source": "kernels/triton/gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.py",
+    "ttgir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.ttgir",
+    "ttir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.ttir"
+  },
   "variant": "maskk"
 }

@@ -29,6 +29,20 @@ Regenerate the dense matrix from a local Triton checkout:
 
 The wrapper invokes ``scripts/generate_matrix.py --clean`` by default. Use
 ``--dry-run`` to inspect the underlying command without compiling kernels.
+Dense cleanup is family-scoped: it removes only
+``gfx1151_int4xint4_*`` and ``gfx1151_int8xint8_*`` AMDGCN/Triton artifacts,
+leaving ragged and mixed families intact in the same output directories.
+The full dense wrapper reads ``default_registry`` and therefore excludes
+development-only BF16-by-int4 entries. Generate one exact standard-schedule
+mixed kernel explicitly from ``mixed_dtype_registry``:
+
+.. code-block:: bash
+
+   KERNEL_ID=gfx1151_bf16xint4_nn_pc_none_bm64_bn512_bk32_gm4_w16_s2_weu2_sk1_evenk
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_amdgcn.py \
+     --kernel-id "$KERNEL_ID" --shape 4096,4096,4096
+
+Unsupported persistent BF16-by-int4 combinations are not registered.
 
 Regenerate the packaged ragged artifact set separately:
 
@@ -39,7 +53,29 @@ Regenerate the packaged ragged artifact set separately:
 
 The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
 matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
-into wheel-packaged ``.hsaco`` objects alongside the dense matrix.
+into wheel-packaged ``.hsaco`` objects alongside the dense matrix. Its default
+job set and ``--clean`` lifecycle cover an 80-artifact forward/backward matrix
+plus one specialized TN/per-channel/even-K ``bwd_accum`` artifact using
+``BM64_BN128_BK64_W4_S2_SK1``. Use ``--mode bwd_accum`` to regenerate only
+that specialized job. Dense and ragged cleanup/regeneration are independent.
+
+Direct Tuning
+-------------
+
+The plain-GEMM, ReLU^2, and SwiGLU tuners accept ``--dtype bf16`` for the
+development-only BF16×INT4 path:
+
+.. code-block:: bash
+
+   uv run --project "$TRITON_CHECKOUT" python scripts/tune_gemm.py --shape 4096,4096,4096 --dtype bf16
+   uv run --project "$TRITON_CHECKOUT" python scripts/tune_relu2.py --shape 4096,4096,4096 --dtype bf16
+   uv run --project "$TRITON_CHECKOUT" python scripts/tune_swiglu.py --shape 4096,4096,4096 --dtype bf16
+
+All three validate candidates with ``rtol=atol=1e-3``. This mode dynamically
+quantizes BF16 activation tiles inside the kernel and repeats that work for
+each N tile. It does not imply that mixed artifacts are packaged; the 1080
+mixed registry entries remain development-only. Prefer prequantizing A once
+and reusing the standard INT4 path when throughput or projection reuse matters.
 
 Wheel Contents
 --------------

@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Any
 
 from .metadata import GemmLayout, ScaleMode, ScaleSpec
-from .ragged_artifacts import RAGGED_BWD, RAGGED_EVEN_K, RAGGED_FWD, RAGGED_MASK_K
+from .ragged_artifacts import RAGGED_BWD, RAGGED_BWD_ACCUM, RAGGED_EVEN_K, RAGGED_FWD, RAGGED_MASK_K
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +59,9 @@ class RaggedBwdDotConfig:
             raise ValueError("num_warps and num_stages must be positive")
 
 
+RAGGED_BWD_ACCUM_CONFIG = RaggedBwdDotConfig(block_n=128, num_warps=4, num_stages=2)
+
+
 @dataclass(frozen=True, slots=True)
 class RaggedGroupInfo:
     """Compact row-block assignments for grouped ragged dot."""
@@ -70,6 +73,11 @@ class RaggedGroupInfo:
     start_within_block: Any
     actual_size: Any
     num_tasks: int
+    rows: int | None = None
+    groups: int | None = None
+    tile: int | None = None
+    align_tile: int | None = None
+    fixed_capacity: bool = False
 
 
 def _torch() -> Any:
@@ -138,7 +146,6 @@ def _calculate_group_info_kernel() -> Any:
         actual_end_out,
         start_within_block_out,
         actual_size_out,
-        NUM_TASKS: tl.constexpr,
         TASK_CAPACITY: tl.constexpr,
         GROUPS: tl.constexpr,
         TILE: tl.constexpr,
@@ -148,7 +155,8 @@ def _calculate_group_info_kernel() -> Any:
     ):
         offsets = tl.program_id(0) * BLOCK_TASKS + tl.arange(0, BLOCK_TASKS)
         in_capacity = offsets < TASK_CAPACITY
-        valid_task = offsets < NUM_TASKS
+        num_tasks = tl.load(group_start_tasks + GROUPS)
+        valid_task = offsets < num_tasks
 
         lo = tl.zeros((BLOCK_TASKS,), tl.int64)
         hi = tl.full((BLOCK_TASKS,), GROUPS, tl.int64)
@@ -185,7 +193,18 @@ def _calculate_group_info_kernel() -> Any:
     return kernel
 
 
-def _empty_group_info(torch: Any, *, device: Any, capacity: int, num_tasks: int = 0) -> RaggedGroupInfo:
+def _empty_group_info(
+    torch: Any,
+    *,
+    device: Any,
+    capacity: int,
+    num_tasks: int = 0,
+    rows: int | None = None,
+    groups: int | None = None,
+    tile: int | None = None,
+    align_tile: int | None = None,
+    fixed_capacity: bool = False,
+) -> RaggedGroupInfo:
     kwargs = {"device": device, "dtype": torch.int64}
     return RaggedGroupInfo(
         group_id=torch.empty((capacity,), **kwargs),
@@ -195,6 +214,189 @@ def _empty_group_info(torch: Any, *, device: Any, capacity: int, num_tasks: int 
         start_within_block=torch.empty((capacity,), **kwargs),
         actual_size=torch.empty((capacity,), **kwargs),
         num_tasks=num_tasks,
+        rows=rows,
+        groups=groups,
+        tile=tile,
+        align_tile=align_tile,
+        fixed_capacity=fixed_capacity,
+    )
+
+
+def ragged_group_info_capacity(rows: int, groups: int, tile: int, *, align_tile: int = 8) -> int:
+    """Return a safe fixed task capacity for any valid row partition.
+
+    The bound accounts for one initial task per non-empty group plus the
+    cheapest possible additional tile after aligning a group start down to
+    ``align_tile``. It depends only on static shapes, so callers can use it
+    while capturing a CUDA/HIP graph.
+    """
+
+    rows = int(rows)
+    groups = int(groups)
+    tile = int(tile)
+    align_tile = int(align_tile)
+    if rows < 0 or groups < 0:
+        raise ValueError("rows and groups must be non-negative")
+    if tile <= 0 or align_tile <= 0:
+        raise ValueError("tile and align_tile must be positive")
+    if tile % align_tile != 0:
+        raise ValueError("tile must be a multiple of align_tile")
+    nonempty_groups = min(rows, groups)
+    if nonempty_groups == 0:
+        return 0
+    rows_per_additional_task = tile - align_tile + 1
+    return nonempty_groups + (rows - nonempty_groups) // rows_per_additional_task
+
+
+def _group_info_prefixes(group_sizes: Any, tile: int, align_tile: int) -> tuple[Any, Any, Any, Any]:
+    torch = _torch()
+    sizes = torch.clamp(group_sizes.to(dtype=torch.int64), min=0)
+    groups = int(sizes.shape[0])
+    zero = torch.zeros((1,), device=sizes.device, dtype=torch.int64)
+    group_starts = torch.cat((zero, torch.cumsum(sizes, dim=0))) if groups else zero
+    starts = group_starts[:-1]
+    aligned_starts = torch.div(starts, align_tile, rounding_mode="floor") * align_tile
+    ends = starts + sizes
+    blocks_numer = ends - aligned_starts + tile - 1
+    group_num_blocks = torch.where(
+        sizes == 0,
+        torch.zeros_like(sizes),
+        torch.div(blocks_numer, tile, rounding_mode="floor"),
+    )
+    group_start_tasks = torch.cat((zero, torch.cumsum(group_num_blocks, dim=0))) if groups else zero
+    return sizes, group_starts, aligned_starts, group_start_tasks
+
+
+def _populate_group_info(
+    *,
+    sizes: Any,
+    group_starts: Any,
+    aligned_starts: Any,
+    group_start_tasks: Any,
+    capacity: int,
+    num_tasks: int,
+    tile: int,
+    align_tile: int,
+    rows: int | None,
+    fixed_capacity: bool,
+    allow_triton: bool,
+) -> RaggedGroupInfo:
+    torch = _torch()
+    groups = int(sizes.shape[0])
+    info = _empty_group_info(
+        torch,
+        device=sizes.device,
+        capacity=capacity,
+        num_tasks=num_tasks,
+        rows=rows,
+        groups=groups,
+        tile=tile,
+        align_tile=align_tile,
+        fixed_capacity=fixed_capacity,
+    )
+    if capacity == 0:
+        return info
+    if groups == 0:
+        info.group_id.zero_()
+        info.block_start.zero_()
+        info.actual_start.zero_()
+        info.actual_end.zero_()
+        info.start_within_block.zero_()
+        info.actual_size.zero_()
+        return info
+    if sizes.is_cuda and allow_triton and _have_triton():
+        triton, _ = _triton()
+        block_tasks = 256
+        search_steps = max(1, groups.bit_length())
+        _calculate_group_info_kernel()[(triton.cdiv(capacity, block_tasks),)](
+            group_starts,
+            group_start_tasks,
+            info.group_id,
+            info.block_start,
+            info.actual_start,
+            info.actual_end,
+            info.start_within_block,
+            info.actual_size,
+            TASK_CAPACITY=capacity,
+            GROUPS=groups,
+            TILE=tile,
+            ALIGN_TILE=align_tile,
+            SEARCH_STEPS=search_steps,
+            BLOCK_TASKS=block_tasks,
+        )
+        return info
+
+    task_idx = torch.arange(capacity, device=sizes.device, dtype=torch.int64)
+    actual_num_tasks = group_start_tasks[-1]
+    valid = task_idx < actual_num_tasks
+    task_group = torch.searchsorted(group_start_tasks[1:], task_idx, right=True)
+    task_group = torch.clamp(task_group, max=groups - 1)
+    task_block = task_idx - group_start_tasks[task_group]
+    block_start = aligned_starts[task_group] + task_block * tile
+    group_ends = group_starts[1:]
+    actual_start = torch.maximum(block_start, group_starts[task_group])
+    actual_end = torch.minimum(block_start + tile, group_ends[task_group])
+    actual_size = torch.clamp(actual_end - actual_start, min=0)
+    zero = torch.zeros_like(task_idx)
+    info.group_id.copy_(torch.where(valid, task_group, zero))
+    info.block_start.copy_(torch.where(valid, block_start, zero))
+    info.actual_start.copy_(torch.where(valid, actual_start, zero))
+    info.actual_end.copy_(torch.where(valid, actual_end, zero))
+    info.start_within_block.copy_(torch.where(valid, actual_start - block_start, zero))
+    info.actual_size.copy_(torch.where(valid, actual_size, zero))
+    return info
+
+
+def prepare_ragged_group_info(
+    group_sizes: Any,
+    tile: int,
+    *,
+    rows: int,
+    task_capacity: int | None = None,
+    align_tile: int = 8,
+    allow_triton: bool = True,
+) -> RaggedGroupInfo:
+    """Build fixed-capacity routing metadata without device-to-host reads.
+
+    This path is suitable for CUDA/HIP graph capture. ``rows`` and the number
+    of groups are static shape inputs; runtime ``group_sizes`` must be
+    non-negative and sum to ``rows``. Value validation is intentionally left
+    to the producer because synchronously checking it would break capture.
+    Unused task slots are zero-filled and safely masked by the ragged kernels.
+    """
+
+    torch = _torch()
+    if not torch.is_tensor(group_sizes):
+        raise TypeError("group_sizes must be a torch.Tensor")
+    if group_sizes.ndim != 1:
+        raise ValueError(f"group_sizes must be 1D; got shape {tuple(group_sizes.shape)}")
+    if not _is_integer_dtype(torch, group_sizes.dtype):
+        raise ValueError(f"group_sizes must have integer dtype; got {group_sizes.dtype}")
+    rows = int(rows)
+    groups = int(group_sizes.shape[0])
+    minimum_capacity = ragged_group_info_capacity(rows, groups, tile, align_tile=align_tile)
+    capacity = minimum_capacity if task_capacity is None else int(task_capacity)
+    if capacity < minimum_capacity:
+        raise ValueError(
+            f"task_capacity must be at least the static safe bound {minimum_capacity}; got {capacity}"
+        )
+    sizes, group_starts, aligned_starts, group_start_tasks = _group_info_prefixes(
+        group_sizes,
+        tile,
+        align_tile,
+    )
+    return _populate_group_info(
+        sizes=sizes,
+        group_starts=group_starts,
+        aligned_starts=aligned_starts,
+        group_start_tasks=group_start_tasks,
+        capacity=capacity,
+        num_tasks=capacity,
+        tile=tile,
+        align_tile=align_tile,
+        rows=rows,
+        fixed_capacity=True,
+        allow_triton=allow_triton,
     )
 
 
@@ -241,86 +443,45 @@ def calculate_group_info(
     if tid_size is not None and tid_size < 0:
         raise ValueError("tid_size must be non-negative")
 
-    sizes = torch.clamp(group_sizes.to(dtype=torch.int64), min=0)
+    sizes, group_starts, aligned_starts, group_start_tasks = _group_info_prefixes(
+        group_sizes,
+        tile,
+        align_tile,
+    )
     groups = int(sizes.shape[0])
-    group_starts = torch.empty((groups + 1,), device=sizes.device, dtype=torch.int64)
-    group_starts[0] = 0
-    if groups:
-        group_starts[1:] = torch.cumsum(sizes, dim=0)
-
     if groups == 0:
         capacity = tid_size or 0
-        info = _empty_group_info(torch, device=sizes.device, capacity=capacity)
-        if capacity:
-            info.group_id.zero_()
-            info.block_start.zero_()
-            info.actual_start.zero_()
-            info.actual_end.zero_()
-            info.start_within_block.zero_()
-            info.actual_size.zero_()
-        return info
+        return _populate_group_info(
+            sizes=sizes,
+            group_starts=group_starts,
+            aligned_starts=aligned_starts,
+            group_start_tasks=group_start_tasks,
+            capacity=capacity,
+            num_tasks=0,
+            tile=tile,
+            align_tile=align_tile,
+            rows=0,
+            fixed_capacity=tid_size is not None,
+            allow_triton=allow_triton,
+        )
 
-    group_starts_without_initial = group_starts[:-1]
-    group_starts_aligned = torch.div(group_starts_without_initial, align_tile, rounding_mode="floor") * align_tile
-    group_ends = group_starts_without_initial + sizes
-    blocks_numer = group_ends - group_starts_aligned + tile - 1
-    group_num_blocks = torch.where(
-        sizes == 0,
-        torch.zeros_like(sizes),
-        torch.div(blocks_numer, tile, rounding_mode="floor"),
-    )
-    group_start_tasks = torch.empty((groups + 1,), device=sizes.device, dtype=torch.int64)
-    group_start_tasks[0] = 0
-    group_start_tasks[1:] = torch.cumsum(group_num_blocks, dim=0)
     num_tasks = int(group_start_tasks[-1].detach().cpu().item())
     capacity = num_tasks if tid_size is None else tid_size
     if capacity < num_tasks:
         raise ValueError(f"tid_size must be at least {num_tasks}; got {capacity}")
-
-    if capacity == 0:
-        return _empty_group_info(torch, device=sizes.device, capacity=0, num_tasks=num_tasks)
-
-    info = _empty_group_info(torch, device=sizes.device, capacity=capacity, num_tasks=num_tasks)
-    if sizes.is_cuda and allow_triton and _have_triton():
-        triton, _ = _triton()
-        block_tasks = 256
-        search_steps = max(1, groups.bit_length())
-        _calculate_group_info_kernel()[(triton.cdiv(capacity, block_tasks),)](
-            group_starts,
-            group_start_tasks,
-            info.group_id,
-            info.block_start,
-            info.actual_start,
-            info.actual_end,
-            info.start_within_block,
-            info.actual_size,
-            NUM_TASKS=num_tasks,
-            TASK_CAPACITY=capacity,
-            GROUPS=groups,
-            TILE=tile,
-            ALIGN_TILE=align_tile,
-            SEARCH_STEPS=search_steps,
-            BLOCK_TASKS=block_tasks,
-        )
-        return info
-
-    task_idx = torch.arange(capacity, device=sizes.device, dtype=torch.int64)
-    valid = task_idx < num_tasks
-    task_group = torch.searchsorted(group_start_tasks[1:], task_idx, right=True)
-    task_group = torch.clamp(task_group, max=groups - 1)
-    task_block = task_idx - group_start_tasks[task_group]
-    block_start = group_starts_aligned[task_group] + task_block * tile
-    actual_start = torch.maximum(block_start, group_starts[task_group])
-    actual_end = torch.minimum(block_start + tile, group_ends[task_group])
-    actual_size = torch.clamp(actual_end - actual_start, min=0)
-    zero = torch.zeros_like(task_idx)
-    info.group_id.copy_(torch.where(valid, task_group, zero))
-    info.block_start.copy_(torch.where(valid, block_start, zero))
-    info.actual_start.copy_(torch.where(valid, actual_start, zero))
-    info.actual_end.copy_(torch.where(valid, actual_end, zero))
-    info.start_within_block.copy_(torch.where(valid, actual_start - block_start, zero))
-    info.actual_size.copy_(torch.where(valid, actual_size, zero))
-    return info
+    return _populate_group_info(
+        sizes=sizes,
+        group_starts=group_starts,
+        aligned_starts=aligned_starts,
+        group_start_tasks=group_start_tasks,
+        capacity=capacity,
+        num_tasks=num_tasks,
+        tile=tile,
+        align_tile=align_tile,
+        rows=None,
+        fixed_capacity=tid_size is not None,
+        allow_triton=allow_triton,
+    )
 
 
 def _can_use_even_k_fast_path(
@@ -366,11 +527,20 @@ def _can_use_bwd_even_k_fast_path(
     return True
 
 
-@lru_cache(maxsize=1)
-def _ragged_dot_int4_even_k_kernel() -> Any:
+@lru_cache(maxsize=2)
+def _ragged_dot_int4_even_k_kernel(*, specialize_runtime_args: bool = False) -> Any:
     triton, tl = _triton()
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS")
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": runtime_args,
+            "do_not_specialize_on_alignment": runtime_args,
+        }
+    )
 
-    @triton.jit
+    @triton.jit(**jit_options)
     def kernel(
         lhs,
         rhs,
@@ -515,11 +685,20 @@ def _ragged_dot_int4_even_k_kernel() -> Any:
     return kernel
 
 
-@lru_cache(maxsize=1)
-def _ragged_dot_int4_kernel() -> Any:
+@lru_cache(maxsize=2)
+def _ragged_dot_int4_kernel(*, specialize_runtime_args: bool = False) -> Any:
     triton, tl = _triton()
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS")
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": runtime_args,
+            "do_not_specialize_on_alignment": runtime_args,
+        }
+    )
 
-    @triton.jit
+    @triton.jit(**jit_options)
     def kernel(
         lhs,
         rhs,
@@ -670,7 +849,10 @@ def _ragged_dot_int4_kernel() -> Any:
 def _ragged_dot_int4_bwd_kernel() -> Any:
     triton, tl = _triton()
 
-    @triton.jit
+    @triton.jit(
+        do_not_specialize=("M", "N", "K_PACKED", "SCALE_COLS"),
+        do_not_specialize_on_alignment=("M", "N", "K_PACKED", "SCALE_COLS"),
+    )
     def kernel(
         lhs,
         rhs,
@@ -831,6 +1013,84 @@ def _ragged_dot_int4_bwd_kernel() -> Any:
     return kernel
 
 
+@lru_cache(maxsize=1)
+def _ragged_dot_int4_bwd_accum_kernel() -> Any:
+    """Return the task-packed dW kernel used by dropless MoE training."""
+
+    triton, tl = _triton()
+
+    @triton.jit(
+        do_not_specialize=("M", "N", "K_PACKED", "SCALE_COLS"),
+        do_not_specialize_on_alignment=("M", "N", "K_PACKED", "SCALE_COLS"),
+    )
+    def kernel(
+        lhs,
+        rhs,
+        lhs_scale,
+        rhs_scale,
+        expert_task_ranges,
+        out,
+        M,
+        N,
+        K_PACKED,
+        SCALE_COLS,
+        BLOCK_M: tl.constexpr,
+        BLOCK_N: tl.constexpr,
+        BLOCK_K: tl.constexpr,
+    ):
+        pid = tl.program_id(0)
+        num_pid_m = tl.cdiv(M, BLOCK_M)
+        num_pid_n = tl.cdiv(N, BLOCK_N)
+        tiles_per_expert = num_pid_m * num_pid_n
+        expert_id = pid // tiles_per_expert
+        tile = pid - expert_id * tiles_per_expert
+        pid_m = tile // num_pid_n
+        pid_n = tile - pid_m * num_pid_n
+
+        offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+        offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+        row_mask = offs_m < M
+        col_mask = offs_n < N
+        packed_k: tl.constexpr = BLOCK_K // 2
+        offs_k = tl.arange(0, packed_k)
+        task_idx = tl.load(expert_task_ranges + expert_id * 2).to(tl.int32)
+        task_end = tl.load(expert_task_ranges + expert_id * 2 + 1).to(tl.int32)
+        acc = tl.zeros((BLOCK_M, BLOCK_N), tl.float32)
+
+        while task_idx < task_end:
+            lhs_offsets = task_idx * K_PACKED * M + offs_k[None, :] * M + offs_m[:, None]
+            rhs_offsets = task_idx * K_PACKED * N + offs_k[:, None] * N + offs_n[None, :]
+            lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None], other=0)
+            rhs_values = tl.load(rhs + rhs_offsets, mask=col_mask[None, :], other=0)
+            task_acc = tl.dot_scaled(
+                lhs_values,
+                None,
+                "int4",
+                rhs_values,
+                None,
+                "int4",
+                tl.zeros((BLOCK_M, BLOCK_N), tl.int32),
+                out_dtype=tl.int32,
+            ).to(tl.float32)
+            lhs_scale_values = tl.load(
+                lhs_scale + task_idx * M + offs_m,
+                mask=row_mask,
+                other=0.0,
+            ).to(tl.float32)
+            rhs_scale_values = tl.load(
+                rhs_scale + task_idx * N + offs_n,
+                mask=col_mask,
+                other=0.0,
+            ).to(tl.float32)
+            acc += task_acc * lhs_scale_values[:, None] * rhs_scale_values[None, :]
+            task_idx += 1
+
+        out_offsets = expert_id * M * N + offs_m[:, None] * N + offs_n[None, :]
+        tl.store(out + out_offsets, acc, mask=row_mask[:, None] & col_mask[None, :])
+
+    return kernel
+
+
 def _require_cuda_tensor(torch: Any, name: str, tensor: Any) -> None:
     if not torch.is_tensor(tensor):
         raise TypeError(f"{name} must be a torch.Tensor")
@@ -858,6 +1118,55 @@ def _validate_group_sizes(torch: Any, group_sizes: Any, *, groups: int, rows: in
     total = int(host_sizes.sum().item())
     if total != rows:
         raise ValueError(f"sum(group_sizes) must equal lhs rows {rows}; got {total}")
+
+
+def _validate_prepared_group_info(
+    torch: Any,
+    group_info: RaggedGroupInfo,
+    *,
+    device: Any,
+    groups: int,
+    rows: int,
+    config: RaggedDotConfig,
+) -> None:
+    if not isinstance(group_info, RaggedGroupInfo):
+        raise TypeError(f"group_info must be a RaggedGroupInfo; got {type(group_info).__name__}")
+    if group_info.num_tasks < 0:
+        raise ValueError("group_info.num_tasks must be non-negative")
+    if group_info.rows is not None and group_info.rows != rows:
+        raise ValueError(f"group_info rows must match lhs rows {rows}; got {group_info.rows}")
+    if group_info.groups is not None and group_info.groups != groups:
+        raise ValueError(f"group_info groups must match rhs groups {groups}; got {group_info.groups}")
+    if group_info.tile is not None and group_info.tile != config.block_m:
+        raise ValueError(
+            f"group_info tile must match config.block_m {config.block_m}; got {group_info.tile}"
+        )
+    if group_info.align_tile is not None and group_info.align_tile != config.align_tile:
+        raise ValueError(
+            "group_info align_tile must match config.align_tile "
+            f"{config.align_tile}; got {group_info.align_tile}"
+        )
+    for name in (
+        "group_id",
+        "block_start",
+        "actual_start",
+        "actual_end",
+        "start_within_block",
+        "actual_size",
+    ):
+        tensor = getattr(group_info, name)
+        if not torch.is_tensor(tensor):
+            raise TypeError(f"group_info.{name} must be a torch.Tensor")
+        if tensor.device != device:
+            raise ValueError(f"group_info.{name} must be on device {device}; got {tensor.device}")
+        if tensor.dtype != torch.int64:
+            raise ValueError(f"group_info.{name} must have dtype torch.int64; got {tensor.dtype}")
+        if tensor.ndim != 1 or int(tensor.shape[0]) != group_info.num_tasks:
+            raise ValueError(
+                f"group_info.{name} must have shape ({group_info.num_tasks},); got {tuple(tensor.shape)}"
+            )
+        if not tensor.is_contiguous():
+            raise ValueError(f"group_info.{name} must be contiguous")
 
 
 def _validate_k_group_sizes(torch: Any, group_sizes: Any, *, groups: int, max_k: int) -> Any:
@@ -1008,8 +1317,9 @@ def _validate_bwd_scale_shapes(
 def ragged_dot_int4(
     lhs: Any,
     rhs: Any,
-    group_sizes: Any,
+    group_sizes: Any | None = None,
     *,
+    group_info: RaggedGroupInfo | None = None,
     a_scale: Any | None = None,
     b_scale: Any | None = None,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
@@ -1029,6 +1339,9 @@ def ragged_dot_int4(
     move their packed-K dimension before the logical row/output-column axis.
     ``group_sizes`` has shape ``(G,)`` and assigns contiguous row groups of
     ``lhs`` to the corresponding RHS expert. The output shape is ``(M, N)``.
+    Pass ``group_sizes=None`` with a ``group_info`` produced by
+    :func:`prepare_ragged_group_info` to avoid host synchronization during
+    CUDA/HIP graph capture and to reuse routing metadata across projections.
 
     Scale tensors follow this package's GEMM conventions with an added leading
     RHS group dimension:
@@ -1062,16 +1375,30 @@ def ragged_dot_int4(
 
     rows, cols, k_packed, groups = _forward_logical_shape(lhs, rhs, layout)
 
-    _validate_group_sizes(torch, group_sizes, groups=groups, rows=rows)
-    if group_sizes.device != lhs.device:
-        group_sizes = group_sizes.to(device=lhs.device)
     try_native = use_native is not False and a_scale is not None and b_scale is not None
-    group_info = calculate_group_info(
-        group_sizes,
-        config.block_m,
-        align_tile=config.align_tile,
-        allow_triton=not try_native,
-    )
+    if group_info is None:
+        if group_sizes is None:
+            raise ValueError("pass exactly one of group_sizes or group_info")
+        _validate_group_sizes(torch, group_sizes, groups=groups, rows=rows)
+        if group_sizes.device != lhs.device:
+            group_sizes = group_sizes.to(device=lhs.device)
+        group_info = calculate_group_info(
+            group_sizes,
+            config.block_m,
+            align_tile=config.align_tile,
+            allow_triton=not try_native,
+        )
+    else:
+        if group_sizes is not None:
+            raise ValueError("pass exactly one of group_sizes or group_info")
+        _validate_prepared_group_info(
+            torch,
+            group_info,
+            device=lhs.device,
+            groups=groups,
+            rows=rows,
+            config=config,
+        )
 
     _require_bfloat16_scale(torch, "a_scale", a_scale)
     _require_bfloat16_scale(torch, "b_scale", b_scale)
@@ -1164,7 +1491,7 @@ def ragged_dot_int4(
         group_info.num_tasks * _cdiv(cols, config.block_n),
     )
     if use_even_k_fast_path:
-        kernel = _ragged_dot_int4_even_k_kernel()
+        kernel = _ragged_dot_int4_even_k_kernel(specialize_runtime_args=True)
         kernel[grid](
             lhs,
             rhs,
@@ -1196,7 +1523,7 @@ def ragged_dot_int4(
         )
         return out
 
-    kernel = _ragged_dot_int4_kernel()
+    kernel = _ragged_dot_int4_kernel(specialize_runtime_args=True)
     kernel[grid](
         lhs,
         rhs,
@@ -1262,6 +1589,9 @@ def ragged_dot_int4_bwd(
 
     The output is FP32 with shape ``(G, M, N)``. For ``split_k > 1``, partial
     tiles are accumulated with FP32 atomics.
+
+    ``group_sizes`` values are validated on the host before variant selection,
+    so this API is not safe to invoke while a CUDA/HIP graph is being captured.
     """
 
     layout = _check_layout(layout)
@@ -1285,8 +1615,8 @@ def ragged_dot_int4_bwd(
     rows, cols, k_packed, groups = _bwd_logical_shape(lhs, rhs, layout)
     logical_k_capacity = k_packed * 2
     host_group_sizes = _validate_k_group_sizes(torch, group_sizes, groups=groups, max_k=logical_k_capacity)
-    if group_sizes.device != lhs.device:
-        group_sizes = group_sizes.to(device=lhs.device)
+    if group_sizes.device != lhs.device or group_sizes.dtype != torch.int32:
+        group_sizes = group_sizes.to(device=lhs.device, dtype=torch.int32)
 
     _require_bfloat16_scale(torch, "a_scale", a_scale)
     _require_bfloat16_scale(torch, "b_scale", b_scale)
@@ -1394,6 +1724,141 @@ def ragged_dot_int4_bwd(
         A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
         B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
         EVEN_K_FAST_PATH=use_even_k_fast_path,
+        num_warps=config.num_warps,
+        num_stages=config.num_stages,
+        matrix_instr_nonkdim=16,
+        kpack=1,
+    )
+    return out
+
+
+def ragged_dot_int4_bwd_accum(
+    lhs: Any,
+    rhs: Any,
+    expert_task_ranges: Any,
+    *,
+    a_scale: Any,
+    b_scale: Any,
+    config: RaggedBwdDotConfig = RAGGED_BWD_ACCUM_CONFIG,
+    out: Any | None = None,
+    use_native: bool | None = None,
+    native_root: str | None = None,
+    native_library_path: str | None = None,
+) -> Any:
+    """Accumulate task-packed int4 products into dropless expert dW tensors.
+
+    ``lhs`` and ``rhs`` contain 64-row task tiles packed along the row axis,
+    with shapes ``[T, 32, M]`` and ``[T, 32, N]``. Per-task, per-output-channel
+    scales have shapes ``[T, M]`` and ``[T, N]``. ``expert_task_ranges[e]`` is
+    the half-open task range owned by expert ``e``. The fp32 output has shape
+    ``[E, M, N]`` and is written once after all tasks for an expert are summed.
+    Task ranges are validated on the host and normalized to int32, so this API
+    is not safe to invoke while a CUDA graph is being captured.
+    """
+
+    torch = _torch()
+    for name, tensor in (
+        ("lhs", lhs),
+        ("rhs", rhs),
+        ("expert_task_ranges", expert_task_ranges),
+        ("a_scale", a_scale),
+        ("b_scale", b_scale),
+    ):
+        _require_cuda_tensor(torch, name, tensor)
+        if tensor.device != lhs.device:
+            raise ValueError(f"{name} must be on device {lhs.device}; got {tensor.device}")
+    if lhs.dtype != torch.uint8 or rhs.dtype != torch.uint8:
+        raise ValueError("task-packed int4 dW operands must have dtype torch.uint8")
+    if lhs.ndim != 3 or rhs.ndim != 3:
+        raise ValueError("task-packed int4 dW operands must be rank-3")
+    if lhs.shape[0] != rhs.shape[0] or lhs.shape[1] != rhs.shape[1]:
+        raise ValueError("task-packed int4 dW operands must share task and packed-row dimensions")
+    if not lhs.is_contiguous() or not rhs.is_contiguous():
+        raise ValueError("task-packed int4 dW operands must be contiguous")
+    if int(lhs.shape[1]) * 2 != config.block_k:
+        raise ValueError(
+            f"packed task rows must match config.block_k={config.block_k}; got {int(lhs.shape[1]) * 2}"
+        )
+    if config.split_k != 1:
+        raise ValueError("task-accumulating int4 dW requires split_k=1")
+    if expert_task_ranges.ndim != 2 or int(expert_task_ranges.shape[1]) != 2:
+        raise ValueError("expert_task_ranges must have shape [experts, 2]")
+    if expert_task_ranges.dtype not in {torch.int32, torch.int64}:
+        raise ValueError("expert_task_ranges must have int32 or int64 dtype")
+    if not expert_task_ranges.is_contiguous():
+        raise ValueError("expert_task_ranges must be contiguous")
+    tasks, rows, cols = int(lhs.shape[0]), int(lhs.shape[2]), int(rhs.shape[2])
+    experts = int(expert_task_ranges.shape[0])
+    if tasks > torch.iinfo(torch.int32).max:
+        raise ValueError(f"task count must fit int32 native metadata; got {tasks}")
+    host_task_ranges = expert_task_ranges.detach().cpu()
+    starts = host_task_ranges[:, 0]
+    ends = host_task_ranges[:, 1]
+    if bool((starts < 0).any()) or bool((ends < starts).any()) or bool((ends > tasks).any()):
+        raise ValueError(
+            f"expert_task_ranges must satisfy 0 <= start <= end <= tasks ({tasks})"
+        )
+    if expert_task_ranges.dtype != torch.int32:
+        expert_task_ranges = expert_task_ranges.to(dtype=torch.int32)
+    _require_bfloat16_scale(torch, "a_scale", a_scale)
+    _require_bfloat16_scale(torch, "b_scale", b_scale)
+    if tuple(a_scale.shape) != (tasks, rows) or tuple(b_scale.shape) != (tasks, cols):
+        raise ValueError("task-packed int4 dW scales must have shapes [tasks, M] and [tasks, N]")
+    if not a_scale.is_contiguous() or not b_scale.is_contiguous():
+        raise ValueError("task-packed int4 dW scales must be contiguous")
+    if out is None:
+        out = torch.empty((experts, rows, cols), device=lhs.device, dtype=torch.float32)
+    else:
+        _require_cuda_tensor(torch, "out", out)
+        if out.device != lhs.device:
+            raise ValueError(f"out must be on device {lhs.device}; got {out.device}")
+        if tuple(out.shape) != (experts, rows, cols) or out.dtype != torch.float32 or not out.is_contiguous():
+            raise ValueError("out must be contiguous fp32 with shape [experts, M, N]")
+    if experts == 0 or rows == 0 or cols == 0:
+        return out
+
+    if use_native is not False:
+        try:
+            from .native import launch_ragged_bwd_kernel
+
+            return launch_ragged_bwd_kernel(
+                lhs,
+                rhs,
+                expert_task_ranges,
+                a_scale=a_scale,
+                b_scale=b_scale,
+                out=out,
+                scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+                config=config,
+                layout=GemmLayout.TN,
+                variant=RAGGED_EVEN_K,
+                rows=rows,
+                cols=cols,
+                k_packed=int(lhs.shape[1]),
+                scale_cols=1,
+                root=native_root,
+                library_path=native_library_path,
+                mode=RAGGED_BWD_ACCUM,
+                groups=experts,
+            )
+        except Exception as exc:
+            _raise_or_fallback(use_native, exc)
+
+    grid = (experts * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n),)
+    _ragged_dot_int4_bwd_accum_kernel()[grid](
+        lhs,
+        rhs,
+        a_scale,
+        b_scale,
+        expert_task_ranges,
+        out,
+        rows,
+        cols,
+        int(lhs.shape[1]),
+        1,
+        BLOCK_M=config.block_m,
+        BLOCK_N=config.block_n,
+        BLOCK_K=config.block_k,
         num_warps=config.num_warps,
         num_stages=config.num_stages,
         matrix_instr_nonkdim=16,

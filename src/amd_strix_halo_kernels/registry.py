@@ -19,8 +19,9 @@ from .metadata import (
     ScaleSpec,
     SUPPORTED_SPLIT_K,
     TileConfig,
-    make_kernel_id,
+    make_mixed_kernel_id,
     output_dtype_for_split_k,
+    resolve_operand_dtypes,
     supported_scale_specs,
 )
 from .template_config import LaunchShape, is_tile_multiple_shape
@@ -115,7 +116,7 @@ def seed_tile_configs(
     epilogue: Epilogue | None = None,
     scale: ScaleSpec | None = None,
 ) -> tuple[TileConfig, ...]:
-    if dtype is OperandDType.INT4:
+    if dtype in {OperandDType.INT4, OperandDType.BF16}:
         if epilogue is Epilogue.SWIGLU:
             if scale is not None and scale.mode is ScaleMode.SUBCHANNEL:
                 return _int4_subchannel_tile_variants(
@@ -178,7 +179,8 @@ def seed_tile_configs(
 
 def _kernel_metadata(
     *,
-    dtype: OperandDType,
+    a_dtype: OperandDType,
+    b_dtype: OperandDType,
     scale: ScaleSpec,
     epilogue: Epilogue,
     tile: TileConfig,
@@ -186,12 +188,12 @@ def _kernel_metadata(
     schedule: KernelSchedule,
     assembly_root: Path,
 ) -> KernelMetadata:
-    kernel_id = make_kernel_id(dtype, scale, epilogue, tile, layout=layout, schedule=schedule)
+    kernel_id = make_mixed_kernel_id(a_dtype, b_dtype, scale, epilogue, tile, layout=layout, schedule=schedule)
     return KernelMetadata(
         kernel_id=kernel_id,
         arch=ARCH,
-        a_dtype=dtype,
-        b_dtype=dtype,
+        a_dtype=a_dtype,
+        b_dtype=b_dtype,
         acc_dtype=ACC_DTYPE,
         output_dtype=output_dtype_for_split_k(tile.split_k),
         scale_dtype=SCALE_DTYPE_BF16,
@@ -210,20 +212,29 @@ def iter_supported_kernel_metadata(
     *,
     tiles: Iterable[TileConfig] | None = None,
     assembly_root: Path = Path("kernels/amdgcn"),
+    include_mixed_dtypes: bool = False,
 ) -> Iterable[KernelMetadata]:
     tile_override = None if tiles is None else tuple(tiles)
-    for dtype in (OperandDType.INT4, OperandDType.INT8):
+    dtype_pairs = [
+        (OperandDType.INT4, OperandDType.INT4),
+        (OperandDType.INT8, OperandDType.INT8),
+    ]
+    if include_mixed_dtypes:
+        dtype_pairs.append((OperandDType.BF16, OperandDType.INT4))
+    for a_dtype, b_dtype in dtype_pairs:
+        seed_dtype = OperandDType.INT4 if b_dtype is OperandDType.INT4 else b_dtype
         for scale in supported_scale_specs():
             for epilogue in (Epilogue.NONE, Epilogue.RELU2, Epilogue.SWIGLU):
                 tile_list = (
                     tile_override
                     if tile_override is not None
-                    else seed_tile_configs(dtype, epilogue=epilogue, scale=scale)
+                    else seed_tile_configs(seed_dtype, epilogue=epilogue, scale=scale)
                 )
                 for layout in SUPPORTED_GEMM_LAYOUTS:
                     for tile in tile_list:
                         yield _kernel_metadata(
-                            dtype=dtype,
+                            a_dtype=a_dtype,
+                            b_dtype=b_dtype,
                             scale=scale,
                             epilogue=epilogue,
                             tile=tile,
@@ -231,24 +242,26 @@ def iter_supported_kernel_metadata(
                             schedule=KernelSchedule.STANDARD,
                             assembly_root=assembly_root,
                         )
-    for scale in supported_scale_specs():
-        tile_list = (
-            tile_override
-            if tile_override is not None
-            else seed_tile_configs(OperandDType.INT4, epilogue=Epilogue.NONE, scale=scale)
-        )
-        for layout in SUPPORTED_GEMM_LAYOUTS:
-            for tile in tile_list:
-                persistent_tile = _persistent_int4_tile(tile)
-                yield _kernel_metadata(
-                    dtype=OperandDType.INT4,
-                    scale=scale,
-                    epilogue=Epilogue.NONE,
-                    tile=persistent_tile,
-                    layout=layout,
-                    schedule=KernelSchedule.PERSISTENT,
-                    assembly_root=assembly_root,
-                )
+    for a_dtype, b_dtype in ((OperandDType.INT4, OperandDType.INT4),):
+        for scale in supported_scale_specs():
+            tile_list = (
+                tile_override
+                if tile_override is not None
+                else seed_tile_configs(OperandDType.INT4, epilogue=Epilogue.NONE, scale=scale)
+            )
+            for layout in SUPPORTED_GEMM_LAYOUTS:
+                for tile in tile_list:
+                    persistent_tile = _persistent_int4_tile(tile)
+                    yield _kernel_metadata(
+                        a_dtype=a_dtype,
+                        b_dtype=b_dtype,
+                        scale=scale,
+                        epilogue=Epilogue.NONE,
+                        tile=persistent_tile,
+                        layout=layout,
+                        schedule=KernelSchedule.PERSISTENT,
+                        assembly_root=assembly_root,
+                    )
 
 
 class KernelRegistry:
@@ -271,7 +284,9 @@ class KernelRegistry:
     def select(
         self,
         *,
-        dtype: OperandDType,
+        dtype: OperandDType | None = None,
+        a_dtype: OperandDType | None = None,
+        b_dtype: OperandDType | None = None,
         scale: ScaleSpec,
         epilogue: Epilogue,
         m: int,
@@ -282,11 +297,14 @@ class KernelRegistry:
         schedule: KernelSchedule = KernelSchedule.STANDARD,
         require_compiled: bool = False,
     ) -> KernelMetadata:
+        selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(
+            dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype
+        )
         candidates = [
             kernel
             for kernel in self._kernels.values()
-            if kernel.a_dtype is dtype
-            and kernel.b_dtype is dtype
+            if kernel.a_dtype is selected_a_dtype
+            and kernel.b_dtype is selected_b_dtype
             and kernel.scale == scale
             and kernel.epilogue is epilogue
             and kernel.layout is layout
@@ -300,7 +318,7 @@ class KernelRegistry:
             candidates = [k for k in candidates if k.status in {KernelStatus.COMPILED, KernelStatus.BENCHMARKED}]
         if not candidates:
             raise LookupError(
-                f"no kernel for dtype={dtype.value}, scale={scale.label}, epilogue={epilogue.value}, "
+                f"no kernel for dtype_pair={selected_a_dtype.value}x{selected_b_dtype.value}, scale={scale.label}, epilogue={epilogue.value}, "
                 f"layout={layout.value}, schedule={schedule.value}, "
                 f"shape=({m}, {n}, {k})"
             )
@@ -312,18 +330,23 @@ class KernelRegistry:
     def select_reference(
         self,
         *,
-        dtype: OperandDType,
+        dtype: OperandDType | None = None,
+        a_dtype: OperandDType | None = None,
+        b_dtype: OperandDType | None = None,
         scale: ScaleSpec,
         epilogue: Epilogue,
         layout: GemmLayout = GemmLayout.NN,
         split_k: int | None = 1,
         schedule: KernelSchedule = KernelSchedule.STANDARD,
     ) -> KernelMetadata:
+        selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(
+            dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype
+        )
         candidates = [
             kernel
             for kernel in self._kernels.values()
-            if kernel.a_dtype is dtype
-            and kernel.b_dtype is dtype
+            if kernel.a_dtype is selected_a_dtype
+            and kernel.b_dtype is selected_b_dtype
             and kernel.scale == scale
             and kernel.epilogue is epilogue
             and kernel.layout is layout
@@ -334,7 +357,7 @@ class KernelRegistry:
         ]
         if not candidates:
             raise LookupError(
-                f"no reference kernel metadata for dtype={dtype.value}, scale={scale.label}, "
+                f"no reference kernel metadata for dtype_pair={selected_a_dtype.value}x{selected_b_dtype.value}, scale={scale.label}, "
                 f"epilogue={epilogue.value}, layout={layout.value}, schedule={schedule.value}"
             )
 
@@ -350,3 +373,4 @@ class KernelRegistry:
 
 
 default_registry = KernelRegistry(iter_supported_kernel_metadata())
+mixed_dtype_registry = KernelRegistry(iter_supported_kernel_metadata(include_mixed_dtypes=True))

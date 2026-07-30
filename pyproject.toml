@@ -95,6 +95,16 @@ cmake.source-dir = "native"
 [tool.scikit-build.wheel]
 packages = ["src/amd_strix_halo_kernels"]
 py-api = "py3"
+exclude = [
+    "**/.claude/**",
+    "**/.codex/**",
+    "**/.git/**",
+    "**/.pytest_cache/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/.env",
+    "**/.env.local",
+]
 
 [dependency-groups]
 dev = ["pytest>=8.0"]

@@ -740,60 +740,45 @@ define amdgpu_kernel void @_int8_scaled_gemm(ptr addrspace(1) inreg readonly cap
   %700 = xor i32 %699, %698, !dbg !14
   %701 = or disjoint i32 %700, %696, !dbg !14
   %702 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %701, !dbg !14
-  %703 = load <1 x float>, ptr addrspace(3) %702, align 4, !dbg !14
-  %704 = extractelement <1 x float> %703, i64 0, !dbg !14
-  %705 = xor i32 %701, 1032, !dbg !14
-  %706 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %705, !dbg !14
-  %707 = load <1 x float>, ptr addrspace(3) %706, align 4, !dbg !14
-  %708 = extractelement <1 x float> %707, i64 0, !dbg !14
-  %709 = xor i32 %701, 2064, !dbg !14
-  %710 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %709, !dbg !14
-  %711 = load <1 x float>, ptr addrspace(3) %710, align 4, !dbg !14
-  %712 = extractelement <1 x float> %711, i64 0, !dbg !14
-  %713 = xor i32 %701, 3096, !dbg !14
+  %703 = load float, ptr addrspace(3) %702, align 4, !dbg !14
+  %704 = xor i32 %701, 1032, !dbg !14
+  %705 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %704, !dbg !14
+  %706 = load float, ptr addrspace(3) %705, align 4, !dbg !14
+  %707 = xor i32 %701, 2064, !dbg !14
+  %708 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %707, !dbg !14
+  %709 = load float, ptr addrspace(3) %708, align 4, !dbg !14
+  %710 = xor i32 %701, 3096, !dbg !14
+  %711 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %710, !dbg !14
+  %712 = load float, ptr addrspace(3) %711, align 4, !dbg !14
+  %713 = xor i32 %701, 4160, !dbg !14
   %714 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %713, !dbg !14
-  %715 = load <1 x float>, ptr addrspace(3) %714, align 4, !dbg !14
-  %716 = extractelement <1 x float> %715, i64 0, !dbg !14
-  %717 = xor i32 %701, 4160, !dbg !14
-  %718 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %717, !dbg !14
-  %719 = load <1 x float>, ptr addrspace(3) %718, align 4, !dbg !14
-  %720 = extractelement <1 x float> %719, i64 0, !dbg !14
-  %721 = xor i32 %701, 5192, !dbg !14
-  %722 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %721, !dbg !14
-  %723 = load <1 x float>, ptr addrspace(3) %722, align 4, !dbg !14
-  %724 = extractelement <1 x float> %723, i64 0, !dbg !14
-  %725 = xor i32 %701, 6224, !dbg !14
-  %726 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %725, !dbg !14
-  %727 = load <1 x float>, ptr addrspace(3) %726, align 4, !dbg !14
-  %728 = extractelement <1 x float> %727, i64 0, !dbg !14
-  %729 = xor i32 %701, 7256, !dbg !14
-  %730 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %729, !dbg !14
-  %731 = load <1 x float>, ptr addrspace(3) %730, align 4, !dbg !14
-  %732 = extractelement <1 x float> %731, i64 0, !dbg !14
-  %733 = sext i32 %653 to i64, !dbg !14
-  %734 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %733, !dbg !14
-  %735 = sext i32 %654 to i64, !dbg !14
-  %736 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %735, !dbg !14
-  %737 = sext i32 %655 to i64, !dbg !14
-  %738 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %737, !dbg !14
-  %739 = sext i32 %656 to i64, !dbg !14
-  %740 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %739, !dbg !14
-  %741 = sext i32 %657 to i64, !dbg !14
-  %742 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %741, !dbg !14
-  %743 = sext i32 %658 to i64, !dbg !14
-  %744 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %743, !dbg !14
-  %745 = sext i32 %659 to i64, !dbg !14
-  %746 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %745, !dbg !14
-  %747 = sext i32 %660 to i64, !dbg !14
-  %748 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %747, !dbg !14
-  %749 = atomicrmw fadd ptr addrspace(1) %734, float %704 syncscope("agent") monotonic, align 4, !dbg !14
-  %750 = atomicrmw fadd ptr addrspace(1) %736, float %708 syncscope("agent") monotonic, align 4, !dbg !14
-  %751 = atomicrmw fadd ptr addrspace(1) %738, float %712 syncscope("agent") monotonic, align 4, !dbg !14
-  %752 = atomicrmw fadd ptr addrspace(1) %740, float %716 syncscope("agent") monotonic, align 4, !dbg !14
-  %753 = atomicrmw fadd ptr addrspace(1) %742, float %720 syncscope("agent") monotonic, align 4, !dbg !14
-  %754 = atomicrmw fadd ptr addrspace(1) %744, float %724 syncscope("agent") monotonic, align 4, !dbg !14
-  %755 = atomicrmw fadd ptr addrspace(1) %746, float %728 syncscope("agent") monotonic, align 4, !dbg !14
-  %756 = atomicrmw fadd ptr addrspace(1) %748, float %732 syncscope("agent") monotonic, align 4, !dbg !14
+  %715 = load float, ptr addrspace(3) %714, align 4, !dbg !14
+  %716 = xor i32 %701, 5192, !dbg !14
+  %717 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %716, !dbg !14
+  %718 = load float, ptr addrspace(3) %717, align 4, !dbg !14
+  %719 = xor i32 %701, 6224, !dbg !14
+  %720 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %719, !dbg !14
+  %721 = load float, ptr addrspace(3) %720, align 4, !dbg !14
+  %722 = xor i32 %701, 7256, !dbg !14
+  %723 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %722, !dbg !14
+  %724 = load float, ptr addrspace(3) %723, align 4, !dbg !14
+  %725 = tail call ptr addrspace(8) @llvm.amdgcn.make.buffer.rsrc.p8.p1(ptr addrspace(1) %4, i16 0, i64 2147483646, i32 822243328), !dbg !14
+  %726 = shl i32 %653, 2, !dbg !14
+  %727 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %703, ptr addrspace(8) %725, i32 %726, i32 0, i32 0), !dbg !14
+  %728 = shl i32 %654, 2, !dbg !14
+  %729 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %706, ptr addrspace(8) %725, i32 %728, i32 0, i32 0), !dbg !14
+  %730 = shl i32 %655, 2, !dbg !14
+  %731 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %709, ptr addrspace(8) %725, i32 %730, i32 0, i32 0), !dbg !14
+  %732 = shl i32 %656, 2, !dbg !14
+  %733 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %712, ptr addrspace(8) %725, i32 %732, i32 0, i32 0), !dbg !14
+  %734 = shl i32 %657, 2, !dbg !14
+  %735 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %715, ptr addrspace(8) %725, i32 %734, i32 0, i32 0), !dbg !14
+  %736 = shl i32 %658, 2, !dbg !14
+  %737 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %718, ptr addrspace(8) %725, i32 %736, i32 0, i32 0), !dbg !14
+  %738 = shl i32 %659, 2, !dbg !14
+  %739 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %721, ptr addrspace(8) %725, i32 %738, i32 0, i32 0), !dbg !14
+  %740 = shl i32 %660, 2, !dbg !14
+  %741 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %724, ptr addrspace(8) %725, i32 %740, i32 0, i32 0), !dbg !14
   ret void, !dbg !66
 }
 
@@ -818,22 +803,26 @@ declare void @llvm.amdgcn.s.barrier() #4
 ; Function Attrs: mustprogress nocallback nocreateundeforpoison nofree nosync nounwind speculatable willreturn memory(none)
 declare ptr addrspace(8) @llvm.amdgcn.make.buffer.rsrc.p8.p1(ptr addrspace(1) readnone, i16, i64, i32) #2
 
-; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read)
-declare i16 @llvm.amdgcn.raw.ptr.buffer.load.i16(ptr addrspace(8) readonly captures(none), i32, i32, i32 immarg) #5
+; Function Attrs: mustprogress nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float, ptr addrspace(8) captures(none), i32, i32, i32 immarg) #5
 
 ; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read)
-declare <4 x i32> @llvm.amdgcn.raw.ptr.buffer.load.v4i32(ptr addrspace(8) readonly captures(none), i32, i32, i32 immarg) #5
+declare i16 @llvm.amdgcn.raw.ptr.buffer.load.i16(ptr addrspace(8) readonly captures(none), i32, i32, i32 immarg) #6
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read)
+declare <4 x i32> @llvm.amdgcn.raw.ptr.buffer.load.v4i32(ptr addrspace(8) readonly captures(none), i32, i32, i32 immarg) #6
 
 ; Function Attrs: convergent mustprogress nocallback nocreateundeforpoison nofree nounwind willreturn memory(none)
-declare <8 x i32> @llvm.amdgcn.wmma.i32.16x16x16.iu8.v8i32.v4i32(i1 immarg, <4 x i32>, i1 immarg, <4 x i32>, <8 x i32>, i1 immarg) #6
+declare <8 x i32> @llvm.amdgcn.wmma.i32.16x16x16.iu8.v8i32.v4i32(i1 immarg, <4 x i32>, i1 immarg, <4 x i32>, <8 x i32>, i1 immarg) #7
 
 attributes #0 = { nofree norecurse nounwind "amdgpu-cluster-dims"="1,1,1" "amdgpu-flat-work-group-size"="1,256" "amdgpu-no-cluster-id-x" "amdgpu-no-cluster-id-y" "amdgpu-no-cluster-id-z" "amdgpu-no-completion-action" "amdgpu-no-default-queue" "amdgpu-no-dispatch-id" "amdgpu-no-dispatch-ptr" "amdgpu-no-flat-scratch-init" "amdgpu-no-heap-ptr" "amdgpu-no-hostcall-ptr" "amdgpu-no-implicitarg-ptr" "amdgpu-no-lds-kernel-id" "amdgpu-no-multigrid-sync-arg" "amdgpu-no-queue-ptr" "amdgpu-no-workgroup-id-x" "amdgpu-no-workgroup-id-z" "amdgpu-no-workitem-id-x" "amdgpu-no-workitem-id-y" "amdgpu-no-workitem-id-z" "amdgpu-no-wwm" "amdgpu-waves-per-eu"="2, 2" "denormal-fp-math-f32"="ieee" "uniform-work-group-size" }
 attributes #1 = { mustprogress nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 attributes #2 = { mustprogress nocallback nocreateundeforpoison nofree nosync nounwind speculatable willreturn memory(none) }
 attributes #3 = { mustprogress nocallback nofree nounwind willreturn }
 attributes #4 = { convergent mustprogress nocallback nofree nounwind willreturn }
-attributes #5 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read) }
-attributes #6 = { convergent mustprogress nocallback nocreateundeforpoison nofree nounwind willreturn memory(none) }
+attributes #5 = { mustprogress nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #6 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read) }
+attributes #7 = { convergent mustprogress nocallback nocreateundeforpoison nofree nounwind willreturn memory(none) }
 
 !llvm.dbg.cu = !{!0}
 !llvm.module.flags = !{!2, !3}
@@ -842,7 +831,7 @@ attributes #6 = { convergent mustprogress nocallback nocreateundeforpoison nofre
 !1 = !DIFile(filename: "generate_amdgcn.py", directory: "<repo>/scripts")
 !2 = !{i32 2, !"Debug Info Version", i32 3}
 !3 = !{i32 1, !"amdhsa_code_object_version", i32 500}
-!4 = distinct !DISubprogram(name: "_int8_scaled_gemm", linkageName: "_int8_scaled_gemm", scope: !1, file: !1, line: 283, type: !5, scopeLine: 283, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!4 = distinct !DISubprogram(name: "_int8_scaled_gemm", linkageName: "_int8_scaled_gemm", scope: !1, file: !1, line: 309, type: !5, scopeLine: 309, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0)
 !5 = !DISubroutineType(cc: DW_CC_normal, types: !6)
 !6 = !{null, !7, !7, !9, !9, !11, !11, !13, !13, !13, !9, !9}
 !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "pointer", baseType: !8, size: 64, dwarfAddressSpace: 1)
@@ -852,56 +841,56 @@ attributes #6 = { convergent mustprogress nocallback nocreateundeforpoison nofre
 !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "pointer", baseType: !12, size: 64, dwarfAddressSpace: 1)
 !12 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
 !13 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
-!14 = !DILocation(line: 392, column: 9, scope: !4)
-!15 = !DILocation(line: 288, column: 11, scope: !4)
-!16 = !DILocation(line: 289, column: 13, scope: !4)
+!14 = !DILocation(line: 418, column: 9, scope: !4)
+!15 = !DILocation(line: 314, column: 11, scope: !4)
+!16 = !DILocation(line: 315, column: 13, scope: !4)
 !17 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !20)
 !18 = distinct !DILexicalBlockFile(scope: !4, file: !19, discriminator: 0)
 !19 = !DIFile(filename: "standard.py", directory: "<triton>/python/triton/language")
-!20 = !DILocation(line: 290, column: 17, scope: !21)
+!20 = !DILocation(line: 316, column: 17, scope: !21)
 !21 = distinct !DILexicalBlockFile(scope: !4, file: !1, discriminator: 0)
 !22 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !20)
 !23 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !24)
-!24 = !DILocation(line: 291, column: 17, scope: !21)
+!24 = !DILocation(line: 317, column: 17, scope: !21)
 !25 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !24)
-!26 = !DILocation(line: 292, column: 24, scope: !4)
-!27 = !DILocation(line: 293, column: 16, scope: !4)
-!28 = !DILocation(line: 294, column: 19, scope: !4)
-!29 = !DILocation(line: 295, column: 31, scope: !4)
-!30 = !DILocation(line: 295, column: 20, scope: !4)
-!31 = !DILocation(line: 296, column: 29, scope: !4)
-!32 = !DILocation(line: 297, column: 13, scope: !4)
-!33 = !DILocation(line: 296, column: 28, scope: !4)
-!34 = !DILocation(line: 296, column: 13, scope: !4)
-!35 = !DILocation(line: 299, column: 14, scope: !4)
-!36 = !DILocation(line: 299, column: 32, scope: !4)
-!37 = !DILocation(line: 300, column: 14, scope: !4)
-!38 = !DILocation(line: 300, column: 32, scope: !4)
+!26 = !DILocation(line: 318, column: 24, scope: !4)
+!27 = !DILocation(line: 319, column: 16, scope: !4)
+!28 = !DILocation(line: 320, column: 19, scope: !4)
+!29 = !DILocation(line: 321, column: 31, scope: !4)
+!30 = !DILocation(line: 321, column: 20, scope: !4)
+!31 = !DILocation(line: 322, column: 29, scope: !4)
+!32 = !DILocation(line: 323, column: 13, scope: !4)
+!33 = !DILocation(line: 322, column: 28, scope: !4)
+!34 = !DILocation(line: 322, column: 13, scope: !4)
+!35 = !DILocation(line: 325, column: 14, scope: !4)
+!36 = !DILocation(line: 325, column: 32, scope: !4)
+!37 = !DILocation(line: 326, column: 14, scope: !4)
+!38 = !DILocation(line: 326, column: 32, scope: !4)
 !39 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !40)
-!40 = !DILocation(line: 307, column: 28, scope: !21)
+!40 = !DILocation(line: 333, column: 28, scope: !21)
 !41 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !40)
 !42 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !43)
-!43 = !DILocation(line: 310, column: 26, scope: !21)
+!43 = !DILocation(line: 336, column: 26, scope: !21)
 !44 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !43)
-!45 = !DILocation(line: 312, column: 26, scope: !4)
-!46 = !DILocation(line: 307, column: 5, scope: !4)
-!47 = !DILocation(line: 318, column: 34, scope: !4)
-!48 = !DILocation(line: 302, column: 19, scope: !4)
-!49 = !DILocation(line: 308, column: 14, scope: !4)
-!50 = !DILocation(line: 312, column: 21, scope: !4)
-!51 = !DILocation(line: 318, column: 26, scope: !4)
-!52 = !DILocation(line: 322, column: 34, scope: !4)
-!53 = !DILocation(line: 322, column: 26, scope: !4)
-!54 = !DILocation(line: 323, column: 23, scope: !4)
-!55 = !DILocation(line: 330, column: 29, scope: !4)
-!56 = !DILocation(line: 331, column: 34, scope: !4)
-!57 = !DILocation(line: 332, column: 30, scope: !4)
-!58 = !DILocation(line: 332, column: 22, scope: !4)
-!59 = !DILocation(line: 334, column: 40, scope: !4)
-!60 = !DILocation(line: 334, column: 30, scope: !4)
-!61 = !DILocation(line: 334, column: 22, scope: !4)
-!62 = !DILocation(line: 336, column: 24, scope: !4)
-!63 = !DILocation(line: 336, column: 17, scope: !4)
-!64 = !DILocation(line: 304, column: 11, scope: !4)
-!65 = !DILocation(line: 392, column: 23, scope: !4)
-!66 = !DILocation(line: 283, column: 1, scope: !4)
+!45 = !DILocation(line: 338, column: 26, scope: !4)
+!46 = !DILocation(line: 333, column: 5, scope: !4)
+!47 = !DILocation(line: 344, column: 34, scope: !4)
+!48 = !DILocation(line: 328, column: 19, scope: !4)
+!49 = !DILocation(line: 334, column: 14, scope: !4)
+!50 = !DILocation(line: 338, column: 21, scope: !4)
+!51 = !DILocation(line: 344, column: 26, scope: !4)
+!52 = !DILocation(line: 348, column: 34, scope: !4)
+!53 = !DILocation(line: 348, column: 26, scope: !4)
+!54 = !DILocation(line: 349, column: 23, scope: !4)
+!55 = !DILocation(line: 356, column: 29, scope: !4)
+!56 = !DILocation(line: 357, column: 34, scope: !4)
+!57 = !DILocation(line: 358, column: 30, scope: !4)
+!58 = !DILocation(line: 358, column: 22, scope: !4)
+!59 = !DILocation(line: 360, column: 40, scope: !4)
+!60 = !DILocation(line: 360, column: 30, scope: !4)
+!61 = !DILocation(line: 360, column: 22, scope: !4)
+!62 = !DILocation(line: 362, column: 24, scope: !4)
+!63 = !DILocation(line: 362, column: 17, scope: !4)
+!64 = !DILocation(line: 330, column: 11, scope: !4)
+!65 = !DILocation(line: 418, column: 23, scope: !4)
+!66 = !DILocation(line: 309, column: 1, scope: !4)

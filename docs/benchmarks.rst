@@ -53,7 +53,10 @@ mode, ``group_sizes`` partitions ``M`` rows. In backward mode,
 ``group_sizes`` partitions logical ``K`` and the synthetic benchmark pads
 each group to ``k_capacity``. This API benchmarks ``RaggedDotConfig`` or
 ``RaggedBwdDotConfig`` candidates. The packaged ragged HSACO matrix is
-generated from selected configs after tuning.
+generated from selected configs after tuning. Candidate launches explicitly
+use ``use_native=False``, so results measure JIT rather than silently selecting
+a packaged artifact. Forward JIT kernels specialize runtime shape values and
+alignments; packaged artifacts deliberately retain generic runtime scalars.
 
 Peak 4096^3 Results
 -------------------
@@ -107,6 +110,13 @@ Peak 4096^3 Results
      - 5.61 ms
      - 24.5
 
+In separate 4096³ per-channel plain-GEMM comparisons, standard prepacked INT4
+reached about 77.1 TOPS, the opt-in persistent schedule reached 42.0 TOPS, and
+BF16×INT4 with in-kernel activation quantization reached 9.26 TOPS. Standard
+prepacked INT4 remains the recommended throughput path. The BF16×INT4 result
+includes repeated A quantization per N tile and does not represent a shipped
+mixed artifact.
+
 Ragged Dot Results
 ------------------
 
@@ -120,6 +130,12 @@ patterns, all four layouts, per-channel/subchannel-256 scales, forward
 M-ragged dot, and backward K-ragged split-K dot. The default grid benchmarks 7
 forward candidates and 10 backward candidates per shape/layout/scale/case. The
 table shows the 4096x4096x4096 balanced rows.
+
+A separate forward-NN experiment isolated runtime-shape specialization. The
+specialized JIT path measured about 62.7 TOPS per-channel and 47.7 TOPS with
+subchannel-256 scales, versus 41.5 and 36.1 TOPS for forced-generic JIT. These
+are JIT comparisons; packaged native artifacts remain generic across block-1,
+block, and block+1 runtime shapes.
 
 .. list-table::
    :header-rows: 1
@@ -271,6 +287,11 @@ Run direct Triton tuners:
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_gemm.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_relu2.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_swiglu.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
+
+Use ``--dtype bf16`` with any of those commands to tune the development-only
+BF16×INT4 path with on-the-fly activation quantization. All three tuners check
+results with ``rtol=atol=1e-3``. No mixed artifacts are shipped by default;
+prequantize and reuse A with ``--dtype int4`` when quantization reuse matters.
 
 Run the ragged-dot runtime-shape sweep. This script calls
 ``autotune_ragged_dot(...)`` for every requested shape, mode, layout, scale,

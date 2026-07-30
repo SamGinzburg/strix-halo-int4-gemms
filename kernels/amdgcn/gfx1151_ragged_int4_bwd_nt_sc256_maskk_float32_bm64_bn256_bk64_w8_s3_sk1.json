@@ -1,8 +1,8 @@
 {
   "amdgcn_stats": {
     "iu4_wmma": 32,
-    "lines": 1985,
-    "waitcnt": 64
+    "lines": 2161,
+    "waitcnt": 46
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_bwd_nt_sc256_maskk_float32_bm64_bn256_bk64_w8_s3_sk1",
   "arch": "gfx1151",
@@ -52,7 +52,7 @@
     "num_ctas": 1,
     "num_warps": 8,
     "persistent": 0,
-    "shared_memory_bytes": 2048
+    "shared_memory_bytes": 8192
   },
   "layout": "nt",
   "mode": "bwd",
@@ -71,6 +71,11 @@
   "shape_specialization": "runtime",
   "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
   "status": "generated",
-  "triton_artifacts": {},
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_ragged_int4_bwd_nt_sc256_maskk_float32_bm64_bn256_bk64_w8_s3_sk1.llir",
+    "source": "kernels/triton/gfx1151_ragged_int4_bwd_nt_sc256_maskk_float32_bm64_bn256_bk64_w8_s3_sk1.py",
+    "ttgir": "kernels/triton/gfx1151_ragged_int4_bwd_nt_sc256_maskk_float32_bm64_bn256_bk64_w8_s3_sk1.ttgir",
+    "ttir": "kernels/triton/gfx1151_ragged_int4_bwd_nt_sc256_maskk_float32_bm64_bn256_bk64_w8_s3_sk1.ttir"
+  },
   "variant": "maskk"
 }

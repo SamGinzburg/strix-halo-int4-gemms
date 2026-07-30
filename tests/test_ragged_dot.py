@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -9,11 +12,44 @@ from amd_strix_halo_kernels import (
     ScaleMode,
     ScaleSpec,
     calculate_group_info,
+    prepare_ragged_group_info,
+    ragged_group_info_capacity,
     ragged_dot_int4_bwd,
+    ragged_dot_int4_bwd_accum,
     ragged_dot_int4,
 )
+from amd_strix_halo_kernels.native import NATIVE_LIBRARY_NAME, dispatch_runtime_status
 from amd_strix_halo_kernels.quant import fake_quant_int, pack_int4_k_major, pack_ragged_rhs_subchannel_scales
-from amd_strix_halo_kernels.ragged import _can_use_bwd_even_k_fast_path, _can_use_even_k_fast_path
+from amd_strix_halo_kernels.ragged import (
+    RAGGED_BWD_ACCUM_CONFIG,
+    _can_use_bwd_even_k_fast_path,
+    _can_use_even_k_fast_path,
+    _ragged_dot_int4_even_k_kernel,
+    _ragged_dot_int4_kernel,
+)
+
+
+STRICT_RTOL = 1.0e-3
+STRICT_ATOL = 1.0e-3
+
+
+def _assert_reference_has_signal(expected) -> None:
+    max_abs = float(expected.float().abs().max())
+    assert max_abs >= 10 * STRICT_ATOL, f"reference signal is too small: max_abs={max_abs}"
+
+
+@pytest.mark.parametrize("factory", [_ragged_dot_int4_even_k_kernel, _ragged_dot_int4_kernel])
+def test_ragged_forward_kernel_factory_separates_generic_artifacts_from_specialized_jit(factory) -> None:
+    pytest.importorskip("triton")
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS")
+
+    generic = factory(specialize_runtime_args=False)
+    specialized = factory(specialize_runtime_args=True)
+
+    assert generic.do_not_specialize == runtime_args
+    assert generic.do_not_specialize_on_alignment == runtime_args
+    assert specialized.do_not_specialize == []
+    assert specialized.do_not_specialize_on_alignment == []
 
 
 def _manual_grouped_reference(a_q, b_q, group_sizes, a_scale, b_scale):
@@ -97,6 +133,73 @@ def _manual_bwd_reference(a_q, b_q, group_sizes, a_scale, b_scale):
     return out
 
 
+def _manual_bwd_accum_reference(a_q, b_q, task_ranges, a_scale, b_scale):
+    experts = task_ranges.shape[0]
+    out = torch.zeros((experts, a_q.shape[1], b_q.shape[2]), device=a_q.device, dtype=torch.float32)
+    for expert, (start, end) in enumerate(task_ranges.tolist()):
+        for task in range(start, end):
+            partial = torch.matmul(a_q[task].float(), b_q[task].float())
+            partial *= a_scale[task, :, None].float()
+            partial *= b_scale[task, None, :].float()
+            out[expert] += partial
+    return out
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged int4 dW accumulation requires CUDA/HIP")
+@pytest.mark.parametrize("range_dtype", [torch.int32, torch.int64])
+def test_ragged_dot_int4_bwd_accum_matches_task_sum_reference(range_dtype) -> None:
+    torch.manual_seed(709)
+    tasks, experts, rows, cols, task_rows = 5, 3, 64, 96, 64
+    a_q = torch.randint(-8, 8, (tasks, rows, task_rows), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-8, 8, (tasks, task_rows, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, GemmLayout.TN)
+    a_scale = torch.rand((tasks, rows), device="cuda", dtype=torch.bfloat16) * 0.02 + 0.001
+    b_scale = torch.rand((tasks, cols), device="cuda", dtype=torch.bfloat16) * 0.02 + 0.001
+    task_ranges = torch.tensor([[0, 2], [2, 2], [2, 5]], device="cuda", dtype=range_dtype)
+    expected = _manual_bwd_accum_reference(a_q, b_q, task_ranges, a_scale, b_scale)
+
+    actual = ragged_dot_int4_bwd_accum(
+        lhs,
+        rhs,
+        task_ranges,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        config=RaggedBwdDotConfig(block_m=32, block_n=32, block_k=64, num_warps=4, num_stages=2),
+        use_native=False,
+    )
+
+    torch.testing.assert_close(actual, expected, rtol=1.0e-3, atol=1.0e-3)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged int4 dW accumulation requires CUDA/HIP")
+@pytest.mark.parametrize(
+    "ranges",
+    [
+        [[-1, 1]],
+        [[2, 1]],
+        [[0, 3]],
+    ],
+)
+def test_ragged_dot_int4_bwd_accum_rejects_unsafe_ranges(ranges) -> None:
+    tasks, rows, cols, task_rows = 2, 32, 32, 64
+    lhs = torch.zeros((tasks, task_rows // 2, rows), device="cuda", dtype=torch.uint8)
+    rhs = torch.zeros((tasks, task_rows // 2, cols), device="cuda", dtype=torch.uint8)
+    a_scale = torch.ones((tasks, rows), device="cuda", dtype=torch.bfloat16)
+    b_scale = torch.ones((tasks, cols), device="cuda", dtype=torch.bfloat16)
+    task_ranges = torch.tensor(ranges, device="cuda", dtype=torch.int32)
+
+    with pytest.raises(ValueError, match="0 <= start <= end <= tasks"):
+        ragged_dot_int4_bwd_accum(
+            lhs,
+            rhs,
+            task_ranges,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            config=RaggedBwdDotConfig(block_m=32, block_n=32, block_k=64, num_warps=4),
+            use_native=False,
+        )
+
+
 def _manual_bwd_subchannel_reference(a_q, b_q, group_sizes, a_scale, b_scale, subchannel):
     groups, rows, k_capacity = a_q.shape
     cols = b_q.shape[2]
@@ -151,6 +254,65 @@ def test_calculate_group_info_rejects_small_tid_size() -> None:
         calculate_group_info(group_sizes, tile=32, tid_size=2, align_tile=8)
 
 
+def test_ragged_group_info_capacity_bounds_all_small_partitions() -> None:
+    tile = 4
+    align_tile = 2
+    for rows in range(13):
+        for groups in range(1, 5):
+            capacity = ragged_group_info_capacity(rows, groups, tile, align_tile=align_tile)
+
+            def visit(prefix, remaining, slots):
+                if slots == 1:
+                    sizes = prefix + [remaining]
+                    info = calculate_group_info(
+                        torch.tensor(sizes, dtype=torch.int32),
+                        tile,
+                        align_tile=align_tile,
+                    )
+                    assert info.num_tasks <= capacity, (rows, groups, sizes, info.num_tasks, capacity)
+                    return
+                for size in range(remaining + 1):
+                    visit(prefix + [size], remaining - size, slots - 1)
+
+            visit([], rows, groups)
+
+
+def test_prepare_ragged_group_info_matches_exact_metadata_and_zero_fills_capacity() -> None:
+    group_sizes = torch.tensor([17, 0, 31, 24], dtype=torch.int32)
+    exact = calculate_group_info(group_sizes, tile=16, align_tile=8)
+    prepared = prepare_ragged_group_info(
+        group_sizes,
+        tile=16,
+        rows=72,
+        align_tile=8,
+        allow_triton=False,
+    )
+
+    assert prepared.fixed_capacity is True
+    assert prepared.rows == 72
+    assert prepared.groups == 4
+    assert prepared.tile == 16
+    assert prepared.align_tile == 8
+    assert prepared.num_tasks >= exact.num_tasks
+    for field in ("group_id", "block_start", "actual_start", "actual_end", "start_within_block", "actual_size"):
+        torch.testing.assert_close(getattr(prepared, field)[: exact.num_tasks], getattr(exact, field))
+    assert torch.count_nonzero(prepared.actual_size[exact.num_tasks:]).item() == 0
+
+
+def test_prepare_ragged_group_info_rejects_unsafe_capacity() -> None:
+    group_sizes = torch.tensor([8, 8], dtype=torch.int32)
+    safe_capacity = ragged_group_info_capacity(16, 2, 16, align_tile=8)
+
+    with pytest.raises(ValueError, match="static safe bound"):
+        prepare_ragged_group_info(
+            group_sizes,
+            tile=16,
+            rows=16,
+            task_capacity=safe_capacity - 1,
+            align_tile=8,
+        )
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="needs CUDA/HIP to compare the Triton build path")
 @pytest.mark.parametrize(
     "sizes,tile,tid_size",
@@ -170,6 +332,70 @@ def test_calculate_group_info_torch_matches_triton_on_cuda(sizes, tile, tid_size
     assert triton_info.num_tasks == torch_info.num_tasks
     for field in ("group_id", "block_start", "actual_start", "actual_end", "start_within_block", "actual_size"):
         assert torch.equal(getattr(triton_info, field), getattr(torch_info, field)), field
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA/HIP graph capture")
+@pytest.mark.parametrize(
+    ("allow_triton", "group_dtype", "extra_capacity"),
+    [
+        pytest.param(True, torch.int32, 0, id="triton-int32-min-capacity"),
+        pytest.param(True, torch.int64, 3, id="triton-int64-extra-capacity"),
+        pytest.param(False, torch.int32, 3, id="torch-int32-extra-capacity"),
+        pytest.param(False, torch.int64, 0, id="torch-int64-min-capacity"),
+    ],
+)
+def test_prepare_ragged_group_info_cudagraph_replays_all_metadata(
+    allow_triton,
+    group_dtype,
+    extra_capacity,
+) -> None:
+    if allow_triton:
+        pytest.importorskip("triton")
+
+    rows, groups, tile, align_tile = 128, 4, 64, 8
+    partitions = ([32, 32, 32, 32], [0, 64, 16, 48], [1, 1, 1, 125])
+    group_sizes = torch.tensor(partitions[0], device="cuda", dtype=group_dtype)
+    minimum_capacity = ragged_group_info_capacity(rows, groups, tile, align_tile=align_tile)
+    capacity = minimum_capacity + extra_capacity
+
+    def prepare():
+        return prepare_ragged_group_info(
+            group_sizes,
+            tile,
+            rows=rows,
+            task_capacity=capacity,
+            align_tile=align_tile,
+            allow_triton=allow_triton,
+        )
+
+    prepare()
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = prepare()
+
+    assert captured.fixed_capacity is True
+    assert captured.num_tasks == capacity
+    fields = ("group_id", "block_start", "actual_start", "actual_end", "start_within_block", "actual_size")
+    observed_group_ids = []
+    for partition in partitions:
+        group_sizes.copy_(torch.tensor(partition, device="cuda", dtype=group_dtype))
+        graph.replay()
+        torch.cuda.synchronize()
+        expected = calculate_group_info(
+            torch.tensor(partition, dtype=group_dtype),
+            tile,
+            tid_size=capacity,
+            align_tile=align_tile,
+            allow_triton=False,
+        )
+        for field in fields:
+            actual_field = getattr(captured, field).cpu()
+            assert torch.equal(actual_field, getattr(expected, field)), field
+        observed_group_ids.append(captured.group_id.cpu().clone())
+
+    assert not torch.equal(observed_group_ids[0], observed_group_ids[1])
+    assert not torch.equal(observed_group_ids[1], observed_group_ids[2])
 
 
 def test_ragged_dot_config_rejects_invalid_swizzle_width() -> None:
@@ -301,6 +527,237 @@ def test_ragged_dot_int4_matches_grouped_torch_reference() -> None:
 
     expected = _manual_grouped_reference(a_q, b_q, group_sizes, a_scale, b_scale)
     torch.testing.assert_close(actual, expected, rtol=1.0e-4, atol=1.0e-3)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4 requires CUDA/HIP")
+def test_ragged_dot_int4_rejects_prepared_metadata_for_another_tile() -> None:
+    group_sizes = torch.tensor([4, 4], device="cuda", dtype=torch.int32)
+    group_info = prepare_ragged_group_info(group_sizes, tile=16, rows=8)
+    lhs = torch.zeros((8, 16), device="cuda", dtype=torch.uint8)
+    rhs = torch.zeros((2, 16, 8), device="cuda", dtype=torch.uint8)
+    a_scale = torch.ones((8,), device="cuda", dtype=torch.bfloat16)
+    b_scale = torch.ones((2, 8), device="cuda", dtype=torch.bfloat16)
+
+    with pytest.raises(ValueError, match="group_info tile"):
+        ragged_dot_int4(
+            lhs,
+            rhs,
+            None,
+            group_info=group_info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            config=RaggedDotConfig(block_m=32, block_n=16, block_k=32, num_warps=4),
+        )
+
+
+def _native_test_root() -> Path | None:
+    configured = os.environ.get("AMD_STRIX_HALO_NATIVE_ROOT")
+    if configured:
+        return Path(configured)
+    package_dir = Path(__file__).resolve().parents[1] / "src" / "amd_strix_halo_kernels"
+    return package_dir if (package_dir / NATIVE_LIBRARY_NAME).exists() else None
+
+
+@pytest.mark.skipif(not torch.cuda.is_available() or torch.version.hip is None, reason="requires ROCm")
+def test_native_ragged_dot_int4_bwd_accum_matches_task_sum_reference() -> None:
+    native_root = _native_test_root()
+    if native_root is None:
+        pytest.skip("native kernels require a built wheel or AMD_STRIX_HALO_NATIVE_ROOT")
+    library = native_root / NATIVE_LIBRARY_NAME
+    status = dispatch_runtime_status(library)
+    if not status.has_linked_kernels:
+        pytest.skip("native dispatch library does not have linked ROCm kernel support")
+
+    torch.manual_seed(719)
+    tasks, experts, rows, cols, task_rows = 5, 3, 64, 128, 64
+    a_q = torch.randint(-8, 8, (tasks, rows, task_rows), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-8, 8, (tasks, task_rows, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, GemmLayout.TN)
+    a_scale = torch.rand((tasks, rows), device="cuda", dtype=torch.bfloat16) * 0.02 + 0.001
+    b_scale = torch.rand((tasks, cols), device="cuda", dtype=torch.bfloat16) * 0.02 + 0.001
+    task_ranges = torch.tensor([[0, 2], [2, 2], [2, 5]], device="cuda", dtype=torch.int32)
+    expected = _manual_bwd_accum_reference(a_q, b_q, task_ranges, a_scale, b_scale)
+
+    actual = ragged_dot_int4_bwd_accum(
+        lhs,
+        rhs,
+        task_ranges,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        config=RAGGED_BWD_ACCUM_CONFIG,
+        use_native=True,
+        native_root=str(native_root),
+        native_library_path=str(library),
+    )
+
+    torch.testing.assert_close(actual, expected, rtol=1.0e-3, atol=1.0e-3)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available() or torch.version.hip is None, reason="requires ROCm")
+@pytest.mark.parametrize(
+    ("backend", "layout", "scale", "contraction"),
+    [
+        pytest.param("native", GemmLayout.NN, ScaleSpec(ScaleMode.PER_CHANNEL), 64, id="native-nn-pc-evenk"),
+        pytest.param(
+            "native", GemmLayout.NT, ScaleSpec(ScaleMode.SUBCHANNEL, 32), 64, id="native-nt-sc32-evenk"
+        ),
+        pytest.param("native", GemmLayout.TN, ScaleSpec(ScaleMode.PER_CHANNEL), 96, id="native-tn-pc-maskk"),
+        pytest.param(
+            "native", GemmLayout.TT, ScaleSpec(ScaleMode.SUBCHANNEL, 32), 96, id="native-tt-sc32-maskk"
+        ),
+        pytest.param(
+            "triton", GemmLayout.TT, ScaleSpec(ScaleMode.SUBCHANNEL, 32), 96, id="triton-tt-sc32-maskk"
+        ),
+    ],
+)
+def test_ragged_dot_int4_cudagraph_replays_dynamic_inputs(backend, layout, scale, contraction) -> None:
+    pytest.importorskip("triton")
+    native_root = None
+    library = None
+    if backend == "native":
+        native_root = _native_test_root()
+        if native_root is None:
+            pytest.skip("native kernels require a built wheel or AMD_STRIX_HALO_NATIVE_ROOT")
+        library = native_root / NATIVE_LIBRARY_NAME
+        status = dispatch_runtime_status(library)
+        if not status.has_linked_kernels:
+            pytest.skip("native dispatch library does not have linked ROCm kernel support")
+
+    torch.manual_seed(503 + list(GemmLayout).index(layout) * 17 + (scale.subchannel_size or 0) + contraction)
+    rows, output, groups = 128, 256, 4
+    config = RaggedDotConfig()
+    group_sizes = torch.tensor([32, 32, 32, 32], device="cuda", dtype=torch.int32)
+    quantized_inputs = []
+    packed_inputs = []
+    for _ in range(2):
+        a_q = fake_quant_int(torch.randn((rows, contraction), device="cuda") * 0.01, bits=4, scale=0.01)
+        b1_q = fake_quant_int(
+            torch.randn((groups, contraction, output), device="cuda") * 0.01,
+            bits=4,
+            scale=0.01,
+        )
+        b2_q = fake_quant_int(
+            torch.randn((groups, contraction, output), device="cuda") * 0.01,
+            bits=4,
+            scale=0.01,
+        )
+        lhs_state, rhs1_state = _pack_forward_args(a_q, b1_q, layout)
+        _, rhs2_state = _pack_forward_args(a_q, b2_q, layout)
+        quantized_inputs.append((a_q, b1_q, b2_q))
+        packed_inputs.append((lhs_state, rhs1_state, rhs2_state))
+
+    if scale.mode is ScaleMode.PER_CHANNEL:
+        base_a_scale = torch.linspace(0.01, 0.03, rows, device="cuda", dtype=torch.bfloat16)
+        base_b_scale = torch.linspace(
+            0.03,
+            0.01,
+            groups * output,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, output)
+    else:
+        subchannel = scale.subchannel_size or 1
+        scale_cols = (contraction + subchannel - 1) // subchannel
+        base_a_scale = torch.linspace(
+            0.01,
+            0.03,
+            rows * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(rows, scale_cols)
+        b_scale_logical = torch.linspace(
+            0.03,
+            0.01,
+            groups * output * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, output, scale_cols)
+        base_b_scale = pack_ragged_rhs_subchannel_scales(b_scale_logical)
+    replay_scales = [
+        (base_a_scale, base_b_scale),
+        ((base_a_scale * 0.75).to(torch.bfloat16), (base_b_scale * 1.125).to(torch.bfloat16)),
+    ]
+    lhs = packed_inputs[0][0].clone()
+    rhs1 = packed_inputs[0][1].clone()
+    rhs2 = packed_inputs[0][2].clone()
+    a_scale = replay_scales[0][0].clone()
+    b_scale = replay_scales[0][1].clone()
+
+    def run_pair():
+        info = prepare_ragged_group_info(group_sizes, config.block_m, rows=rows)
+        first = ragged_dot_int4(
+            lhs,
+            rhs1,
+            None,
+            group_info=info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale,
+            config=config,
+            layout=layout,
+            use_native=backend == "native",
+            native_root=None if native_root is None else str(native_root),
+            native_library_path=None if library is None else str(library),
+        )
+        second = ragged_dot_int4(
+            lhs,
+            rhs2,
+            None,
+            group_info=info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale,
+            config=config,
+            layout=layout,
+            use_native=backend == "native",
+            native_root=None if native_root is None else str(native_root),
+            native_library_path=None if library is None else str(library),
+        )
+        return info, first, second
+
+    run_pair()
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured_info, captured_first, captured_second = run_pair()
+
+    assert captured_info.fixed_capacity is True
+    assert captured_info.num_tasks == ragged_group_info_capacity(rows, groups, config.block_m)
+    observed_first = []
+    replay_cases = (([32, 32, 32, 32], 0), ([0, 64, 16, 48], 1), ([1, 1, 1, 125], 0))
+    for sizes, input_index in replay_cases:
+        lhs_state, rhs1_state, rhs2_state = packed_inputs[input_index]
+        a_scale_state, b_scale_state = replay_scales[input_index]
+        lhs.copy_(lhs_state)
+        rhs1.copy_(rhs1_state)
+        rhs2.copy_(rhs2_state)
+        a_scale.copy_(a_scale_state)
+        b_scale.copy_(b_scale_state)
+        group_sizes.copy_(torch.tensor(sizes, device="cuda", dtype=torch.int32))
+        graph.replay()
+        torch.cuda.synchronize()
+        a_q, b1_q, b2_q = quantized_inputs[input_index]
+        if scale.mode is ScaleMode.PER_CHANNEL:
+            expected_first = _manual_grouped_reference(a_q, b1_q, group_sizes, a_scale_state, b_scale_state)
+            expected_second = _manual_grouped_reference(a_q, b2_q, group_sizes, a_scale_state, b_scale_state)
+        else:
+            subchannel = scale.subchannel_size or 1
+            expected_first = _manual_grouped_subchannel_reference(
+                a_q, b1_q, group_sizes, a_scale_state, b_scale_state, subchannel
+            )
+            expected_second = _manual_grouped_subchannel_reference(
+                a_q, b2_q, group_sizes, a_scale_state, b_scale_state, subchannel
+            )
+        expected_first = expected_first.to(torch.bfloat16)
+        expected_second = expected_second.to(torch.bfloat16)
+        _assert_reference_has_signal(expected_first)
+        _assert_reference_has_signal(expected_second)
+        torch.testing.assert_close(captured_first, expected_first, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+        torch.testing.assert_close(captured_second, expected_second, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+        observed_first.append(captured_first.clone())
+
+    assert not torch.equal(observed_first[0], observed_first[1])
+    assert not torch.equal(observed_first[1], observed_first[2])
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4 requires CUDA/HIP")

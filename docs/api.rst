@@ -19,10 +19,22 @@ families:
 * ``ragged_dot_int4(...)`` and ``ragged_dot_int4_bwd(...)`` prefer packaged
   ragged HSACO artifacts for generated configs and fall back to Triton JIT
   unless ``use_native=True`` is passed.
+* ``ragged_dot_int4_bwd_accum(...)`` sums 64-row task-packed products into one
+  FP32 weight-gradient tensor per expert. It uses the specialized packaged
+  TN/per-channel/even-K artifact when available.
 
 Dense native kernels support ``GemmLayout.NN``, ``GemmLayout.NT``, and
 ``GemmLayout.TN``. Ragged native/JIT kernels support ``NN``, ``NT``,
 ``TN``, and ``TT``. Dense native ``TT`` dispatch is not generated.
+
+Packaged ragged artifacts keep M, N, packed K, and scale-column dimensions as
+runtime scalars without value- or alignment-based specialization. Forward
+artifacts also keep the task count runtime. A generated ragged HSACO therefore
+handles dimensions immediately below, at, and above its block sizes with edge
+masking, subject to the selected even-K/masked-K and per-mode input contracts.
+The public forward Triton-JIT/fallback path intentionally restores normal
+value/alignment specialization for aligned-shape performance, so new shapes
+can produce additional JIT variants without changing the packaged contract.
 
 The dense native launch contract is checked against the selected kernel:
 
@@ -70,7 +82,9 @@ Dense autotuning uses the same contract:
 
 Ragged autotuning uses Triton-JIT candidate configs rather than packaged dense
 artifacts. The packaged ragged matrix is regenerated from the same configs
-for the default native path:
+for the default native path. Candidate timing explicitly passes
+``use_native=False`` and therefore measures JIT rather than packaged HSACO
+dispatch; forward timing includes runtime-shape specialization:
 
 .. code-block:: python
 
@@ -92,6 +106,23 @@ for the default native path:
        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
    )
 
+For graph capture, call ``prepare_ragged_group_info(...)`` inside the captured
+function and pass its fixed-capacity ``RaggedGroupInfo`` to one or more
+``ragged_dot_int4(...)`` projections. Its static capacity depends on row,
+group, and tile shapes; callers must guarantee that device ``group_sizes`` are
+non-negative and sum to the static row count because preparation deliberately
+does not synchronize to validate values on the host.
+
+Graph capture applies to the forward API with device-prepared group metadata.
+Both backward APIs validate routing or task-range values on the host and must
+be invoked outside capture.
+
+``ragged_dot_int4_bwd_accum(...)`` requires every input tensor to be contiguous
+and on one CUDA/HIP device. ``expert_task_ranges[E, 2]`` accepts int32 or int64
+half-open ranges and validates ``0 <= start <= end <= T``. The function
+canonicalizes int64 ranges to int32 for the native ABI. This validation reads
+range values on the host, so it must run outside graph capture.
+
 Surface APIs
 ------------
 
@@ -105,7 +136,13 @@ Surface APIs
 
 .. autofunction:: amd_strix_halo_kernels.ragged_dot_int4_bwd
 
+.. autofunction:: amd_strix_halo_kernels.ragged_dot_int4_bwd_accum
+
 .. autofunction:: amd_strix_halo_kernels.calculate_group_info
+
+.. autofunction:: amd_strix_halo_kernels.prepare_ragged_group_info
+
+.. autofunction:: amd_strix_halo_kernels.ragged_group_info_capacity
 
 .. autoclass:: amd_strix_halo_kernels.RaggedBwdDotConfig
    :members:

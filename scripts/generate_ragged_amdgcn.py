@@ -36,12 +36,18 @@ from amd_strix_halo_kernels.metadata import (  # noqa: E402
     ScaleMode,
     ScaleSpec,
 )
-from amd_strix_halo_kernels.ragged import RaggedBwdDotConfig, RaggedDotConfig  # noqa: E402
+from amd_strix_halo_kernels.ragged import (  # noqa: E402
+    RAGGED_BWD_ACCUM_CONFIG,
+    RaggedBwdDotConfig,
+    RaggedDotConfig,
+)
 from amd_strix_halo_kernels.ragged_artifacts import (  # noqa: E402
     RAGGED_BWD,
+    RAGGED_BWD_ACCUM,
     RAGGED_EVEN_K,
     RAGGED_FWD,
     RAGGED_MASK_K,
+    RAGGED_MODES,
     RAGGED_VARIANTS,
     ragged_config_label,
     ragged_kernel_id,
@@ -51,6 +57,7 @@ from amd_strix_halo_kernels.ragged_artifacts import (  # noqa: E402
 
 DEFAULT_FWD_CONFIG = RaggedDotConfig()
 DEFAULT_BWD_CONFIG = RaggedBwdDotConfig()
+DEFAULT_BWD_ACCUM_CONFIG = RAGGED_BWD_ACCUM_CONFIG
 
 
 def _parse_scale(value: str) -> ScaleSpec:
@@ -235,6 +242,20 @@ def _bwd_args(torch: Any, *, config: RaggedBwdDotConfig, layout: GemmLayout, sca
     return lhs, rhs, a_scale, b_scale, group_sizes, out, m, n, k_packed, scale_cols
 
 
+def _bwd_accum_args(torch: Any, *, config: RaggedBwdDotConfig) -> tuple[Any, ...]:
+    tasks, experts = 4, 2
+    m = max(config.block_m, 64)
+    n = max(config.block_n, 64)
+    k_packed = config.block_k // 2
+    lhs = torch.empty((tasks, k_packed, m), device="cuda", dtype=torch.uint8)
+    rhs = torch.empty((tasks, k_packed, n), device="cuda", dtype=torch.uint8)
+    a_scale = torch.empty((tasks, m), device="cuda", dtype=torch.bfloat16)
+    b_scale = torch.empty((tasks, n), device="cuda", dtype=torch.bfloat16)
+    task_ranges = torch.tensor([[0, 2], [2, 4]], device="cuda", dtype=torch.int32)
+    out = torch.empty((experts, m, n), device="cuda", dtype=torch.float32)
+    return lhs, rhs, a_scale, b_scale, task_ranges, out, m, n, k_packed, 1
+
+
 def compile_ragged_program(*, mode: str, layout: GemmLayout, scale: ScaleSpec, variant: str, config: RaggedDotConfig | RaggedBwdDotConfig) -> Any:
     import torch
 
@@ -245,7 +266,11 @@ def compile_ragged_program(*, mode: str, layout: GemmLayout, scale: ScaleSpec, v
         args = _fwd_args(torch, config=config, layout=layout, scale=scale, variant=variant)
         lhs, rhs, a_scale, b_scale, group_id, block_start, actual_start, actual_end, out, m, n, k_packed, scale_cols, num_tasks = args
         grid = (num_tasks * _cdiv(n, config.block_n),)
-        kernel = _ragged_dot_int4_even_k_kernel() if variant == RAGGED_EVEN_K else _ragged_dot_int4_kernel()
+        kernel = (
+            _ragged_dot_int4_even_k_kernel(specialize_runtime_args=False)
+            if variant == RAGGED_EVEN_K
+            else _ragged_dot_int4_kernel(specialize_runtime_args=False)
+        )
         return kernel[grid](
             lhs,
             rhs,
@@ -305,6 +330,37 @@ def compile_ragged_program(*, mode: str, layout: GemmLayout, scale: ScaleSpec, v
             A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
             B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
             EVEN_K_FAST_PATH=variant == RAGGED_EVEN_K,
+            num_warps=config.num_warps,
+            num_stages=config.num_stages,
+            matrix_instr_nonkdim=16,
+            kpack=1,
+        )
+    if mode == RAGGED_BWD_ACCUM:
+        from amd_strix_halo_kernels.ragged import _ragged_dot_int4_bwd_accum_kernel
+
+        assert isinstance(config, RaggedBwdDotConfig)
+        if layout is not GemmLayout.TN or scale.mode is not ScaleMode.PER_CHANNEL or variant != RAGGED_EVEN_K:
+            raise ValueError("bwd_accum generation requires TN layout, per-channel scales, and evenk variant")
+        lhs, rhs, a_scale, b_scale, task_ranges, out, m, n, k_packed, scale_cols = _bwd_accum_args(
+            torch,
+            config=config,
+        )
+        experts = int(task_ranges.shape[0])
+        grid = (experts * _cdiv(m, config.block_m) * _cdiv(n, config.block_n),)
+        return _ragged_dot_int4_bwd_accum_kernel()[grid](
+            lhs,
+            rhs,
+            a_scale,
+            b_scale,
+            task_ranges,
+            out,
+            m,
+            n,
+            k_packed,
+            scale_cols,
+            BLOCK_M=config.block_m,
+            BLOCK_N=config.block_n,
+            BLOCK_K=config.block_k,
             num_warps=config.num_warps,
             num_stages=config.num_stages,
             matrix_instr_nonkdim=16,
@@ -420,9 +476,40 @@ def _selected(values: list[Any], default: Iterable[Any]) -> tuple[Any, ...]:
     return tuple(values) if values else tuple(default)
 
 
+def _build_jobs(
+    *,
+    modes: Iterable[str],
+    layouts: Iterable[GemmLayout],
+    scales: Iterable[ScaleSpec],
+    variants: Iterable[str],
+) -> list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig]]:
+    jobs: list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig]] = []
+    for mode in modes:
+        if mode == RAGGED_BWD_ACCUM:
+            jobs.append(
+                (
+                    mode,
+                    GemmLayout.TN,
+                    ScaleSpec(ScaleMode.PER_CHANNEL),
+                    RAGGED_EVEN_K,
+                    DEFAULT_BWD_ACCUM_CONFIG,
+                )
+            )
+            continue
+        for layout in layouts:
+            for scale in scales:
+                for variant in variants:
+                    base_config: RaggedDotConfig | RaggedBwdDotConfig = (
+                        DEFAULT_FWD_CONFIG if mode == RAGGED_FWD else DEFAULT_BWD_CONFIG
+                    )
+                    config = replace(base_config, enable_even_k_fast_path=(variant == RAGGED_EVEN_K))
+                    jobs.append((mode, layout, scale, variant, config))
+    return jobs
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate prebuilt AMDGCN artifacts for ragged int4 dot kernels.")
-    parser.add_argument("--mode", action="append", choices=[RAGGED_FWD, RAGGED_BWD], default=[])
+    parser.add_argument("--mode", action="append", choices=[RAGGED_FWD, RAGGED_BWD, RAGGED_BWD_ACCUM], default=[])
     parser.add_argument("--layout", action="append", type=GemmLayout, choices=list(GemmLayout), default=[])
     parser.add_argument("--scale", action="append", type=_parse_scale, default=[])
     parser.add_argument("--variant", action="append", choices=list(RAGGED_VARIANTS), default=[])
@@ -441,23 +528,16 @@ def main(argv: list[str] | None = None) -> int:
 
     import triton
 
-    modes = _selected(args.mode, (RAGGED_FWD, RAGGED_BWD))
+    modes = _selected(args.mode, RAGGED_MODES)
     layouts = _selected(args.layout, tuple(GemmLayout))
     scales = _selected(args.scale, (*(ScaleSpec(ScaleMode.SUBCHANNEL, size) for size in SUPPORTED_SUBCHANNELS), ScaleSpec(ScaleMode.PER_CHANNEL)))
     variants = _selected(args.variant, RAGGED_VARIANTS)
     triton_out_dir = None if args.no_triton_artifacts else args.triton_out_dir
     if args.clean:
-        removed = _clean_ragged_outputs(args.out_dir, triton_out_dir)
+        removed = _clean_ragged_outputs(args.out_dir, args.triton_out_dir)
         print(f"removed {removed} stale ragged artifact files", flush=True)
 
-    jobs: list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig]] = []
-    for mode in modes:
-        for layout in layouts:
-            for scale in scales:
-                for variant in variants:
-                    base_config: RaggedDotConfig | RaggedBwdDotConfig = DEFAULT_FWD_CONFIG if mode == RAGGED_FWD else DEFAULT_BWD_CONFIG
-                    config = replace(base_config, enable_even_k_fast_path=(variant == RAGGED_EVEN_K))
-                    jobs.append((mode, layout, scale, variant, config))
+    jobs = _build_jobs(modes=modes, layouts=layouts, scales=scales, variants=variants)
     if args.limit:
         jobs = jobs[: args.limit]
 

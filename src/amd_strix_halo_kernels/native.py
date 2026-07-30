@@ -3,11 +3,13 @@ from __future__ import annotations
 import ctypes
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 from typing import Any
 
 from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
+from .quant import dynamic_lhs_int4_scales
 from .ragged_artifacts import RAGGED_BWD, RAGGED_FWD, ragged_kernel_id
 from .template_config import LaunchShape
 
@@ -53,6 +55,12 @@ def amdgcn_metadata_path_for_kernel_id(kernel_id: str, *, root: str | Path | Non
 
 def load_dispatch_library(path: str | Path | None = None) -> ctypes.CDLL:
     library_path = Path(path) if path is not None else native_library_path()
+    return _load_dispatch_library_cached(str(library_path))
+
+
+@lru_cache(maxsize=None)
+def _load_dispatch_library_cached(library_path_value: str) -> ctypes.CDLL:
+    library_path = Path(library_path_value)
     if not library_path.exists():
         raise RuntimeError(f"native dispatch library is not installed at {library_path}")
     library = ctypes.CDLL(str(library_path))
@@ -162,11 +170,16 @@ def _library_last_error(library: ctypes.CDLL) -> str:
     return error.decode("utf-8", errors="replace")
 
 
+@lru_cache(maxsize=None)
+def _read_artifact_metadata(path_value: str) -> dict[str, Any]:
+    return json.loads(Path(path_value).read_text())
+
+
 def _artifact_metadata(kernel_id: str, *, root: str | Path | None = None) -> dict[str, Any]:
     path = amdgcn_metadata_path_for_kernel_id(kernel_id, root=root)
     if not path.exists():
         raise RuntimeError(f"generated AMDGCN metadata is not installed at {path}")
-    return json.loads(path.read_text())
+    return _read_artifact_metadata(str(path))
 
 
 def _stream_handle(torch: Any, tensor: Any, stream: Any | None) -> int:
@@ -196,22 +209,23 @@ def _k_dim(size: int, *, packed_int4: bool) -> int:
 
 
 def _logical_problem_shape(kernel: KernelMetadata, a: Any, b: Any) -> tuple[int, int, int]:
-    packed = kernel.a_dtype is OperandDType.INT4
+    a_packed = kernel.a_dtype is OperandDType.INT4
+    b_packed = kernel.b_dtype is OperandDType.INT4
     if kernel.layout is GemmLayout.NN:
         m = int(a.shape[-2])
-        k_a = _k_dim(int(a.shape[-1]), packed_int4=packed)
+        k_a = _k_dim(int(a.shape[-1]), packed_int4=a_packed)
         n = int(b.shape[-1])
-        k_b = _k_dim(int(b.shape[-2]), packed_int4=packed)
+        k_b = _k_dim(int(b.shape[-2]), packed_int4=b_packed)
     elif kernel.layout is GemmLayout.NT:
         m = int(a.shape[-2])
-        k_a = _k_dim(int(a.shape[-1]), packed_int4=packed)
+        k_a = _k_dim(int(a.shape[-1]), packed_int4=a_packed)
         n = int(b.shape[-2])
-        k_b = _k_dim(int(b.shape[-1]), packed_int4=packed)
+        k_b = _k_dim(int(b.shape[-1]), packed_int4=b_packed)
     elif kernel.layout is GemmLayout.TN:
         m = int(a.shape[-1])
-        k_a = _k_dim(int(a.shape[-2]), packed_int4=packed)
+        k_a = _k_dim(int(a.shape[-2]), packed_int4=a_packed)
         n = int(b.shape[-1])
-        k_b = _k_dim(int(b.shape[-2]), packed_int4=packed)
+        k_b = _k_dim(int(b.shape[-2]), packed_int4=b_packed)
     else:
         raise ValueError(f"native dispatch does not support layout={kernel.layout.value}")
     if kernel.epilogue is Epilogue.SWIGLU:
@@ -221,6 +235,16 @@ def _logical_problem_shape(kernel: KernelMetadata, a: Any, b: Any) -> tuple[int,
     if k_a != k_b:
         raise ValueError(f"logical K mismatch for layout={kernel.layout.value}: A has {k_a}, B has {k_b}")
     return m, n, k_a
+
+
+def _logical_a_tensor(a: Any, layout: GemmLayout) -> Any:
+    if layout in {GemmLayout.TN, GemmLayout.TT}:
+        return a.transpose(-2, -1)
+    return a
+
+
+def _is_bf16xint4_kernel(kernel: KernelMetadata) -> bool:
+    return kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4
 
 
 def _output_torch_dtype(torch: Any, kernel: KernelMetadata) -> Any:
@@ -619,6 +643,8 @@ def launch_ragged_bwd_kernel(
     root: str | Path | None = None,
     library_path: str | Path | None = None,
     stream: Any | None = None,
+    mode: str = RAGGED_BWD,
+    groups: int | None = None,
 ) -> Any:
     torch = _torch()
     if not torch.cuda.is_available() or not getattr(lhs, "is_cuda", False):
@@ -627,7 +653,7 @@ def launch_ragged_bwd_kernel(
     b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
     out = _require_contiguous("out", out)
     kernel_id = ragged_kernel_id(
-        mode=RAGGED_BWD,
+        mode=mode,
         layout=layout,
         scale=scale,
         config=config,
@@ -639,8 +665,8 @@ def launch_ragged_bwd_kernel(
     shared_memory_bytes = _shared_memory_bytes_for_artifact(kernel_id, artifact)
     runtime_scalar_args = _ragged_runtime_scalar_args(kernel_id, artifact)
     has_scale_cols_arg = "SCALE_COLS" in runtime_scalar_args
-    groups = int(lhs.shape[0])
-    grid = (groups * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n), config.split_k, 1)
+    group_count = int(lhs.shape[0]) if groups is None else int(groups)
+    grid = (group_count * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n), config.split_k, 1)
     if grid[0] == 0:
         return out
     launch_ragged_bwd_hsaco(
@@ -705,8 +731,12 @@ def launch_generated_kernel(
         raise RuntimeError("native generated kernels require a CUDA/HIP torch device")
     if not getattr(a, "is_cuda", False):
         raise RuntimeError("native generated kernels require CUDA/HIP tensors")
-    if a_scale is None or b_scale is None:
-        raise ValueError("native generated kernels require a_scale and b_scale tensors")
+    if b_scale is None:
+        raise ValueError("native generated kernels require b_scale tensor")
+    if a_scale is None and not _is_bf16xint4_kernel(kernel):
+        raise ValueError("native generated kernels require a_scale tensor")
+    if a_scale is not None and _is_bf16xint4_kernel(kernel):
+        raise ValueError("a_scale is computed by bf16xint4 native dispatch; caller-provided a_scale is not supported")
     hsaco_path = hsaco_path_for_kernel_id(kernel.kernel_id, root=root)
     if not hsaco_path.exists():
         raise RuntimeError(f"compiled HSACO code object is not installed at {hsaco_path}")
@@ -721,7 +751,10 @@ def launch_generated_kernel(
 
     a = _require_contiguous("a", a)
     b = _require_contiguous("b", b)
-    a_scale = _require_contiguous("a_scale", a_scale)
+    if _is_bf16xint4_kernel(kernel):
+        a_scale = dynamic_lhs_int4_scales(_logical_a_tensor(a, kernel.layout), kernel.scale)
+    else:
+        a_scale = _require_contiguous("a_scale", a_scale)
     b_scale = _require_contiguous("b_scale", b_scale)
     a_scale = _require_bfloat16_scale(torch, "a_scale", a_scale)
     b_scale = _require_bfloat16_scale(torch, "b_scale", b_scale)

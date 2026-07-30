@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_AMDGCN_DIR = REPO_ROOT / "kernels" / "amdgcn"
 DEFAULT_TRITON_DIR = REPO_ROOT / "kernels" / "triton"
 DEFAULT_SUMMARY = DEFAULT_AMDGCN_DIR / "generation_summary.json"
+DENSE_KERNEL_ID_PREFIXES = ("gfx1151_int4xint4_", "gfx1151_int8xint8_")
 
 
 def add_local_package_to_path() -> None:
@@ -148,7 +149,11 @@ def main(argv: list[str] | None = None) -> int:
     source_triton_commit = triton_commit()
     triton_root = triton_checkout_root()
     if args.clean:
-        removed = clean_generated_outputs(out_dir, triton_out_dir)
+        removed = clean_generated_outputs(
+            out_dir,
+            triton_out_dir,
+            kernel_id_prefixes=DENSE_KERNEL_ID_PREFIXES,
+        )
         print(f"removed {removed} stale generated artifact files", flush=True)
     for index, kernel in enumerate(kernels, start=1):
         shape = generation_shape(kernel)

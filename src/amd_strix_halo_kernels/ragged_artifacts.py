@@ -9,10 +9,12 @@ from .metadata import ARCH, OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32, GemmLayout,
 RAGGED_FAMILY = "ragged_dot_int4"
 RAGGED_FWD = "fwd"
 RAGGED_BWD = "bwd"
+RAGGED_BWD_ACCUM = "bwd_accum"
 RAGGED_EVEN_K = "evenk"
 RAGGED_MASK_K = "maskk"
 RAGGED_VARIANTS = (RAGGED_EVEN_K, RAGGED_MASK_K)
-RAGGED_MODES = (RAGGED_FWD, RAGGED_BWD)
+RAGGED_MATRIX_MODES = (RAGGED_FWD, RAGGED_BWD)
+RAGGED_MODES = (*RAGGED_MATRIX_MODES, RAGGED_BWD_ACCUM)
 
 
 def ragged_config_label(config: Any) -> str:
@@ -67,7 +69,7 @@ def ragged_metadata_dict(
 ) -> dict[str, Any]:
     if mode == RAGGED_FWD:
         runtime_shape_args = ["M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS"]
-    elif mode == RAGGED_BWD:
+    elif mode in {RAGGED_BWD, RAGGED_BWD_ACCUM}:
         runtime_shape_args = ["M", "N", "K_PACKED", "SCALE_COLS"]
     else:
         raise ValueError(f"unsupported ragged mode {mode!r}")

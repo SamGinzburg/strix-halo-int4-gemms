@@ -4,8 +4,8 @@
   "amdgcn_stats": {
     "iu4_wmma": 2,
     "iu8_wmma": 0,
-    "lines": 1019,
-    "waitcnt": 32
+    "lines": 839,
+    "waitcnt": 23
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_int4xint4_nt_sc32_none_persistent_bm32_bn128_bk128_gm1_w16_s1_weu2_sk2_evenk",
   "arch": "gfx1151",

@@ -46,7 +46,7 @@ def is_tile_multiple_shape(kernel: KernelMetadata, shape: LaunchShape) -> bool:
 class TemplatePlan:
     kernel: KernelMetadata
     shape: LaunchShape
-    needs_packed_int4: bool
+    needs_int4_mma: bool
     needs_subchannel_loop: bool
     needs_per_channel_epilogue_scale: bool
     needs_relu2_activation: bool
@@ -54,13 +54,19 @@ class TemplatePlan:
     even_k: bool
     split_k: int
 
+    @property
+    def needs_packed_int4(self) -> bool:
+        """Backward-compatible name for code paths that select int4 MMA templates."""
+
+        return self.needs_int4_mma
+
 
 def plan_template(kernel: KernelMetadata, shape: LaunchShape) -> TemplatePlan:
     shape.validate_for(kernel)
     return TemplatePlan(
         kernel=kernel,
         shape=shape,
-        needs_packed_int4=kernel.a_dtype is OperandDType.INT4,
+        needs_int4_mma=kernel.b_dtype is OperandDType.INT4,
         needs_subchannel_loop=kernel.scale.mode is ScaleMode.SUBCHANNEL,
         needs_per_channel_epilogue_scale=kernel.scale.mode is ScaleMode.PER_CHANNEL,
         needs_relu2_activation=kernel.epilogue is Epilogue.RELU2,

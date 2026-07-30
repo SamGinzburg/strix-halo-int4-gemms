@@ -17,6 +17,7 @@ RHS_SUBCHANNEL_SCALE_LAYOUT = "kgroup_output"
 
 
 class OperandDType(str, Enum):
+    BF16 = "bf16"
     INT4 = "int4"
     INT8 = "int8"
 
@@ -147,6 +148,45 @@ class KernelMetadata:
         return data
 
 
+SUPPORTED_DTYPE_PAIRS = (
+    (OperandDType.INT4, OperandDType.INT4),
+    (OperandDType.INT8, OperandDType.INT8),
+    (OperandDType.BF16, OperandDType.INT4),
+)
+
+
+def require_supported_dtype_pair(a_dtype: OperandDType, b_dtype: OperandDType) -> None:
+    if not isinstance(a_dtype, OperandDType):
+        raise TypeError(f"a_dtype must be an OperandDType; got {type(a_dtype).__name__}")
+    if not isinstance(b_dtype, OperandDType):
+        raise TypeError(f"b_dtype must be an OperandDType; got {type(b_dtype).__name__}")
+    if (a_dtype, b_dtype) not in SUPPORTED_DTYPE_PAIRS:
+        supported = ", ".join(f"{a.value}x{b.value}" for a, b in SUPPORTED_DTYPE_PAIRS)
+        raise ValueError(f"unsupported GEMM dtype pair {a_dtype.value}x{b_dtype.value}; supported pairs are {supported}")
+
+
+def resolve_operand_dtypes(
+    *,
+    dtype: OperandDType | None = None,
+    a_dtype: OperandDType | None = None,
+    b_dtype: OperandDType | None = None,
+) -> tuple[OperandDType, OperandDType]:
+    if dtype is not None and (a_dtype is not None or b_dtype is not None):
+        raise ValueError("pass either dtype= for symmetric GEMMs or a_dtype=/b_dtype= for mixed GEMMs, not both")
+    if dtype is not None:
+        if not isinstance(dtype, OperandDType):
+            raise TypeError(f"dtype must be an OperandDType; got {type(dtype).__name__}")
+        pair = (dtype, dtype)
+    elif a_dtype is None and b_dtype is None:
+        pair = (OperandDType.INT4, OperandDType.INT4)
+    else:
+        if a_dtype is None or b_dtype is None:
+            raise ValueError("mixed GEMM selection requires both a_dtype and b_dtype")
+        pair = (a_dtype, b_dtype)
+    require_supported_dtype_pair(*pair)
+    return pair
+
+
 def make_kernel_id(
     dtype: OperandDType,
     scale: ScaleSpec,
@@ -157,8 +197,34 @@ def make_kernel_id(
     layout: GemmLayout = GemmLayout.NN,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
 ) -> str:
+    return make_mixed_kernel_id(
+        dtype,
+        dtype,
+        scale,
+        epilogue,
+        tile,
+        arch=arch,
+        layout=layout,
+        schedule=schedule,
+    )
+
+
+def make_mixed_kernel_id(
+    a_dtype: OperandDType,
+    b_dtype: OperandDType,
+    scale: ScaleSpec,
+    epilogue: Epilogue,
+    tile: TileConfig,
+    *,
+    arch: str = ARCH,
+    layout: GemmLayout = GemmLayout.NN,
+    schedule: KernelSchedule = KernelSchedule.STANDARD,
+) -> str:
     schedule_label = "" if schedule is KernelSchedule.STANDARD else f"_{schedule.value}"
-    return f"{arch}_{dtype.value}x{dtype.value}_{layout.value}_{scale.label}_{epilogue.value}{schedule_label}_{tile.label}"
+    return (
+        f"{arch}_{a_dtype.value}x{b_dtype.value}_{layout.value}_{scale.label}_"
+        f"{epilogue.value}{schedule_label}_{tile.label}"
+    )
 
 
 def supported_scale_specs() -> tuple[ScaleSpec, ...]:

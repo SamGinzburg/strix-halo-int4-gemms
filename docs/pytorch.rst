@@ -294,10 +294,12 @@ a compact task list with ``group_id``, ``block_start``,
 ``actual_start``, ``actual_end``, ``start_within_block``, and ``actual_size``.
 The ragged kernel launches over those tasks, so empty groups and uneven group
 sizes do not expand into a rectangular ``max_group_size x G`` launch grid.
-The ragged kernels receive logical ``N``, packed ``K``, scale-column count, and
-task count as runtime arguments rather than shape-specializing on ``M``, ``N``,
-or ``K``. ``RaggedDotConfig.group_size_tasks`` controls the 1D L2 swizzle over
-compact row tasks and N tiles.
+Packaged ragged kernels receive logical ``N``, packed ``K``, scale-column
+count, and task count as generic runtime arguments without value/alignment
+specialization. The public forward JIT/fallback path instead specializes those
+runtime values and alignments for aligned-shape performance; a new shape may
+compile another JIT variant. ``RaggedDotConfig.group_size_tasks`` controls the
+1D L2 swizzle over compact row tasks and N tiles.
 
 With ``RaggedDotConfig.enable_even_k_fast_path=True``, the library
 automatically uses an even-K fast path when ``K % BLOCK_K == 0``. Subchannel
@@ -332,8 +334,9 @@ The grouped packed operand shapes are:
 Use ``autotune_ragged_dot(...)`` when the goal is to pick a fast Triton-JIT
 ragged configuration for one shape. The packaged ragged matrix currently uses
 the default generated configs described above; autotuning remains a JIT timing
-API for exploring additional configs before regenerating artifacts. It
-supports both ``RaggedDotMode.FWD`` and ``RaggedDotMode.BWD``, benchmarks
+API for exploring additional configs before regenerating artifacts and passes
+``use_native=False`` for every candidate. It supports both
+``RaggedDotMode.FWD`` and ``RaggedDotMode.BWD``, benchmarks
 candidate ``RaggedDotConfig`` or
 ``RaggedBwdDotConfig`` values with ``triton.testing.do_bench``, and returns the
 best candidate plus all timing records. Forward group sizes must sum to

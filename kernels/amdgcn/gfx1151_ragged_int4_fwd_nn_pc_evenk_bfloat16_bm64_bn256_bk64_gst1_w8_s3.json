@@ -1,8 +1,8 @@
 {
   "amdgcn_stats": {
     "iu4_wmma": 32,
-    "lines": 1524,
-    "waitcnt": 48
+    "lines": 2204,
+    "waitcnt": 47
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3",
   "arch": "gfx1151",
@@ -27,21 +27,23 @@
   "config_label": "BM64_BN256_BK64_GST1_W8_S3",
   "family": "ragged_dot_int4",
   "kernel_arg_layout": {
-    "by_value_arg_count": 4,
+    "by_value_arg_count": 5,
     "by_value_offsets": [
       72,
       76,
       80,
-      84
+      84,
+      88
     ],
     "hidden_global_buffer_offsets": [
-      88,
-      96
+      96,
+      104
     ],
     "runtime_scalar_args": [
       "M",
       "N",
       "K_PACKED",
+      "SCALE_COLS",
       "NUM_TASKS"
     ]
   },
@@ -73,6 +75,11 @@
   "shape_specialization": "runtime",
   "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
   "status": "generated",
-  "triton_artifacts": {},
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.llir",
+    "source": "kernels/triton/gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.py",
+    "ttgir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.ttgir",
+    "ttir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.ttir"
+  },
   "variant": "evenk"
 }

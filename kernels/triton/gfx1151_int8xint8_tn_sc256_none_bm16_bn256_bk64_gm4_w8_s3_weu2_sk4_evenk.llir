@@ -3152,213 +3152,179 @@ define amdgpu_kernel void @_int8_scaled_gemm(ptr addrspace(1) inreg readonly cap
   %3088 = select i1 %87, float %3072, float %2918, !dbg !44
   %3089 = select i1 %87, float %3073, float %2913, !dbg !44
   %3090 = mul i32 %28, %7, !dbg !62
-  %3091 = shl i32 %7, 1, !dbg !62
-  %3092 = mul i32 %7, 3, !dbg !62
-  %3093 = shl i32 %7, 2, !dbg !62
-  %3094 = mul i32 %7, 5, !dbg !62
-  %3095 = mul i32 %7, 6, !dbg !62
-  %3096 = mul i32 %7, 7, !dbg !62
-  %3097 = shl i32 %7, 3, !dbg !62
-  %3098 = mul i32 %7, 9, !dbg !62
-  %3099 = mul i32 %7, 10, !dbg !62
-  %3100 = mul i32 %7, 11, !dbg !62
-  %3101 = mul i32 %7, 12, !dbg !62
-  %3102 = mul i32 %7, 13, !dbg !62
-  %3103 = mul i32 %7, 14, !dbg !62
-  %3104 = mul i32 %7, 15, !dbg !62
-  %3105 = add i32 %3090, %2079, !dbg !62
-  %3106 = add i32 %3105, %7, !dbg !62
-  %3107 = add i32 %3105, %3091, !dbg !62
-  %3108 = add i32 %3105, %3092, !dbg !62
-  %3109 = add i32 %3105, %3093, !dbg !62
-  %3110 = add i32 %3105, %3094, !dbg !62
-  %3111 = add i32 %3105, %3095, !dbg !62
-  %3112 = add i32 %3105, %3096, !dbg !62
-  %3113 = add i32 %3105, %3097, !dbg !62
-  %3114 = add i32 %3105, %3098, !dbg !62
-  %3115 = add i32 %3105, %3099, !dbg !62
-  %3116 = add i32 %3105, %3100, !dbg !62
-  %3117 = add i32 %3105, %3101, !dbg !62
-  %3118 = add i32 %3105, %3102, !dbg !62
-  %3119 = add i32 %3105, %3103, !dbg !62
-  %3120 = add i32 %3105, %3104, !dbg !62
-  %3121 = and i32 %12, 7, !dbg !14
-  %3122 = shl nuw nsw i32 %3121, 10, !dbg !14
-  %3123 = shl nuw nsw i32 %3121, 2, !dbg !14
-  %3124 = and i32 %12, 8, !dbg !14
-  %3125 = icmp eq i32 %3124, 0, !dbg !14
-  %3126 = select i1 %3125, i32 0, i32 8256, !dbg !14
-  %3127 = or disjoint i32 %3123, %2095, !dbg !14
-  %3128 = xor i32 %3127, %3126, !dbg !14
-  %3129 = or disjoint i32 %3128, %3122, !dbg !14
-  %3130 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3129, !dbg !14
-  %3131 = insertelement <1 x float> poison, float %3074, i64 0, !dbg !14
-  store <1 x float> %3131, ptr addrspace(3) %3130, align 4, !dbg !14
-  %3132 = getelementptr inbounds nuw i8, ptr addrspace(3) %3130, i32 512, !dbg !14
-  %3133 = insertelement <1 x float> poison, float %3082, i64 0, !dbg !14
-  store <1 x float> %3133, ptr addrspace(3) %3132, align 4, !dbg !14
-  %3134 = xor i32 %3129, 4, !dbg !14
-  %3135 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3134, !dbg !14
-  %3136 = insertelement <1 x float> poison, float %3075, i64 0, !dbg !14
-  store <1 x float> %3136, ptr addrspace(3) %3135, align 4, !dbg !14
-  %3137 = getelementptr inbounds nuw i8, ptr addrspace(3) %3135, i32 512, !dbg !14
-  %3138 = insertelement <1 x float> poison, float %3083, i64 0, !dbg !14
-  store <1 x float> %3138, ptr addrspace(3) %3137, align 4, !dbg !14
-  %3139 = xor i32 %3129, 8, !dbg !14
-  %3140 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3139, !dbg !14
-  %3141 = insertelement <1 x float> poison, float %3076, i64 0, !dbg !14
-  store <1 x float> %3141, ptr addrspace(3) %3140, align 4, !dbg !14
-  %3142 = getelementptr inbounds nuw i8, ptr addrspace(3) %3140, i32 512, !dbg !14
-  %3143 = insertelement <1 x float> poison, float %3084, i64 0, !dbg !14
-  store <1 x float> %3143, ptr addrspace(3) %3142, align 4, !dbg !14
-  %3144 = xor i32 %3129, 12, !dbg !14
-  %3145 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3144, !dbg !14
-  %3146 = insertelement <1 x float> poison, float %3077, i64 0, !dbg !14
-  store <1 x float> %3146, ptr addrspace(3) %3145, align 4, !dbg !14
-  %3147 = getelementptr inbounds nuw i8, ptr addrspace(3) %3145, i32 512, !dbg !14
-  %3148 = insertelement <1 x float> poison, float %3085, i64 0, !dbg !14
-  store <1 x float> %3148, ptr addrspace(3) %3147, align 4, !dbg !14
-  %3149 = xor i32 %3129, 16, !dbg !14
-  %3150 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3149, !dbg !14
-  %3151 = insertelement <1 x float> poison, float %3078, i64 0, !dbg !14
-  store <1 x float> %3151, ptr addrspace(3) %3150, align 4, !dbg !14
-  %3152 = getelementptr inbounds nuw i8, ptr addrspace(3) %3150, i32 512, !dbg !14
-  %3153 = insertelement <1 x float> poison, float %3086, i64 0, !dbg !14
-  store <1 x float> %3153, ptr addrspace(3) %3152, align 4, !dbg !14
-  %3154 = xor i32 %3129, 20, !dbg !14
-  %3155 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3154, !dbg !14
-  %3156 = insertelement <1 x float> poison, float %3079, i64 0, !dbg !14
-  store <1 x float> %3156, ptr addrspace(3) %3155, align 4, !dbg !14
-  %3157 = getelementptr inbounds nuw i8, ptr addrspace(3) %3155, i32 512, !dbg !14
-  %3158 = insertelement <1 x float> poison, float %3087, i64 0, !dbg !14
-  store <1 x float> %3158, ptr addrspace(3) %3157, align 4, !dbg !14
-  %3159 = xor i32 %3129, 24, !dbg !14
-  %3160 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3159, !dbg !14
-  %3161 = insertelement <1 x float> poison, float %3080, i64 0, !dbg !14
-  store <1 x float> %3161, ptr addrspace(3) %3160, align 4, !dbg !14
-  %3162 = getelementptr inbounds nuw i8, ptr addrspace(3) %3160, i32 512, !dbg !14
-  %3163 = insertelement <1 x float> poison, float %3088, i64 0, !dbg !14
-  store <1 x float> %3163, ptr addrspace(3) %3162, align 4, !dbg !14
-  %3164 = xor i32 %3129, 28, !dbg !14
-  %3165 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3164, !dbg !14
-  %3166 = insertelement <1 x float> poison, float %3081, i64 0, !dbg !14
-  store <1 x float> %3166, ptr addrspace(3) %3165, align 4, !dbg !14
-  %3167 = getelementptr inbounds nuw i8, ptr addrspace(3) %3165, i32 512, !dbg !14
-  %3168 = insertelement <1 x float> poison, float %3089, i64 0, !dbg !14
-  store <1 x float> %3168, ptr addrspace(3) %3167, align 4, !dbg !14
+  %3091 = mul i32 %7, 3, !dbg !62
+  %3092 = mul i32 %7, 5, !dbg !62
+  %3093 = mul i32 %7, 6, !dbg !62
+  %3094 = mul i32 %7, 7, !dbg !62
+  %3095 = mul i32 %7, 9, !dbg !62
+  %3096 = mul i32 %7, 10, !dbg !62
+  %3097 = mul i32 %7, 11, !dbg !62
+  %3098 = mul i32 %7, 12, !dbg !62
+  %3099 = mul i32 %7, 13, !dbg !62
+  %3100 = mul i32 %7, 14, !dbg !62
+  %3101 = mul i32 %7, 15, !dbg !62
+  %3102 = add i32 %3090, %2079, !dbg !62
+  %3103 = add i32 %3102, %7, !dbg !62
+  %3104 = add i32 %3102, %3091, !dbg !62
+  %3105 = add i32 %3102, %3092, !dbg !62
+  %3106 = add i32 %3102, %3093, !dbg !62
+  %3107 = add i32 %3102, %3094, !dbg !62
+  %3108 = add i32 %3102, %3095, !dbg !62
+  %3109 = add i32 %3102, %3096, !dbg !62
+  %3110 = add i32 %3102, %3097, !dbg !62
+  %3111 = add i32 %3102, %3098, !dbg !62
+  %3112 = add i32 %3102, %3099, !dbg !62
+  %3113 = add i32 %3102, %3100, !dbg !62
+  %3114 = add i32 %3102, %3101, !dbg !62
+  %3115 = and i32 %12, 7, !dbg !14
+  %3116 = shl nuw nsw i32 %3115, 10, !dbg !14
+  %3117 = shl nuw nsw i32 %3115, 2, !dbg !14
+  %3118 = and i32 %12, 8, !dbg !14
+  %3119 = icmp eq i32 %3118, 0, !dbg !14
+  %3120 = select i1 %3119, i32 0, i32 8256, !dbg !14
+  %3121 = or disjoint i32 %3117, %2095, !dbg !14
+  %3122 = xor i32 %3121, %3120, !dbg !14
+  %3123 = or disjoint i32 %3122, %3116, !dbg !14
+  %3124 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3123, !dbg !14
+  %3125 = insertelement <1 x float> poison, float %3074, i64 0, !dbg !14
+  store <1 x float> %3125, ptr addrspace(3) %3124, align 4, !dbg !14
+  %3126 = getelementptr inbounds nuw i8, ptr addrspace(3) %3124, i32 512, !dbg !14
+  %3127 = insertelement <1 x float> poison, float %3082, i64 0, !dbg !14
+  store <1 x float> %3127, ptr addrspace(3) %3126, align 4, !dbg !14
+  %3128 = xor i32 %3123, 4, !dbg !14
+  %3129 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3128, !dbg !14
+  %3130 = insertelement <1 x float> poison, float %3075, i64 0, !dbg !14
+  store <1 x float> %3130, ptr addrspace(3) %3129, align 4, !dbg !14
+  %3131 = getelementptr inbounds nuw i8, ptr addrspace(3) %3129, i32 512, !dbg !14
+  %3132 = insertelement <1 x float> poison, float %3083, i64 0, !dbg !14
+  store <1 x float> %3132, ptr addrspace(3) %3131, align 4, !dbg !14
+  %3133 = xor i32 %3123, 8, !dbg !14
+  %3134 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3133, !dbg !14
+  %3135 = insertelement <1 x float> poison, float %3076, i64 0, !dbg !14
+  store <1 x float> %3135, ptr addrspace(3) %3134, align 4, !dbg !14
+  %3136 = getelementptr inbounds nuw i8, ptr addrspace(3) %3134, i32 512, !dbg !14
+  %3137 = insertelement <1 x float> poison, float %3084, i64 0, !dbg !14
+  store <1 x float> %3137, ptr addrspace(3) %3136, align 4, !dbg !14
+  %3138 = xor i32 %3123, 12, !dbg !14
+  %3139 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3138, !dbg !14
+  %3140 = insertelement <1 x float> poison, float %3077, i64 0, !dbg !14
+  store <1 x float> %3140, ptr addrspace(3) %3139, align 4, !dbg !14
+  %3141 = getelementptr inbounds nuw i8, ptr addrspace(3) %3139, i32 512, !dbg !14
+  %3142 = insertelement <1 x float> poison, float %3085, i64 0, !dbg !14
+  store <1 x float> %3142, ptr addrspace(3) %3141, align 4, !dbg !14
+  %3143 = xor i32 %3123, 16, !dbg !14
+  %3144 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3143, !dbg !14
+  %3145 = insertelement <1 x float> poison, float %3078, i64 0, !dbg !14
+  store <1 x float> %3145, ptr addrspace(3) %3144, align 4, !dbg !14
+  %3146 = getelementptr inbounds nuw i8, ptr addrspace(3) %3144, i32 512, !dbg !14
+  %3147 = insertelement <1 x float> poison, float %3086, i64 0, !dbg !14
+  store <1 x float> %3147, ptr addrspace(3) %3146, align 4, !dbg !14
+  %3148 = xor i32 %3123, 20, !dbg !14
+  %3149 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3148, !dbg !14
+  %3150 = insertelement <1 x float> poison, float %3079, i64 0, !dbg !14
+  store <1 x float> %3150, ptr addrspace(3) %3149, align 4, !dbg !14
+  %3151 = getelementptr inbounds nuw i8, ptr addrspace(3) %3149, i32 512, !dbg !14
+  %3152 = insertelement <1 x float> poison, float %3087, i64 0, !dbg !14
+  store <1 x float> %3152, ptr addrspace(3) %3151, align 4, !dbg !14
+  %3153 = xor i32 %3123, 24, !dbg !14
+  %3154 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3153, !dbg !14
+  %3155 = insertelement <1 x float> poison, float %3080, i64 0, !dbg !14
+  store <1 x float> %3155, ptr addrspace(3) %3154, align 4, !dbg !14
+  %3156 = getelementptr inbounds nuw i8, ptr addrspace(3) %3154, i32 512, !dbg !14
+  %3157 = insertelement <1 x float> poison, float %3088, i64 0, !dbg !14
+  store <1 x float> %3157, ptr addrspace(3) %3156, align 4, !dbg !14
+  %3158 = xor i32 %3123, 28, !dbg !14
+  %3159 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3158, !dbg !14
+  %3160 = insertelement <1 x float> poison, float %3081, i64 0, !dbg !14
+  store <1 x float> %3160, ptr addrspace(3) %3159, align 4, !dbg !14
+  %3161 = getelementptr inbounds nuw i8, ptr addrspace(3) %3159, i32 512, !dbg !14
+  %3162 = insertelement <1 x float> poison, float %3089, i64 0, !dbg !14
+  store <1 x float> %3162, ptr addrspace(3) %3161, align 4, !dbg !14
   tail call void @llvm.amdgcn.s.waitcnt(i32 64519), !dbg !14
   tail call void @llvm.amdgcn.s.barrier(), !dbg !14
-  %3169 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %2093, !dbg !14
-  %3170 = load <1 x float>, ptr addrspace(3) %3169, align 4, !dbg !14
-  %3171 = extractelement <1 x float> %3170, i64 0, !dbg !14
-  %3172 = xor i32 %2093, 1028, !dbg !14
-  %3173 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3172, !dbg !14
-  %3174 = load <1 x float>, ptr addrspace(3) %3173, align 4, !dbg !14
-  %3175 = extractelement <1 x float> %3174, i64 0, !dbg !14
-  %3176 = xor i32 %2093, 2056, !dbg !14
-  %3177 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3176, !dbg !14
-  %3178 = load <1 x float>, ptr addrspace(3) %3177, align 4, !dbg !14
-  %3179 = extractelement <1 x float> %3178, i64 0, !dbg !14
-  %3180 = xor i32 %2093, 3084, !dbg !14
+  %3163 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %2093, !dbg !14
+  %3164 = load float, ptr addrspace(3) %3163, align 4, !dbg !14
+  %3165 = xor i32 %2093, 1028, !dbg !14
+  %3166 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3165, !dbg !14
+  %3167 = load float, ptr addrspace(3) %3166, align 4, !dbg !14
+  %3168 = xor i32 %2093, 2056, !dbg !14
+  %3169 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3168, !dbg !14
+  %3170 = load float, ptr addrspace(3) %3169, align 4, !dbg !14
+  %3171 = xor i32 %2093, 3084, !dbg !14
+  %3172 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3171, !dbg !14
+  %3173 = load float, ptr addrspace(3) %3172, align 4, !dbg !14
+  %3174 = xor i32 %2093, 4112, !dbg !14
+  %3175 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3174, !dbg !14
+  %3176 = load float, ptr addrspace(3) %3175, align 4, !dbg !14
+  %3177 = xor i32 %2093, 5140, !dbg !14
+  %3178 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3177, !dbg !14
+  %3179 = load float, ptr addrspace(3) %3178, align 4, !dbg !14
+  %3180 = xor i32 %2093, 6168, !dbg !14
   %3181 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3180, !dbg !14
-  %3182 = load <1 x float>, ptr addrspace(3) %3181, align 4, !dbg !14
-  %3183 = extractelement <1 x float> %3182, i64 0, !dbg !14
-  %3184 = xor i32 %2093, 4112, !dbg !14
-  %3185 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3184, !dbg !14
-  %3186 = load <1 x float>, ptr addrspace(3) %3185, align 4, !dbg !14
-  %3187 = extractelement <1 x float> %3186, i64 0, !dbg !14
-  %3188 = xor i32 %2093, 5140, !dbg !14
-  %3189 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3188, !dbg !14
-  %3190 = load <1 x float>, ptr addrspace(3) %3189, align 4, !dbg !14
-  %3191 = extractelement <1 x float> %3190, i64 0, !dbg !14
-  %3192 = xor i32 %2093, 6168, !dbg !14
+  %3182 = load float, ptr addrspace(3) %3181, align 4, !dbg !14
+  %3183 = xor i32 %2093, 7196, !dbg !14
+  %3184 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3183, !dbg !14
+  %3185 = load float, ptr addrspace(3) %3184, align 4, !dbg !14
+  %3186 = xor i32 %2093, 8256, !dbg !14
+  %3187 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3186, !dbg !14
+  %3188 = load float, ptr addrspace(3) %3187, align 4, !dbg !14
+  %3189 = xor i32 %2093, 9284, !dbg !14
+  %3190 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3189, !dbg !14
+  %3191 = load float, ptr addrspace(3) %3190, align 4, !dbg !14
+  %3192 = xor i32 %2093, 10312, !dbg !14
   %3193 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3192, !dbg !14
-  %3194 = load <1 x float>, ptr addrspace(3) %3193, align 4, !dbg !14
-  %3195 = extractelement <1 x float> %3194, i64 0, !dbg !14
-  %3196 = xor i32 %2093, 7196, !dbg !14
-  %3197 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3196, !dbg !14
-  %3198 = load <1 x float>, ptr addrspace(3) %3197, align 4, !dbg !14
-  %3199 = extractelement <1 x float> %3198, i64 0, !dbg !14
-  %3200 = xor i32 %2093, 8256, !dbg !14
-  %3201 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3200, !dbg !14
-  %3202 = load <1 x float>, ptr addrspace(3) %3201, align 4, !dbg !14
-  %3203 = extractelement <1 x float> %3202, i64 0, !dbg !14
-  %3204 = xor i32 %2093, 9284, !dbg !14
+  %3194 = load float, ptr addrspace(3) %3193, align 4, !dbg !14
+  %3195 = xor i32 %2093, 11340, !dbg !14
+  %3196 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3195, !dbg !14
+  %3197 = load float, ptr addrspace(3) %3196, align 4, !dbg !14
+  %3198 = xor i32 %2093, 12368, !dbg !14
+  %3199 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3198, !dbg !14
+  %3200 = load float, ptr addrspace(3) %3199, align 4, !dbg !14
+  %3201 = xor i32 %2093, 13396, !dbg !14
+  %3202 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3201, !dbg !14
+  %3203 = load float, ptr addrspace(3) %3202, align 4, !dbg !14
+  %3204 = xor i32 %2093, 14424, !dbg !14
   %3205 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3204, !dbg !14
-  %3206 = load <1 x float>, ptr addrspace(3) %3205, align 4, !dbg !14
-  %3207 = extractelement <1 x float> %3206, i64 0, !dbg !14
-  %3208 = xor i32 %2093, 10312, !dbg !14
-  %3209 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3208, !dbg !14
-  %3210 = load <1 x float>, ptr addrspace(3) %3209, align 4, !dbg !14
-  %3211 = extractelement <1 x float> %3210, i64 0, !dbg !14
-  %3212 = xor i32 %2093, 11340, !dbg !14
-  %3213 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3212, !dbg !14
-  %3214 = load <1 x float>, ptr addrspace(3) %3213, align 4, !dbg !14
-  %3215 = extractelement <1 x float> %3214, i64 0, !dbg !14
-  %3216 = xor i32 %2093, 12368, !dbg !14
-  %3217 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3216, !dbg !14
-  %3218 = load <1 x float>, ptr addrspace(3) %3217, align 4, !dbg !14
-  %3219 = extractelement <1 x float> %3218, i64 0, !dbg !14
-  %3220 = xor i32 %2093, 13396, !dbg !14
-  %3221 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3220, !dbg !14
-  %3222 = load <1 x float>, ptr addrspace(3) %3221, align 4, !dbg !14
-  %3223 = extractelement <1 x float> %3222, i64 0, !dbg !14
-  %3224 = xor i32 %2093, 14424, !dbg !14
-  %3225 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3224, !dbg !14
-  %3226 = load <1 x float>, ptr addrspace(3) %3225, align 4, !dbg !14
-  %3227 = extractelement <1 x float> %3226, i64 0, !dbg !14
-  %3228 = xor i32 %2093, 15452, !dbg !14
-  %3229 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3228, !dbg !14
-  %3230 = load <1 x float>, ptr addrspace(3) %3229, align 4, !dbg !14
-  %3231 = extractelement <1 x float> %3230, i64 0, !dbg !14
-  %3232 = sext i32 %3105 to i64, !dbg !14
-  %3233 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3232, !dbg !14
-  %3234 = sext i32 %3106 to i64, !dbg !14
-  %3235 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3234, !dbg !14
-  %3236 = sext i32 %3107 to i64, !dbg !14
-  %3237 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3236, !dbg !14
-  %3238 = sext i32 %3108 to i64, !dbg !14
-  %3239 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3238, !dbg !14
-  %3240 = sext i32 %3109 to i64, !dbg !14
-  %3241 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3240, !dbg !14
-  %3242 = sext i32 %3110 to i64, !dbg !14
-  %3243 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3242, !dbg !14
-  %3244 = sext i32 %3111 to i64, !dbg !14
-  %3245 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3244, !dbg !14
-  %3246 = sext i32 %3112 to i64, !dbg !14
-  %3247 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3246, !dbg !14
-  %3248 = sext i32 %3113 to i64, !dbg !14
-  %3249 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3248, !dbg !14
-  %3250 = sext i32 %3114 to i64, !dbg !14
-  %3251 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3250, !dbg !14
-  %3252 = sext i32 %3115 to i64, !dbg !14
-  %3253 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3252, !dbg !14
-  %3254 = sext i32 %3116 to i64, !dbg !14
-  %3255 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3254, !dbg !14
-  %3256 = sext i32 %3117 to i64, !dbg !14
-  %3257 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3256, !dbg !14
-  %3258 = sext i32 %3118 to i64, !dbg !14
-  %3259 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3258, !dbg !14
-  %3260 = sext i32 %3119 to i64, !dbg !14
-  %3261 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3260, !dbg !14
-  %3262 = sext i32 %3120 to i64, !dbg !14
-  %3263 = getelementptr [4 x i8], ptr addrspace(1) %4, i64 %3262, !dbg !14
-  %3264 = atomicrmw fadd ptr addrspace(1) %3233, float %3171 syncscope("agent") monotonic, align 4, !dbg !14
-  %3265 = atomicrmw fadd ptr addrspace(1) %3235, float %3175 syncscope("agent") monotonic, align 4, !dbg !14
-  %3266 = atomicrmw fadd ptr addrspace(1) %3237, float %3179 syncscope("agent") monotonic, align 4, !dbg !14
-  %3267 = atomicrmw fadd ptr addrspace(1) %3239, float %3183 syncscope("agent") monotonic, align 4, !dbg !14
-  %3268 = atomicrmw fadd ptr addrspace(1) %3241, float %3187 syncscope("agent") monotonic, align 4, !dbg !14
-  %3269 = atomicrmw fadd ptr addrspace(1) %3243, float %3191 syncscope("agent") monotonic, align 4, !dbg !14
-  %3270 = atomicrmw fadd ptr addrspace(1) %3245, float %3195 syncscope("agent") monotonic, align 4, !dbg !14
-  %3271 = atomicrmw fadd ptr addrspace(1) %3247, float %3199 syncscope("agent") monotonic, align 4, !dbg !14
-  %3272 = atomicrmw fadd ptr addrspace(1) %3249, float %3203 syncscope("agent") monotonic, align 4, !dbg !14
-  %3273 = atomicrmw fadd ptr addrspace(1) %3251, float %3207 syncscope("agent") monotonic, align 4, !dbg !14
-  %3274 = atomicrmw fadd ptr addrspace(1) %3253, float %3211 syncscope("agent") monotonic, align 4, !dbg !14
-  %3275 = atomicrmw fadd ptr addrspace(1) %3255, float %3215 syncscope("agent") monotonic, align 4, !dbg !14
-  %3276 = atomicrmw fadd ptr addrspace(1) %3257, float %3219 syncscope("agent") monotonic, align 4, !dbg !14
-  %3277 = atomicrmw fadd ptr addrspace(1) %3259, float %3223 syncscope("agent") monotonic, align 4, !dbg !14
-  %3278 = atomicrmw fadd ptr addrspace(1) %3261, float %3227 syncscope("agent") monotonic, align 4, !dbg !14
-  %3279 = atomicrmw fadd ptr addrspace(1) %3263, float %3231 syncscope("agent") monotonic, align 4, !dbg !14
+  %3206 = load float, ptr addrspace(3) %3205, align 4, !dbg !14
+  %3207 = xor i32 %2093, 15452, !dbg !14
+  %3208 = getelementptr inbounds nuw i8, ptr addrspace(3) @global_smem, i32 %3207, !dbg !14
+  %3209 = load float, ptr addrspace(3) %3208, align 4, !dbg !14
+  %3210 = tail call ptr addrspace(8) @llvm.amdgcn.make.buffer.rsrc.p8.p1(ptr addrspace(1) %4, i16 0, i64 2147483646, i32 822243328), !dbg !14
+  %3211 = shl i32 %3102, 2, !dbg !14
+  %3212 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3164, ptr addrspace(8) %3210, i32 %3211, i32 0, i32 0), !dbg !14
+  %3213 = shl i32 %3103, 2, !dbg !14
+  %3214 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3167, ptr addrspace(8) %3210, i32 %3213, i32 0, i32 0), !dbg !14
+  %3215 = shl i32 %7, 3, !dbg !14
+  %3216 = add i32 %3215, %3211, !dbg !14
+  %3217 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3170, ptr addrspace(8) %3210, i32 %3216, i32 0, i32 0), !dbg !14
+  %3218 = shl i32 %3104, 2, !dbg !14
+  %3219 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3173, ptr addrspace(8) %3210, i32 %3218, i32 0, i32 0), !dbg !14
+  %3220 = shl i32 %7, 4, !dbg !14
+  %3221 = add i32 %3220, %3211, !dbg !14
+  %3222 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3176, ptr addrspace(8) %3210, i32 %3221, i32 0, i32 0), !dbg !14
+  %3223 = shl i32 %3105, 2, !dbg !14
+  %3224 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3179, ptr addrspace(8) %3210, i32 %3223, i32 0, i32 0), !dbg !14
+  %3225 = shl i32 %3106, 2, !dbg !14
+  %3226 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3182, ptr addrspace(8) %3210, i32 %3225, i32 0, i32 0), !dbg !14
+  %3227 = shl i32 %3107, 2, !dbg !14
+  %3228 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3185, ptr addrspace(8) %3210, i32 %3227, i32 0, i32 0), !dbg !14
+  %3229 = shl i32 %7, 5, !dbg !14
+  %3230 = add i32 %3229, %3211, !dbg !14
+  %3231 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3188, ptr addrspace(8) %3210, i32 %3230, i32 0, i32 0), !dbg !14
+  %3232 = shl i32 %3108, 2, !dbg !14
+  %3233 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3191, ptr addrspace(8) %3210, i32 %3232, i32 0, i32 0), !dbg !14
+  %3234 = shl i32 %3109, 2, !dbg !14
+  %3235 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3194, ptr addrspace(8) %3210, i32 %3234, i32 0, i32 0), !dbg !14
+  %3236 = shl i32 %3110, 2, !dbg !14
+  %3237 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3197, ptr addrspace(8) %3210, i32 %3236, i32 0, i32 0), !dbg !14
+  %3238 = shl i32 %3111, 2, !dbg !14
+  %3239 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3200, ptr addrspace(8) %3210, i32 %3238, i32 0, i32 0), !dbg !14
+  %3240 = shl i32 %3112, 2, !dbg !14
+  %3241 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3203, ptr addrspace(8) %3210, i32 %3240, i32 0, i32 0), !dbg !14
+  %3242 = shl i32 %3113, 2, !dbg !14
+  %3243 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3206, ptr addrspace(8) %3210, i32 %3242, i32 0, i32 0), !dbg !14
+  %3244 = shl i32 %3114, 2, !dbg !14
+  %3245 = tail call float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float %3209, ptr addrspace(8) %3210, i32 %3244, i32 0, i32 0), !dbg !14
   ret void, !dbg !63
 }
 
@@ -3395,8 +3361,11 @@ declare <8 x i32> @llvm.amdgcn.wmma.i32.16x16x16.iu8.v8i32.v4i32(i1 immarg, <4 x
 ; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: read)
 declare i16 @llvm.amdgcn.raw.ptr.buffer.load.i16(ptr addrspace(8) readonly captures(none), i32, i32, i32 immarg) #3
 
+; Function Attrs: mustprogress nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare float @llvm.amdgcn.raw.ptr.buffer.atomic.fadd.f32(float, ptr addrspace(8) captures(none), i32, i32, i32 immarg) #7
+
 ; Function Attrs: nocallback nocreateundeforpoison nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.smax.i32(i32, i32) #7
+declare i32 @llvm.smax.i32(i32, i32) #8
 
 attributes #0 = { nofree norecurse nounwind "amdgpu-cluster-dims"="1,1,1" "amdgpu-flat-work-group-size"="1,256" "amdgpu-no-cluster-id-x" "amdgpu-no-cluster-id-y" "amdgpu-no-cluster-id-z" "amdgpu-no-completion-action" "amdgpu-no-default-queue" "amdgpu-no-dispatch-id" "amdgpu-no-dispatch-ptr" "amdgpu-no-flat-scratch-init" "amdgpu-no-heap-ptr" "amdgpu-no-hostcall-ptr" "amdgpu-no-implicitarg-ptr" "amdgpu-no-lds-kernel-id" "amdgpu-no-multigrid-sync-arg" "amdgpu-no-queue-ptr" "amdgpu-no-workgroup-id-x" "amdgpu-no-workgroup-id-z" "amdgpu-no-workitem-id-x" "amdgpu-no-workitem-id-y" "amdgpu-no-workitem-id-z" "amdgpu-no-wwm" "amdgpu-waves-per-eu"="2, 2" "denormal-fp-math-f32"="ieee" "uniform-work-group-size" }
 attributes #1 = { mustprogress nocallback nofree nosync nounwind speculatable willreturn memory(none) }
@@ -3405,7 +3374,8 @@ attributes #3 = { mustprogress nocallback nofree nosync nounwind willreturn memo
 attributes #4 = { mustprogress nocallback nofree nounwind willreturn }
 attributes #5 = { convergent mustprogress nocallback nofree nounwind willreturn }
 attributes #6 = { convergent mustprogress nocallback nocreateundeforpoison nofree nounwind willreturn memory(none) }
-attributes #7 = { nocallback nocreateundeforpoison nofree nosync nounwind speculatable willreturn memory(none) }
+attributes #7 = { mustprogress nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #8 = { nocallback nocreateundeforpoison nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.dbg.cu = !{!0}
 !llvm.module.flags = !{!2, !3}
@@ -3414,7 +3384,7 @@ attributes #7 = { nocallback nocreateundeforpoison nofree nosync nounwind specul
 !1 = !DIFile(filename: "generate_amdgcn.py", directory: "<repo>/scripts")
 !2 = !{i32 2, !"Debug Info Version", i32 3}
 !3 = !{i32 1, !"amdhsa_code_object_version", i32 500}
-!4 = distinct !DISubprogram(name: "_int8_scaled_gemm", linkageName: "_int8_scaled_gemm", scope: !1, file: !1, line: 283, type: !5, scopeLine: 283, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0)
+!4 = distinct !DISubprogram(name: "_int8_scaled_gemm", linkageName: "_int8_scaled_gemm", scope: !1, file: !1, line: 309, type: !5, scopeLine: 309, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0)
 !5 = !DISubroutineType(cc: DW_CC_normal, types: !6)
 !6 = !{null, !7, !7, !9, !9, !11, !11, !13, !13, !13, !9, !9}
 !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "pointer", baseType: !8, size: 64, dwarfAddressSpace: 1)
@@ -3424,53 +3394,53 @@ attributes #7 = { nocallback nocreateundeforpoison nofree nosync nounwind specul
 !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "pointer", baseType: !12, size: 64, dwarfAddressSpace: 1)
 !12 = !DIBasicType(name: "float", size: 32, encoding: DW_ATE_float)
 !13 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
-!14 = !DILocation(line: 392, column: 9, scope: !4)
-!15 = !DILocation(line: 288, column: 11, scope: !4)
-!16 = !DILocation(line: 289, column: 13, scope: !4)
+!14 = !DILocation(line: 418, column: 9, scope: !4)
+!15 = !DILocation(line: 314, column: 11, scope: !4)
+!16 = !DILocation(line: 315, column: 13, scope: !4)
 !17 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !20)
 !18 = distinct !DILexicalBlockFile(scope: !4, file: !19, discriminator: 0)
 !19 = !DIFile(filename: "standard.py", directory: "<triton>/python/triton/language")
-!20 = !DILocation(line: 290, column: 17, scope: !21)
+!20 = !DILocation(line: 316, column: 17, scope: !21)
 !21 = distinct !DILexicalBlockFile(scope: !4, file: !1, discriminator: 0)
 !22 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !20)
 !23 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !24)
-!24 = !DILocation(line: 291, column: 17, scope: !21)
+!24 = !DILocation(line: 317, column: 17, scope: !21)
 !25 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !24)
-!26 = !DILocation(line: 292, column: 24, scope: !4)
-!27 = !DILocation(line: 293, column: 16, scope: !4)
-!28 = !DILocation(line: 294, column: 19, scope: !4)
-!29 = !DILocation(line: 295, column: 31, scope: !4)
-!30 = !DILocation(line: 295, column: 20, scope: !4)
-!31 = !DILocation(line: 296, column: 29, scope: !4)
-!32 = !DILocation(line: 297, column: 13, scope: !4)
-!33 = !DILocation(line: 296, column: 28, scope: !4)
-!34 = !DILocation(line: 296, column: 13, scope: !4)
-!35 = !DILocation(line: 299, column: 14, scope: !4)
-!36 = !DILocation(line: 299, column: 32, scope: !4)
-!37 = !DILocation(line: 300, column: 14, scope: !4)
-!38 = !DILocation(line: 300, column: 32, scope: !4)
-!39 = !DILocation(line: 301, column: 14, scope: !4)
+!26 = !DILocation(line: 318, column: 24, scope: !4)
+!27 = !DILocation(line: 319, column: 16, scope: !4)
+!28 = !DILocation(line: 320, column: 19, scope: !4)
+!29 = !DILocation(line: 321, column: 31, scope: !4)
+!30 = !DILocation(line: 321, column: 20, scope: !4)
+!31 = !DILocation(line: 322, column: 29, scope: !4)
+!32 = !DILocation(line: 323, column: 13, scope: !4)
+!33 = !DILocation(line: 322, column: 28, scope: !4)
+!34 = !DILocation(line: 322, column: 13, scope: !4)
+!35 = !DILocation(line: 325, column: 14, scope: !4)
+!36 = !DILocation(line: 325, column: 32, scope: !4)
+!37 = !DILocation(line: 326, column: 14, scope: !4)
+!38 = !DILocation(line: 326, column: 32, scope: !4)
+!39 = !DILocation(line: 327, column: 14, scope: !4)
 !40 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !41)
-!41 = !DILocation(line: 307, column: 28, scope: !21)
+!41 = !DILocation(line: 333, column: 28, scope: !21)
 !42 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !41)
-!43 = !DILocation(line: 342, column: 22, scope: !4)
-!44 = !DILocation(line: 307, column: 5, scope: !4)
-!45 = !DILocation(line: 346, column: 30, scope: !4)
-!46 = !DILocation(line: 346, column: 22, scope: !4)
-!47 = !DILocation(line: 352, column: 30, scope: !4)
-!48 = !DILocation(line: 352, column: 22, scope: !4)
-!49 = !DILocation(line: 342, column: 17, scope: !4)
-!50 = !DILocation(line: 308, column: 14, scope: !4)
-!51 = !DILocation(line: 353, column: 19, scope: !4)
-!52 = !DILocation(line: 362, column: 29, scope: !4)
-!53 = !DILocation(line: 363, column: 34, scope: !4)
-!54 = !DILocation(line: 364, column: 30, scope: !4)
-!55 = !DILocation(line: 364, column: 22, scope: !4)
-!56 = !DILocation(line: 366, column: 40, scope: !4)
-!57 = !DILocation(line: 366, column: 30, scope: !4)
-!58 = !DILocation(line: 366, column: 22, scope: !4)
-!59 = !DILocation(line: 368, column: 24, scope: !4)
-!60 = !DILocation(line: 368, column: 17, scope: !4)
-!61 = !DILocation(line: 373, column: 13, scope: !4)
-!62 = !DILocation(line: 392, column: 23, scope: !4)
-!63 = !DILocation(line: 283, column: 1, scope: !4)
+!43 = !DILocation(line: 368, column: 22, scope: !4)
+!44 = !DILocation(line: 333, column: 5, scope: !4)
+!45 = !DILocation(line: 372, column: 30, scope: !4)
+!46 = !DILocation(line: 372, column: 22, scope: !4)
+!47 = !DILocation(line: 378, column: 30, scope: !4)
+!48 = !DILocation(line: 378, column: 22, scope: !4)
+!49 = !DILocation(line: 368, column: 17, scope: !4)
+!50 = !DILocation(line: 334, column: 14, scope: !4)
+!51 = !DILocation(line: 379, column: 19, scope: !4)
+!52 = !DILocation(line: 388, column: 29, scope: !4)
+!53 = !DILocation(line: 389, column: 34, scope: !4)
+!54 = !DILocation(line: 390, column: 30, scope: !4)
+!55 = !DILocation(line: 390, column: 22, scope: !4)
+!56 = !DILocation(line: 392, column: 40, scope: !4)
+!57 = !DILocation(line: 392, column: 30, scope: !4)
+!58 = !DILocation(line: 392, column: 22, scope: !4)
+!59 = !DILocation(line: 394, column: 24, scope: !4)
+!60 = !DILocation(line: 394, column: 17, scope: !4)
+!61 = !DILocation(line: 399, column: 13, scope: !4)
+!62 = !DILocation(line: 418, column: 23, scope: !4)
+!63 = !DILocation(line: 309, column: 1, scope: !4)

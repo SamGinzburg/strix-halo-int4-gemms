@@ -46,10 +46,13 @@ from .ragged import (
     RaggedDotConfig,
     RaggedGroupInfo,
     calculate_group_info,
+    prepare_ragged_group_info,
+    ragged_group_info_capacity,
     ragged_dot_int4_bwd,
+    ragged_dot_int4_bwd_accum,
     ragged_dot_int4,
 )
-from .registry import KernelRegistry, default_registry
+from .registry import KernelRegistry, default_registry, mixed_dtype_registry
 from .torch_ops import TORCH_GEMM_OP, TORCH_OP_NAMESPACE, register_torch_ops, torch_gemm
 
 __all__ = [
@@ -99,8 +102,12 @@ __all__ = [
     "launch_generated_kernel",
     "launch_hsaco",
     "mm",
+    "mixed_dtype_registry",
     "native_library_path",
+    "prepare_ragged_group_info",
+    "ragged_group_info_capacity",
     "ragged_dot_int4_bwd",
+    "ragged_dot_int4_bwd_accum",
     "ragged_dot_int4",
     "register_torch_ops",
     "torch_gemm",

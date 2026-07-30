@@ -1,9 +1,10 @@
 import argparse
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from scripts.benchmark_generated import parse_shape
+from scripts.benchmark_generated import configure_extracted_native_root, parse_shape
 
 from amd_strix_halo_kernels.benchmarking import (
     BenchmarkDatabase,
@@ -69,6 +70,27 @@ def test_benchmark_generated_parse_shape() -> None:
     assert parse_shape("128,1024,64") == (128, 1024, 64)
     with pytest.raises(argparse.ArgumentTypeError):
         parse_shape("96,0,32")
+
+
+def test_configure_extracted_native_root_overrides_editable_package_lookup(tmp_path) -> None:
+    package_root = tmp_path / "amd_strix_halo_kernels"
+    package_root.mkdir()
+    (package_root / "libdispatch.so").touch()
+    extracted = SimpleNamespace(name=str(tmp_path))
+    native = SimpleNamespace(NATIVE_LIBRARY_NAME="libdispatch.so", package_root=lambda: Path("editable"))
+
+    configured = configure_extracted_native_root(native, extracted)
+
+    assert configured == package_root
+    assert native.package_root() == package_root
+
+
+@pytest.mark.parametrize("script_name", ["tune_gemm.py", "tune_relu2.py", "tune_swiglu.py"])
+def test_dense_tuners_select_mixed_specialization_from_lhs_dtype(script_name: str) -> None:
+    source = (REPO_ROOT / "scripts" / script_name).read_text()
+
+    assert "A_BF16=kernel.a_dtype is OperandDType.BF16" in source
+    assert "make_mixed_kernel_id" in source
 
 
 def test_benchmark_database_roundtrips_and_filters_failed_records(tmp_path) -> None:

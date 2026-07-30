@@ -4,7 +4,7 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2880 dense generated kernels plus 80
+The checked-in native matrix contains 2880 dense generated kernels plus 81
 ragged generated artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
@@ -22,6 +22,12 @@ The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
 source of truth. The packaged forward config is
 ``BM64_BN256_BK64_GST1_W8_S3`` and stores BF16. The packaged backward config
 is ``BM64_BN256_BK64_W8_S3_SK1`` and stores FP32.
+Those combinations account for 80 artifacts. One additional specialized
+``bwd_accum`` artifact covers TN, per-channel scaling, and even K with
+``BM64_BN128_BK64_W4_S2_SK1`` and FP32 output.
+
+BF16×INT4 metadata is development-only. None of its 1080 registry entries is
+included in the checked-in native matrix or packaged wheel.
 
 The native registry includes both ``evenk`` and ``maskk`` artifact labels for
 regeneration/debugging history. Public dense selection, ``mm(...)``, and
@@ -141,6 +147,12 @@ Ragged artifact families are generated separately from the dense registry:
      - ``BM64_BN256_BK64_W8_S3_SK1``
      - ``evenk``, ``maskk``
      - FP32
+   * - backward task accumulation
+     - ``TN``
+     - per-channel
+     - ``BM64_BN128_BK64_W4_S2_SK1``
+     - ``evenk``
+     - FP32
 
 Shape Contract
 --------------
@@ -148,6 +160,21 @@ Shape Contract
 Generated artifacts are runtime-shape launchable. ``M``, ``N``, and ``K`` are
 kernel arguments; the metadata ``generation_shape`` is the representative shape
 used to compile and preserve IR.
+
+All 81 packaged ragged artifacts prevent specialization by both value and
+alignment for M, N, packed K, and scale-column runtime scalars. Forward
+artifacts do the same for the compact task count. Consequently, a single
+packaged ragged HSACO remains valid immediately below, exactly at, and
+immediately above its block sizes. Row and column predicates, plus K predicates
+in masked-K artifacts, cover edge tiles. Even-K artifacts and the specialized
+task-accumulation artifact retain their documented mode-specific eligibility
+and input contracts.
+
+This generic contract applies to generated/package-native ragged artifacts.
+The public forward JIT/fallback path uses Triton's normal value and alignment
+specialization to recover aligned-shape throughput, and can compile a new
+variant when runtime dimensions change. Ragged autotuning explicitly forces
+that JIT path with ``use_native=False``.
 
 The native fast path is tile-specialized. Runtime logical shapes must satisfy
 the tile values of the selected ``KernelMetadata``:
@@ -174,6 +201,13 @@ matches the logical request and shape, ``mm(...)`` and ``autotune(...)`` raise
 Use ``use_reference=True`` for arbitrary-shape numerical checks. Reference mode
 uses torch operations, does not launch packaged HSACO, and should not be timed
 as a kernel-performance path.
+
+The task-accumulating backward artifact has a narrower contract. Operands are
+contiguous ``lhs[T, 32, M]`` and ``rhs[T, 32, N]`` packed-int4 tensors with
+BF16 scales ``[T, M]`` and ``[T, N]``. All tensors must share one CUDA/HIP
+device. Each int32 or int64 ``expert_task_ranges[e] = [start, end)`` must
+satisfy ``0 <= start <= end <= T``; the API converts int64 ranges to int32 to
+match the native artifact ABI before dispatch.
 
 Layouts
 -------

@@ -93,16 +93,30 @@ def uniquify_amdgcn_symbols(amdgcn: str, *, kernel_id: str) -> tuple[str, str]:
     return re.sub(pattern, replacement, amdgcn), replacement
 
 
-def clean_generated_outputs(out_dir: Path, triton_out_dir: Path | None) -> int:
+def clean_generated_outputs(
+    out_dir: Path,
+    triton_out_dir: Path | None,
+    *,
+    kernel_id_prefixes: tuple[str, ...] | None = None,
+) -> int:
+    """Remove generated artifacts, optionally restricted to kernel-id families."""
+
+    def matching_paths(directory: Path, extensions: tuple[str, ...]) -> set[Path]:
+        prefixes = kernel_id_prefixes if kernel_id_prefixes is not None else ("",)
+        return {
+            path
+            for prefix in prefixes
+            for extension in extensions
+            for path in directory.glob(f"{prefix}*{extension}")
+        }
+
     removed = 0
     if out_dir.exists():
-        for pattern in ("*.s", "*.json"):
-            for path in out_dir.glob(pattern):
-                path.unlink()
-                removed += 1
+        for path in matching_paths(out_dir, (".s", ".json")):
+            path.unlink()
+            removed += 1
     if triton_out_dir is not None and triton_out_dir.exists():
-        for pattern in TRITON_TEXT_ARTIFACT_PATTERNS:
-            for path in triton_out_dir.glob(pattern):
-                path.unlink()
-                removed += 1
+        for path in matching_paths(triton_out_dir, tuple(TRITON_TEXT_ARTIFACT_EXTENSIONS.values())):
+            path.unlink()
+            removed += 1
     return removed

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -18,6 +19,14 @@ from amd_strix_halo_kernels.native import (
 )
 from amd_strix_halo_kernels.metadata import Epilogue, KernelSchedule, OperandDType, ScaleMode, ScaleSpec
 from amd_strix_halo_kernels.registry import default_registry
+
+
+def _built_native_library() -> Path:
+    configured_root = os.environ.get("AMD_STRIX_HALO_NATIVE_ROOT")
+    library = native_library_path(root=configured_root) if configured_root else native_library_path()
+    if configured_root:
+        assert library.exists(), f"AMD_STRIX_HALO_NATIVE_ROOT has no native library: {configured_root}"
+    return library
 
 
 def test_native_resource_paths_can_be_rooted_explicitly(tmp_path) -> None:
@@ -145,7 +154,7 @@ def test_dispatch_runtime_status_reports_missing_library(tmp_path) -> None:
 
 
 def test_dispatch_runtime_status_loads_built_library_when_available() -> None:
-    library = native_library_path()
+    library = _built_native_library()
     if not library.exists():
         pytest.skip("native library is only present in built wheels")
 
@@ -158,7 +167,7 @@ def test_dispatch_runtime_status_loads_built_library_when_available() -> None:
 
 
 def test_launch_hsaco_reports_native_errors_when_library_available(tmp_path) -> None:
-    library = native_library_path()
+    library = _built_native_library()
     if not library.exists():
         pytest.skip("native library is only present in built wheels")
 

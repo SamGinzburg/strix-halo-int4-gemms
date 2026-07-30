@@ -33,6 +33,7 @@ from amd_strix_halo_kernels.metadata import (
     ScaleSpec,
     TileConfig,
     make_kernel_id,
+    make_mixed_kernel_id,
     output_dtype_for_split_k,
 )
 from amd_strix_halo_kernels.template_config import LaunchShape
@@ -42,6 +43,8 @@ torch: Any = None
 triton: Any = None
 fake_quant_int: Any = None
 pack_int4_k_major: Any = None
+dynamic_lhs_int4_scales: Any = None
+fake_quant_int4_with_scales: Any = None
 seed_tile_configs: Any = None
 _int4_scaled_gemm: Any = None
 _int8_scaled_gemm: Any = None
@@ -49,12 +52,15 @@ compile_kernel: Any = None
 
 
 def load_runtime() -> None:
-    global torch, triton, fake_quant_int, pack_int4_k_major, seed_tile_configs, _int4_scaled_gemm, _int8_scaled_gemm, compile_kernel
+    global torch, triton, fake_quant_int, pack_int4_k_major, dynamic_lhs_int4_scales, fake_quant_int4_with_scales
+    global seed_tile_configs, _int4_scaled_gemm, _int8_scaled_gemm, compile_kernel
     if torch is not None:
         return
     import torch as torch_module
     import triton as triton_module
     from amd_strix_halo_kernels.quant import fake_quant_int as fake_quant_int_fn
+    from amd_strix_halo_kernels.quant import dynamic_lhs_int4_scales as dynamic_lhs_int4_scales_fn
+    from amd_strix_halo_kernels.quant import fake_quant_int4_with_scales as fake_quant_int4_with_scales_fn
     from amd_strix_halo_kernels.quant import pack_int4_k_major as pack_int4_k_major_fn
     from amd_strix_halo_kernels.registry import seed_tile_configs as seed_tile_configs_fn
     from generate_amdgcn import _int4_scaled_gemm as int4_kernel
@@ -64,6 +70,8 @@ def load_runtime() -> None:
     torch = torch_module
     triton = triton_module
     fake_quant_int = fake_quant_int_fn
+    dynamic_lhs_int4_scales = dynamic_lhs_int4_scales_fn
+    fake_quant_int4_with_scales = fake_quant_int4_with_scales_fn
     pack_int4_k_major = pack_int4_k_major_fn
     seed_tile_configs = seed_tile_configs_fn
     _int4_scaled_gemm = int4_kernel
@@ -105,8 +113,9 @@ def parse_tile(value: str) -> TileConfig:
 
 
 def default_tiles(dtype: OperandDType) -> tuple[TileConfig, ...]:
-    seeded = seed_tile_configs(dtype, epilogue=Epilogue.NONE)[0]
-    if dtype is OperandDType.INT4:
+    seed_dtype = OperandDType.INT4 if dtype is OperandDType.BF16 else dtype
+    seeded = seed_tile_configs(seed_dtype, epilogue=Epilogue.NONE)[0]
+    if dtype in {OperandDType.BF16, OperandDType.INT4}:
         return (
             seeded,
             TileConfig(64, 128, 128, 1, 16, 2, 2, even_k=True),
@@ -127,12 +136,17 @@ def default_tiles(dtype: OperandDType) -> tuple[TileConfig, ...]:
 
 def make_kernel(dtype: OperandDType, scale: ScaleSpec, tile: TileConfig, shape: BenchmarkShape) -> KernelMetadata:
     even_tile = replace(tile, even_k=shape.k % (tile.block_k * tile.split_k) == 0)
-    kernel_id = make_kernel_id(dtype, scale, Epilogue.NONE, even_tile)
+    b_dtype = OperandDType.INT4 if dtype is OperandDType.BF16 else dtype
+    kernel_id = (
+        make_mixed_kernel_id(dtype, b_dtype, scale, Epilogue.NONE, even_tile)
+        if dtype is OperandDType.BF16
+        else make_kernel_id(dtype, scale, Epilogue.NONE, even_tile)
+    )
     return KernelMetadata(
         kernel_id=kernel_id,
         arch=ARCH,
         a_dtype=dtype,
-        b_dtype=dtype,
+        b_dtype=b_dtype,
         acc_dtype=ACC_DTYPE,
         output_dtype=output_dtype_for_split_k(even_tile.split_k),
         scale_dtype=SCALE_DTYPE_BF16,
@@ -145,28 +159,39 @@ def make_kernel(dtype: OperandDType, scale: ScaleSpec, tile: TileConfig, shape: 
 
 def make_inputs(kernel: KernelMetadata, shape: BenchmarkShape) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     torch.manual_seed(17)
-    bits = 4 if kernel.a_dtype is OperandDType.INT4 else 8
     a_bf16 = torch.randn((shape.m, shape.k), device="cuda", dtype=torch.bfloat16) * 0.1
     b_bf16 = torch.randn((shape.k, shape.n), device="cuda", dtype=torch.bfloat16) * 0.1
-    a_q = fake_quant_int(a_bf16, bits=bits, scale=0.1)
-    b_q = fake_quant_int(b_bf16, bits=bits, scale=0.1)
+    if kernel.a_dtype is OperandDType.BF16:
+        a_scale = dynamic_lhs_int4_scales(a_bf16, kernel.scale)
+        a_q = fake_quant_int4_with_scales(a_bf16, a_scale, kernel.scale)
+    else:
+        bits = 4 if kernel.a_dtype is OperandDType.INT4 else 8
+        a_q = fake_quant_int(a_bf16, bits=bits, scale=0.1)
+    b_bits = 4 if kernel.b_dtype is OperandDType.INT4 else 8
+    b_q = fake_quant_int(b_bf16, bits=b_bits, scale=0.1)
 
-    if kernel.a_dtype is OperandDType.INT4:
+    if kernel.a_dtype is OperandDType.BF16:
+        a = a_bf16.contiguous()
+    elif kernel.a_dtype is OperandDType.INT4:
         a = pack_int4_k_major(a_q)
-        b = pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous()
     else:
         a = a_q.contiguous()
+    if kernel.b_dtype is OperandDType.INT4:
+        b = pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous()
+    else:
         b = b_q.contiguous()
 
     if kernel.scale.mode is ScaleMode.PER_CHANNEL:
-        a_scale = torch.linspace(0.75, 1.25, shape.m, device="cuda", dtype=torch.bfloat16)
+        if kernel.a_dtype is not OperandDType.BF16:
+            a_scale = torch.linspace(0.75, 1.25, shape.m, device="cuda", dtype=torch.bfloat16)
         b_scale = torch.linspace(1.10, 0.90, shape.n, device="cuda", dtype=torch.bfloat16)
         expected = torch.matmul(a_q.to(torch.float32), b_q.to(torch.float32)) * a_scale[:, None] * b_scale[None, :]
     else:
         scale_cols = triton.cdiv(shape.k, kernel.scale.subchannel_size or 1)
-        a_scale = torch.linspace(0.80, 1.20, shape.m * scale_cols, device="cuda", dtype=torch.bfloat16).reshape(
-            shape.m, scale_cols
-        )
+        if kernel.a_dtype is not OperandDType.BF16:
+            a_scale = torch.linspace(
+                0.80, 1.20, shape.m * scale_cols, device="cuda", dtype=torch.bfloat16
+            ).reshape(shape.m, scale_cols)
         b_scale = torch.linspace(1.15, 0.85, shape.n * scale_cols, device="cuda", dtype=torch.bfloat16).reshape(
             scale_cols, shape.n
         )
@@ -206,21 +231,20 @@ def launch(kernel: KernelMetadata, shape: BenchmarkShape, args: tuple[Any, ...])
         SPLIT_K=kernel.tile.split_k,
         A_TRANS=False,
         B_TRANS=False,
+        A_BF16=kernel.a_dtype is OperandDType.BF16,
         num_warps=kernel.tile.num_warps,
         num_stages=kernel.tile.num_stages,
         waves_per_eu=kernel.tile.waves_per_eu,
         matrix_instr_nonkdim=16,
         kpack=1,
     )
-    fn = _int4_scaled_gemm if kernel.a_dtype is OperandDType.INT4 else _int8_scaled_gemm
+    fn = _int4_scaled_gemm if kernel.b_dtype is OperandDType.INT4 else _int8_scaled_gemm
     fn[grid](*args[:6], **common)
     return args[4]
 
 
 def validation_tolerances(kernel: KernelMetadata) -> tuple[float, float]:
-    if kernel.output_dtype == "bfloat16":
-        return 8.0e-3, 1.0e-2
-    return 1.0e-4, 1.0e-2
+    return 1.0e-3, 1.0e-3
 
 
 def benchmark_kernel(
@@ -255,7 +279,7 @@ def benchmark_kernel(
         "max_abs_diff": max_abs,
         "max_rel_diff": max_rel,
         "metadata": {
-            "dtype": kernel.a_dtype.value,
+            "dtype_pair": f"{kernel.a_dtype.value}x{kernel.b_dtype.value}",
             "scale": kernel.scale.label,
             "output_dtype": kernel.output_dtype,
             "tile": kernel.tile.label,

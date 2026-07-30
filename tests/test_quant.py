@@ -7,12 +7,14 @@ torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels.metadata import Epilogue, GemmLayout, OperandDType, ScaleMode, ScaleSpec
 from amd_strix_halo_kernels.quant import (
+    dynamic_lhs_int4_scales,
+    fake_quant_int4_with_scales,
     fake_quant_int,
     pack_int4_k_major,
     pack_rhs_subchannel_scales,
     unpack_int4_k_major,
 )
-from amd_strix_halo_kernels.registry import default_registry
+from amd_strix_halo_kernels.registry import default_registry, mixed_dtype_registry
 from amd_strix_halo_kernels.template_config import representative_generation_shape
 from amd_strix_halo_kernels.api import explicit_mm, fused_swiglu_up_gate, mm
 
@@ -74,6 +76,62 @@ def test_reference_mm_matches_integer_matmul() -> None:
     )
     expected = torch.matmul(a.to(torch.int32), b.to(torch.int32)).to(torch.float32)
     torch.testing.assert_close(out, expected.to(out.dtype))
+
+
+@pytest.mark.parametrize(
+    "scale",
+    [ScaleSpec(ScaleMode.PER_CHANNEL), ScaleSpec(ScaleMode.SUBCHANNEL, 32)],
+)
+def test_mixed_bf16_int4_reference_matches_explicit_fake_quant(scale) -> None:
+    torch.manual_seed(43 + (scale.subchannel_size or 0))
+    m, k, n = 8, 64, 16
+    a = torch.randn((m, k), dtype=torch.bfloat16) * 0.1
+    b_q = fake_quant_int(torch.randn((k, n), dtype=torch.bfloat16) * 0.1, bits=4, scale=0.01)
+    b = pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous()
+    scale_cols = 1 if scale.mode is ScaleMode.PER_CHANNEL else k // (scale.subchannel_size or k)
+    b_scale = (
+        torch.full((n,), 0.01, dtype=torch.bfloat16)
+        if scale.mode is ScaleMode.PER_CHANNEL
+        else torch.full((scale_cols, n), 0.01, dtype=torch.bfloat16)
+    )
+
+    actual = mm(
+        a,
+        b,
+        a_dtype=OperandDType.BF16,
+        b_dtype=OperandDType.INT4,
+        b_scale=b_scale,
+        scale=scale,
+        registry=mixed_dtype_registry,
+        use_reference=True,
+    )
+    a_scale = dynamic_lhs_int4_scales(a, scale)
+    a_q = fake_quant_int4_with_scales(a, a_scale, scale)
+    expected = manual_scaled_reference(a_q, b_q, mixed_dtype_registry.select_reference(
+        a_dtype=OperandDType.BF16,
+        b_dtype=OperandDType.INT4,
+        scale=scale,
+        epilogue=Epilogue.NONE,
+    ), a_scale, b_scale)
+
+    torch.testing.assert_close(actual, expected.to(actual.dtype))
+
+
+def test_mixed_bf16_int4_rejects_caller_provided_a_scale() -> None:
+    a = torch.zeros((8, 32), dtype=torch.bfloat16)
+    b = torch.zeros((16, 8), dtype=torch.uint8)
+
+    with pytest.raises(ValueError, match="a_scale is computed"):
+        mm(
+            a,
+            b,
+            a_scale=torch.ones((8,), dtype=torch.bfloat16),
+            b_scale=torch.ones((8,), dtype=torch.bfloat16),
+            a_dtype=OperandDType.BF16,
+            b_dtype=OperandDType.INT4,
+            registry=mixed_dtype_registry,
+            use_reference=True,
+        )
 
 
 def scale_tensors(kernel, shape):

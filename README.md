@@ -118,7 +118,10 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
-| `calculate_group_info(...)` | Build compact aligned row-block tasks from `group_sizes`. |
+| `ragged_dot_int4_bwd_accum(...)` | Dropless 64-row task-packed int4 weight-gradient accumulation with one fp32 output per expert. |
+| `calculate_group_info(...)` | Build exact compact aligned row-block tasks from `group_sizes`. |
+| `prepare_ragged_group_info(...)` | Build fixed-capacity device-only row-block tasks for graph capture and projection reuse. |
+| `ragged_group_info_capacity(...)` | Compute the static safe task bound used by graph-safe preparation. |
 | `autotune(...)` | Benchmark compatible packaged dense kernels for one shape. |
 | `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidate configs for one shape. |
 | `default_registry` | Metadata registry for dtype, layout, scale mode, epilogue, schedule, tile, `split_k`, and `even_k`. |
@@ -297,6 +300,23 @@ ragged_b_scale = pack_ragged_rhs_subchannel_scales(ragged_b_scale_logical)
 The library does not transpose RHS scales implicitly in native, benchmark, or
 training-oriented paths; hidden copies would make timings misleading.
 
+Mixed BF16-by-int4 kernel metadata is intentionally kept out of
+`default_registry` until corresponding native artifacts and benchmark records
+are generated. Use `mixed_dtype_registry` for explicit development and
+generation work; `scripts/generate_amdgcn.py --kernel-id ...` resolves exact
+IDs from that registry. Mixed generation is standard-schedule only; unsupported
+persistent BF16-by-int4 entries are not registered. The default registry
+continues to describe exactly the kernels shipped by the package; none of the
+1080 development-only mixed entries is currently packaged.
+
+The direct Triton tuner scripts accept `--dtype bf16` to evaluate BF16×INT4
+with dynamic activation scales and validate candidates at `rtol=atol=1e-3`.
+This path quantizes each BF16 activation tile inside every output-N program,
+so it repeats activation work instead of reusing a packed A tensor. A separate
+4096³ per-channel plain-GEMM measurement reached about 9.26 TOPS versus 77.1
+TOPS with prepacked INT4. Prefer explicit reusable activation quantization and
+the standard INT4 path for throughput-sensitive or multi-projection workloads.
+
 ## Ragged Dot
 
 `ragged_dot_int4(...)` is a forward grouped ragged dot API, modeled after the
@@ -340,10 +360,64 @@ start_within_block, actual_size)`. `block_start` is aligned down to the
 uses the pure-Torch path, so native dispatch does not require Triton to build
 this metadata.
 
-The ragged kernels take logical `N`, packed `K`, scale-column count, and task
-count as runtime arguments. They do not bake `M`, `N`, or `K` into the compiled
-artifact. `RaggedDotConfig.group_size_tasks` controls the 1D L2 tile swizzle
-over compact row tasks and N tiles.
+For CUDA/HIP graph capture, prepare a fixed-capacity task map on device and
+pass it back to one or more projections:
+
+```python
+from amd_strix_halo_kernels import prepare_ragged_group_info
+
+group_info = prepare_ragged_group_info(
+    group_sizes,
+    config.block_m,
+    rows=lhs_packed.shape[0],
+    align_tile=config.align_tile,
+)
+gate_up = ragged_dot_int4(
+    lhs_packed,
+    gate_up_rhs,
+    group_info=group_info,
+    a_scale=a_scale,
+    b_scale=gate_up_scale,
+    config=config,
+    use_native=True,
+)
+down = ragged_dot_int4(
+    hidden_packed,
+    down_rhs,
+    group_info=group_info,
+    a_scale=hidden_scale,
+    b_scale=down_scale,
+    config=config,
+    use_native=True,
+)
+```
+
+`prepare_ragged_group_info(...)` never reads tensor values on the host. The
+producer must guarantee non-negative `group_sizes` whose sum equals `rows`.
+Its static task capacity safely covers every valid partition with those
+static row/group/tile shapes; unused slots are zero-filled and masked by the
+GEMM. Call preparation inside the captured function when `group_sizes` changes
+between replays, and reuse the returned metadata for projections in that same
+replay. Warm the exact metadata and native-kernel configurations once before
+capture so Triton compilation and HSACO module loading occur outside the
+graph.
+
+Graph capture is supported by the forward API when it receives device-prepared
+``group_info``. Both backward APIs validate routing or task-range values on the
+host and must be invoked outside capture.
+
+Packaged ragged kernels take logical `N`, packed `K`, scale-column count, and
+task count as runtime arguments. They do not bake `M`, `N`, or `K` into the
+artifact or specialize on those values or their alignments. The same packaged
+ragged artifact therefore handles eligible runtime dimensions immediately
+below, exactly at, and immediately above its block sizes; edge predicates
+preserve correctness. Forward artifacts also keep the compact task count
+runtime. In contrast, the public forward Triton-JIT/fallback path uses normal
+value and alignment specialization for aligned-shape performance, so a new
+runtime shape can compile another JIT variant. Per-mode fast-path eligibility
+and the specialized `bwd_accum` input contract still apply.
+`RaggedDotConfig.group_size_tasks` controls the 1D L2 tile swizzle over compact
+row tasks and N tiles.
 
 When `RaggedDotConfig.enable_even_k_fast_path=True`, the library automatically
 uses an even-K artifact when `K % BLOCK_K == 0`. Subchannel fast-path dispatch
@@ -375,6 +449,22 @@ Packed grouped operand shapes are:
 - `TN`: `lhs[G, K / 2, M]`, `rhs[G, K / 2, N]`
 - `TT`: `lhs[G, K / 2, M]`, `rhs[G, N, K / 2]`
 
+`ragged_dot_int4_bwd_accum(...)` is the compact dropless-MoE weight-gradient
+variant. Its operands contain 64-row tasks packed along the row axis:
+`lhs[T, 32, M]` and `rhs[T, 32, N]`, with BF16 per-task/channel scales
+`a_scale[T, M]` and `b_scale[T, N]`. `expert_task_ranges[E, 2]` assigns
+each expert a contiguous half-open task range. The TN kernel accumulates every
+task in that range in FP32 registers and writes `out[E, M, N]` once, avoiding
+both a worst-case padded routed batch and atomic partial-gradient buffers.
+Tasks must use `block_k=64` and `split_k=1`; the shipped tuned artifact uses
+`block_m=64`, `block_n=128`, four warps, and two stages. The caller prepares
+and quantizes tasks, including zero-padding a final partial task. All operands,
+scales, ranges, and an optional output must be contiguous CUDA/HIP tensors on
+one device. Ranges may be int32 or int64 and must satisfy
+`0 <= start <= end <= T`; int64 ranges are converted to int32 before native
+dispatch to match the packaged ABI. Range validation reads the values on the
+host, so prepare and validate this metadata outside graph capture.
+
 Use `autotune_ragged_dot(...)` to benchmark candidate ragged configurations
 for either mode:
 
@@ -398,12 +488,15 @@ print(result.best_candidate.config_label, result.best_record.tops)
 For backward autotuning, `k` is the logical total reduction work and
 `group_sizes` partitions that K work across groups. Synthetic benchmark
 operands are padded to a per-group `k_capacity`, which defaults to
-`max(group_sizes)` and can be overridden explicitly.
+`max(group_sizes)` and can be overridden explicitly. Ragged autotuning always
+passes `use_native=False`: its results describe JIT rather than packaged HSACO
+dispatch. Forward results include the shape-specialized JIT behavior described
+above.
 
 ## Kernel Coverage
 
 The checked-in matrix currently contains 2880 dense generated kernels plus
-80 ragged generated artifacts:
+81 ragged generated artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
@@ -418,7 +511,9 @@ layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
 `evenk` and `maskk` variants. The dataclass defaults are the packaged tile
 source of truth. The default packaged forward config is
 `BM64_BN256_BK64_GST1_W8_S3` and stores BF16. The default packaged backward
-config is `BM64_BN256_BK64_W8_S3_SK1` and stores FP32.
+config is `BM64_BN256_BK64_W8_S3_SK1` and stores FP32. Those combinations form
+an 80-artifact matrix. The additional specialized `bwd_accum` artifact is
+TN/per-channel/even-K with `BM64_BN128_BK64_W4_S2_SK1` and FP32 output.
 
 Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
 because their partial tiles are reduced with FP32 atomics.
@@ -452,6 +547,10 @@ hardware characterization. The key result is that int4 MMA provides roughly
 For fused SwiGLU, TOPS counts both up and gate GEMMs.
 BF16-store correctness may differ by one ULP from the BF16 reference on values
 near rounding ties; FP32 split-K paths should be evaluated separately.
+
+Persistent dense scheduling remains opt-in and experimental. In a separate
+4096³ per-channel plain-GEMM comparison, the best persistent result was about
+42.0 TOPS versus 77.1 TOPS for standard scheduling, which remains the default.
 
 ### Ragged Dot Performance Snapshot
 
@@ -501,6 +600,12 @@ subchannel, balanced, uneven, and empty-group cases is covered by
 includes `uses_even_k_fast_path` and `masks_k` for separating aligned fast-path
 rows from fully masked ragged-K rows.
 
+A separate 4096³ forward-NN comparison measured shape-specialized JIT at about
+62.7 TOPS for per-channel and 47.7 TOPS for subchannel-256, versus 41.5 and
+36.1 TOPS with runtime-shape specialization disabled. The autotuner measures
+the specialized JIT behavior; packaged native artifacts retain their generic
+block-edge shape contract.
+
 ## Triton Fork and Regeneration
 
 Regenerating Triton IR or AMDGCN requires the Strix Halo Triton fork:
@@ -518,7 +623,12 @@ uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --c
 
 `scripts/regenerate_amdgcn.py` regenerates the dense matrix.
 `scripts/generate_ragged_amdgcn.py` regenerates the ragged `.s` and `.json`
-artifact set. Wheel builds assemble every `kernels/amdgcn/*.s` file into
+artifact set, including the specialized `bwd_accum` artifact by default;
+`--mode bwd_accum` regenerates only that job. Dense `--clean` deletes only
+`gfx1151_int4xint4_*` and `gfx1151_int8xint8_*` generated files, preserving
+ragged and mixed families in the shared artifact directories. Dense and ragged
+regeneration can therefore run independently. Wheel builds assemble every
+`kernels/amdgcn/*.s` file into
 `kernels/hsaco/*.hsaco` with ROCm `llvm-mc`/`lld`, then install the `.hsaco`
 files plus matching JSON metadata.
 
@@ -557,6 +667,11 @@ the portability/`twine check` gates) in one step on a ROCm host:
 ```bash
 uv run --extra publish python scripts/build_release.py
 ```
+
+Wheel assembly excludes local tooling, cache, and credential metadata such as
+`.claude/`, `.codex/`, `.git/`, Python caches, `.env`, `.env.local`, and
+`settings.local.json`. The release portability gate rejects the wheel if any
+of those files are present despite the build exclusions.
 
 See `docs/development.rst` for regeneration, benchmarking, and wheel
 portability commands, and `RELEASING.md` for the PyPI publishing flow.

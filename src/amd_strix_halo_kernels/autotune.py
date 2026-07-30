@@ -757,6 +757,7 @@ def _benchmark_ragged_candidate(
                 config=candidate.config,
                 layout=candidate.layout,
                 out=tensors["out"],
+                use_native=False,
             )
         if not isinstance(candidate.config, RaggedBwdDotConfig):
             raise TypeError("backward ragged-dot candidate must use RaggedBwdDotConfig")
@@ -770,6 +771,7 @@ def _benchmark_ragged_candidate(
             config=candidate.config,
             layout=candidate.layout,
             out=tensors["out"],
+            use_native=False,
         )
 
     run()

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .metadata import ScaleMode, ScaleSpec
+
 
 def _torch() -> Any:
     try:
@@ -27,6 +29,56 @@ def fake_quant_int(x: Any, *, bits: int, scale: float) -> Any:
     qmin = -(1 << (bits - 1))
     qmax = (1 << (bits - 1)) - 1
     return torch.clamp(torch.round(x.float() / scale), qmin, qmax).to(torch.int8)
+
+
+def dynamic_lhs_int4_scales(a: Any, scale: ScaleSpec, *, eps: float = 1.0e-12) -> Any:
+    """Compute BF16 signed-int4 activation scales for logical LHS rows.
+
+    The returned scales use the same physical shape as dense GEMM ``a_scale``:
+    ``(M,)`` for per-channel and ``(M, ceil(K / subchannel))`` for
+    subchannel scaling. The scale is ``max(abs(a)) / 7`` with a small positive
+    floor so all-zero rows quantize to zero without division by zero.
+    """
+
+    torch = _torch()
+    if scale.mode is ScaleMode.PER_CHANNEL:
+        row_amax = a.to(torch.float32).abs().amax(dim=-1).clamp_min(eps)
+        return (row_amax / 7.0).to(torch.bfloat16).contiguous()
+
+    subchannel = scale.subchannel_size
+    if subchannel is None:
+        raise ValueError("subchannel scale mode requires subchannel_size")
+    scale_cols = (int(a.shape[-1]) + subchannel - 1) // subchannel
+    cols = []
+    a_f32 = a.to(torch.float32)
+    for group_index in range(scale_cols):
+        k0 = group_index * subchannel
+        k1 = min(k0 + subchannel, int(a.shape[-1]))
+        cols.append(a_f32[..., k0:k1].abs().amax(dim=-1).clamp_min(eps) / 7.0)
+    return torch.stack(cols, dim=-1).to(torch.bfloat16).contiguous()
+
+
+def fake_quant_int4_with_scales(a: Any, a_scale: Any, scale: ScaleSpec) -> Any:
+    """Quantize logical BF16/FP tensor ``a`` to signed int4 codes using ``a_scale``."""
+
+    torch = _torch()
+    if scale.mode is ScaleMode.PER_CHANNEL:
+        denom = a_scale.to(torch.float32)[..., None]
+        return torch.clamp(torch.round(a.to(torch.float32) / denom), -8, 7).to(torch.int8)
+
+    subchannel = scale.subchannel_size
+    if subchannel is None:
+        raise ValueError("subchannel scale mode requires subchannel_size")
+    out = torch.empty_like(a, dtype=torch.int8)
+    a_f32 = a.to(torch.float32)
+    scale_f32 = a_scale.to(torch.float32)
+    scale_cols = (int(a.shape[-1]) + subchannel - 1) // subchannel
+    for group_index in range(scale_cols):
+        k0 = group_index * subchannel
+        k1 = min(k0 + subchannel, int(a.shape[-1]))
+        denom = scale_f32[..., group_index, None]
+        out[..., k0:k1] = torch.clamp(torch.round(a_f32[..., k0:k1] / denom), -8, 7).to(torch.int8)
+    return out
 
 
 def pack_int4_k_major(x: Any) -> Any:

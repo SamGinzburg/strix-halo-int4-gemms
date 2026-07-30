@@ -4,6 +4,11 @@ import argparse
 import sys
 import zipfile
 from pathlib import Path
+from pathlib import PurePosixPath
+
+
+FORBIDDEN_WHEEL_PATH_PARTS = frozenset({".claude", ".codex", ".git", ".pytest_cache", "__pycache__"})
+FORBIDDEN_WHEEL_FILENAMES = frozenset({".env", ".env.local", "settings.local.json"})
 
 
 def wheel_tags(path: Path) -> tuple[str, ...]:
@@ -30,6 +35,20 @@ def validate_tag(tag: str, *, require_pypi_platform: bool) -> list[str]:
     return errors
 
 
+def validate_contents(path: Path) -> list[str]:
+    errors = []
+    with zipfile.ZipFile(path) as wheel:
+        for name in wheel.namelist():
+            wheel_path = PurePosixPath(name)
+            if (
+                FORBIDDEN_WHEEL_PATH_PARTS.intersection(wheel_path.parts)
+                or wheel_path.name in FORBIDDEN_WHEEL_FILENAMES
+                or wheel_path.suffix == ".pyc"
+            ):
+                errors.append(f"{name}: local tooling, cache, or credential metadata must not be packaged")
+    return errors
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Check wheel tags for Python-ABI-neutral portable imports.")
     parser.add_argument("wheel", type=Path)
@@ -47,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     if not tags:
         raise RuntimeError(f"{args.wheel} has no wheel tags")
     errors = [error for tag in tags for error in validate_tag(tag, require_pypi_platform=args.require_pypi_platform)]
+    errors.extend(validate_contents(args.wheel))
     for tag in tags:
         print(tag)
     if errors:

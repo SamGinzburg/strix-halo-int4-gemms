@@ -27,6 +27,7 @@ def test_pyproject_requests_python_abi_neutral_wheel_tag() -> None:
     data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())
 
     assert data["tool"]["scikit-build"]["wheel"]["py-api"] == "py3"
+    assert "**/.claude/**" in data["tool"]["scikit-build"]["wheel"]["exclude"]
     assert "Programming Language :: Python :: Implementation :: PyPy" in data["project"]["classifiers"]
 
 
@@ -115,6 +116,34 @@ def test_check_wheel_portability_accepts_python_abi_neutral_tag(tmp_path) -> Non
     )
 
     assert "py3-none-linux_x86_64" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "forbidden_path",
+    [
+        "amd_strix_halo_kernels/.claude/settings.local.json",
+        "amd_strix_halo_kernels/__pycache__/api.cpython-312.pyc",
+        "amd_strix_halo_kernels/.env",
+    ],
+)
+def test_check_wheel_portability_rejects_local_metadata(tmp_path, forbidden_path: str) -> None:
+    wheel_path = tmp_path / "example-0.1.0-py3-none-linux_x86_64.whl"
+    with zipfile.ZipFile(wheel_path, "w") as wheel:
+        wheel.writestr(
+            "example-0.1.0.dist-info/WHEEL",
+            "Wheel-Version: 1.0\nRoot-Is-Purelib: false\nTag: py3-none-linux_x86_64\n",
+        )
+        wheel.writestr(forbidden_path, "local-only")
+
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / "check_wheel_portability.py"), str(wheel_path)],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert forbidden_path in result.stderr
+    assert "must not be packaged" in result.stderr
 
 
 def test_check_wheel_portability_rejects_raw_linux_tag_for_pypi(tmp_path) -> None:

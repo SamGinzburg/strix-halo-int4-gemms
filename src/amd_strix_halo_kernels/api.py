@@ -13,9 +13,10 @@ from .metadata import (
     OperandDType,
     ScaleMode,
     ScaleSpec,
+    resolve_operand_dtypes,
 )
 from .native import launch_generated_kernel
-from .quant import unpack_int4_k_major
+from .quant import dynamic_lhs_int4_scales, fake_quant_int4_with_scales, unpack_int4_k_major
 from .registry import KernelRegistry, default_registry
 
 
@@ -45,13 +46,14 @@ def _logical_problem_shape(
     a: Any,
     b: Any,
     *,
-    dtype: OperandDType,
+    a_dtype: OperandDType,
+    b_dtype: OperandDType,
     layout: GemmLayout,
     swiglu: bool,
 ) -> tuple[int, int, int]:
     _require_supported_layout(layout)
-    a_packed = _is_packed_int4_arg(dtype, a)
-    b_packed = _is_packed_int4_arg(dtype, b)
+    a_packed = _is_packed_int4_arg(a_dtype, a)
+    b_packed = _is_packed_int4_arg(b_dtype, b)
     if layout is GemmLayout.NN:
         m = int(a.shape[-2])
         k_a = _logical_k_dim(int(a.shape[-1]), packed_int4=a_packed)
@@ -83,6 +85,20 @@ def _scale_cols(k: int, scale: ScaleSpec) -> int:
     if subchannel is None:
         raise ValueError("subchannel scale mode requires subchannel_size")
     return (k + subchannel - 1) // subchannel
+
+
+def _logical_a_tensor(a: Any, layout: GemmLayout) -> Any:
+    if layout in {GemmLayout.TN, GemmLayout.TT}:
+        return a.transpose(-2, -1)
+    return a
+
+
+def _prepare_a_scale(a: Any, *, kernel: KernelMetadata, a_scale: Any | None) -> Any | None:
+    if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4:
+        if a_scale is not None:
+            raise ValueError("a_scale is computed by bf16xint4 GEMMs; caller-provided a_scale is not supported")
+        return dynamic_lhs_int4_scales(_logical_a_tensor(a, kernel.layout), kernel.scale)
+    return a_scale
 
 
 def _validate_scale_shapes(
@@ -123,7 +139,9 @@ def mm(
     a_scale: Any | None = None,
     b_scale: Any | None = None,
     gate: Any | None = None,
-    dtype: OperandDType = OperandDType.INT4,
+    dtype: OperandDType | None = None,
+    a_dtype: OperandDType | None = None,
+    b_dtype: OperandDType | None = None,
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
     epilogue: Epilogue = Epilogue.NONE,
@@ -141,10 +159,14 @@ def mm(
     if epilogue is Epilogue.SWIGLU:
         raise ValueError("SwiGLU is exposed through fused_swiglu_up_gate(...), not mm(...)")
     _require_supported_layout(layout)
-    m, n, k = _logical_problem_shape(a, b, dtype=dtype, layout=layout, swiglu=False)
+    selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype)
+    m, n, k = _logical_problem_shape(
+        a, b, a_dtype=selected_a_dtype, b_dtype=selected_b_dtype, layout=layout, swiglu=False
+    )
     if use_reference:
         kernel = registry.select_reference(
-            dtype=dtype,
+            a_dtype=selected_a_dtype,
+            b_dtype=selected_b_dtype,
             layout=layout,
             scale=scale,
             epilogue=epilogue,
@@ -152,7 +174,8 @@ def mm(
         )
     else:
         kernel = registry.select(
-            dtype=dtype,
+            a_dtype=selected_a_dtype,
+            b_dtype=selected_b_dtype,
             layout=layout,
             scale=scale,
             epilogue=epilogue,
@@ -170,7 +193,9 @@ def fused_swiglu_up_gate(
     *,
     a_scale: Any | None = None,
     b_scale: Any | None = None,
-    dtype: OperandDType = OperandDType.INT4,
+    dtype: OperandDType | None = None,
+    a_dtype: OperandDType | None = None,
+    b_dtype: OperandDType | None = None,
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
     registry: KernelRegistry = default_registry,
@@ -184,10 +209,14 @@ def fused_swiglu_up_gate(
     """
 
     _require_supported_layout(layout)
-    m, n, k = _logical_problem_shape(a, b_up_gate, dtype=dtype, layout=layout, swiglu=True)
+    selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype)
+    m, n, k = _logical_problem_shape(
+        a, b_up_gate, a_dtype=selected_a_dtype, b_dtype=selected_b_dtype, layout=layout, swiglu=True
+    )
     if use_reference:
         kernel = registry.select_reference(
-            dtype=dtype,
+            a_dtype=selected_a_dtype,
+            b_dtype=selected_b_dtype,
             layout=layout,
             scale=scale,
             epilogue=Epilogue.SWIGLU,
@@ -195,7 +224,8 @@ def fused_swiglu_up_gate(
         )
     else:
         kernel = registry.select(
-            dtype=dtype,
+            a_dtype=selected_a_dtype,
+            b_dtype=selected_b_dtype,
             layout=layout,
             scale=scale,
             epilogue=Epilogue.SWIGLU,
@@ -237,13 +267,22 @@ def explicit_mm(
     m, n, k = _logical_problem_shape(
         a,
         b,
-        dtype=kernel.a_dtype,
+        a_dtype=kernel.a_dtype,
+        b_dtype=kernel.b_dtype,
         layout=kernel.layout,
         swiglu=kernel.epilogue is Epilogue.SWIGLU,
     )
-    _validate_scale_shapes(kernel=kernel, m=m, n=n, k=k, a_scale=a_scale, b_scale=b_scale)
     if use_reference:
+        a_scale = _prepare_a_scale(a, kernel=kernel, a_scale=a_scale)
+        _validate_scale_shapes(kernel=kernel, m=m, n=n, k=k, a_scale=a_scale, b_scale=b_scale)
         return reference_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
+    if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4:
+        if a_scale is not None:
+            raise ValueError("a_scale is computed by bf16xint4 GEMMs; caller-provided a_scale is not supported")
+        validation_a_scale = None
+    else:
+        validation_a_scale = a_scale
+    _validate_scale_shapes(kernel=kernel, m=m, n=n, k=k, a_scale=validation_a_scale, b_scale=b_scale)
     if kernel.status not in {KernelStatus.COMPILED, KernelStatus.BENCHMARKED}:
         try:
             return launch_generated_kernel(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
@@ -264,21 +303,24 @@ def reference_mm(
     gate: Any | None = None,
 ) -> Any:
     torch = _torch()
-    if kernel.a_dtype is OperandDType.INT4:
-        if a.dtype is torch.uint8:
-            if kernel.layout in {GemmLayout.TN, GemmLayout.TT}:
-                a = unpack_int4_k_major(a.transpose(-2, -1)).transpose(-2, -1)
-            else:
-                a = unpack_int4_k_major(a)
-        if b.dtype is torch.uint8:
-            if kernel.layout in {GemmLayout.NT, GemmLayout.TT}:
-                b = unpack_int4_k_major(b)
-            else:
-                b = unpack_int4_k_major(b.transpose(-2, -1)).transpose(-2, -1)
+    if kernel.a_dtype is OperandDType.INT4 and a.dtype is torch.uint8:
+        if kernel.layout in {GemmLayout.TN, GemmLayout.TT}:
+            a = unpack_int4_k_major(a.transpose(-2, -1)).transpose(-2, -1)
+        else:
+            a = unpack_int4_k_major(a)
+    if kernel.b_dtype is OperandDType.INT4 and b.dtype is torch.uint8:
+        if kernel.layout in {GemmLayout.NT, GemmLayout.TT}:
+            b = unpack_int4_k_major(b)
+        else:
+            b = unpack_int4_k_major(b.transpose(-2, -1)).transpose(-2, -1)
     if kernel.layout in {GemmLayout.TN, GemmLayout.TT}:
         a = a.transpose(-2, -1)
     if kernel.layout in {GemmLayout.NT, GemmLayout.TT}:
         b = b.transpose(-2, -1)
+    if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4:
+        if a_scale is None:
+            a_scale = dynamic_lhs_int4_scales(a, kernel.scale)
+        a = fake_quant_int4_with_scales(a, a_scale, kernel.scale)
     out = _scaled_reference_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale)
     if kernel.epilogue is Epilogue.SWIGLU:
         if gate is not None:
@@ -300,8 +342,14 @@ def _scaled_reference_mm(a: Any, b: Any, *, kernel: KernelMetadata, a_scale: Any
     torch = _torch()
     a_i32 = a.to(torch.int32)
     b_i32 = b.to(torch.int32)
+
+    def integer_matmul(lhs: Any, rhs: Any) -> Any:
+        if lhs.device.type == "cpu":
+            return torch.matmul(lhs, rhs).to(torch.float32)
+        return torch.matmul(lhs.to(torch.float32), rhs.to(torch.float32))
+
     if kernel.scale.mode is ScaleMode.PER_CHANNEL:
-        out = torch.matmul(a_i32, b_i32).to(torch.float32)
+        out = integer_matmul(a_i32, b_i32)
         if a_scale is not None:
             out = out * a_scale.to(torch.float32)[..., :, None]
         if b_scale is not None:
@@ -316,7 +364,7 @@ def _scaled_reference_mm(a: Any, b: Any, *, kernel: KernelMetadata, a_scale: Any
     out = torch.zeros((*a_i32.shape[:-1], b_i32.shape[-1]), device=a_i32.device, dtype=torch.float32)
     for group_index, k0 in enumerate(range(0, k, subchannel)):
         k1 = min(k0 + subchannel, k)
-        partial = torch.matmul(a_i32[..., k0:k1], b_i32[..., k0:k1, :]).to(torch.float32)
+        partial = integer_matmul(a_i32[..., k0:k1], b_i32[..., k0:k1, :])
         if a_scale is not None:
             partial = partial * a_scale.to(torch.float32)[..., :, group_index, None]
         if b_scale is not None:

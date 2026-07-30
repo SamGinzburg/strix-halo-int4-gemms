@@ -68,6 +68,39 @@ def test_clean_generated_outputs_removes_managed_artifacts_only(tmp_path) -> Non
     assert not any(amdgcn_dir.iterdir())
 
 
+def test_clean_generated_outputs_can_preserve_other_kernel_families(tmp_path) -> None:
+    amdgcn_dir = tmp_path / "amdgcn"
+    triton_dir = tmp_path / "triton"
+    amdgcn_dir.mkdir()
+    triton_dir.mkdir()
+    dense_prefix = "gfx1151_int4xint4_"
+    ragged_prefix = "gfx1151_ragged_int4_"
+    for directory, extension in (
+        (amdgcn_dir, ".s"),
+        (amdgcn_dir, ".json"),
+        (triton_dir, ".py"),
+        (triton_dir, ".ttir"),
+    ):
+        (directory / f"{dense_prefix}example{extension}").write_text("dense")
+        (directory / f"{ragged_prefix}example{extension}").write_text("ragged")
+
+    removed = clean_generated_outputs(
+        amdgcn_dir,
+        triton_dir,
+        kernel_id_prefixes=(dense_prefix,),
+    )
+
+    assert removed == 4
+    assert sorted(path.name for path in amdgcn_dir.iterdir()) == [
+        f"{ragged_prefix}example.json",
+        f"{ragged_prefix}example.s",
+    ]
+    assert sorted(path.name for path in triton_dir.iterdir()) == [
+        f"{ragged_prefix}example.py",
+        f"{ragged_prefix}example.ttir",
+    ]
+
+
 def test_uniquify_amdgcn_symbols_rewrites_kernel_metadata_symbol() -> None:
     amdgcn = """
         .globl  _int4_scaled_gemm

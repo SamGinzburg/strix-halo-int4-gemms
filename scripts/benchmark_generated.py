@@ -116,6 +116,20 @@ def add_import_path(wheel: Path | None) -> tempfile.TemporaryDirectory[str] | No
     return extracted
 
 
+def configure_extracted_native_root(
+    native: Any,
+    extracted: tempfile.TemporaryDirectory[str] | None,
+) -> Path | None:
+    if extracted is None:
+        return None
+    root = Path(extracted.name) / "amd_strix_halo_kernels"
+    library = root / native.NATIVE_LIBRARY_NAME
+    if not library.exists():
+        raise RuntimeError(f"extracted wheel has no native dispatch library at {library}")
+    native.package_root = lambda: root
+    return root
+
+
 def scale_tensors(torch: Any, kernel: Any, shape: Any) -> tuple[Any, Any]:
     from amd_strix_halo_kernels.metadata import ScaleMode
 
@@ -325,12 +339,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import torch
         from amd_strix_halo_kernels.benchmarking import BenchmarkDatabase, BenchmarkShape
-        from amd_strix_halo_kernels.native import dispatch_runtime_status
+        from amd_strix_halo_kernels import native
         from amd_strix_halo_kernels.registry import default_registry
 
         if not torch.cuda.is_available() or torch.version.hip is None:
             raise RuntimeError("benchmarks require a ROCm torch CUDA/HIP device")
-        status = dispatch_runtime_status()
+        configure_extracted_native_root(native, extracted)
+        status = native.dispatch_runtime_status()
         if not status.has_linked_kernels:
             raise RuntimeError("native dispatch library does not report linked generated kernels")
 

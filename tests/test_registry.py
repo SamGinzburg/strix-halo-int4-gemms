@@ -11,7 +11,13 @@ from amd_strix_halo_kernels.metadata import (
     ScaleMode,
     ScaleSpec,
 )
-from amd_strix_halo_kernels.registry import SMALL_M_VARIANTS, SMALL_N_VARIANTS, default_registry, seed_tile_configs
+from amd_strix_halo_kernels.registry import (
+    SMALL_M_VARIANTS,
+    SMALL_N_VARIANTS,
+    default_registry,
+    mixed_dtype_registry,
+    seed_tile_configs,
+)
 
 
 def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
@@ -28,7 +34,7 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
     assert {kernel.layout for kernel in kernels} == set(SUPPORTED_GEMM_LAYOUTS)
     assert all(f"_{kernel.layout.value}_" in kernel.kernel_id for kernel in kernels)
 
-    for dtype in OperandDType:
+    for dtype in (OperandDType.INT4, OperandDType.INT8):
         for epilogue in Epilogue:
             for scale in [
                 ScaleSpec(ScaleMode.SUBCHANNEL, 32),
@@ -83,6 +89,20 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
                         and kernel.scale == scale
                         and kernel.tile.split_k != 1
                     ]
+
+
+def test_mixed_dtype_registry_is_opt_in() -> None:
+    assert not [kernel for kernel in default_registry.all() if kernel.a_dtype is OperandDType.BF16]
+    mixed = [
+        kernel
+        for kernel in mixed_dtype_registry.all()
+        if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4
+    ]
+
+    assert mixed
+    assert {kernel.layout for kernel in mixed} == set(SUPPORTED_GEMM_LAYOUTS)
+    assert {kernel.epilogue for kernel in mixed} == set(Epilogue)
+    assert all(kernel.schedule is KernelSchedule.STANDARD for kernel in mixed)
 
 
 def test_registry_adds_persistent_int4_plain_gemm_matrix() -> None:

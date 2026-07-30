@@ -5,7 +5,16 @@ from functools import lru_cache
 from typing import Any
 
 from .metadata import GemmLayout, ScaleMode, ScaleSpec
-from .ragged_artifacts import RAGGED_BWD, RAGGED_BWD_ACCUM, RAGGED_EVEN_K, RAGGED_FWD, RAGGED_MASK_K
+from .ragged_artifacts import (
+    RAGGED_BWD,
+    RAGGED_BWD_ACCUM,
+    RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS,
+    RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES,
+    RAGGED_EVEN_K,
+    RAGGED_FWD,
+    RAGGED_MASK_K,
+    RAGGED_VARIANTS,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +68,113 @@ class RaggedBwdDotConfig:
             raise ValueError("num_warps and num_stages must be positive")
 
 
+def _should_try_native_bwd(
+    *,
+    use_native: bool | None,
+    layout: GemmLayout,
+    output_is_bf16: bool,
+    split_k: int,
+    rows: int,
+    cols: int,
+    logical_k_capacity: int,
+    out_data_ptr: int,
+) -> bool:
+    """Resolve automatic standard-backward dispatch without device reads."""
+
+    if use_native is not None:
+        return use_native
+    if not output_is_bf16 or split_k != 1:
+        return True
+    return (
+        layout in RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS
+        and (rows, cols, logical_k_capacity) in RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES
+        and out_data_ptr % 16 == 0
+    )
+
+
+_RAGGED_BWD_BF16_EVEN_TILES: dict[tuple[GemmLayout, str], tuple[int, int, int]] = {
+    (GemmLayout.NN, "pc"): (64, 64, 4),
+    (GemmLayout.NN, "sc32"): (64, 256, 8),
+    (GemmLayout.NN, "sc64"): (32, 128, 4),
+    (GemmLayout.NN, "sc128"): (32, 128, 4),
+    (GemmLayout.NN, "sc256"): (64, 64, 4),
+    (GemmLayout.NT, "pc"): (128, 64, 8),
+    (GemmLayout.NT, "sc32"): (64, 64, 4),
+    (GemmLayout.NT, "sc64"): (64, 64, 4),
+    (GemmLayout.NT, "sc128"): (64, 64, 4),
+    (GemmLayout.NT, "sc256"): (128, 64, 8),
+    (GemmLayout.TN, "pc"): (32, 128, 4),
+    (GemmLayout.TN, "sc32"): (32, 128, 4),
+    (GemmLayout.TN, "sc64"): (32, 128, 4),
+    (GemmLayout.TN, "sc128"): (64, 64, 4),
+    (GemmLayout.TN, "sc256"): (64, 64, 4),
+    (GemmLayout.TT, "pc"): (64, 64, 4),
+    (GemmLayout.TT, "sc32"): (64, 64, 4),
+    (GemmLayout.TT, "sc64"): (64, 64, 4),
+    (GemmLayout.TT, "sc128"): (64, 64, 4),
+    (GemmLayout.TT, "sc256"): (64, 64, 4),
+}
+_RAGGED_BWD_BF16_MASKED_TILES: dict[tuple[GemmLayout, str], tuple[int, int, int]] = {
+    (GemmLayout.NN, "pc"): (64, 256, 8),
+    (GemmLayout.NN, "sc32"): (64, 256, 8),
+    (GemmLayout.NN, "sc64"): (64, 256, 8),
+    (GemmLayout.NN, "sc128"): (64, 256, 8),
+    (GemmLayout.NN, "sc256"): (64, 256, 8),
+    (GemmLayout.NT, "pc"): (128, 64, 8),
+    (GemmLayout.NT, "sc32"): (64, 256, 8),
+    (GemmLayout.NT, "sc64"): (64, 64, 4),
+    (GemmLayout.NT, "sc128"): (64, 64, 4),
+    (GemmLayout.NT, "sc256"): (64, 64, 4),
+    (GemmLayout.TN, "pc"): (64, 64, 4),
+    (GemmLayout.TN, "sc32"): (32, 128, 4),
+    (GemmLayout.TN, "sc64"): (64, 64, 4),
+    (GemmLayout.TN, "sc128"): (64, 64, 4),
+    (GemmLayout.TN, "sc256"): (64, 64, 4),
+    (GemmLayout.TT, "pc"): (128, 64, 8),
+    (GemmLayout.TT, "sc32"): (128, 64, 8),
+    (GemmLayout.TT, "sc64"): (64, 64, 4),
+    (GemmLayout.TT, "sc128"): (64, 64, 4),
+    (GemmLayout.TT, "sc256"): (64, 64, 4),
+}
+
+
+def default_ragged_bwd_config(
+    *,
+    layout: GemmLayout,
+    scale: ScaleSpec,
+    variant: str,
+    output_dtype: str = "bfloat16",
+) -> RaggedBwdDotConfig:
+    """Return the tuned standard-backward configuration for a dispatch key.
+
+    FP32 keeps the conservative runtime-shape baseline. BF16 uses measured
+    layout-, scale-, and K-variant-specific tiles to avoid transpose-related
+    register spills and oversized output relayouts.
+    """
+
+    layout = _check_layout(layout)
+    if variant not in RAGGED_VARIANTS:
+        raise ValueError(f"variant must be one of {RAGGED_VARIANTS}; got {variant!r}")
+    if output_dtype not in {"bfloat16", "float32"}:
+        raise ValueError(f"output_dtype must be 'bfloat16' or 'float32'; got {output_dtype!r}")
+    if output_dtype == "float32":
+        return RaggedBwdDotConfig(enable_even_k_fast_path=variant == RAGGED_EVEN_K)
+
+    key = (layout, scale.label)
+    block_m, block_n, num_warps = (
+        _RAGGED_BWD_BF16_EVEN_TILES
+        if variant == RAGGED_EVEN_K
+        else _RAGGED_BWD_BF16_MASKED_TILES
+    ).get(key, (64, 256, 8))
+    return RaggedBwdDotConfig(
+        block_m=block_m,
+        block_n=block_n,
+        num_warps=num_warps,
+        num_stages=3,
+        enable_even_k_fast_path=variant == RAGGED_EVEN_K,
+    )
+
+
 RAGGED_BWD_ACCUM_CONFIG = RaggedBwdDotConfig(
     block_m=32,
     block_n=128,
@@ -83,6 +199,19 @@ class RaggedGroupInfo:
     tile: int | None = None
     align_tile: int | None = None
     fixed_capacity: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class RaggedBwdGroupInfo:
+    """Prevalidated group metadata for graph-safe standard backward launches."""
+
+    group_sizes: Any
+    groups: int
+    k_capacity: int
+    block_k: int
+    scale: ScaleSpec
+    variant: str
+    dynamic_group_sizes: bool = False
 
 
 def _torch() -> Any:
@@ -850,14 +979,20 @@ def _ragged_dot_int4_kernel(*, specialize_runtime_args: bool = False) -> Any:
     return kernel
 
 
-@lru_cache(maxsize=1)
-def _ragged_dot_int4_bwd_kernel() -> Any:
+@lru_cache(maxsize=2)
+def _ragged_dot_int4_bwd_kernel(*, specialize_runtime_args: bool = False) -> Any:
     triton, tl = _triton()
-
-    @triton.jit(
-        do_not_specialize=("M", "N", "K_PACKED", "SCALE_COLS"),
-        do_not_specialize_on_alignment=("M", "N", "K_PACKED", "SCALE_COLS"),
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS")
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": runtime_args,
+            "do_not_specialize_on_alignment": runtime_args,
+        }
     )
+
+    @triton.jit(**jit_options)
     def kernel(
         lhs,
         rhs,
@@ -879,6 +1014,7 @@ def _ragged_dot_int4_bwd_kernel() -> Any:
         A_TRANS: tl.constexpr,
         B_TRANS: tl.constexpr,
         EVEN_K_FAST_PATH: tl.constexpr,
+        PAIRED_BF16_STORE: tl.constexpr,
     ):
         pid = tl.program_id(0)
         pid_split = tl.program_id(1)
@@ -904,37 +1040,84 @@ def _ragged_dot_int4_bwd_kernel() -> Any:
         if SUBCHANNEL == 0:
             acc_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
             k_base = pid_split * block_k_packed
-            while k_base < group_k_packed:
-                kp = k_base + offs_k
-                if A_TRANS:
-                    lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
-                else:
-                    lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
-                if B_TRANS:
-                    rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
-                else:
-                    rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
-                if EVEN_K_FAST_PATH:
+            if EVEN_K_FAST_PATH:
+                while k_base < group_k_packed:
+                    kp = k_base + offs_k
+                    if A_TRANS:
+                        lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                    else:
+                        lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                    if B_TRANS:
+                        rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                    else:
+                        rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
                     lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None], other=0)
                     rhs_values = tl.load(rhs + rhs_offsets, mask=col_mask[None, :], other=0)
-                else:
+                    acc_i32 = tl.dot_scaled(
+                        lhs_values,
+                        None,
+                        "int4",
+                        rhs_values,
+                        None,
+                        "int4",
+                        acc_i32,
+                        out_dtype=tl.int32,
+                    )
+                    k_base += block_k_packed * SPLIT_K
+            else:
+                complete_group_k_packed = group_k // 2
+                full_group_k_packed = (
+                    complete_group_k_packed // block_k_packed
+                ) * block_k_packed
+                while k_base < full_group_k_packed:
+                    kp = k_base + offs_k
+                    if A_TRANS:
+                        lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                    else:
+                        lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                    if B_TRANS:
+                        rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                    else:
+                        rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
+                    lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None], other=0)
+                    rhs_values = tl.load(rhs + rhs_offsets, mask=col_mask[None, :], other=0)
+                    acc_i32 = tl.dot_scaled(
+                        lhs_values,
+                        None,
+                        "int4",
+                        rhs_values,
+                        None,
+                        "int4",
+                        acc_i32,
+                        out_dtype=tl.int32,
+                    )
+                    k_base += block_k_packed * SPLIT_K
+                if k_base < group_k_packed:
+                    kp = k_base + offs_k
+                    if A_TRANS:
+                        lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                    else:
+                        lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                    if B_TRANS:
+                        rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                    else:
+                        rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
                     k_mask = kp < group_k_packed
                     odd_tail = ((group_k % 2) == 1) & (kp == (group_k_packed - 1))
                     lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None] & k_mask[None, :], other=0)
                     rhs_values = tl.load(rhs + rhs_offsets, mask=k_mask[:, None] & col_mask[None, :], other=0)
                     lhs_values = tl.where(odd_tail[None, :], lhs_values & 0x0F, lhs_values)
                     rhs_values = tl.where(odd_tail[:, None], rhs_values & 0x0F, rhs_values)
-                acc_i32 = tl.dot_scaled(
-                    lhs_values,
-                    None,
-                    "int4",
-                    rhs_values,
-                    None,
-                    "int4",
-                    acc_i32,
-                    out_dtype=tl.int32,
-                )
-                k_base += block_k_packed * SPLIT_K
+                    acc_i32 = tl.dot_scaled(
+                        lhs_values,
+                        None,
+                        "int4",
+                        rhs_values,
+                        None,
+                        "int4",
+                        acc_i32,
+                        out_dtype=tl.int32,
+                    )
             acc = acc_i32.to(tl.float32)
             if HAS_LHS_SCALE:
                 lhs_scale_values = tl.load(
@@ -959,37 +1142,91 @@ def _ragged_dot_int4_bwd_kernel() -> Any:
                 acc_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
                 scale_k0 = scale_idx * packed_per_scale
                 sk0 = pid_split * scale_chunk_packed
-                while sk0 < packed_per_scale:
-                    kp = scale_k0 + sk0 + offs_k_scale
-                    if A_TRANS:
-                        lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
-                    else:
-                        lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
-                    if B_TRANS:
-                        rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
-                    else:
-                        rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
-                    if EVEN_K_FAST_PATH:
+                if EVEN_K_FAST_PATH:
+                    while sk0 < packed_per_scale:
+                        kp = scale_k0 + sk0 + offs_k_scale
+                        if A_TRANS:
+                            lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                        else:
+                            lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                        if B_TRANS:
+                            rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                        else:
+                            rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
                         lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None], other=0)
                         rhs_values = tl.load(rhs + rhs_offsets, mask=col_mask[None, :], other=0)
-                    else:
-                        k_mask = (kp < group_k_packed) & ((kp - scale_k0) < packed_per_scale)
+                        acc_i32 = tl.dot_scaled(
+                            lhs_values,
+                            None,
+                            "int4",
+                            rhs_values,
+                            None,
+                            "int4",
+                            acc_i32,
+                            out_dtype=tl.int32,
+                        )
+                        sk0 += scale_chunk_packed * SPLIT_K
+                else:
+                    valid_scale_packed = tl.minimum(
+                        packed_per_scale,
+                        group_k_packed - scale_k0,
+                    )
+                    complete_scale_packed = tl.maximum(
+                        0,
+                        tl.minimum(packed_per_scale, (group_k // 2) - scale_k0),
+                    )
+                    full_scale_packed = (
+                        complete_scale_packed // scale_chunk_packed
+                    ) * scale_chunk_packed
+                    while sk0 < full_scale_packed:
+                        kp = scale_k0 + sk0 + offs_k_scale
+                        if A_TRANS:
+                            lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                        else:
+                            lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                        if B_TRANS:
+                            rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                        else:
+                            rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
+                        lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None], other=0)
+                        rhs_values = tl.load(rhs + rhs_offsets, mask=col_mask[None, :], other=0)
+                        acc_i32 = tl.dot_scaled(
+                            lhs_values,
+                            None,
+                            "int4",
+                            rhs_values,
+                            None,
+                            "int4",
+                            acc_i32,
+                            out_dtype=tl.int32,
+                        )
+                        sk0 += scale_chunk_packed * SPLIT_K
+                    if sk0 < valid_scale_packed:
+                        kp = scale_k0 + sk0 + offs_k_scale
+                        if A_TRANS:
+                            lhs_offsets = group_id * K_PACKED * M + kp[None, :] * M + offs_m[:, None]
+                        else:
+                            lhs_offsets = group_id * M * K_PACKED + offs_m[:, None] * K_PACKED + kp[None, :]
+                        if B_TRANS:
+                            rhs_offsets = group_id * N * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                        else:
+                            rhs_offsets = group_id * K_PACKED * N + kp[:, None] * N + offs_n[None, :]
+                        k_mask = (kp - scale_k0) < valid_scale_packed
                         odd_tail = ((group_k % 2) == 1) & (kp == (group_k_packed - 1))
                         lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None] & k_mask[None, :], other=0)
                         rhs_values = tl.load(rhs + rhs_offsets, mask=k_mask[:, None] & col_mask[None, :], other=0)
                         lhs_values = tl.where(odd_tail[None, :], lhs_values & 0x0F, lhs_values)
                         rhs_values = tl.where(odd_tail[:, None], rhs_values & 0x0F, rhs_values)
-                    acc_i32 = tl.dot_scaled(
-                        lhs_values,
-                        None,
-                        "int4",
-                        rhs_values,
-                        None,
-                        "int4",
-                        acc_i32,
-                        out_dtype=tl.int32,
-                    )
-                    sk0 += scale_chunk_packed * SPLIT_K
+                        acc_i32 = tl.dot_scaled(
+                            lhs_values,
+                            None,
+                            "int4",
+                            rhs_values,
+                            None,
+                            "int4",
+                            acc_i32,
+                            out_dtype=tl.int32,
+                        )
                 partial = acc_i32.to(tl.float32)
                 if HAS_LHS_SCALE:
                     lhs_scale_values = tl.load(
@@ -1011,7 +1248,21 @@ def _ragged_dot_int4_bwd_kernel() -> Any:
         out_offsets = group_id * M * N + offs_m[:, None] * N + offs_n[None, :]
         out_mask = row_mask[:, None] & col_mask[None, :]
         if SPLIT_K == 1:
-            tl.store(out + out_offsets, acc, mask=out_mask)
+            if PAIRED_BF16_STORE:
+                acc_bf16_bits = acc.to(tl.bfloat16).to(tl.uint16, bitcast=True)
+                acc_pairs = tl.reshape(acc_bf16_bits, (BLOCK_M, BLOCK_N // 2, 2))
+                acc_lo, acc_hi = tl.split(acc_pairs)
+                packed_acc = acc_lo.to(tl.uint32) | (acc_hi.to(tl.uint32) << 16)
+                offs_n_pair = pid_n * (BLOCK_N // 2) + tl.arange(0, BLOCK_N // 2)
+                out_offsets_pair = (
+                    group_id * M * (N // 2)
+                    + offs_m[:, None] * (N // 2)
+                    + offs_n_pair[None, :]
+                )
+                out_mask_pair = row_mask[:, None] & (offs_n_pair[None, :] < (N // 2))
+                tl.store(out + out_offsets_pair, packed_acc, mask=out_mask_pair)
+            else:
+                tl.store(out + out_offsets, acc, mask=out_mask)
         else:
             tl.atomic_add(out + out_offsets, acc, sem="relaxed", mask=out_mask)
 
@@ -1190,6 +1441,109 @@ def _validate_k_group_sizes(torch: Any, group_sizes: Any, *, groups: int, max_k:
     if max_group_k > max_k:
         raise ValueError(f"group_sizes entries must be <= logical padded K {max_k}; got {max_group_k}")
     return host_sizes
+
+
+def prepare_ragged_bwd_group_info(
+    group_sizes: Any,
+    *,
+    k_capacity: int,
+    scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
+    config: RaggedBwdDotConfig = RaggedBwdDotConfig(),
+    dynamic_group_sizes: bool = False,
+) -> RaggedBwdGroupInfo:
+    """Prevalidate standard-backward group metadata before graph capture.
+
+    Pass the result as ``group_info`` to :func:`ragged_dot_int4_bwd` to avoid
+    device-to-host reads and runtime variant selection during capture. When
+    ``dynamic_group_sizes`` is true, replay may update the returned int32
+    ``group_sizes`` tensor in place, provided every value stays in
+    ``[0, k_capacity]``; the universally safe masked-K kernel is selected.
+    Otherwise group sizes are treated as immutable and the even-K variant may
+    be selected. Capture callers must also preallocate ``out``, warm the exact
+    launch once, and pin ``use_native`` to either ``True`` or ``False``.
+    """
+
+    torch = _torch()
+    _require_cuda_tensor(torch, "group_sizes", group_sizes)
+    k_capacity = int(k_capacity)
+    if k_capacity < 0:
+        raise ValueError("k_capacity must be non-negative")
+    if k_capacity % 2 != 0:
+        raise ValueError("k_capacity must be even for packed int4 operands")
+    if group_sizes.ndim != 1:
+        raise ValueError(f"group_sizes must be 1D; got shape {tuple(group_sizes.shape)}")
+    groups = int(group_sizes.shape[0])
+    host_sizes = _validate_k_group_sizes(
+        torch,
+        group_sizes,
+        groups=groups,
+        max_k=k_capacity,
+    )
+    prepared_sizes = group_sizes
+    if group_sizes.dtype != torch.int32 or not group_sizes.is_contiguous():
+        prepared_sizes = group_sizes.to(dtype=torch.int32).contiguous()
+    use_even_k = not dynamic_group_sizes and _can_use_bwd_even_k_fast_path(
+        torch,
+        group_sizes=host_sizes,
+        scale=scale,
+        config=config,
+    )
+    return RaggedBwdGroupInfo(
+        group_sizes=prepared_sizes,
+        groups=groups,
+        k_capacity=k_capacity,
+        block_k=config.block_k,
+        scale=scale,
+        variant=RAGGED_EVEN_K if use_even_k else RAGGED_MASK_K,
+        dynamic_group_sizes=bool(dynamic_group_sizes),
+    )
+
+
+def _validate_prepared_bwd_group_info(
+    torch: Any,
+    group_info: RaggedBwdGroupInfo,
+    *,
+    device: Any,
+    groups: int,
+    k_capacity: int,
+    scale: ScaleSpec,
+    config: RaggedBwdDotConfig,
+) -> None:
+    if not isinstance(group_info, RaggedBwdGroupInfo):
+        raise TypeError(
+            f"group_info must be a RaggedBwdGroupInfo; got {type(group_info).__name__}"
+        )
+    if group_info.groups != groups:
+        raise ValueError(f"group_info groups must match operand groups {groups}; got {group_info.groups}")
+    if group_info.k_capacity != k_capacity:
+        raise ValueError(
+            f"group_info k_capacity must match logical padded K {k_capacity}; got {group_info.k_capacity}"
+        )
+    if group_info.block_k != config.block_k:
+        raise ValueError(
+            f"group_info block_k must match config.block_k {config.block_k}; got {group_info.block_k}"
+        )
+    if group_info.scale != scale:
+        raise ValueError(f"group_info scale must match launch scale {scale}; got {group_info.scale}")
+    if group_info.variant not in RAGGED_VARIANTS:
+        raise ValueError(f"group_info variant must be one of {RAGGED_VARIANTS}; got {group_info.variant!r}")
+    if group_info.dynamic_group_sizes and group_info.variant != RAGGED_MASK_K:
+        raise ValueError("dynamic group_info must use the masked-K variant")
+    sizes = group_info.group_sizes
+    if not torch.is_tensor(sizes):
+        raise TypeError("group_info.group_sizes must be a torch.Tensor")
+    if sizes.device != device:
+        raise ValueError(f"group_info.group_sizes must be on device {device}; got {sizes.device}")
+    if sizes.dtype != torch.int32:
+        raise ValueError(
+            f"group_info.group_sizes must have dtype torch.int32; got {sizes.dtype}"
+        )
+    if sizes.ndim != 1 or int(sizes.shape[0]) != groups:
+        raise ValueError(
+            f"group_info.group_sizes must have shape ({groups},); got {tuple(sizes.shape)}"
+        )
+    if not sizes.is_contiguous():
+        raise ValueError("group_info.group_sizes must be contiguous")
 
 
 def _validate_scale_shapes(
@@ -1564,14 +1918,16 @@ def ragged_dot_int4(
 def ragged_dot_int4_bwd(
     lhs: Any,
     rhs: Any,
-    group_sizes: Any,
+    group_sizes: Any | None = None,
     *,
+    group_info: RaggedBwdGroupInfo | None = None,
     a_scale: Any | None = None,
     b_scale: Any | None = None,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
-    config: RaggedBwdDotConfig = RaggedBwdDotConfig(),
+    config: RaggedBwdDotConfig | None = None,
     layout: GemmLayout = GemmLayout.NN,
     out: Any | None = None,
+    output_dtype: Any | None = None,
     use_native: bool | None = None,
     native_root: str | None = None,
     native_library_path: str | None = None,
@@ -1592,11 +1948,23 @@ def ragged_dot_int4_bwd(
     * ``TN``: ``lhs[G, K / 2, M]`` and ``rhs[G, K / 2, N]``;
     * ``TT``: ``lhs[G, K / 2, M]`` and ``rhs[G, N, K / 2]``.
 
-    The output is FP32 with shape ``(G, M, N)``. For ``split_k > 1``, partial
-    tiles are accumulated with FP32 atomics.
+    The output has shape ``(G, M, N)``. ``split_k=1`` defaults to BF16 and
+    rounds the FP32 register accumulation once at the final store; callers may
+    request FP32 explicitly. For ``split_k > 1``, the output must be FP32
+    because partial tiles are accumulated with FP32 atomics.
 
-    ``group_sizes`` values are validated on the host before variant selection,
-    so this API is not safe to invoke while a CUDA/HIP graph is being captured.
+    With ``config=None``, the API selects a measured layout-, scale-, output-,
+    and K-variant-specific tile. Pass an explicit config to force a tile.
+    Automatic BF16 dispatch uses shape-specialized JIT for generic shapes and
+    a packaged wide-store native artifact only for eligible exact 4096-cube
+    ``NN``/``TN`` shapes. Set ``use_native`` explicitly to override automatic
+    dispatch; generic packaged artifacts remain available with ``True``.
+
+    Raw ``group_sizes`` values are validated on the host before variant
+    selection. For CUDA/HIP graph capture, pass ``group_sizes=None`` with a
+    ``group_info`` produced by :func:`prepare_ragged_bwd_group_info`; prepare
+    and warm the launch before capture, pass a preallocated ``out``, and pin
+    ``use_native`` so replay cannot change backend.
     """
 
     layout = _check_layout(layout)
@@ -1619,9 +1987,45 @@ def ragged_dot_int4_bwd(
 
     rows, cols, k_packed, groups = _bwd_logical_shape(lhs, rhs, layout)
     logical_k_capacity = k_packed * 2
-    host_group_sizes = _validate_k_group_sizes(torch, group_sizes, groups=groups, max_k=logical_k_capacity)
-    if group_sizes.device != lhs.device or group_sizes.dtype != torch.int32:
-        group_sizes = group_sizes.to(device=lhs.device, dtype=torch.int32)
+    selection_config = config or RaggedBwdDotConfig()
+    using_prepared_group_info = group_info is not None
+    if group_info is None:
+        if group_sizes is None:
+            raise ValueError("pass exactly one of group_sizes or group_info")
+        host_group_sizes = _validate_k_group_sizes(
+            torch,
+            group_sizes,
+            groups=groups,
+            max_k=logical_k_capacity,
+        )
+        if group_sizes.device != lhs.device or group_sizes.dtype != torch.int32:
+            group_sizes = group_sizes.to(device=lhs.device, dtype=torch.int32)
+        use_even_k_fast_path = _can_use_bwd_even_k_fast_path(
+            torch,
+            group_sizes=host_group_sizes,
+            scale=scale,
+            config=selection_config,
+        )
+        variant = RAGGED_EVEN_K if use_even_k_fast_path else RAGGED_MASK_K
+    else:
+        if group_sizes is not None:
+            raise ValueError("pass exactly one of group_sizes or group_info")
+        _validate_prepared_bwd_group_info(
+            torch,
+            group_info,
+            device=lhs.device,
+            groups=groups,
+            k_capacity=logical_k_capacity,
+            scale=scale,
+            config=selection_config,
+        )
+        group_sizes = group_info.group_sizes
+        variant = group_info.variant
+        use_even_k_fast_path = variant == RAGGED_EVEN_K
+        if use_native is None:
+            raise ValueError(
+                "prepared backward group_info requires use_native=True or use_native=False"
+            )
 
     _require_bfloat16_scale(torch, "a_scale", a_scale)
     _require_bfloat16_scale(torch, "b_scale", b_scale)
@@ -1652,14 +2056,35 @@ def ragged_dot_int4_bwd(
     if b_scale is not None and not b_scale.is_contiguous():
         raise ValueError("b_scale must be contiguous")
 
+    if output_dtype is None:
+        output_dtype = out.dtype if out is not None else (
+            torch.bfloat16 if selection_config.split_k == 1 else torch.float32
+        )
+    if output_dtype not in {torch.float32, torch.bfloat16}:
+        raise ValueError(
+            f"output_dtype must be torch.float32 or torch.bfloat16; got {output_dtype}"
+        )
+    if config is None:
+        config = default_ragged_bwd_config(
+            layout=layout,
+            scale=scale,
+            variant=variant,
+            output_dtype="bfloat16" if output_dtype == torch.bfloat16 else "float32",
+        )
+    if config.split_k > 1 and output_dtype != torch.float32:
+        raise ValueError("split_k > 1 requires torch.float32 output for atomic accumulation")
+    if using_prepared_group_info and out is None:
+        raise ValueError("prepared backward group_info requires a preallocated out tensor")
     if out is None:
-        out = torch.empty((groups, rows, cols), device=lhs.device, dtype=torch.float32)
+        out = torch.empty((groups, rows, cols), device=lhs.device, dtype=output_dtype)
     else:
         _require_cuda_tensor(torch, "out", out)
+        if out.device != lhs.device:
+            raise ValueError(f"out must be on device {lhs.device}; got {out.device}")
         if tuple(out.shape) != (groups, rows, cols):
             raise ValueError(f"out must have shape ({groups}, {rows}, {cols}); got {tuple(out.shape)}")
-        if out.dtype != torch.float32:
-            raise ValueError(f"out dtype must be torch.float32; got {out.dtype}")
+        if out.dtype != output_dtype:
+            raise ValueError(f"out dtype {out.dtype} does not match output_dtype {output_dtype}")
         if not out.is_contiguous():
             raise ValueError("out must be contiguous")
     if config.split_k > 1:
@@ -1669,14 +2094,20 @@ def ragged_dot_int4_bwd(
     if grid_x == 0:
         return out
 
-    use_even_k_fast_path = _can_use_bwd_even_k_fast_path(
-        torch,
-        group_sizes=host_group_sizes,
-        scale=scale,
-        config=config,
+    # Generic BF16 packaged artifacts trail shape-specialized JIT on gfx1151.
+    # Automatic dispatch uses native only when an exact wide-store artifact is
+    # eligible; explicit use_native=True continues to allow generic artifacts.
+    try_native = _should_try_native_bwd(
+        use_native=use_native,
+        layout=layout,
+        output_is_bf16=output_dtype == torch.bfloat16,
+        split_k=config.split_k,
+        rows=rows,
+        cols=cols,
+        logical_k_capacity=logical_k_capacity,
+        out_data_ptr=out.data_ptr(),
     )
-    variant = RAGGED_EVEN_K if use_even_k_fast_path else RAGGED_MASK_K
-    if use_native is not False and a_scale is not None and b_scale is not None:
+    if try_native and a_scale is not None and b_scale is not None:
         try:
             from .native import launch_ragged_bwd_kernel
 
@@ -1708,7 +2139,8 @@ def ragged_dot_int4_bwd(
         grid_x,
         config.split_k,
     )
-    _ragged_dot_int4_bwd_kernel()[grid](
+    specialize_runtime_args = config.split_k == 1 and output_dtype == torch.bfloat16
+    _ragged_dot_int4_bwd_kernel(specialize_runtime_args=specialize_runtime_args)[grid](
         lhs,
         rhs,
         a_scale if a_scale is not None else lhs,
@@ -1729,6 +2161,7 @@ def ragged_dot_int4_bwd(
         A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
         B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
         EVEN_K_FAST_PATH=use_even_k_fast_path,
+        PAIRED_BF16_STORE=False,
         num_warps=config.num_warps,
         num_stages=config.num_stages,
         matrix_instr_nonkdim=16,

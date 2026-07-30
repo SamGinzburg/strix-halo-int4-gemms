@@ -27,6 +27,7 @@ from .ragged import (
     RaggedDotConfig,
     _can_use_bwd_even_k_fast_path,
     _can_use_even_k_fast_path,
+    prepare_ragged_bwd_group_info,
     ragged_dot_int4,
     ragged_dot_int4_bwd,
 )
@@ -273,6 +274,7 @@ def autotune_ragged_dot(
     benchmark_db_path: str | Path | None = None,
     warmup_ms: int = 25,
     rep_ms: int = 100,
+    output_dtype: Any | None = None,
     continue_on_error: bool = True,
     benchmark_runner: RaggedBenchmarkRunner | None = None,
 ) -> RaggedAutotuneResult:
@@ -282,7 +284,10 @@ def autotune_ragged_dot(
     must partition ``M``. ``RaggedDotMode.BWD`` tunes the K-ragged backward-style path
     where ``group_sizes`` partitions the logical reduction work ``K`` across
     groups. Backward synthetic operands are padded to ``k_capacity`` per group,
-    which defaults to ``max(group_sizes)``.
+    which defaults to ``max(group_sizes)`` and is rounded up to an even value
+    for packed int4 storage. ``output_dtype`` is forwarded to the backward API;
+    when omitted, each candidate uses BF16 for ``split_k=1`` and FP32 for
+    ``split_k>1``. Forward candidates always use BF16.
     """
 
     if m <= 0 or n <= 0 or k <= 0:
@@ -332,6 +337,7 @@ def autotune_ragged_dot(
             group_sizes=normalized_group_sizes,
             warmup_ms=warmup_ms,
             rep_ms=rep_ms,
+            output_dtype=output_dtype,
         )
     )
 
@@ -463,7 +469,7 @@ def _normalize_ragged_k_capacity(
         raise ValueError(
             f"backward k_capacity must be >= max(group_sizes)={max_group_k}; got {physical_k_capacity}"
         )
-    return physical_k_capacity
+    return ((physical_k_capacity + 1) // 2) * 2
 
 
 def _default_ragged_fwd_configs() -> tuple[RaggedDotConfig, ...]:
@@ -483,8 +489,11 @@ def _default_ragged_bwd_base_configs() -> tuple[RaggedBwdDotConfig, ...]:
         RaggedBwdDotConfig(block_m=16, block_n=128, block_k=32, split_k=1, num_warps=4, num_stages=3),
         RaggedBwdDotConfig(block_m=32, block_n=128, block_k=64, split_k=1, num_warps=4, num_stages=3),
         RaggedBwdDotConfig(block_m=64, block_n=128, block_k=64, split_k=1, num_warps=8, num_stages=3),
+        RaggedBwdDotConfig(block_m=64, block_n=64, block_k=64, split_k=1, num_warps=4, num_stages=3),
+        RaggedBwdDotConfig(block_m=128, block_n=64, block_k=64, split_k=1, num_warps=8, num_stages=3),
         RaggedBwdDotConfig(block_m=64, block_n=256, block_k=64, split_k=1, num_warps=8, num_stages=3),
         RaggedBwdDotConfig(block_m=64, block_n=256, block_k=128, split_k=1, num_warps=8, num_stages=3),
+        RaggedBwdDotConfig(block_m=128, block_n=128, block_k=64, split_k=1, num_warps=8, num_stages=3),
     )
 
 
@@ -630,6 +639,7 @@ def _make_ragged_bwd_inputs(
     group_sizes: tuple[int, ...],
     layout: GemmLayout,
     scale: ScaleSpec,
+    output_dtype: Any,
 ) -> dict[str, Any]:
     groups = len(group_sizes)
     a_q = torch.randint(-8, 8, (groups, m, k), device="cuda", dtype=torch.int8)
@@ -642,7 +652,7 @@ def _make_ragged_bwd_inputs(
         "group_sizes": torch.tensor(group_sizes, device="cuda", dtype=torch.int32),
         "a_scale": a_scale,
         "b_scale": b_scale,
-        "out": torch.empty((groups, m, n), device="cuda", dtype=torch.float32),
+        "out": torch.empty((groups, m, n), device="cuda", dtype=output_dtype),
     }
 
 
@@ -706,6 +716,7 @@ def _benchmark_ragged_candidate(
     group_sizes: tuple[int, ...],
     warmup_ms: int,
     rep_ms: int,
+    output_dtype: Any | None,
 ) -> BenchmarkRecord:
     try:
         import torch
@@ -715,6 +726,23 @@ def _benchmark_ragged_candidate(
         raise RuntimeError("ragged-dot autotuning requires a ROCm torch CUDA/HIP device")
 
     torch.manual_seed(_stable_seed(f"{candidate.kernel_id}-{m},{n},{k_capacity}-{group_sizes}"))
+    if candidate.mode is RaggedDotMode.FWD:
+        if output_dtype not in {None, torch.bfloat16}:
+            raise ValueError("forward ragged-dot autotuning supports torch.bfloat16 output only")
+        resolved_output_dtype = torch.bfloat16
+    else:
+        if not isinstance(candidate.config, RaggedBwdDotConfig):
+            raise TypeError("backward ragged-dot candidate must use RaggedBwdDotConfig")
+        resolved_output_dtype = output_dtype or (
+            torch.bfloat16 if candidate.config.split_k == 1 else torch.float32
+        )
+        if resolved_output_dtype not in {torch.bfloat16, torch.float32}:
+            raise ValueError(
+                "backward ragged-dot output_dtype must be torch.bfloat16 or torch.float32"
+            )
+        if candidate.config.split_k > 1 and resolved_output_dtype != torch.float32:
+            raise ValueError("backward BF16 output requires split_k=1")
+
     tensors = (
         _make_ragged_fwd_inputs(
             torch,
@@ -734,6 +762,7 @@ def _benchmark_ragged_candidate(
             group_sizes=group_sizes,
             layout=candidate.layout,
             scale=candidate.scale,
+            output_dtype=resolved_output_dtype,
         )
     )
     uses_even_k_fast_path = _ragged_uses_even_k_fast_path(
@@ -741,6 +770,16 @@ def _benchmark_ragged_candidate(
         candidate=candidate,
         logical_k=shape.k,
         group_sizes_tensor=tensors["group_sizes"],
+    )
+    bwd_group_info = (
+        prepare_ragged_bwd_group_info(
+            tensors["group_sizes"],
+            k_capacity=k_capacity,
+            scale=candidate.scale,
+            config=candidate.config,
+        )
+        if candidate.mode is RaggedDotMode.BWD
+        else None
     )
 
     def run() -> Any:
@@ -764,13 +803,15 @@ def _benchmark_ragged_candidate(
         return ragged_dot_int4_bwd(
             tensors["lhs"],
             tensors["rhs"],
-            tensors["group_sizes"],
+            None,
+            group_info=bwd_group_info,
             a_scale=tensors["a_scale"],
             b_scale=tensors["b_scale"],
             scale=candidate.scale,
             config=candidate.config,
             layout=candidate.layout,
             out=tensors["out"],
+            output_dtype=resolved_output_dtype,
             use_native=False,
         )
 
@@ -787,7 +828,7 @@ def _benchmark_ragged_candidate(
             warmup_ms=warmup_ms,
             rep_ms=rep_ms,
         ),
-        "output_dtype": "bfloat16" if candidate.mode is RaggedDotMode.FWD else "float32",
+        "output_dtype": "bfloat16" if resolved_output_dtype == torch.bfloat16 else "float32",
         "input_distribution": "random_int4_uniform",
         "torch_version": str(torch.__version__),
         "torch_hip": str(torch.version.hip),

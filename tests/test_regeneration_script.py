@@ -207,7 +207,18 @@ def test_ragged_generator_keeps_subchannel_scale_cols_runtime() -> None:
 def test_ragged_generator_default_jobs_include_specialized_bwd_accum() -> None:
     sys.path.insert(0, str(REPO_ROOT / "src"))
     from amd_strix_halo_kernels.metadata import SUPPORTED_SUBCHANNELS, GemmLayout, ScaleMode, ScaleSpec
-    from amd_strix_halo_kernels.ragged_artifacts import RAGGED_BWD_ACCUM, RAGGED_MODES, RAGGED_VARIANTS
+    from amd_strix_halo_kernels.ragged_artifacts import (
+        RAGGED_BWD,
+        RAGGED_BWD_ACCUM,
+        RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS,
+        RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES,
+        RAGGED_MODES,
+        RAGGED_STORE_DEFAULT,
+        RAGGED_STORE_PAIRED,
+        RAGGED_STORE_SCALAR,
+        RAGGED_STORE_WIDE,
+        RAGGED_VARIANTS,
+    )
 
     spec = importlib.util.spec_from_file_location(
         "generate_ragged_amdgcn", REPO_ROOT / "scripts" / "generate_ragged_amdgcn.py"
@@ -226,17 +237,124 @@ def test_ragged_generator_default_jobs_include_specialized_bwd_accum() -> None:
         scales=scales,
         variants=RAGGED_VARIANTS,
     )
+    bwd_jobs = [job for job in jobs if job[0] == RAGGED_BWD]
     accum_jobs = [job for job in jobs if job[0] == RAGGED_BWD_ACCUM]
-    assert len(jobs) == 82
+    assert len(jobs) == 182
+    assert len(bwd_jobs) == 140
+    assert {job[5] for job in bwd_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
+    assert all(job[4].split_k == 1 for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_BF16)
+    assert {
+        job[6] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_BF16
+    } == {RAGGED_STORE_PAIRED, RAGGED_STORE_SCALAR, RAGGED_STORE_WIDE}
+    assert {
+        job[6] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_FLOAT32
+    } == {RAGGED_STORE_DEFAULT}
+    specialized_jobs = [job for job in bwd_jobs if job[7] is not None]
+    assert len(specialized_jobs) == 20
+    assert {job[7] for job in specialized_jobs} == set(
+        module.RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES
+    )
+    assert all(job[5] == module.OUTPUT_DTYPE_BF16 for job in specialized_jobs)
+    assert all(job[6] == RAGGED_STORE_WIDE for job in specialized_jobs)
+    assert {job[1] for job in specialized_jobs} == set(
+        RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS
+    )
+    tt_pc_even_bf16 = [
+        job
+        for job in bwd_jobs
+        if job[1] is GemmLayout.TT
+        and job[2] == ScaleSpec(ScaleMode.PER_CHANNEL)
+        and job[3] == module.RAGGED_EVEN_K
+        and job[5] == module.OUTPUT_DTYPE_BF16
+    ]
+    assert {(job[4].block_m, job[4].block_n, job[4].num_warps) for job in tt_pc_even_bf16} == {
+        (64, 64, 4)
+    }
     assert len(accum_jobs) == 2
-    assert {job[-1] for job in accum_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
+    assert {job[5] for job in accum_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
+    assert {job[6] for job in accum_jobs} == {RAGGED_STORE_DEFAULT}
+    assert {job[7] for job in accum_jobs} == {None}
     for job in accum_jobs:
-        assert job[1:-1] == (
+        assert job[1:5] == (
             GemmLayout.TN,
             ScaleSpec(ScaleMode.PER_CHANNEL),
             module.RAGGED_EVEN_K,
             module.DEFAULT_BWD_ACCUM_CONFIG,
         )
+
+
+def test_ragged_generator_paired_bf16_entry_pointer_lowers_to_dword_stores() -> None:
+    torch = pytest.importorskip("torch")
+    if not torch.cuda.is_available():
+        pytest.skip("representative Triton generation requires CUDA/HIP")
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+    from amd_strix_halo_kernels.metadata import GemmLayout, ScaleMode, ScaleSpec
+    from amd_strix_halo_kernels.ragged import default_ragged_bwd_config
+    from amd_strix_halo_kernels.ragged_artifacts import (
+        RAGGED_BWD,
+        RAGGED_EVEN_K,
+        RAGGED_STORE_PAIRED,
+        RAGGED_STORE_WIDE,
+    )
+
+    spec = importlib.util.spec_from_file_location(
+        "generate_ragged_amdgcn_store_test",
+        REPO_ROOT / "scripts" / "generate_ragged_amdgcn.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    scale = ScaleSpec(ScaleMode.PER_CHANNEL)
+    config = default_ragged_bwd_config(
+        layout=GemmLayout.TT,
+        scale=scale,
+        variant=RAGGED_EVEN_K,
+        output_dtype=module.OUTPUT_DTYPE_BF16,
+    )
+
+    asm, _, _ = module.compile_ragged_kernel(
+        mode=RAGGED_BWD,
+        layout=GemmLayout.TT,
+        scale=scale,
+        variant=RAGGED_EVEN_K,
+        config=config,
+        output_dtype=module.OUTPUT_DTYPE_BF16,
+        store_strategy=RAGGED_STORE_PAIRED,
+    )
+
+    amdgcn = str(asm["amdgcn"])
+    llir = str(asm["llir"])
+    assert "global_store_b32" in amdgcn or "buffer_store_b32" in amdgcn
+    assert "global_store_b16" not in amdgcn
+    assert "buffer_store_b16" not in amdgcn
+    assert "store <1 x i32>" in llir or "raw.ptr.buffer.store.i32" in llir
+
+    specialized_asm, _, runtime_scalar_args = module.compile_ragged_kernel(
+        mode=RAGGED_BWD,
+        layout=GemmLayout.TT,
+        scale=scale,
+        variant=RAGGED_EVEN_K,
+        config=config,
+        output_dtype=module.OUTPUT_DTYPE_BF16,
+        store_strategy=RAGGED_STORE_WIDE,
+        shape_specialization=(4096, 4096, 4096),
+    )
+    assert runtime_scalar_args == ["M", "N", "K_PACKED"]
+    specialized_amdgcn = str(specialized_asm["amdgcn"])
+    assert "global_store_b16" not in specialized_amdgcn
+    assert "buffer_store_b16" not in specialized_amdgcn
+    assert any(
+        store in specialized_amdgcn
+        for store in (
+            "global_store_b32",
+            "global_store_b64",
+            "global_store_b128",
+            "buffer_store_b32",
+            "buffer_store_b64",
+            "buffer_store_b128",
+        )
+    )
 
 
 def test_dense_generator_compiles_representative_dtype_pairs() -> None:
@@ -349,12 +467,19 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
         ScaleMode,
         ScaleSpec,
     )
-    from amd_strix_halo_kernels.ragged import RaggedBwdDotConfig, RaggedDotConfig
+    from amd_strix_halo_kernels.ragged import RaggedDotConfig, default_ragged_bwd_config
     from amd_strix_halo_kernels.ragged_artifacts import (
+        RAGGED_BWD,
         RAGGED_BWD_ACCUM,
+        RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS,
+        RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES,
         RAGGED_EVEN_K,
         RAGGED_FWD,
         RAGGED_MATRIX_MODES,
+        RAGGED_STORE_DEFAULT,
+        RAGGED_STORE_PAIRED,
+        RAGGED_STORE_SCALAR,
+        RAGGED_STORE_WIDE,
         RAGGED_VARIANTS,
         ragged_config_dict,
         ragged_kernel_id,
@@ -366,40 +491,110 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
     )
     expected_ids = set()
     for mode in RAGGED_MATRIX_MODES:
-        base_config = RaggedDotConfig() if mode == RAGGED_FWD else RaggedBwdDotConfig()
-        output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
+        output_dtypes = (
+            (OUTPUT_DTYPE_BF16,)
+            if mode == RAGGED_FWD
+            else (OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32)
+        )
         for layout in GemmLayout:
             for scale in scales:
                 for variant in RAGGED_VARIANTS:
-                    effective_config = replace(base_config, enable_even_k_fast_path=(variant == RAGGED_EVEN_K))
-                    kernel_id = ragged_kernel_id(
-                        mode=mode,
-                        layout=layout,
-                        scale=scale,
-                        config=effective_config,
-                        variant=variant,
-                        output_dtype=output_dtype,
-                    )
-                    expected_ids.add(kernel_id)
-                    asm_path = amdgcn_dir / f"{kernel_id}.s"
-                    metadata_path = amdgcn_dir / f"{kernel_id}.json"
-                    assert asm_path.exists(), kernel_id
-                    assert metadata_path.exists(), kernel_id
+                    for output_dtype in output_dtypes:
+                        effective_config = (
+                            replace(
+                                RaggedDotConfig(),
+                                enable_even_k_fast_path=(variant == RAGGED_EVEN_K),
+                            )
+                            if mode == RAGGED_FWD
+                            else default_ragged_bwd_config(
+                                layout=layout,
+                                scale=scale,
+                                variant=variant,
+                                output_dtype=output_dtype,
+                            )
+                        )
+                        store_strategies = (
+                            (
+                                RAGGED_STORE_PAIRED,
+                                RAGGED_STORE_SCALAR,
+                                *(
+                                    (RAGGED_STORE_WIDE,)
+                                    if layout in RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS
+                                    else ()
+                                ),
+                            )
+                            if mode == RAGGED_BWD and output_dtype == OUTPUT_DTYPE_BF16
+                            else (RAGGED_STORE_DEFAULT,)
+                        )
+                        for store_strategy in store_strategies:
+                            shape_specializations = (
+                                RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES
+                                if store_strategy == RAGGED_STORE_WIDE
+                                else (None,)
+                            )
+                            for shape_specialization in shape_specializations:
+                                kernel_id = ragged_kernel_id(
+                                    mode=mode,
+                                    layout=layout,
+                                    scale=scale,
+                                    config=effective_config,
+                                    variant=variant,
+                                    output_dtype=output_dtype,
+                                    store_strategy=store_strategy,
+                                    shape_specialization=shape_specialization,
+                                )
+                                expected_ids.add(kernel_id)
+                                asm_path = amdgcn_dir / f"{kernel_id}.s"
+                                metadata_path = amdgcn_dir / f"{kernel_id}.json"
+                                assert asm_path.exists(), kernel_id
+                                assert metadata_path.exists(), kernel_id
 
-                    metadata = json.loads(metadata_path.read_text())
-                    assert metadata["mode"] == mode
-                    assert metadata["layout"] == layout.value
-                    assert metadata["variant"] == variant
-                    assert metadata["output_dtype"] == output_dtype
-                    assert metadata["config"] == ragged_config_dict(effective_config)
-                    arg_layout = metadata["kernel_arg_layout"]
-                    if mode == RAGGED_FWD:
-                        expected_scalar_args = ["M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS"]
-                    else:
-                        expected_scalar_args = ["M", "N", "K_PACKED", "SCALE_COLS"]
-                    assert arg_layout["runtime_scalar_args"] == expected_scalar_args
-                    assert arg_layout["by_value_arg_count"] == len(expected_scalar_args)
-                    assert len(arg_layout["hidden_global_buffer_offsets"]) == 2
+                                metadata = json.loads(metadata_path.read_text())
+                                assert metadata["mode"] == mode
+                                assert metadata["layout"] == layout.value
+                                assert metadata["variant"] == variant
+                                assert metadata["output_dtype"] == output_dtype
+                                assert metadata["store_strategy"] == store_strategy
+                                assert metadata["config"] == ragged_config_dict(effective_config)
+                                expected_shape = (
+                                    {
+                                        "m": shape_specialization[0],
+                                        "n": shape_specialization[1],
+                                        "k": shape_specialization[2],
+                                    }
+                                    if shape_specialization is not None
+                                    else "runtime"
+                                )
+                                assert metadata["shape_specialization"] == expected_shape
+                                constraints = metadata["runtime_constraints"]
+                                assert constraints["required_n_multiple"] == (
+                                    8
+                                    if store_strategy == RAGGED_STORE_WIDE
+                                    else 2 if store_strategy == RAGGED_STORE_PAIRED else 1
+                                )
+                                assert constraints["out_alignment_bytes"] == (
+                                    16
+                                    if store_strategy == RAGGED_STORE_WIDE
+                                    else 4 if store_strategy == RAGGED_STORE_PAIRED else 1
+                                )
+                                arg_layout = metadata["kernel_arg_layout"]
+                                if shape_specialization is not None:
+                                    expected_scalar_args = ["M", "N", "K_PACKED"]
+                                    if scale.mode is ScaleMode.SUBCHANNEL:
+                                        expected_scalar_args.append("SCALE_COLS")
+                                elif mode == RAGGED_FWD:
+                                    expected_scalar_args = [
+                                        "M",
+                                        "N",
+                                        "K_PACKED",
+                                        "SCALE_COLS",
+                                        "NUM_TASKS",
+                                    ]
+                                else:
+                                    expected_scalar_args = ["M", "N", "K_PACKED", "SCALE_COLS"]
+                                assert arg_layout["runtime_scalar_args"] == expected_scalar_args
+                                assert arg_layout["by_value_arg_count"] == len(expected_scalar_args)
+                                assert len(arg_layout["hidden_global_buffer_offsets"]) == 2
 
     from amd_strix_halo_kernels.ragged import RAGGED_BWD_ACCUM_CONFIG
 
@@ -440,7 +635,7 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
 
     checked_in_ids = {path.stem for path in amdgcn_dir.glob("gfx1151_ragged_int4_*.json")}
     assert checked_in_ids == expected_ids
-    assert len(expected_ids) == 82
+    assert len(expected_ids) == 182
     summary = json.loads((amdgcn_dir / "ragged_generation_summary.json").read_text())
     assert summary["failures"] == []
     assert {entry["kernel_id"] for entry in summary["generated"]} == expected_ids
@@ -453,6 +648,7 @@ def test_ragged_artifact_metadata_names_runtime_shape_contract() -> None:
     from amd_strix_halo_kernels.ragged_artifacts import (
         RAGGED_EVEN_K,
         RAGGED_FWD,
+        RAGGED_STORE_DEFAULT,
         ragged_kernel_id,
         ragged_metadata_dict,
     )
@@ -475,6 +671,7 @@ def test_ragged_artifact_metadata_names_runtime_shape_contract() -> None:
         config=config,
         variant=RAGGED_EVEN_K,
         output_dtype="bfloat16",
+        store_strategy=RAGGED_STORE_DEFAULT,
         amdgcn_symbol="symbol",
         launch_metadata={"num_warps": 8, "shared_memory_bytes": 0},
         asm_keys=["amdgcn"],
@@ -488,6 +685,11 @@ def test_ragged_artifact_metadata_names_runtime_shape_contract() -> None:
         },
     )
     assert metadata["shape_specialization"] == "runtime"
+    assert metadata["store_strategy"] == RAGGED_STORE_DEFAULT
+    assert metadata["runtime_constraints"] == {
+        "required_n_multiple": 1,
+        "out_alignment_bytes": 1,
+    }
     assert metadata["runtime_shape_args"] == ["M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS"]
     assert metadata["rhs_subchannel_scale_layout"] == "kgroup_output"
     assert metadata["amdgcn_stats"]["iu4_wmma"] == 1
@@ -527,6 +729,7 @@ def test_benchmark_ragged_dot_help_does_not_require_torch() -> None:
     assert "Benchmark Triton-JIT int4 ragged dot" in result.stdout
     assert "--mode" in result.stdout
     assert "--split-k" in result.stdout
+    assert "--bwd-output-dtype" in result.stdout
 
 
 def test_tune_swiglu_help_does_not_require_torch() -> None:

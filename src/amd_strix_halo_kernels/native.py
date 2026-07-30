@@ -10,7 +10,17 @@ from typing import Any
 
 from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
 from .quant import dynamic_lhs_int4_scales
-from .ragged_artifacts import RAGGED_BWD, RAGGED_BWD_ACCUM, RAGGED_FWD, ragged_kernel_id
+from .ragged_artifacts import (
+    RAGGED_BWD,
+    RAGGED_BWD_ACCUM,
+    RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES,
+    RAGGED_FWD,
+    RAGGED_STORE_DEFAULT,
+    RAGGED_STORE_PAIRED,
+    RAGGED_STORE_SCALAR,
+    RAGGED_STORE_WIDE,
+    ragged_kernel_id,
+)
 from .template_config import LaunchShape
 
 
@@ -522,7 +532,7 @@ def launch_ragged_bwd_hsaco(
     n: int,
     k_packed: int,
     scale_cols: int,
-    has_scale_cols_arg: bool,
+    runtime_scalar_mode: int,
     library_path: str | Path | None = None,
 ) -> None:
     library = load_dispatch_library(library_path)
@@ -548,7 +558,7 @@ def launch_ragged_bwd_hsaco(
         int(n),
         int(k_packed),
         int(scale_cols),
-        int(has_scale_cols_arg),
+        int(runtime_scalar_mode),
     )
     if rc != 0:
         raise RuntimeError(_library_last_error(library))
@@ -653,13 +663,43 @@ def launch_ragged_bwd_kernel(
     b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
     out = _require_contiguous("out", out)
     if out.dtype == torch.bfloat16:
-        if mode != RAGGED_BWD_ACCUM:
-            raise ValueError("bf16 native ragged backward output is supported only for bwd_accum")
+        if mode == RAGGED_BWD and config.split_k != 1:
+            raise ValueError("bf16 native ragged backward output requires split_k=1")
+        if mode not in {RAGGED_BWD, RAGGED_BWD_ACCUM}:
+            raise ValueError(f"bf16 native ragged backward output is unsupported for mode {mode!r}")
         output_dtype = "bfloat16"
     elif out.dtype == torch.float32:
         output_dtype = "float32"
     else:
         raise ValueError(f"native ragged backward output must be bf16 or fp32; got {out.dtype}")
+    store_strategy = RAGGED_STORE_DEFAULT
+    if mode == RAGGED_BWD and output_dtype == "bfloat16":
+        store_strategy = (
+            RAGGED_STORE_PAIRED
+            if cols % 2 == 0 and out.data_ptr() % 4 == 0
+            else RAGGED_STORE_SCALAR
+        )
+    shape_specialization = None
+    if (
+        mode == RAGGED_BWD
+        and output_dtype == "bfloat16"
+        and out.data_ptr() % 16 == 0
+    ):
+        candidate_shape = (rows, cols, k_packed * 2)
+        if candidate_shape in RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES:
+            specialized_kernel_id = ragged_kernel_id(
+                mode=mode,
+                layout=layout,
+                scale=scale,
+                config=config,
+                variant=variant,
+                output_dtype=output_dtype,
+                store_strategy=RAGGED_STORE_WIDE,
+                shape_specialization=candidate_shape,
+            )
+            if hsaco_path_for_kernel_id(specialized_kernel_id, root=root).exists():
+                store_strategy = RAGGED_STORE_WIDE
+                shape_specialization = candidate_shape
     kernel_id = ragged_kernel_id(
         mode=mode,
         layout=layout,
@@ -667,12 +707,23 @@ def launch_ragged_bwd_kernel(
         config=config,
         variant=variant,
         output_dtype=output_dtype,
+        store_strategy=store_strategy,
+        shape_specialization=shape_specialization,
     )
     hsaco_path, artifact, symbol = _ragged_artifact_symbol(kernel_id, root=root)
     block_size = _block_size_for_artifact(kernel_id, artifact)
     shared_memory_bytes = _shared_memory_bytes_for_artifact(kernel_id, artifact)
     runtime_scalar_args = _ragged_runtime_scalar_args(kernel_id, artifact)
-    has_scale_cols_arg = "SCALE_COLS" in runtime_scalar_args
+    if not runtime_scalar_args:
+        runtime_scalar_mode = 2
+    elif runtime_scalar_args == ("M", "N", "K_PACKED"):
+        runtime_scalar_mode = 0
+    elif runtime_scalar_args == ("M", "N", "K_PACKED", "SCALE_COLS"):
+        runtime_scalar_mode = 1
+    else:
+        raise RuntimeError(
+            f"{kernel_id} has unsupported backward runtime scalar ABI {runtime_scalar_args}"
+        )
     group_count = int(lhs.shape[0]) if groups is None else int(groups)
     grid = (group_count * _cdiv(rows, config.block_m) * _cdiv(cols, config.block_n), config.split_k, 1)
     if grid[0] == 0:
@@ -695,7 +746,7 @@ def launch_ragged_bwd_kernel(
         n=cols,
         k_packed=k_packed,
         scale_cols=scale_cols,
-        has_scale_cols_arg=has_scale_cols_arg,
+        runtime_scalar_mode=runtime_scalar_mode,
         library_path=library_path,
     )
     return out

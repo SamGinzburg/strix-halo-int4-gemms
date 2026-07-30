@@ -393,7 +393,7 @@ extern "C" int amd_strix_halo_kernels_launch_ragged_bwd_hsaco(
     uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,
     uint32_t shared_memory_bytes, uintptr_t stream_handle, void *lhs, void *rhs, void *lhs_scale,
     void *rhs_scale, void *group_sizes, void *out, int32_t m, int32_t n, int32_t k_packed,
-    int32_t scale_cols, int32_t has_scale_cols_arg) {
+    int32_t scale_cols, int32_t runtime_scalar_mode) {
   last_error.clear();
   if (hsaco_path == nullptr || symbol == nullptr) {
     return fail("hsaco_path and symbol must be non-null");
@@ -446,8 +446,19 @@ extern "C" int amd_strix_halo_kernels_launch_ragged_bwd_hsaco(
   void *params_without_scale_cols[] = {&lhs,       &rhs, &lhs_scale, &rhs_scale, &group_sizes,
                                        &out,       &m,   &n,         &k_packed,  &reserved0,
                                        &reserved1};
+  void *params_shape_specialized[] = {&lhs, &rhs, &lhs_scale, &rhs_scale, &group_sizes,
+                                      &out, &reserved0, &reserved1};
   auto stream = reinterpret_cast<hipStream_t>(stream_handle);
-  void **params = has_scale_cols_arg != 0 ? params_with_scale_cols : params_without_scale_cols;
+  void **params = nullptr;
+  if (runtime_scalar_mode == 0) {
+    params = params_without_scale_cols;
+  } else if (runtime_scalar_mode == 1) {
+    params = params_with_scale_cols;
+  } else if (runtime_scalar_mode == 2) {
+    params = params_shape_specialized;
+  } else {
+    return fail("unsupported ragged backward runtime scalar mode");
+  }
   error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
                                          shared_memory_bytes, stream, params, nullptr);
   if (error != hipSuccess) {

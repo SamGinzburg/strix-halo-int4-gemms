@@ -7,6 +7,7 @@ import pytest
 from amd_strix_halo_kernels.autotune import (
     RaggedAutotuneCandidate,
     RaggedDotMode,
+    _normalize_ragged_k_capacity,
     artifact_supports_shape,
     autotune,
     autotune_ragged_dot,
@@ -295,6 +296,22 @@ def test_autotune_ragged_dot_backward_uses_sum_group_sizes_for_tops_shape() -> N
 
     assert result.shape == BenchmarkShape(32, 96, 39)
     assert result.best_candidate.config == config
+
+
+@pytest.mark.parametrize(
+    ("k_capacity", "expected"),
+    [(None, 426), (425, 426), (426, 426), (512, 512)],
+)
+def test_backward_ragged_autotune_rounds_capacity_for_packed_int4(
+    k_capacity,
+    expected,
+) -> None:
+    assert _normalize_ragged_k_capacity(
+        mode=RaggedDotMode.BWD,
+        k=1024,
+        k_capacity=k_capacity,
+        group_sizes=(9, 127, 0, 252, 62, 0, 425, 149),
+    ) == expected
 
 
 def test_autotune_ragged_dot_validates_group_sizes_and_candidate_modes() -> None:

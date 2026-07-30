@@ -61,6 +61,10 @@
   "mode": "fwd",
   "output_dtype": "bfloat16",
   "rhs_subchannel_scale_layout": "kgroup_output",
+  "runtime_constraints": {
+    "out_alignment_bytes": 1,
+    "required_n_multiple": 1
+  },
   "runtime_shape_args": [
     "M",
     "N",
@@ -75,6 +79,7 @@
   "shape_specialization": "runtime",
   "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f",
   "status": "generated",
+  "store_strategy": "default",
   "triton_artifacts": {
     "llir": "kernels/triton/gfx1151_ragged_int4_fwd_tt_sc256_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.llir",
     "source": "kernels/triton/gfx1151_ragged_int4_fwd_tt_sc256_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.py",

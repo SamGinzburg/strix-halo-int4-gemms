@@ -128,17 +128,22 @@ mixed artifact.
 Ragged Dot Results
 ------------------
 
-The ragged-dot rows below are Triton-JIT tuning records, not separate native
-dispatch timings. The packaged ragged HSACO artifacts cover the default
-generated configs so installed wheels can avoid JIT compilation for those
-paths. The full Triton ``ec4a2c64`` sweep used 25 ms warmup and 100 ms
-repetition windows and completed all 816 records with zero failures. Timings
+The ragged-dot rows below are shape-specialized Triton-JIT tuning records for
+the automatic generic-shape path, not separate native dispatch timings. The
+full Triton ``ec4a2c64`` sweep used 25 ms warmup and 100 ms repetition windows
+and completed all 1,104 records with zero failures. Timings
 use 8 RHS groups, prepacked operands, BF16 scales, preallocated outputs, and
 exclude quantization/packing. The sweep covers 3 runtime shapes,
 balanced/uneven group-size patterns, all four layouts,
 per-channel/subchannel-256 scales, forward M-ragged dot, and backward K-ragged
 split-K dot. The table selects maximum TOPS for each mode/layout/scale from the
 4096x4096x4096 balanced rows.
+
+For backward rows, benchmark K is total reduction work across groups. Physical
+``k_capacity`` defaults to ``max(group_sizes)`` rounded up to even; odd explicit
+capacities are rounded up as well. Thus the balanced 4096-work rows use eight
+512-element groups with ``k_capacity=512``, not the exact 4096-capacity native
+specialization.
 
 A separate forward-NN experiment isolated runtime-shape specialization. The
 specialized JIT path measured about 62.7 TOPS per-channel and 47.7 TOPS with
@@ -158,175 +163,194 @@ block, and block+1 runtime shapes.
    * - fwd
      - NN
      - per-channel
-     - ``BM64_BN256_BK64_GST1_W8_S3``
-     - 2.203 ms
-     - 62.4
+     - ``BM64_BN256_BK64_GST2_W8_S3``
+     - 2.190327 ms
+     - 62.748
    * - fwd
      - NN
      - subchannel-256
      - ``BM64_BN256_BK128_GST1_W8_S3``
-     - 2.671 ms
-     - 51.5
+     - 2.683613 ms
+     - 51.214
    * - fwd
      - NT
      - per-channel
      - ``BM64_BN256_BK128_GST1_W8_S3``
-     - 4.024 ms
-     - 34.2
+     - 4.072952 ms
+     - 33.744
    * - fwd
      - NT
      - subchannel-256
      - ``BM64_BN128_BK64_GST2_W8_S3``
-     - 4.069 ms
-     - 33.8
+     - 4.142994 ms
+     - 33.174
    * - fwd
      - TN
      - per-channel
      - ``BM64_BN256_BK64_GST2_W8_S3``
-     - 3.275 ms
-     - 42.0
+     - 3.263838 ms
+     - 42.110
    * - fwd
      - TN
      - subchannel-256
      - ``BM32_BN128_BK64_GST1_W4_S3``
-     - 3.773 ms
-     - 36.4
+     - 4.059512 ms
+     - 33.856
    * - fwd
      - TT
      - per-channel
-     - ``BM64_BN128_BK64_GST2_W8_S3``
-     - 5.275 ms
-     - 26.1
+     - ``BM64_BN128_BK64_GST1_W8_S3``
+     - 5.337606 ms
+     - 25.749
    * - fwd
      - TT
      - subchannel-256
      - ``BM64_BN128_BK64_GST2_W8_S3``
-     - 4.672 ms
-     - 29.4
+     - 4.697210 ms
+     - 29.260
    * - bwd
      - NN
      - per-channel
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.402290 ms
+     - 57.212
+   * - bwd
+     - NN
+     - subchannel-256
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.704137 ms
+     - 50.825
+   * - bwd
+     - NT
+     - per-channel
+     - ``BM128_BN64_BK64_W8_S3_SK1``
+     - 2.252268 ms
+     - 61.022
+   * - bwd
+     - NT
+     - subchannel-256
+     - ``BM128_BN64_BK64_W8_S3_SK1``
+     - 2.432567 ms
+     - 56.500
+   * - bwd
+     - TN
+     - per-channel
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 3.072168 ms
+     - 44.737
+   * - bwd
+     - TN
+     - subchannel-256
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 3.456449 ms
+     - 39.763
+   * - bwd
+     - TT
+     - per-channel
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.725918 ms
+     - 50.419
+   * - bwd
+     - TT
+     - subchannel-256
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.908761 ms
+     - 47.250
+
+Backward Output Precision and Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The standard API still materializes ``G`` independent ``[M, N]`` planes, but
+the default ``split_k=1`` path now stores BF16. At ``M=N=K=4096``, ``G=8``,
+BF16 writes 268,435,456 bytes (8x one forward output), while an explicitly
+requested FP32 result writes 536,870,912 bytes (16x). The earlier FP32
+output-bandwidth analysis therefore applies only to explicit FP32 output and
+must not be used as a lower bound for the BF16 implementation.
+
+.. list-table:: NN/per-channel backward output comparison
+   :header-rows: 1
+
+   * - Output path
+     - Best config
+     - Runtime
+     - TOPS
+   * - Previous FP32 sweep
      - ``BM64_BN256_BK64_W8_S3_SK1``
      - 3.834 ms
      - 35.8
-   * - bwd
-     - NN
-     - subchannel-256
-     - ``BM64_BN256_BK64_W8_S3_SK1``
-     - 4.512 ms
-     - 30.5
-   * - bwd
-     - NT
-     - per-channel
-     - ``BM64_BN256_BK64_W8_S3_SK1``
-     - 3.695 ms
-     - 37.2
-   * - bwd
-     - NT
-     - subchannel-256
-     - ``BM64_BN128_BK64_W8_S3_SK1``
-     - 4.265 ms
-     - 32.2
-   * - bwd
-     - TN
-     - per-channel
-     - ``BM32_BN128_BK64_W4_S3_SK1``
-     - 4.744 ms
-     - 29.0
-   * - bwd
-     - TN
-     - subchannel-256
-     - ``BM32_BN128_BK64_W4_S3_SK1``
-     - 5.453 ms
-     - 25.2
-   * - bwd
-     - TT
-     - per-channel
-     - ``BM64_BN128_BK64_W8_S3_SK1``
-     - 4.320 ms
-     - 31.8
-   * - bwd
-     - TT
-     - subchannel-256
-     - ``BM32_BN128_BK64_W4_S3_SK1``
-     - 5.134 ms
-     - 26.8
+   * - Preceding BF16 sweep
+     - ``BM128_BN128_BK64_W8_S3_SK1``
+     - 2.918216 ms
+     - 47.096901
+   * - Current BF16 complete sweep
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.402290 ms
+     - 57.211641
 
-Backward Output Contract and Scaling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The current NN/per-channel result is 21.5% above the immediately preceding
+BF16 row and 59.8% above the historical FP32 row. The TOPS numerator remains
+``2*M*N*K``, rather than scaling with ``G``, because the group K extents sum
+to the fixed total K.
+Consumers that maintain FP32 master gradients should pass
+``output_dtype=torch.float32`` or supply an FP32 ``out``; ``split_k>1`` always
+requires FP32 for atomic accumulation.
 
-The standard ragged INT4 backward API materializes ``G`` independent FP32
-``[M, N]`` planes. At ``M=N=K=4096``, ``G=8``, that is 536,870,912 output
-bytes--16x the bytes in the forward BF16 ``[M, N]`` output. The hard lower
-bound here is the number of bytes required by the output contract; a standalone
-``out.zero_()`` measurement of 2.256479 ms (237.924 GB/s) is a bandwidth
-reference, not a theoretical minimum or the full kernel runtime. For context,
-the complete-operation budgets at 60 and 55 TOPS are 2.290649 and 2.498890 ms,
-respectively.
+Compared with the immediately preceding 912-record BF16 table, backward gains
+are 21.5%/30.5% (NN per-channel/subchannel-256), 22.8%/17.5% (NT),
+20.5%/28.7% (TN), and 26.3%/34.0% (TT). These JIT comparisons include newly
+selected measured configs.
 
-Fixed-work measurements with ``BM64_BN256_BK64``, NN/PC, show the effect as
-the number of output planes grows:
+Exact 4096-Capacity Native Specialization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table:: Fixed-work backward scaling
+The exact native case is deliberately separate from the table above: it pads
+every group's physical capacity to 4096 rather than the balanced sweep's 512.
+Wide-store specialization measured as follows:
+
+.. list-table:: Exact ``M=N=k_capacity=4096`` native BF16 comparison
    :header-rows: 1
 
-   * - Groups
-     - Output bytes vs. forward
-     - TOPS
-   * - 1
-     - 2x
-     - 49.722
-   * - 2
-     - 4x
-     - 48.807
-   * - 4
-     - 8x
-     - 44.639
-   * - 8
-     - 16x
-     - 36.067
+   * - Case
+     - Generic native TOPS
+     - Wide native TOPS
+     - Gain
+   * - NN per-channel
+     - 43.3
+     - 54.3
+     - 25%
+   * - NN subchannel-256
+     - 37.1
+     - 49.8
+     - 34%
+   * - TN per-channel
+     - 34.0
+     - 44.7
+     - 31%
+   * - TN subchannel-256
+     - 30.7
+     - 39.7
+     - 29%
 
-The TOPS numerator remains ``2*M*N*K``, rather than scaling with ``G``, because
-the group K extents sum to the fixed total K. At ``G=8``, changing ``BK64`` to
-``BK32`` reached 36.327 TOPS, while larger ``BM128/BN256`` and ``BM64/BN512``
-variants reached 31.754 and 32.304 TOPS. Under the current grouped FP32 output
-contract, these results indicate that tile and stage tuning alone is not a
-credible path to forward-like 55--60 TOPS; that range would require an
-algorithm or contract that reduces or fuses outputs, lowers output precision,
-or fuses the consumer. This conclusion does not apply to such alternative
-semantics.
-
-An experimental reduced-output prototype demonstrates that distinction: it
-sums the group contributions into one FP32 ``[M, N]`` output, passed comparison
-with the PyTorch reference at ``rtol=atol=1e-3``, and measured 60.092 TOPS with
-``BK32`` (55.524 TOPS with ``BK64``). Because it changes the standard backward
-result from ``G`` independent planes to one reduced plane, it is evidence about
-the bottleneck rather than a drop-in replacement.
-
-Compared with the preceding checked-in 816-record database, the largest
-forward changes are NT subchannel-256 (+10.3%), TN subchannel-256 (+10.0%), TN
-per-channel (+3.4%), NN subchannel-256 (+3.0%), and NT per-channel (+2.6%).
-Backward records are mostly within ±1%, with TT subchannel-256 at +2.7%. The
-older prose table's backward rows were out of sync with that database, so their
-larger visible changes are table corrections rather than compiler regressions.
-These are JIT benchmark deltas. Representative packaged HSACO hashes remained
-byte-identical across the compiler update, so the deltas must not be
-interpreted as generated-native improvements.
+Automatic dispatch selects wide native only for eligible exact NN/TN launches
+with 16-byte-aligned output. Generic BF16 shapes use shape-specialized JIT;
+explicit ``use_native=True`` remains available for paired/scalar generic
+artifacts.
 
 The checked-in ragged benchmark records are timing records. Correctness for
 per-channel, subchannel, balanced, uneven, and empty-group cases is covered by
 ``tests/test_ragged_dot.py`` against grouped Torch references.
-Each record metadata entry also reports ``uses_even_k_fast_path`` and
-``masks_k`` so benchmark consumers can separate aligned fast-path rows from
-fully masked ragged-K rows.
+Each record metadata entry also reports ``output_dtype``,
+``uses_even_k_fast_path``, and ``masks_k`` so benchmark consumers can separate
+BF16/FP32 output and aligned fast-path rows from fully masked ragged-K rows.
 
 Correctness Notes
 -----------------
 
 The full generated benchmark pass validates every packaged artifact against a
-random BF16 fake-quant reference. BF16-store SwiGLU rows can differ by one ULP
-near rounding ties. Treat those separately from FP32
-split-K rows when evaluating absolute error summaries.
+random BF16 fake-quant reference. BF16-store paths, including standard ragged
+backward at ``split_k=1``, can differ by one ULP near rounding ties. Treat
+those separately from FP32 atomic split-K rows when evaluating absolute error
+summaries.
 
 Regenerate Benchmarks
 ---------------------

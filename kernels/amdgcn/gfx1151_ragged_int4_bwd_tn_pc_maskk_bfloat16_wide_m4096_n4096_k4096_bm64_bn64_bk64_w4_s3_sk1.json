@@ -1,0 +1,87 @@
+{
+  "amdgcn_stats": {
+    "iu4_wmma": 32,
+    "lines": 1887,
+    "waitcnt": 67
+  },
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1",
+  "arch": "gfx1151",
+  "asm_keys": [
+    "amdgcn",
+    "hsaco",
+    "llir",
+    "source",
+    "ttgir",
+    "ttir"
+  ],
+  "config": {
+    "block_k": 64,
+    "block_m": 64,
+    "block_n": 64,
+    "enable_even_k_fast_path": false,
+    "num_stages": 3,
+    "num_warps": 4,
+    "split_k": 1
+  },
+  "config_label": "BM64_BN64_BK64_W4_S3_SK1",
+  "family": "ragged_dot_int4",
+  "kernel_arg_layout": {
+    "by_value_arg_count": 3,
+    "by_value_offsets": [
+      48,
+      52,
+      56
+    ],
+    "hidden_global_buffer_offsets": [
+      64,
+      72
+    ],
+    "runtime_scalar_args": [
+      "M",
+      "N",
+      "K_PACKED"
+    ]
+  },
+  "kernel_id": "gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1",
+  "launch_metadata": {
+    "dynamic_grid": 1,
+    "grid_x": 0,
+    "grid_y": 0,
+    "num_ctas": 1,
+    "num_warps": 4,
+    "persistent": 0,
+    "shared_memory_bytes": 2048
+  },
+  "layout": "tn",
+  "mode": "bwd",
+  "output_dtype": "bfloat16",
+  "rhs_subchannel_scale_layout": null,
+  "runtime_constraints": {
+    "out_alignment_bytes": 16,
+    "required_n_multiple": 8
+  },
+  "runtime_shape_args": [
+    "M",
+    "N",
+    "K_PACKED"
+  ],
+  "scale": {
+    "mode": "per_channel",
+    "subchannel_size": null
+  },
+  "shape_specialization": {
+    "k": 4096,
+    "m": 4096,
+    "n": 4096
+  },
+  "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f",
+  "status": "generated",
+  "store_strategy": "wide",
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1.llir",
+    "source": "kernels/triton/gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1.py",
+    "ttgir": "kernels/triton/gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1.ttgir",
+    "ttir": "kernels/triton/gfx1151_ragged_int4_bwd_tn_pc_maskk_bfloat16_wide_m4096_n4096_k4096_bm64_bn64_bk64_w4_s3_sk1.ttir"
+  },
+  "variant": "maskk"
+}

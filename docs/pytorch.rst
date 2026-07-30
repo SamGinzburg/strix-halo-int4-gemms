@@ -294,9 +294,9 @@ a compact task list with ``group_id``, ``block_start``,
 ``actual_start``, ``actual_end``, ``start_within_block``, and ``actual_size``.
 The ragged kernel launches over those tasks, so empty groups and uneven group
 sizes do not expand into a rectangular ``max_group_size x G`` launch grid.
-Packaged ragged kernels receive logical ``N``, packed ``K``, scale-column
-count, and task count as generic runtime arguments without value/alignment
-specialization. The public forward JIT/fallback path instead specializes those
+Packaged forward ragged kernels receive logical ``N``, packed ``K``,
+scale-column count, and task count as generic runtime arguments without
+value/alignment specialization. The public forward JIT/fallback path instead specializes those
 runtime values and alignments for aligned-shape performance; a new shape may
 compile another JIT variant. ``RaggedDotConfig.group_size_tasks`` controls the
 1D L2 swizzle over compact row tasks and N tiles.
@@ -316,14 +316,30 @@ dense GEMM APIs.
 ``ragged_dot_int4_bwd(...)`` is the backward-style K-ragged companion. Each
 group computes ``out[g] = op(lhs[g]) @ op(rhs[g])`` with output shape
 ``(M, N)`` and reduction length ``group_sizes[g]``. Operands are padded to a
-common packed-K capacity. It uses packaged HSACO for the generated
-``BM64_BN256_BK64_W8_S3_SK1`` configs and falls back to JIT otherwise, unless
-``use_native=True`` is passed. With
-``RaggedBwdDotConfig.enable_even_k_fast_path`` enabled, the
-training-oriented fast path removes K masks when every non-empty group length
-is a multiple of ``BLOCK_K``; subchannel scales additionally require each
-non-empty group length to be a multiple of the subchannel size. Other shapes
-use the masked K-ragged path. Packaged backward artifacts store FP32 output.
+common even packed-K capacity. With ``config=None``, measured
+layout/scale/K-variant/output-specific tiles are selected. Even-K removes K
+masks at compile time; masked-K runs complete blocks unmasked and masks only
+the final partial/odd-nibble tail. With no ``out`` or ``output_dtype``,
+``split_k=1`` defaults to
+BF16 and ``split_k>1`` defaults to FP32. A supplied ``out`` infers its dtype;
+callers that maintain FP32 master gradients should explicitly request
+``output_dtype=torch.float32`` or supply an FP32 output. BF16 is rejected for
+``split_k>1`` because partial tiles require FP32 atomic accumulation. BF16
+rounds the FP32 accumulator once at the final store.
+
+Automatic BF16 dispatch uses shape-specialized JIT for generic shapes. It uses
+wide packaged native stores only for eligible 16-byte-aligned
+``M=N=k_capacity=4096`` NN/TN outputs. ``use_native=True`` also permits generic
+native artifacts, selecting paired stores for even, 4-byte-aligned N and scalar
+stores for odd or misaligned output; ``use_native=False`` pins JIT.
+
+Raw ``group_sizes`` is host-validating and not capture-safe. For graph replay,
+prepare an even-capacity ``RaggedBwdGroupInfo`` outside capture with
+``prepare_ragged_bwd_group_info(...)``, pass ``group_sizes=None``, preallocate
+``out``, warm the exact launch, and pin ``use_native`` to ``True`` or ``False``.
+Immutable preparation may use even-K. ``dynamic_group_sizes=True`` fixes
+masked-K and permits in-place contiguous-int32 updates within
+``[0, k_capacity]`` between replays.
 The grouped packed operand shapes are:
 
 * ``NN``: ``lhs[G, M, K / 2]`` and ``rhs[G, K / 2, N]``;
@@ -342,8 +358,9 @@ candidate ``RaggedDotConfig`` or
 best candidate plus all timing records. Forward group sizes must sum to
 ``M``. For backward autotuning, ``k`` is the logical total reduction work and
 ``group_sizes`` must sum to ``K``. Synthetic benchmark operands are padded to a
-per-group ``k_capacity``, which defaults to ``max(group_sizes)`` and can be
-overridden explicitly.
+per-group ``k_capacity``, which defaults to ``max(group_sizes)`` rounded up to
+even and can be overridden explicitly; odd overrides are also rounded up for
+packed int4 storage.
 
 .. code-block:: python
 

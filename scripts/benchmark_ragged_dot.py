@@ -156,6 +156,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--scale", type=parse_scale, action="append", default=[], help="scale mode: pc or sc<size>")
     parser.add_argument("--split-k", type=int, action="append", default=[], help="backward split-K value")
     parser.add_argument(
+        "--bwd-output-dtype",
+        choices=("auto", "bf16", "fp32"),
+        default="auto",
+        help="backward output dtype; auto uses bf16 for split-K 1 and fp32 otherwise",
+    )
+    parser.add_argument(
         "--config",
         type=parse_config,
         action="append",
@@ -251,6 +257,11 @@ def main(argv: list[str] | None = None) -> int:
     layouts = tuple(args.layout) if args.layout else tuple(GemmLayout)
     configs = tuple(args.config)
     split_ks = tuple(args.split_k) if args.split_k else (1, 2)
+    bwd_output_dtype = {
+        "auto": None,
+        "bf16": torch.bfloat16,
+        "fp32": torch.float32,
+    }[args.bwd_output_dtype]
 
     records: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
@@ -280,6 +291,7 @@ def main(argv: list[str] | None = None) -> int:
                                 candidates=candidate_list,
                                 warmup_ms=args.warmup_ms,
                                 rep_ms=args.rep_ms,
+                                output_dtype=bwd_output_dtype if mode_obj is RaggedDotMode.BWD else None,
                                 continue_on_error=True,
                             )
                         except Exception as exc:
@@ -291,6 +303,7 @@ def main(argv: list[str] | None = None) -> int:
                                 "case": case,
                                 "scale": scale.label,
                                 "configs": [candidate.config_label for candidate in candidate_list],
+                                "output_dtype": args.bwd_output_dtype,
                                 "error": repr(exc),
                             }
                             failures.append(failure)
@@ -315,6 +328,7 @@ def main(argv: list[str] | None = None) -> int:
                                     "case": case,
                                     "scale": scale.label,
                                     "config": row["metadata"]["config_label"],
+                                    "output_dtype": row["metadata"].get("output_dtype", args.bwd_output_dtype),
                                     "error": row["metadata"].get("error", "unknown error"),
                                 }
                                 failures.append(failure)
@@ -339,6 +353,7 @@ def main(argv: list[str] | None = None) -> int:
             "layouts": [layout.value for layout in layouts],
             "configs": [config.label for config in configs] if configs else ["default_ragged_dot_candidates"],
             "split_k": list(split_ks),
+            "bwd_output_dtype": args.bwd_output_dtype,
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

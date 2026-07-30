@@ -117,10 +117,11 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
-| `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
+| `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot with automatic tuned JIT/exact-native BF16 dispatch and explicit backend control. |
 | `ragged_dot_int4_bwd_accum(...)` | Dropless 64-row task-packed int4 weight-gradient accumulation with one fp32 or bf16 output per expert. |
 | `calculate_group_info(...)` | Build exact compact aligned row-block tasks from `group_sizes`. |
 | `prepare_ragged_group_info(...)` | Build fixed-capacity device-only row-block tasks for graph capture and projection reuse. |
+| `prepare_ragged_bwd_group_info(...)` | Prevalidate fixed-capacity backward group metadata for graph-safe replay. |
 | `ragged_group_info_capacity(...)` | Compute the static safe task bound used by graph-safe preparation. |
 | `autotune(...)` | Benchmark compatible packaged dense kernels for one shape. |
 | `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidate configs for one shape. |
@@ -402,17 +403,18 @@ replay. Warm the exact metadata and native-kernel configurations once before
 capture so Triton compilation and HSACO module loading occur outside the
 graph.
 
-Graph capture is supported by the forward API when it receives device-prepared
-``group_info``. Both backward APIs validate routing or task-range values on the
-host and must be invoked outside capture.
+Graph capture is supported by forward with device-prepared ``group_info`` and
+by standard backward with prevalidated ``RaggedBwdGroupInfo`` plus a pinned
+backend and preallocated output. Raw backward ``group_sizes`` and
+``ragged_dot_int4_bwd_accum(...)`` still validate values on the host and must
+run outside capture.
 
-Packaged ragged kernels take logical `N`, packed `K`, scale-column count, and
-task count as runtime arguments. They do not bake `M`, `N`, or `K` into the
-artifact or specialize on those values or their alignments. The same packaged
-ragged artifact therefore handles eligible runtime dimensions immediately
-below, exactly at, and immediately above its block sizes; edge predicates
-preserve correctness. Forward artifacts also keep the compact task count
-runtime. In contrast, the public forward Triton-JIT/fallback path uses normal
+Generic packaged ragged kernels take logical `N`, packed `K`, scale-column
+count, and task count as runtime arguments without baking in their values or
+alignments. They handle eligible runtime dimensions around block boundaries
+with edge predicates. Forward artifacts also keep compact task count runtime.
+The 20 wide-store backward artifacts are the documented exact-4096-capacity
+exception. In contrast, the public forward Triton-JIT/fallback path uses normal
 value and alignment specialization for aligned-shape performance, so a new
 runtime shape can compile another JIT variant. Per-mode fast-path eligibility
 and the specialized `bwd_accum` input contract still apply.
@@ -435,13 +437,30 @@ row or output-column axis.
 `ragged_dot_int4_bwd(...)` covers backward-style K-ragged reductions. Each
 group computes `out[g] = op(lhs[g]) @ op(rhs[g])` with output shape `(M, N)`
 and a group-specific reduction length `group_sizes[g]`. Operands are padded to
-a shared packed-K capacity. It also prefers packaged HSACO for generated
-configs and falls back to JIT unless `use_native=True`. With
-`RaggedBwdDotConfig.enable_even_k_fast_path` enabled, the training-oriented fast
-path removes K masks when every non-empty group length is a multiple of
-`BLOCK_K`; subchannel scales additionally require each non-empty group length
-to be a multiple of the subchannel size. Other shapes use the masked K-ragged
-path. Packaged backward artifacts use `SPLIT_K=1` and store FP32 outputs.
+a shared even packed-K capacity. With `config=None`, measured
+layout/scale/K-variant/output-specific tiles are selected. The even-K variant
+removes K masks at compile time; the masked-K variant runs complete blocks
+unmasked and masks only the final partial block and odd int4 nibble.
+
+With no `out` or `output_dtype`, `SPLIT_K=1` defaults to BF16; a supplied `out`
+infers its dtype, and callers that require FP32 master gradients can request
+`output_dtype=torch.float32` explicitly. `SPLIT_K>1` defaults to and requires
+FP32 because reduction uses FP32 atomics. BF16 rounds the FP32 accumulator once
+at the epilogue.
+
+Automatic BF16 dispatch uses shape-specialized JIT for generic shapes and
+capacities. It selects packaged wide-store native code only for eligible
+16-byte-aligned `M=N=K_capacity=4096` NN/TN outputs. Explicit
+`use_native=True` also permits generic native artifacts: even, 4-byte-aligned N
+uses paired stores and odd or misaligned output uses the scalar fallback.
+
+Raw `group_sizes` is host-validated and is not capture-safe. For CUDA/HIP graph
+capture, call `prepare_ragged_bwd_group_info(...)` before capture, pass
+`group_sizes=None` with the returned `group_info`, preallocate `out`, warm the
+exact launch, and pin `use_native=True` or `False`. The default immutable
+prepared path may select even-K; `dynamic_group_sizes=True` fixes masked-K and
+permits in-place int32 updates in `[0, k_capacity]` between replays. Prepared
+`k_capacity` must be even for packed int4 storage.
 Packed grouped operand shapes are:
 
 - `NN`: `lhs[G, M, K / 2]`, `rhs[G, K / 2, N]`
@@ -488,15 +507,15 @@ print(result.best_candidate.config_label, result.best_record.tops)
 For backward autotuning, `k` is the logical total reduction work and
 `group_sizes` partitions that K work across groups. Synthetic benchmark
 operands are padded to a per-group `k_capacity`, which defaults to
-`max(group_sizes)` and can be overridden explicitly. Ragged autotuning always
-passes `use_native=False`: its results describe JIT rather than packaged HSACO
-dispatch. Forward results include the shape-specialized JIT behavior described
-above.
+`max(group_sizes)` rounded up to an even packed-int4 capacity and can be
+overridden explicitly; odd overrides are rounded up too. Ragged autotuning
+always passes `use_native=False`: its results describe shape-specialized JIT
+rather than packaged HSACO dispatch.
 
 ## Kernel Coverage
 
 The checked-in matrix currently contains 2880 dense generated kernels plus
-82 ragged generated artifacts:
+182 ragged generated artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
@@ -511,10 +530,10 @@ layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
 `evenk` and `maskk` variants. The dataclass defaults are the packaged tile
 source of truth. The default packaged forward config is
 `BM64_BN256_BK64_GST1_W8_S3` and stores BF16. The default packaged backward
-config is `BM64_BN256_BK64_W8_S3_SK1` and stores FP32. Those combinations form
-an 80-artifact matrix. Two additional specialized `bwd_accum` artifacts cover
-TN/per-channel/even-K with `BM32_BN128_BK64_W4_S2_SK1`; the packaged variants
-store either FP32 or BF16 after accumulating each output tile in FP32.
+matrix contains 40 generic FP32 artifacts, 80 generic BF16 paired/scalar-store
+artifacts, and 20 exact 4096-capacity BF16 wide-store NN/TN artifacts. Together
+with 40 forward BF16 artifacts and two specialized `bwd_accum` FP32/BF16
+artifacts, this forms the 182-artifact ragged matrix.
 
 Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
 because their partial tiles are reduced with FP32 atomics.
@@ -564,9 +583,11 @@ difference, not a compiler regression.
 ### Ragged Dot Performance Snapshot
 
 The table below selects maximum TOPS for each mode/layout/scale from the
-4096x4096x4096 balanced-group rows in `benchmarks/ragged_dot_int4.json`. The
-fresh Triton `ec4a2c64` sweep used 25 ms warmup and 100 ms repetition windows
-and completed all 816 records with zero failures. It covers 3 runtime shapes,
+4096x4096x4096 balanced-group rows in `benchmarks/ragged_dot_int4.json`. These
+are JIT results for the automatic generic-shape path, not packaged-native
+timings. The fresh Triton `ec4a2c64` sweep used 25 ms warmup and 100 ms
+repetition windows and completed all 1,104 records with zero failures. It
+covers 3 runtime shapes,
 balanced/uneven group distributions, all four layouts,
 per-channel/subchannel-256 scales, forward M-ragged dot, and backward K-ragged
 split-K dot. Timings use 8 RHS groups, prepacked operands, BF16 scales,
@@ -574,48 +595,66 @@ preallocated outputs, and exclude quantization/packing.
 
 | Mode | Layout | Scale | Best config | Runtime | TOPS |
 | --- | --- | --- | --- | ---: | ---: |
-| fwd | NN | per-channel | `BM64_BN256_BK64_GST1_W8_S3` | 2.203 ms | 62.4 |
-| fwd | NN | subchannel-256 | `BM64_BN256_BK128_GST1_W8_S3` | 2.671 ms | 51.5 |
-| fwd | NT | per-channel | `BM64_BN256_BK128_GST1_W8_S3` | 4.024 ms | 34.2 |
-| fwd | NT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.069 ms | 33.8 |
-| fwd | TN | per-channel | `BM64_BN256_BK64_GST2_W8_S3` | 3.275 ms | 42.0 |
-| fwd | TN | subchannel-256 | `BM32_BN128_BK64_GST1_W4_S3` | 3.773 ms | 36.4 |
-| fwd | TT | per-channel | `BM64_BN128_BK64_GST2_W8_S3` | 5.275 ms | 26.1 |
-| fwd | TT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.672 ms | 29.4 |
-| bwd | NN | per-channel | `BM64_BN256_BK64_W8_S3_SK1` | 3.834 ms | 35.8 |
-| bwd | NN | subchannel-256 | `BM64_BN256_BK64_W8_S3_SK1` | 4.512 ms | 30.5 |
-| bwd | NT | per-channel | `BM64_BN256_BK64_W8_S3_SK1` | 3.695 ms | 37.2 |
-| bwd | NT | subchannel-256 | `BM64_BN128_BK64_W8_S3_SK1` | 4.265 ms | 32.2 |
-| bwd | TN | per-channel | `BM32_BN128_BK64_W4_S3_SK1` | 4.744 ms | 29.0 |
-| bwd | TN | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 5.453 ms | 25.2 |
-| bwd | TT | per-channel | `BM64_BN128_BK64_W8_S3_SK1` | 4.320 ms | 31.8 |
-| bwd | TT | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 5.134 ms | 26.8 |
+| fwd | NN | per-channel | `BM64_BN256_BK64_GST2_W8_S3` | 2.190327 ms | 62.748 |
+| fwd | NN | subchannel-256 | `BM64_BN256_BK128_GST1_W8_S3` | 2.683613 ms | 51.214 |
+| fwd | NT | per-channel | `BM64_BN256_BK128_GST1_W8_S3` | 4.072952 ms | 33.744 |
+| fwd | NT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.142994 ms | 33.174 |
+| fwd | TN | per-channel | `BM64_BN256_BK64_GST2_W8_S3` | 3.263838 ms | 42.110 |
+| fwd | TN | subchannel-256 | `BM32_BN128_BK64_GST1_W4_S3` | 4.059512 ms | 33.856 |
+| fwd | TT | per-channel | `BM64_BN128_BK64_GST1_W8_S3` | 5.337606 ms | 25.749 |
+| fwd | TT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.697210 ms | 29.260 |
+| bwd | NN | per-channel | `BM64_BN64_BK64_W4_S3_SK1` | 2.402290 ms | 57.212 |
+| bwd | NN | subchannel-256 | `BM64_BN64_BK64_W4_S3_SK1` | 2.704137 ms | 50.825 |
+| bwd | NT | per-channel | `BM128_BN64_BK64_W8_S3_SK1` | 2.252268 ms | 61.022 |
+| bwd | NT | subchannel-256 | `BM128_BN64_BK64_W8_S3_SK1` | 2.432567 ms | 56.500 |
+| bwd | TN | per-channel | `BM64_BN64_BK64_W4_S3_SK1` | 3.072168 ms | 44.737 |
+| bwd | TN | subchannel-256 | `BM64_BN64_BK64_W4_S3_SK1` | 3.456449 ms | 39.763 |
+| bwd | TT | per-channel | `BM64_BN64_BK64_W4_S3_SK1` | 2.725918 ms | 50.419 |
+| bwd | TT | subchannel-256 | `BM64_BN64_BK64_W4_S3_SK1` | 2.908761 ms | 47.250 |
 
-#### Backward output contract and scaling
+#### Backward output precision and scaling
 
-The standard ragged INT4 backward API materializes `G` independent FP32 `[M, N]` planes. At `M=N=K=4096`, `G=8`, that is 536,870,912 output bytes—16x the bytes in the forward BF16 `[M, N]` output. The hard lower bound here is the number of bytes required by the output contract; a standalone `out.zero_()` measurement of 2.256479 ms (237.924 GB/s) is a bandwidth reference, not a theoretical minimum or the full kernel runtime. For context, the complete-operation budgets at 60 and 55 TOPS are 2.290649 and 2.498890 ms, respectively.
+The standard API still materializes `G` independent `[M, N]` planes, but the
+default `SPLIT_K=1` path now stores BF16. At `M=N=K=4096`, `G=8`, BF16 writes
+268,435,456 bytes (8x one forward output), while an explicitly requested FP32
+result writes 536,870,912 bytes (16x). The earlier FP32 output-bandwidth
+analysis therefore applies only to explicit FP32 output and must not be used
+as a lower bound for the BF16 implementation.
 
-Fixed-work measurements with `BM64_BN256_BK64`, NN/PC, show the effect as the number of output planes grows:
+| Output path | Best config | Runtime | TOPS |
+|---|---|---:|---:|
+| Historical FP32 sweep | `BM64_BN256_BK64_W8_S3_SK1` | 3.834 ms | 35.8 |
+| Preceding BF16 sweep | `BM128_BN128_BK64_W8_S3_SK1` | 2.918216 ms | 47.096901 |
+| Current BF16 complete sweep | `BM64_BN64_BK64_W4_S3_SK1` | 2.402290 ms | 57.211641 |
 
-| Groups | Output bytes vs. forward | TOPS |
-|---:|---:|---:|
-| 1 | 2x | 49.722 |
-| 2 | 4x | 48.807 |
-| 4 | 8x | 44.639 |
-| 8 | 16x | 36.067 |
+The current NN/per-channel result is 21.5% above the immediately preceding
+BF16 row and 59.8% above the historical FP32 row. The TOPS numerator remains
+`2*M*N*K`, rather than scaling with `G`, because the group K extents sum to
+the fixed total K.
+Consumers that maintain FP32 master gradients should pass
+`output_dtype=torch.float32` (or supply an FP32 `out`); `SPLIT_K>1` always
+requires FP32 for atomic accumulation.
 
-The TOPS numerator remains `2*M*N*K`, rather than scaling with `G`, because the group K extents sum to the fixed total K. At `G=8`, changing `BK64` to `BK32` reached 36.327 TOPS, while larger `BM128/BN256` and `BM64/BN512` variants reached 31.754 and 32.304 TOPS. Under the current grouped FP32 output contract, these results indicate that tile and stage tuning alone is not a credible path to forward-like 55–60 TOPS; that range would require an algorithm or contract that reduces or fuses outputs, lowers output precision, or fuses the consumer. This conclusion does not apply to such alternative semantics.
+Compared with the immediately preceding 912-record BF16 table, backward gains
+are 21.5%/30.5% (NN per-channel/subchannel-256), 22.8%/17.5% (NT),
+20.5%/28.7% (TN), and 26.3%/34.0% (TT). These are JIT comparisons that include
+newly selected measured configs.
 
-An experimental reduced-output prototype demonstrates that distinction: it sums the group contributions into one FP32 `[M, N]` output, passed comparison with the PyTorch reference at `rtol=atol=1e-3`, and measured 60.092 TOPS with `BK32` (55.524 TOPS with `BK64`). Because it changes the standard backward result from `G` independent planes to one reduced plane, it is evidence about the bottleneck rather than a drop-in replacement.
+For backward records, benchmark `K=4096` is total reduction work across groups;
+the balanced case uses eight 512-element groups and a physical per-group
+`k_capacity=512`. That automatic generic-shape JIT case is distinct from the
+heavily padded exact `M=N=k_capacity=4096` native specialization:
 
-Compared with the preceding checked-in 816-record database, the largest
-forward changes are NT subchannel-256 (+10.3%), TN subchannel-256 (+10.0%), TN
-per-channel (+3.4%), NN subchannel-256 (+3.0%), and NT per-channel (+2.6%).
-Backward records are mostly within ±1%, with TT subchannel-256 at +2.7%. The
-older prose table's backward rows were out of sync with that database, so their
-larger visible changes are table corrections rather than compiler regressions.
-The measured deltas are JIT results, not generated-HSACO improvements; the
-packaged artifacts are byte-identical across the compiler update.
+| Exact native case | Generic native | Wide native | Gain |
+|---|---:|---:|---:|
+| NN per-channel | 43.3 | 54.3 | 25% |
+| NN subchannel-256 | 37.1 | 49.8 | 34% |
+| TN per-channel | 34.0 | 44.7 | 31% |
+| TN subchannel-256 | 30.7 | 39.7 | 29% |
+
+Automatic dispatch selects those wide-store artifacts only for eligible exact
+4096-capacity NN/TN launches with 16-byte-aligned output; it does not substitute
+these figures for the checked-in generic-shape JIT table.
 
 The checked-in records live in `benchmarks/ragged_dot_int4.json`. The benchmark
 script is a reporting wrapper around `autotune_ragged_dot(...)`; regenerate the
@@ -632,8 +671,8 @@ uv run --project "$TRITON_CHECKOUT" python scripts/benchmark_ragged_dot.py \
 The ragged benchmark records are timing records. Correctness for per-channel,
 subchannel, balanced, uneven, and empty-group cases is covered by
 `tests/test_ragged_dot.py` against grouped Torch references. Record metadata
-includes `uses_even_k_fast_path` and `masks_k` for separating aligned fast-path
-rows from fully masked ragged-K rows.
+includes `output_dtype`, `uses_even_k_fast_path`, and `masks_k` for separating
+BF16/FP32 output, aligned fast-path rows, and fully masked ragged-K rows.
 
 A separate 4096³ forward-NN comparison measured shape-specialized JIT at about
 62.7 TOPS for per-channel and 47.7 TOPS for subchannel-256, versus 41.5 and
@@ -658,8 +697,10 @@ uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --c
 
 `scripts/regenerate_amdgcn.py` regenerates the dense matrix.
 `scripts/generate_ragged_amdgcn.py` regenerates the ragged `.s` and `.json`
-artifact set, including FP32 and BF16 variants of the specialized `bwd_accum`
-artifact by default; `--mode bwd_accum` regenerates only those two jobs. Dense
+artifact set: 40 forward BF16; 40 generic backward FP32; 80 generic backward
+BF16 paired/scalar; 20 exact wide-store backward BF16; and two specialized
+`bwd_accum` variants. `--mode bwd_accum` regenerates only the two specialized
+FP32/BF16 jobs. Dense
 `--clean` deletes only
 `gfx1151_int4xint4_*` and `gfx1151_int8xint8_*` generated files, preserving
 ragged and mixed families in the shared artifact directories. Dense and ragged

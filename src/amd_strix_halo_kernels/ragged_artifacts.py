@@ -13,8 +13,20 @@ RAGGED_BWD_ACCUM = "bwd_accum"
 RAGGED_EVEN_K = "evenk"
 RAGGED_MASK_K = "maskk"
 RAGGED_VARIANTS = (RAGGED_EVEN_K, RAGGED_MASK_K)
+RAGGED_STORE_DEFAULT = "default"
+RAGGED_STORE_PAIRED = "paired"
+RAGGED_STORE_SCALAR = "scalar"
+RAGGED_STORE_WIDE = "wide"
+RAGGED_STORE_STRATEGIES = (
+    RAGGED_STORE_DEFAULT,
+    RAGGED_STORE_PAIRED,
+    RAGGED_STORE_SCALAR,
+    RAGGED_STORE_WIDE,
+)
 RAGGED_MATRIX_MODES = (RAGGED_FWD, RAGGED_BWD)
 RAGGED_MODES = (*RAGGED_MATRIX_MODES, RAGGED_BWD_ACCUM)
+RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES = ((4096, 4096, 4096),)
+RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS = (GemmLayout.NN, GemmLayout.TN)
 
 
 def ragged_config_label(config: Any) -> str:
@@ -32,16 +44,31 @@ def ragged_kernel_id(
     config: Any,
     variant: str,
     output_dtype: str | None = None,
+    store_strategy: str = RAGGED_STORE_DEFAULT,
+    shape_specialization: tuple[int, int, int] | None = None,
     arch: str = ARCH,
 ) -> str:
     if mode not in RAGGED_MODES:
         raise ValueError(f"ragged mode must be one of {RAGGED_MODES}; got {mode!r}")
     if variant not in RAGGED_VARIANTS:
         raise ValueError(f"ragged variant must be one of {RAGGED_VARIANTS}; got {variant!r}")
+    if store_strategy not in RAGGED_STORE_STRATEGIES:
+        raise ValueError(
+            f"ragged store strategy must be one of {RAGGED_STORE_STRATEGIES}; got {store_strategy!r}"
+        )
     dtype = output_dtype or (OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32)
+    store_suffix = "" if store_strategy == RAGGED_STORE_DEFAULT else f"_{store_strategy}"
+    shape_suffix = ""
+    if shape_specialization is not None:
+        if mode != RAGGED_BWD:
+            raise ValueError("shape-specialized ragged artifacts are supported for standard backward only")
+        m, n, k = shape_specialization
+        if min(m, n, k) <= 0 or k % 2 != 0:
+            raise ValueError("shape specialization requires positive M/N and positive even K")
+        shape_suffix = f"_m{m}_n{n}_k{k}"
     return (
         f"{arch}_ragged_int4_{mode}_{layout.value}_{scale.label.lower()}_"
-        f"{variant}_{dtype}_{ragged_config_label(config).lower()}"
+        f"{variant}_{dtype}{store_suffix}{shape_suffix}_{ragged_config_label(config).lower()}"
     )
 
 
@@ -59,6 +86,7 @@ def ragged_metadata_dict(
     config: Any,
     variant: str,
     output_dtype: str,
+    store_strategy: str,
     amdgcn_symbol: str,
     launch_metadata: dict[str, int],
     asm_keys: list[str],
@@ -66,8 +94,22 @@ def ragged_metadata_dict(
     source_triton_commit: str | None,
     amdgcn: str,
     kernel_arg_layout: dict[str, Any] | None = None,
+    shape_specialization: tuple[int, int, int] | None = None,
 ) -> dict[str, Any]:
-    if mode == RAGGED_FWD:
+    if shape_specialization is not None:
+        if mode != RAGGED_BWD:
+            raise ValueError("shape-specialized ragged metadata is supported for standard backward only")
+        actual_runtime_args = (
+            kernel_arg_layout.get("runtime_scalar_args")
+            if isinstance(kernel_arg_layout, dict)
+            else None
+        )
+        runtime_shape_args = (
+            list(actual_runtime_args)
+            if isinstance(actual_runtime_args, list)
+            else ["M", "N", "K_PACKED", "SCALE_COLS"]
+        )
+    elif mode == RAGGED_FWD:
         runtime_shape_args = ["M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS"]
     elif mode in {RAGGED_BWD, RAGGED_BWD_ACCUM}:
         runtime_shape_args = ["M", "N", "K_PACKED", "SCALE_COLS"]
@@ -88,7 +130,28 @@ def ragged_metadata_dict(
         "config_label": ragged_config_label(config),
         "variant": variant,
         "output_dtype": output_dtype,
-        "shape_specialization": "runtime",
+        "store_strategy": store_strategy,
+        "runtime_constraints": {
+            "required_n_multiple": (
+                8
+                if store_strategy == RAGGED_STORE_WIDE
+                else 2 if store_strategy == RAGGED_STORE_PAIRED else 1
+            ),
+            "out_alignment_bytes": (
+                16
+                if store_strategy == RAGGED_STORE_WIDE
+                else 4 if store_strategy == RAGGED_STORE_PAIRED else 1
+            ),
+        },
+        "shape_specialization": (
+            {
+                "m": shape_specialization[0],
+                "n": shape_specialization[1],
+                "k": shape_specialization[2],
+            }
+            if shape_specialization is not None
+            else "runtime"
+        ),
         "runtime_shape_args": runtime_shape_args,
         "asm_keys": asm_keys,
         "triton_artifacts": triton_artifacts,

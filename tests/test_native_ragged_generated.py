@@ -21,6 +21,8 @@ from amd_strix_halo_kernels.ragged import (
     RAGGED_BWD_ACCUM_CONFIG,
     RaggedBwdDotConfig,
     RaggedDotConfig,
+    default_ragged_bwd_config,
+    prepare_ragged_bwd_group_info,
     ragged_dot_int4,
     ragged_dot_int4_bwd,
     ragged_dot_int4_bwd_accum,
@@ -31,6 +33,7 @@ from amd_strix_halo_kernels.ragged_artifacts import (
     RAGGED_EVEN_K,
     RAGGED_FWD,
     RAGGED_MASK_K,
+    RAGGED_STORE_WIDE,
     RAGGED_VARIANTS,
     ragged_kernel_id,
 )
@@ -96,11 +99,15 @@ def native_runtime() -> tuple[Path, Path]:
     return root, library
 
 
-def _case_id(mode: str, case: tuple[GemmLayout, ScaleSpec, str]) -> str:
+def _case_id(
+    mode: str,
+    case: tuple[GemmLayout, ScaleSpec, str],
+    output_dtype: str | None = None,
+) -> str:
     layout, scale, variant = case
     base_config = RaggedDotConfig() if mode == RAGGED_FWD else RaggedBwdDotConfig()
     config = replace(base_config, enable_even_k_fast_path=variant == RAGGED_EVEN_K)
-    output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
+    output_dtype = output_dtype or (OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32)
     return ragged_kernel_id(
         mode=mode,
         layout=layout,
@@ -296,14 +303,25 @@ def test_all_native_ragged_forward_artifacts_match_cpu_reference(
 
 @pytest.mark.parametrize("case", RAGGED_BWD_CASES, ids=lambda case: _case_id(RAGGED_BWD, case))
 @pytest.mark.parametrize("shape_offset", RUNTIME_SHAPE_OFFSETS, ids=("subtile", "exact", "tail"))
+@pytest.mark.parametrize(
+    "output_dtype",
+    [torch.float32, torch.bfloat16],
+    ids=("fp32", "bf16"),
+)
 def test_all_native_ragged_backward_artifacts_match_cpu_reference(
     case,
     shape_offset,
+    output_dtype,
     native_runtime,
 ) -> None:
     layout, scale, variant = case
     native_root, library = native_runtime
-    config = replace(RaggedBwdDotConfig(), enable_even_k_fast_path=variant == RAGGED_EVEN_K)
+    config = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale,
+        variant=variant,
+        output_dtype="bfloat16" if output_dtype == torch.bfloat16 else "float32",
+    )
     groups, rows, cols = 3, config.block_m + shape_offset, config.block_n + shape_offset
     contraction = _scale_aligned_contraction(scale)
     group_sizes = (
@@ -334,16 +352,241 @@ def test_all_native_ragged_backward_artifacts_match_cpu_reference(
         a_scale=a_scale.to("cuda"),
         b_scale=b_scale.to("cuda"),
         scale=scale,
-        config=config,
+        config=None if output_dtype == torch.bfloat16 else config,
         layout=layout,
+        output_dtype=output_dtype,
         use_native=True,
         native_root=str(native_root),
         native_library_path=str(library),
     )
     torch.cuda.synchronize()
 
-    assert actual.dtype == torch.float32
-    torch.testing.assert_close(actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    assert actual.dtype == output_dtype
+    if output_dtype == torch.bfloat16:
+        fp32_config = default_ragged_bwd_config(
+            layout=layout,
+            scale=scale,
+            variant=variant,
+            output_dtype="float32",
+        )
+        fp32_actual = ragged_dot_int4_bwd(
+            lhs.to("cuda"),
+            rhs.to("cuda"),
+            group_sizes.to("cuda"),
+            a_scale=a_scale.to("cuda"),
+            b_scale=b_scale.to("cuda"),
+            scale=scale,
+            config=fp32_config,
+            layout=layout,
+            output_dtype=torch.float32,
+            use_native=True,
+            native_root=str(native_root),
+            native_library_path=str(library),
+        )
+        torch.cuda.synchronize()
+        assert torch.equal(actual, fp32_actual.to(torch.bfloat16))
+        torch.testing.assert_close(fp32_actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    else:
+        torch.testing.assert_close(actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+
+
+@pytest.mark.parametrize("layout", list(GemmLayout))
+@pytest.mark.parametrize(
+    "scale",
+    [ScaleSpec(ScaleMode.PER_CHANNEL), ScaleSpec(ScaleMode.SUBCHANNEL, 256)],
+)
+def test_native_prepared_ragged_backward_cudagraph_replays_dynamic_groups(
+    layout,
+    scale,
+    native_runtime,
+) -> None:
+    native_root, library = native_runtime
+    config = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale,
+        variant=RAGGED_MASK_K,
+        output_dtype="bfloat16",
+    )
+    groups, rows, cols = 3, config.block_m, config.block_n
+    contraction = _scale_aligned_contraction(scale)
+    generator = torch.Generator().manual_seed(
+        _stable_seed(f"native-bwd-cudagraph-{layout.value}-{scale.label}")
+    )
+    a_q = torch.randint(-4, 5, (groups, rows, contraction), generator=generator, dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, contraction, cols), generator=generator, dtype=torch.int8)
+    lhs_cpu, rhs_cpu = _pack_backward_args(a_q, b_q, layout)
+    a_scale_cpu, b_scale_cpu = _backward_scales(
+        scale,
+        groups=groups,
+        rows=rows,
+        cols=cols,
+        contraction=contraction,
+    )
+    lhs = lhs_cpu.to("cuda")
+    rhs = rhs_cpu.to("cuda")
+    a_scale = a_scale_cpu.to("cuda")
+    b_scale = b_scale_cpu.to("cuda")
+    group_sizes = torch.tensor(
+        [contraction - 1, 0, max(1, contraction - 3)],
+        device="cuda",
+        dtype=torch.int32,
+    )
+    group_info = prepare_ragged_bwd_group_info(
+        group_sizes,
+        k_capacity=contraction,
+        scale=scale,
+        config=config,
+        dynamic_group_sizes=True,
+    )
+    out = torch.empty((groups, rows, cols), device="cuda", dtype=torch.bfloat16)
+
+    def run():
+        return ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            None,
+            group_info=group_info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale,
+            config=config,
+            layout=layout,
+            out=out,
+            use_native=True,
+            native_root=str(native_root),
+            native_library_path=str(library),
+        )
+
+    assert run() is out
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = run()
+    assert captured is out
+
+    replay_cases = (
+        [contraction - 1, 0, max(1, contraction - 3)],
+        [1, contraction // 2, contraction - 1],
+    )
+    for replay_sizes in replay_cases:
+        group_sizes.copy_(torch.tensor(replay_sizes, device="cuda", dtype=torch.int32))
+        graph.replay()
+        torch.cuda.synchronize()
+        expected = _backward_reference(
+            a_q,
+            b_q,
+            torch.tensor(replay_sizes, dtype=torch.int32),
+            a_scale_cpu,
+            b_scale_cpu,
+            scale,
+        ).to(torch.bfloat16)
+        torch.testing.assert_close(
+            captured.cpu(),
+            expected,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
+
+
+def test_native_specialized_ragged_backward_cudagraph_matches_jit(native_runtime) -> None:
+    native_root, library = native_runtime
+    layout = GemmLayout.NN
+    scale = ScaleSpec(ScaleMode.PER_CHANNEL)
+    config = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale,
+        variant=RAGGED_MASK_K,
+        output_dtype="bfloat16",
+    )
+    groups = 1
+    rows = cols = contraction = 4096
+    specialized_kernel_id = ragged_kernel_id(
+        mode=RAGGED_BWD,
+        layout=layout,
+        scale=scale,
+        config=config,
+        variant=RAGGED_MASK_K,
+        output_dtype=OUTPUT_DTYPE_BF16,
+        store_strategy=RAGGED_STORE_WIDE,
+        shape_specialization=(rows, cols, contraction),
+    )
+    assert (native_root / "kernels" / "hsaco" / f"{specialized_kernel_id}.hsaco").exists()
+
+    generator = torch.Generator(device="cuda").manual_seed(
+        _stable_seed("native-specialized-bwd-cudagraph")
+    )
+    a_q = torch.randint(
+        -4,
+        5,
+        (groups, rows, contraction),
+        generator=generator,
+        device="cuda",
+        dtype=torch.int8,
+    )
+    b_q = torch.randint(
+        -4,
+        5,
+        (groups, contraction, cols),
+        generator=generator,
+        device="cuda",
+        dtype=torch.int8,
+    )
+    lhs, rhs = _pack_backward_args(a_q, b_q, layout)
+    a_scale = torch.full((groups, rows), SCALE_LOW, device="cuda", dtype=torch.bfloat16)
+    b_scale = torch.full((groups, cols), SCALE_HIGH, device="cuda", dtype=torch.bfloat16)
+    group_sizes = torch.tensor([63], device="cuda", dtype=torch.int32)
+    group_info = prepare_ragged_bwd_group_info(
+        group_sizes,
+        k_capacity=contraction,
+        scale=scale,
+        config=config,
+        dynamic_group_sizes=True,
+    )
+    out = torch.empty((groups, rows, cols), device="cuda", dtype=torch.bfloat16)
+
+    def run_native():
+        return ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            None,
+            group_info=group_info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale,
+            config=None,
+            layout=layout,
+            out=out,
+            use_native=True,
+            native_root=str(native_root),
+            native_library_path=str(library),
+        )
+
+    run_native()
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = run_native()
+    assert captured is out
+
+    for replay_size in (63, 128):
+        group_sizes.fill_(replay_size)
+        graph.replay()
+        torch.cuda.synchronize()
+        expected = ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            None,
+            group_info=group_info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale,
+            config=None,
+            layout=layout,
+            out=torch.empty_like(out),
+            use_native=False,
+        )
+        torch.cuda.synchronize()
+        torch.testing.assert_close(captured, expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
 
 
 @pytest.mark.parametrize("range_dtype", [torch.int32, torch.int64])

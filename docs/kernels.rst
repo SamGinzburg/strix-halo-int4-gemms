@@ -4,7 +4,7 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2880 dense generated kernels plus 82
+The checked-in native matrix contains 2880 dense generated kernels plus 182
 ragged generated artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
@@ -21,8 +21,10 @@ The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
 ``RaggedDotConfig()`` and ``RaggedBwdDotConfig()`` are the packaged tile
 source of truth. The packaged forward config is
 ``BM64_BN256_BK64_GST1_W8_S3`` and stores BF16. The packaged backward config
-is ``BM64_BN256_BK64_W8_S3_SK1`` and stores FP32.
-Those combinations account for 80 artifacts. Two additional specialized
+is selected per layout, scale, K variant, and output dtype. The matrix contains
+40 forward BF16 artifacts and 140 standard backward artifacts: 40 generic
+FP32, 80 generic BF16 paired/scalar-store, and 20 exact 4096-capacity BF16
+wide-store NN/TN artifacts. Two additional specialized
 ``bwd_accum`` artifacts cover TN, per-channel scaling, and even K with
 ``BM32_BN128_BK64_W4_S2_SK1``. Both accumulate in FP32 registers; one stores
 FP32 and the other stores BF16.
@@ -145,9 +147,15 @@ Ragged artifact families are generated separately from the dense registry:
    * - backward K-ragged
      - ``NN``, ``NT``, ``TN``, ``TT``
      - per-channel, subchannel ``32/64/128/256``
-     - ``BM64_BN256_BK64_W8_S3_SK1``
+     - measured per layout/scale/variant/output key
      - ``evenk``, ``maskk``
-     - FP32
+     - generic FP32; generic BF16 paired/scalar
+   * - backward exact wide-store
+     - ``NN``, ``TN``
+     - per-channel, subchannel ``32/64/128/256``
+     - measured BF16 ``split_k=1`` config
+     - ``evenk``, ``maskk``
+     - BF16, exact ``M=N=k_capacity=4096``
    * - backward task accumulation
      - ``TN``
      - per-channel
@@ -162,20 +170,27 @@ Generated artifacts are runtime-shape launchable. ``M``, ``N``, and ``K`` are
 kernel arguments; the metadata ``generation_shape`` is the representative shape
 used to compile and preserve IR.
 
-All 82 packaged ragged artifacts prevent specialization by both value and
-alignment for M, N, packed K, and scale-column runtime scalars. Forward
-artifacts do the same for the compact task count. Consequently, a single
-packaged ragged HSACO remains valid immediately below, exactly at, and
-immediately above its block sizes. Row and column predicates, plus K predicates
-in masked-K artifacts, cover edge tiles. Even-K artifacts and the specialized
-task-accumulation artifact retain their documented mode-specific eligibility
-and input contracts.
+The 162 generic ragged artifacts keep M, N, packed K, and scale-column values
+runtime; forward artifacts do the same for compact task count. The other 20
+standard-backward BF16 artifacts are shape-specialized to
+``M=N=k_capacity=4096`` for wide output stores. Row and column predicates cover
+generic edge tiles. Even-K removes K masks at compile time; masked-K executes
+full blocks unmasked and masks only the final partial block and odd nibble.
 
 This generic contract applies to generated/package-native ragged artifacts.
 The public forward JIT/fallback path uses Triton's normal value and alignment
 specialization to recover aligned-shape throughput, and can compile a new
 variant when runtime dimensions change. Ragged autotuning explicitly forces
 that JIT path with ``use_native=False``.
+
+Standard backward BF16 output is available only with ``split_k=1`` and rounds
+the FP32 register accumulator once at the epilogue. Generic native dispatch
+uses paired stores for even, 4-byte-aligned N and scalar stores otherwise.
+Eligible exact 4096-capacity NN/TN outputs use 16-byte-aligned wide stores.
+Automatic generic BF16 dispatch prefers shape-specialized JIT; explicit
+``use_native=True`` permits the generic native artifacts. Explicit FP32 is
+supported at ``split_k=1`` and remains mandatory for ``split_k>1``, where
+partial tiles are reduced with FP32 atomics.
 
 The native fast path is tile-specialized. Runtime logical shapes must satisfy
 the tile values of the selected ``KernelMetadata``:

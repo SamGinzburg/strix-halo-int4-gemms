@@ -22,6 +22,7 @@ from amd_strix_halo_kernels import (
     OperandDType,
     RaggedDotMode,
     ScaleMode,
+    default_ragged_bwd_config,
     default_ragged_dot_candidates,
     ragged_dot_int4,
     ragged_dot_int4_bwd,
@@ -79,6 +80,15 @@ def test_ragged_dot_int4_rejects_string_layout() -> None:
 def test_ragged_dot_int4_bwd_rejects_string_layout() -> None:
     with pytest.raises(TypeError, match="layout must be a GemmLayout"):
         ragged_dot_int4_bwd(None, None, None, layout="nn")
+
+
+def test_default_ragged_bwd_config_rejects_string_layout() -> None:
+    with pytest.raises(TypeError, match="layout must be a GemmLayout"):
+        default_ragged_bwd_config(
+            layout="nn",
+            scale=pkg.ScaleSpec(pkg.ScaleMode.PER_CHANNEL),
+            variant="evenk",
+        )
 
 
 def test_autotune_ragged_dot_rejects_string_mode() -> None:

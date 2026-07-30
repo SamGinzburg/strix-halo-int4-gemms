@@ -7,7 +7,7 @@
 amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3:                                 ; @amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3
 .Lfunc_begin0:
 	.file	1 "<repo>/src/amd_strix_halo_kernels" "ragged.py"
-	.loc	1 544 0                         ; ragged.py:544:0
+	.loc	1 652 0                         ; ragged.py:652:0
 	.cfi_sections .debug_frame
 	.cfi_startproc
 ; %bb.0:
@@ -15,7 +15,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_load_b32 s33, s[0:1], 0x4c
 	s_load_b64 s[34:35], s[0:1], 0x54
 .Ltmp0:
-	.loc	1 572 25 prologue_end           ; ragged.py:572:25
+	.loc	1 680 25 prologue_end           ; ragged.py:680:25
 	s_abs_i32 s7, s2
 	s_load_b256 s[20:27], s[0:1], 0x28
 	v_dual_mov_b32 v96, 0 :: v_dual_mov_b32 v11, 0
@@ -29,11 +29,11 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mov_b32_e32 v44, 0
 .Ltmp1:
 	.file	2 "<triton>/python/triton/language" "standard.py"
-	.loc	2 43 13                         ; standard.py:43:13 @[ ragged.py:570:21 ]
+	.loc	2 43 13                         ; standard.py:43:13 @[ ragged.py:678:21 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s3, s33, 0xff
 	v_dual_mov_b32 v45, 0 :: v_dual_mov_b32 v46, 0
-	.loc	2 43 12 is_stmt 0               ; standard.py:43:12 @[ ragged.py:570:21 ]
+	.loc	2 43 12 is_stmt 0               ; standard.py:43:12 @[ ragged.py:678:21 ]
 	s_ashr_i32 s4, s3, 31
 	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v48, 0
 	s_lshr_b32 s4, s4, 24
@@ -43,7 +43,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_ashr_i32 s3, s3, 8
 	v_dual_mov_b32 v53, 0 :: v_dual_mov_b32 v54, 0
 .Ltmp2:
-	.loc	1 572 25 is_stmt 1              ; ragged.py:572:25
+	.loc	1 680 25 is_stmt 1              ; ragged.py:680:25
 	s_abs_i32 s4, s3
 	v_dual_mov_b32 v55, 0 :: v_dual_mov_b32 v56, 0
 	s_cvt_f32_u32 s5, s4
@@ -92,15 +92,15 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_xor_b32 s4, s4, s6
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
 	s_sub_i32 s4, s4, s6
-	.loc	1 574 33                        ; ragged.py:574:33
+	.loc	1 682 33                        ; ragged.py:682:33
 	s_sub_i32 s5, s35, s4
-	.loc	1 575 24                        ; ragged.py:575:24
+	.loc	1 683 24                        ; ragged.py:683:24
 	s_mul_i32 s3, s4, s3
-	.loc	1 574 22                        ; ragged.py:574:22
+	.loc	1 682 22                        ; ragged.py:682:22
 	s_min_i32 s5, s5, 1
-	.loc	1 575 24                        ; ragged.py:575:24
+	.loc	1 683 24                        ; ragged.py:683:24
 	s_sub_i32 s2, s2, s3
-	.loc	1 577 17                        ; ragged.py:577:17
+	.loc	1 685 17                        ; ragged.py:685:17
 	s_abs_i32 s6, s5
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_1) | instid1(SALU_CYCLE_2)
 	s_cvt_f32_u32 s7, s6
@@ -108,9 +108,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_rcp_iflag_f32_e32 v1, s7
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_3)
 	v_readfirstlane_b32 s7, v1
-	.loc	1 583 32                        ; ragged.py:583:32
+	.loc	1 691 32                        ; ragged.py:691:32
 	v_and_b32_e32 v1, 15, v0
-	.loc	1 577 17                        ; ragged.py:577:17
+	.loc	1 685 17                        ; ragged.py:685:17
 	s_mul_f32 s7, s7, 0x4f7ffffe
 	s_cvt_u32_f32 s7, s7
 	s_delay_alu instid0(SALU_CYCLE_3) | instskip(NEXT) | instid1(SALU_CYCLE_1)
@@ -136,40 +136,40 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_xor_b32 s3, s3, s7
 	s_sub_i32 s6, s3, s7
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
-	.loc	1 576 34                        ; ragged.py:576:34
+	.loc	1 684 34                        ; ragged.py:684:34
 	s_mul_i32 s3, s6, s5
 	s_sub_i32 s2, s2, s3
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
-	.loc	1 576 20 is_stmt 0              ; ragged.py:576:20
+	.loc	1 684 20 is_stmt 0              ; ragged.py:684:20
 	s_add_i32 s2, s2, s4
-	.loc	1 579 20 is_stmt 1              ; ragged.py:579:20
+	.loc	1 687 20 is_stmt 1              ; ragged.py:687:20
 	s_ashr_i32 s3, s2, 31
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
-	.loc	1 580 23                        ; ragged.py:580:23
+	.loc	1 688 23                        ; ragged.py:688:23
 	s_lshl_b64 s[28:29], s[2:3], 3
 	s_add_u32 s2, s20, s28
 	s_addc_u32 s3, s21, s29
 	s_load_b64 s[10:11], s[2:3], 0x0
-	.loc	1 581 24                        ; ragged.py:581:24
+	.loc	1 689 24                        ; ragged.py:689:24
 	s_add_u32 s2, s22, s28
 	s_addc_u32 s3, s23, s29
-	.loc	1 582 22                        ; ragged.py:582:22
+	.loc	1 690 22                        ; ragged.py:690:22
 	s_add_u32 s4, s24, s28
 	s_addc_u32 s5, s25, s29
-	.loc	1 581 24                        ; ragged.py:581:24
+	.loc	1 689 24                        ; ragged.py:689:24
 	s_load_b64 s[12:13], s[2:3], 0x0
-	.loc	1 582 22                        ; ragged.py:582:22
+	.loc	1 690 22                        ; ragged.py:690:22
 	s_load_b64 s[14:15], s[4:5], 0x0
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	s_lshl_b32 s24, s6, 8
-	.loc	1 583 18                        ; ragged.py:583:18
+	.loc	1 691 18                        ; ragged.py:691:18
 	s_waitcnt lgkmcnt(0)
 	v_add_co_u32 v2, s2, s10, v1
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_3)
 	v_add_co_ci_u32_e64 v3, null, s11, 0, s2
-	.loc	1 664 25                        ; ragged.py:664:25
+	.loc	1 772 25                        ; ragged.py:772:25
 	v_add_nc_u32_e32 v73, s10, v1
-	.loc	1 583 18                        ; ragged.py:583:18
+	.loc	1 691 18                        ; ragged.py:691:18
 	v_add_co_u32 v4, vcc_lo, v2, 16
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
 	v_add_co_ci_u32_e64 v5, null, 0, v3, vcc_lo
@@ -178,28 +178,28 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_add_co_u32 v8, vcc_lo, v2, 48
 	s_delay_alu instid0(VALU_DEP_1)
 	v_add_co_ci_u32_e64 v9, null, 0, v3, vcc_lo
-	.loc	1 585 21                        ; ragged.py:585:21
+	.loc	1 693 21                        ; ragged.py:693:21
 	v_cmp_le_i64_e32 vcc_lo, s[12:13], v[2:3]
-	.loc	1 585 48 is_stmt 0              ; ragged.py:585:48
+	.loc	1 693 48 is_stmt 0              ; ragged.py:693:48
 	v_cmp_gt_i64_e64 s2, s[14:15], v[2:3]
-	.loc	1 585 21                        ; ragged.py:585:21
+	.loc	1 693 21                        ; ragged.py:693:21
 	v_cmp_le_i64_e64 s3, s[12:13], v[4:5]
 	v_cmp_le_i64_e64 s5, s[12:13], v[6:7]
 	v_cmp_le_i64_e64 s6, s[12:13], v[8:9]
-	.loc	1 585 48                        ; ragged.py:585:48
+	.loc	1 693 48                        ; ragged.py:693:48
 	v_cmp_gt_i64_e64 s7, s[14:15], v[4:5]
 	v_cmp_gt_i64_e64 s8, s[14:15], v[6:7]
 	v_cmp_gt_i64_e64 s9, s[14:15], v[8:9]
-	.loc	1 664 25 is_stmt 1              ; ragged.py:664:25
+	.loc	1 772 25 is_stmt 1              ; ragged.py:772:25
 	v_add_nc_u32_e32 v75, 16, v73
 	v_add_nc_u32_e32 v77, 32, v73
 	v_add_nc_u32_e32 v78, 48, v73
-	.loc	1 585 20                        ; ragged.py:585:20
+	.loc	1 693 20                        ; ragged.py:693:20
 	s_and_b32 s4, vcc_lo, s2
 	s_and_b32 s3, s3, s7
 	s_and_b32 s2, s5, s8
 	s_and_b32 vcc_lo, s6, s9
-	.loc	1 634 19                        ; ragged.py:634:19
+	.loc	1 742 19                        ; ragged.py:742:19
 	s_cmp_lt_i32 s34, 1
 	s_mov_b32 s8, 0
 	s_cbranch_scc1 .LBB0_3
@@ -210,11 +210,11 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_load_b32 s7, s[0:1], 0x50
 	s_load_b32 s6, s[0:1], 0x48
 	s_load_b256 s[16:23], s[0:1], 0x0
-	.loc	1 583 18 is_stmt 1              ; ragged.py:583:18
+	.loc	1 691 18 is_stmt 1              ; ragged.py:691:18
 	v_dual_mov_b32 v72, 0 :: v_dual_and_b32 v3, 63, v0
 	v_dual_mov_b32 v96, 0 :: v_dual_add_nc_u32 v103, 0, v1
 	v_dual_mov_b32 v92, 0 :: v_dual_lshlrev_b32 v11, 5, v0
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v9, s24, v0
 	v_lshrrev_b32_e32 v10, 1, v0
 	v_dual_mov_b32 v97, 0 :: v_dual_lshlrev_b32 v12, 2, v89
@@ -222,23 +222,23 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_dual_mov_b32 v93, 0 :: v_dual_lshlrev_b32 v14, 1, v89
 	s_delay_alu instid0(VALU_DEP_2)
 	v_dual_mov_b32 v88, 0 :: v_dual_and_b32 v13, 28, v13
-	.loc	1 579 20                        ; ragged.py:579:20
+	.loc	1 687 20                        ; ragged.py:687:20
 	s_waitcnt lgkmcnt(0)
 	s_add_u32 s0, s36, s28
 	s_addc_u32 s1, s37, s29
-	.loc	1 647 39                        ; ragged.py:647:39
+	.loc	1 755 39                        ; ragged.py:755:39
 	s_mul_i32 s7, s7, s33
-	.loc	1 671 25                        ; ragged.py:671:25
+	.loc	1 779 25                        ; ragged.py:779:25
 	s_load_b32 s9, s[0:1], 0x0
-	.loc	1 583 18                        ; ragged.py:583:18
+	.loc	1 691 18                        ; ragged.py:691:18
 	v_add_co_u32 v1, s0, s10, v3
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
 	v_add_co_ci_u32_e64 v2, null, s11, 0, s0
 	v_dual_mov_b32 v74, 0 :: v_dual_add_nc_u32 v119, 0, v14
 	v_mov_b32_e32 v95, 0
-	.loc	1 585 21                        ; ragged.py:585:21
+	.loc	1 693 21                        ; ragged.py:693:21
 	v_cmp_le_i64_e64 s1, s[12:13], v[1:2]
-	.loc	1 585 48 is_stmt 0              ; ragged.py:585:48
+	.loc	1 693 48 is_stmt 0              ; ragged.py:693:48
 	v_cmp_gt_i64_e64 s5, s[14:15], v[1:2]
 	v_and_b32_e32 v2, 32, v11
 	v_dual_mov_b32 v90, 0 :: v_dual_and_b32 v1, 0x70, v10
@@ -249,17 +249,17 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_or_b32_e32 v6, 0x700, v0
 	v_or_b32_e32 v7, 0xb00, v0
 	v_or_b32_e32 v8, 0xf00, v0
-	.loc	1 631 28 is_stmt 1              ; ragged.py:631:28
+	.loc	1 739 28 is_stmt 1              ; ragged.py:739:28
 	v_lshrrev_b32_e32 v98, 6, v0
 	s_waitcnt lgkmcnt(0)
 	v_mad_u64_u32 v[10:11], null, s7, s9, v[9:10]
 	v_dual_mov_b32 v81, 0 :: v_dual_add_nc_u32 v118, v2, v13
-	.loc	1 664 25                        ; ragged.py:664:25
+	.loc	1 772 25                        ; ragged.py:772:25
 	v_mul_lo_u32 v99, v73, s34
 	v_mul_lo_u32 v100, v75, s34
 	v_mul_lo_u32 v101, v77, s34
 	v_mul_lo_u32 v102, v78, s34
-	.loc	1 634 19                        ; ragged.py:634:19
+	.loc	1 742 19                        ; ragged.py:742:19
 	v_mad_u64_u32 v[13:14], null, s33, 3, v[10:11]
 	v_mad_u64_u32 v[14:15], null, s33, 5, v[10:11]
 	v_mad_u64_u32 v[15:16], null, s33, 6, v[10:11]
@@ -271,9 +271,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mad_u64_u32 v[21:22], null, s33, 13, v[10:11]
 	v_mad_u64_u32 v[22:23], null, s33, 14, v[10:11]
 	v_mad_u64_u32 v[23:24], null, s33, 15, v[10:11]
-	.loc	1 585 20                        ; ragged.py:585:20
+	.loc	1 693 20                        ; ragged.py:693:20
 	s_and_b32 s1, s1, s5
-	.loc	1 671 25                        ; ragged.py:671:25
+	.loc	1 779 25                        ; ragged.py:779:25
 	s_mul_i32 s5, s34, s9
 	v_dual_mov_b32 v91, 0 :: v_dual_add_nc_u32 v12, s10, v3
 	s_mov_b32 s9, s8
@@ -290,14 +290,14 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_dual_mov_b32 v83, 0 :: v_dual_add_nc_u32 v116, 0, v8
 	v_dual_mov_b32 v76, 0 :: v_dual_add_nc_u32 v117, v103, v1
 	v_dual_mov_b32 v1, s8 :: v_dual_mov_b32 v6, s13
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s0, s33, v9
-	.loc	1 631 28                        ; ragged.py:631:28
+	.loc	1 739 28                        ; ragged.py:739:28
 	v_or_b32_e32 v104, 4, v98
 	v_or_b32_e32 v105, 8, v98
 	v_or_b32_e32 v106, 12, v98
 	v_dual_mov_b32 v86, 0 :: v_dual_add_nc_u32 v107, s33, v10
-	.loc	1 634 19                        ; ragged.py:634:19
+	.loc	1 742 19                        ; ragged.py:742:19
 	v_lshl_add_u32 v108, s33, 1, v10
 	v_lshl_add_u32 v109, s33, 2, v10
 	v_lshl_add_u32 v110, s33, 3, v10
@@ -339,9 +339,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_mov_b32 s18, s30
 	s_mov_b32 s19, s31
 .LBB0_2:                                ; =>This Inner Loop Header: Depth=1
-	.loc	1 636 28                        ; ragged.py:636:28
+	.loc	1 744 28                        ; ragged.py:744:28
 	s_lshl_b32 s7, s8, 4
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	s_mov_b32 s38, s30
 	v_or_b32_e32 v24, s7, v98
 	v_or_b32_e32 v26, s7, v104
@@ -360,7 +360,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cndmask_b32_e64 v26, 0x80000000, v26, s1
 	v_add_nc_u32_e32 v121, s9, v108
 	v_cndmask_b32_e64 v27, 0x80000000, v27, s1
-	.loc	1 648 34                        ; ragged.py:648:34
+	.loc	1 756 34                        ; ragged.py:756:34
 	s_clause 0x3
 	buffer_load_u8 v24, v24, s[16:19], 0 offen
 	buffer_load_u8 v25, v25, s[16:19], 0 offen
@@ -395,7 +395,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cndmask_b32_e64 v131, 0x80000000, v132, s0
 	v_cndmask_b32_e64 v132, 0x80000000, v133, s0
 	v_cndmask_b32_e64 v133, 0x80000000, v134, s0
-	.loc	1 649 34                        ; ragged.py:649:34
+	.loc	1 757 34                        ; ragged.py:757:34
 	s_clause 0xf
 	buffer_load_u8 v146, v28, s[28:31], 0 offen
 	buffer_load_u8 v147, v29, s[28:31], 0 offen
@@ -413,19 +413,19 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	buffer_load_u8 v131, v131, s[28:31], 0 offen
 	buffer_load_u8 v152, v132, s[28:31], 0 offen
 	buffer_load_u8 v153, v133, s[28:31], 0 offen
-	.loc	1 648 34                        ; ragged.py:648:34
+	.loc	1 756 34                        ; ragged.py:756:34
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 671 25                        ; ragged.py:671:25
+	.loc	1 779 25                        ; ragged.py:779:25
 	s_add_i32 s7, s8, s5
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	s_mov_b32 s39, s31
-	.loc	1 671 25                        ; ragged.py:671:25
+	.loc	1 779 25                        ; ragged.py:779:25
 	s_mul_i32 s7, s7, s33
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	s_mov_b32 s22, s30
 	s_mov_b32 s23, s31
-	.loc	1 648 34                        ; ragged.py:648:34
+	.loc	1 756 34                        ; ragged.py:756:34
 	s_waitcnt vmcnt(19)
 	ds_store_b8 v111, v24
 	s_waitcnt vmcnt(18)
@@ -436,7 +436,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	ds_store_b8 v112, v27
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	ds_load_u8 v24, v103 offset:320
 	ds_load_u8 v25, v103 offset:256
 	ds_load_u8 v134, v103 offset:336
@@ -511,7 +511,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	ds_load_u8 v179, v103 offset:544
 	ds_load_u8 v170, v103 offset:624
 	ds_load_u8 v171, v103 offset:560
-	.loc	1 649 34                        ; ragged.py:649:34
+	.loc	1 757 34                        ; ragged.py:757:34
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	s_waitcnt vmcnt(15)
@@ -545,7 +545,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	ds_store_b8 v116, v153
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	ds_load_u8 v24, v117 offset:1280
 	ds_load_u8 v25, v117 offset:1024
 	v_perm_b32 v26, v27, v26, 0xc0c0004
@@ -557,31 +557,31 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_perm_b32 v136, v165, v162, 0xc0c0004
 	v_perm_b32 v137, v143, v142, 0xc0c0004
 	v_lshl_or_b32 v125, v125, 16, v124
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	v_add_lshl_u32 v165, s8, v99, 1
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_lshl_or_b32 v124, v133, 16, v132
 	v_perm_b32 v132, v171, v170, 0xc0c0004
 	v_perm_b32 v133, v167, v166, 0xc0c0004
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	v_add_lshl_u32 v171, v9, s7, 1
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	v_add_lshl_u32 v166, s8, v100, 1
 	v_add_lshl_u32 v167, s8, v101, 1
 	v_cndmask_b32_e64 v165, 0x80000000, v165, s4
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_lshl_or_b32 v132, v133, 16, v132
 	v_lshl_or_b32 v133, v137, 16, v136
 	s_waitcnt lgkmcnt(0)
 	v_perm_b32 v24, v25, v24, 0xc0c0004
 	ds_load_u8 v25, v117 offset:1792
 	ds_load_u8 v120, v117 offset:1536
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	v_cndmask_b32_e64 v171, 0x80000000, v171, s0
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	v_cndmask_b32_e64 v166, 0x80000000, v166, s3
 	v_cndmask_b32_e64 v167, 0x80000000, v167, s2
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	ds_load_u8 v27, v117 offset:3840
 	ds_load_u8 v128, v117 offset:3072
 	s_waitcnt lgkmcnt(2)
@@ -621,20 +621,20 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_lshl_or_b32 v26, v122, 16, v120
 	v_wmma_i32_16x16x16_iu4 v[146:153], v[26:27], v[184:185], v[146:153] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v131, v146
 	v_cvt_f32_i32_e32 v130, v147
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	ds_load_u8 v146, v117 offset:1408
 	ds_load_u8 v147, v117 offset:1152
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v129, v148
 	v_cvt_f32_i32_e32 v128, v149
 	v_cvt_f32_i32_e32 v120, v150
 	v_cvt_f32_i32_e32 v121, v151
 	v_cvt_f32_i32_e32 v122, v152
 	v_cvt_f32_i32_e32 v123, v153
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	s_waitcnt lgkmcnt(0)
 	v_perm_b32 v146, v147, v146, 0xc0c0004
 	ds_load_u8 v147, v117 offset:1920
@@ -684,21 +684,21 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_perm_b32 v134, v175, v174, 0xc0c0004
 	v_perm_b32 v135, v173, v172, 0xc0c0004
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v147, v147
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[180:187], v[24:25], v[28:29], v[1:8] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_3)
 	v_lshl_or_b32 v135, v135, 16, v134
 	v_lshl_or_b32 v134, v139, 16, v138
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v149, v149
 	v_cvt_f32_i32_e32 v151, v151
 	v_cvt_f32_i32_e32 v146, v146
 	v_cvt_f32_i32_e32 v148, v148
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[180:187], v[26:27], v[134:135], v[180:187] neg_lo:[1,1,0]
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v150, v150
 	v_cvt_f32_i32_e32 v152, v152
 	v_cvt_f32_i32_e32 v153, v153
@@ -711,7 +711,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cvt_f32_i32_e32 v173, v185
 	v_cvt_f32_i32_e32 v174, v186
 	v_cvt_f32_i32_e32 v175, v187
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[180:187], v[188:189], v[28:29], v[1:8] neg_lo:[1,1,0]
 	v_perm_b32 v28, v127, v126, 0xc0c0004
 	v_perm_b32 v29, v145, v144, 0xc0c0004
@@ -724,29 +724,29 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_lshl_or_b32 v28, v127, 16, v126
 	v_perm_b32 v126, v169, v168, 0xc0c0004
 	v_perm_b32 v127, v164, v163, 0xc0c0004
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v156, v180
 	v_cvt_f32_i32_e32 v157, v181
 	v_cvt_f32_i32_e32 v158, v182
 	v_cvt_f32_i32_e32 v159, v183
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_lshl_or_b32 v127, v127, 16, v126
 	v_lshl_or_b32 v126, v145, 16, v144
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[24:25], v[28:29], v[1:8] neg_lo:[1,1,0]
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v134, v184
 	v_cvt_f32_i32_e32 v135, v185
 	v_cvt_f32_i32_e32 v138, v186
 	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_3)
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[26:27], v[126:127], v[176:183] neg_lo:[1,1,0]
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	v_add_lshl_u32 v168, s8, v102, 1
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v139, v187
-	.loc	1 677 17                        ; ragged.py:677:17
+	.loc	1 785 17                        ; ragged.py:785:17
 	s_add_i32 s8, s8, 1
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v169, v176
 	v_cvt_f32_i32_e32 v184, v177
 	v_cvt_f32_i32_e32 v185, v178
@@ -755,16 +755,16 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cvt_f32_i32_e32 v161, v181
 	v_cvt_f32_i32_e32 v163, v182
 	v_cvt_f32_i32_e32 v164, v183
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[188:189], v[28:29], v[1:8] neg_lo:[1,1,0]
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	v_cndmask_b32_e32 v168, 0x80000000, v168, vcc_lo
-	.loc	1 634 19                        ; ragged.py:634:19
+	.loc	1 742 19                        ; ragged.py:742:19
 	s_cmp_lg_u32 s8, s34
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[190:191], v[126:127], v[176:183] neg_lo:[1,1,0]
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v144, v176
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
 	v_cvt_f32_i32_e32 v145, v177
@@ -775,11 +775,11 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cvt_f32_i32_e32 v29, v181
 	v_cvt_f32_i32_e32 v126, v182
 	v_cvt_f32_i32_e32 v127, v183
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[24:25], v[124:125], v[1:8] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[26:27], v[132:133], v[176:183] neg_lo:[1,1,0]
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v142, v176
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
 	v_cvt_f32_i32_e32 v143, v177
@@ -790,48 +790,48 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cvt_f32_i32_e32 v137, v181
 	v_cvt_f32_i32_e32 v140, v182
 	v_cvt_f32_i32_e32 v141, v183
-	.loc	1 650 31                        ; ragged.py:650:31
+	.loc	1 758 31                        ; ragged.py:758:31
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[188:189], v[124:125], v[1:8] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_wmma_i32_16x16x16_iu4 v[176:183], v[190:191], v[132:133], v[176:183] neg_lo:[1,1,0]
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v124, v176
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
 	v_cvt_f32_i32_e32 v125, v177
 	v_cvt_f32_i32_e32 v132, v178
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	buffer_load_u16 v171, v171, s[36:39], 0 offen
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	s_clause 0x3
 	buffer_load_u16 v165, v165, s[20:23], 0 offen
 	buffer_load_u16 v176, v166, s[20:23], 0 offen
 	buffer_load_u16 v177, v167, s[20:23], 0 offen
 	buffer_load_u16 v178, v168, s[20:23], 0 offen
-	.loc	1 675 21                        ; ragged.py:675:21
+	.loc	1 783 21                        ; ragged.py:783:21
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 661 27                        ; ragged.py:661:27
+	.loc	1 769 27                        ; ragged.py:769:27
 	v_cvt_f32_i32_e32 v133, v179
 	v_cvt_f32_i32_e32 v24, v180
 	v_cvt_f32_i32_e32 v25, v181
 	v_cvt_f32_i32_e32 v26, v182
 	v_cvt_f32_i32_e32 v27, v183
-	.loc	1 670 40                        ; ragged.py:670:40
+	.loc	1 778 40                        ; ragged.py:778:40
 	s_waitcnt vmcnt(4)
 	v_lshlrev_b32_e32 v166, 16, v171
-	.loc	1 663 40                        ; ragged.py:663:40
+	.loc	1 771 40                        ; ragged.py:771:40
 	s_waitcnt vmcnt(3)
 	v_lshlrev_b32_e32 v171, 16, v165
 	s_waitcnt vmcnt(2)
 	v_lshlrev_b32_e32 v176, 16, v176
 	s_waitcnt vmcnt(1)
 	v_lshlrev_b32_e32 v177, 16, v177
-	.loc	1 675 21                        ; ragged.py:675:21
+	.loc	1 783 21                        ; ragged.py:783:21
 	ds_store_b32 v118, v166
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	ds_load_b128 v[165:168], v119
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v128, v128, v171
 	v_mul_f32_e32 v129, v129, v171
 	v_mul_f32_e32 v147, v147, v171
@@ -846,69 +846,69 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mul_f32_e32 v163, v163, v177
 	v_mul_f32_e32 v145, v145, v177
 	v_mul_f32_e32 v155, v155, v177
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	s_waitcnt lgkmcnt(0)
 	v_fmac_f32_e32 v95, v128, v168
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v128, v192, v176
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_dual_fmac_f32 v96, v129, v167 :: v_dual_fmac_f32 v97, v130, v166
 	v_fmac_f32_e32 v72, v131, v165
 	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_dual_fmac_f32 v81, v128, v165 :: v_dual_mul_f32 v128, v193, v176
 	v_fmac_f32_e32 v80, v128, v166
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v128, v194, v176
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_dual_fmac_f32 v79, v128, v167 :: v_dual_mul_f32 v128, v195, v176
 	v_fmac_f32_e32 v76, v128, v168
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	s_waitcnt vmcnt(0)
 	v_dual_mul_f32 v128, v169, v177 :: v_dual_lshlrev_b32 v169, 16, v178
 	v_mul_f32_e32 v146, v146, v171
 	v_mul_f32_e32 v152, v152, v171
 	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_fmac_f32_e32 v60, v128, v165
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v129, v162, v169
 	v_dual_mul_f32 v128, v184, v177 :: v_dual_mul_f32 v157, v157, v176
 	v_dual_mul_f32 v162, v122, v171 :: v_dual_mul_f32 v141, v141, v169
 	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_3)
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_dual_fmac_f32 v42, v129, v167 :: v_dual_fmac_f32 v59, v128, v166
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v128, v185, v177
 	v_dual_mul_f32 v160, v160, v177 :: v_dual_mul_f32 v159, v159, v176
 	v_dual_mul_f32 v136, v136, v169 :: v_dual_mul_f32 v139, v139, v176
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_fmac_f32_e32 v58, v128, v167
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_dual_mul_f32 v128, v186, v177 :: v_dual_mul_f32 v167, v173, v176
 	v_dual_mul_f32 v137, v137, v169 :: v_dual_mul_f32 v156, v156, v176
 	v_mul_f32_e32 v158, v158, v176
 	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_dual_fmac_f32 v57, v128, v168 :: v_dual_mul_f32 v128, v142, v169
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_dual_mul_f32 v142, v120, v171 :: v_dual_mul_f32 v125, v125, v169
 	v_mul_f32_e32 v133, v133, v169
 	v_mul_f32_e32 v173, v26, v169
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_fmac_f32_e32 v44, v128, v165
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v128, v143, v169
 	v_dual_mul_f32 v130, v170, v169 :: v_dual_mul_f32 v143, v121, v171
 	v_mul_f32_e32 v165, v123, v171
 	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
 	v_dual_mul_f32 v170, v175, v176 :: v_dual_fmac_f32 v43, v128, v166
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	v_fmac_f32_e32 v41, v130, v168
-	.loc	1 675 21                        ; ragged.py:675:21
+	.loc	1 783 21                        ; ragged.py:783:21
 	ds_load_b128 v[128:131], v119 offset:16
 	ds_load_b128 v[120:123], v119 offset:512
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v166, v172, v176
 	v_mul_f32_e32 v140, v140, v169
 	v_mul_f32_e32 v124, v124, v169
@@ -916,9 +916,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mul_f32_e32 v171, v24, v169
 	v_mul_f32_e32 v172, v25, v169
 	v_mul_f32_e32 v169, v27, v169
-	.loc	1 675 21                        ; ragged.py:675:21
+	.loc	1 783 21                        ; ragged.py:783:21
 	ds_load_b128 v[24:27], v119 offset:528
-	.loc	1 668 21                        ; ragged.py:668:21
+	.loc	1 776 21                        ; ragged.py:776:21
 	v_mul_f32_e32 v168, v174, v176
 	v_dual_mul_f32 v164, v164, v177 :: v_dual_mul_f32 v135, v135, v176
 	v_mul_f32_e32 v144, v144, v177
@@ -927,7 +927,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mul_f32_e32 v138, v138, v176
 	v_mul_f32_e32 v28, v28, v177
 	v_mul_f32_e32 v126, v126, v177
-	.loc	1 676 17                        ; ragged.py:676:17
+	.loc	1 784 17                        ; ragged.py:784:17
 	s_waitcnt lgkmcnt(2)
 	v_dual_fmac_f32 v94, v142, v128 :: v_dual_fmac_f32 v55, v161, v129
 	v_dual_fmac_f32 v93, v143, v129 :: v_dual_fmac_f32 v92, v162, v130
@@ -963,10 +963,10 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_fmac_f32_e32 v46, v126, v26
 	v_fmac_f32_e32 v32, v171, v24
 	v_fmac_f32_e32 v30, v173, v26
-	.loc	1 634 19                        ; ragged.py:634:19
+	.loc	1 742 19                        ; ragged.py:742:19
 	s_cbranch_scc1 .LBB0_2
 .LBB0_3:                                ; %._crit_edge
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_bfe_u32 v22, v72, 16, 1
 	v_bfe_u32 v23, v97, 16, 1
 	v_cmp_o_f32_e64 s19, v72, v72
@@ -1007,9 +1007,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_bfe_u32 v72, v86, 16, 1
 	v_add3_u32 v29, v88, v29, 0x7fff
 	v_cmp_o_f32_e64 s19, v88, v88
-	.loc	1 680 13                        ; ragged.py:680:13
+	.loc	1 788 13                        ; ragged.py:788:13
 	v_mul_lo_u32 v21, v73, s33
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b16 v27.l, 0x7fff, v27.h, s21
 	v_add3_u32 v28, v87, v28, 0x7fff
 	v_cmp_o_f32_e64 s20, v87, v87
@@ -1018,9 +1018,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cndmask_b16 v27.h, 0x7fff, v29.h, s19
 	v_bfe_u32 v29, v85, 16, 1
 	v_bfe_u32 v73, v84, 16, 1
-	.loc	1 680 13                        ; ragged.py:680:13
+	.loc	1 788 13                        ; ragged.py:788:13
 	v_mul_lo_u32 v20, v75, s33
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b16 v28.l, 0x7fff, v28.h, s20
 	v_cndmask_b16 v28.h, 0x7fff, v72.h, s21
 	v_bfe_u32 v72, v83, 16, 1
@@ -1029,9 +1029,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_add3_u32 v73, v84, v73, 0x7fff
 	v_cmp_o_f32_e64 s20, v84, v84
 	v_bfe_u32 v75, v82, 16, 1
-	.loc	1 680 13                        ; ragged.py:680:13
+	.loc	1 788 13                        ; ragged.py:788:13
 	v_mul_lo_u32 v19, v77, s33
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add3_u32 v72, v83, v72, 0x7fff
 	v_cmp_o_f32_e64 s21, v83, v83
 	v_cndmask_b16 v29.l, 0x7fff, v29.h, s19
@@ -1047,9 +1047,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cmp_o_f32_e64 s21, v80, v80
 	v_cndmask_b16 v72.h, 0x7fff, v75.h, s19
 	v_bfe_u32 v75, v79, 16, 1
-	.loc	1 680 13                        ; ragged.py:680:13
+	.loc	1 788 13                        ; ragged.py:788:13
 	v_mul_lo_u32 v18, v78, s33
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_bfe_u32 v78, v76, 16, 1
 	v_cndmask_b16 v73.l, 0x7fff, v73.h, s20
 	v_cndmask_b16 v73.h, 0x7fff, v77.h, s21
@@ -1237,9 +1237,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_cndmask_b16 v11.h, 0x7fff, v32.h, s20
 	v_cndmask_b16 v0.l, 0x7fff, v31.h, s21
 	v_cndmask_b16 v0.h, 0x7fff, v30.h, s22
-	.loc	1 584 36                        ; ragged.py:584:36
+	.loc	1 692 36                        ; ragged.py:692:36
 	v_lshrrev_b32_e32 v1, 1, v89
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v45, v54, v61, s19
 	v_cndmask_b32_e64 v47, v61, v54, s19
 	v_mov_b32_e32 v54, 0x5410
@@ -1259,25 +1259,25 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mov_b32_e32 v55, 0x7632
 	v_cndmask_b32_e64 v0, v34, v0, s19
 	v_cndmask_b32_e64 v34, 0x1054, v54, s19
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v12, s24, v1
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v30, v26, v23, s19
 	v_cndmask_b32_e64 v54, 0x3276, v55, s19
 	v_cndmask_b32_e64 v23, v23, v26, s19
 	v_lshl_or_b32 v34, v34, 8, v34
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v17, 1, v12
 	s_mov_b32 s20, 0x76543210
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_lshl_or_b32 v54, v54, 8, v54
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v16, 2, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_and_b32_e32 v34, 0x540054, v34
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s18, s33, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v26, v24, v25, s19
 	v_and_b32_e32 v54, 0x760076, v54
 	v_cndmask_b32_e64 v24, v25, v24, s19
@@ -1293,17 +1293,17 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_permlanex16_b32 v23, v23, s20, 0xfedcba98 op_sel:[1,0]
 	v_lshl_or_b32 v54, v54, 4, v54
 	v_and_b32_e32 v34, 0x5040504, v34
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s17, s33, v17
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v84, v12, v21, 1
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s16, s33, v16
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v85, v17, v21, 1
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v15, 3, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v22.h, 0
 	v_cndmask_b32_e64 v31, v76, v73, s19
 	v_cndmask_b32_e64 v33, v70, v74, s19
@@ -1326,24 +1326,24 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_permlanex16_b32 v11, v11, s20, 0xfedcba98 op_sel:[1,0]
 	v_permlanex16_b32 v0, v0, s20, 0xfedcba98 op_sel:[1,0]
 	v_perm_b32 v55, v23, v30, v34
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s18, s4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v86, v16, v21, 1
 	v_cndmask_b32_e64 v84, 0x80000000, v84, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s17, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v14, 4, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v85, 0x80000000, v85, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s16, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v13, 5, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s15, s33, v15
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_perm_b32 v23, v23, v30, v54
 	v_perm_b32 v30, v24, v26, v34
 	v_perm_b32 v24, v24, v26, v54
@@ -1381,55 +1381,55 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	s_mov_b32 s22, 0x7ffffffe
 	s_mov_b32 s20, s26
 	v_cndmask_b32_e64 v86, 0x80000000, v86, s19
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v10, 6, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	buffer_store_b16 v55, v84, s[20:23], 0 offen
 	v_add_lshl_u32 v55, v15, v21, 1
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s14, s33, v14
 	v_cmp_gt_i32_e64 s13, s33, v13
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v22.l, v23.h
 	s_clause 0x1
 	buffer_store_b16 v37, v85, s[20:23], 0 offen
 	buffer_store_b16 v23, v86, s[20:23], 0 offen
 	v_add_lshl_u32 v23, v14, v21, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s15, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v9, 7, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s12, s33, v10
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v37, 0x80000000, v55, s19
 	v_add_lshl_u32 v55, v13, v21, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s14, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v8, 0x80, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v84, v10, v21, 1
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s13, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v7, 0x81, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s11, s33, v9
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v55, 0x80000000, v55, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s12, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v6, 0x82, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_perm_b32 v11, v11, v43, v54
 	v_mov_b16_e32 v54.l, v30.h
 	v_mov_b16_e32 v54.h, v22.h
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s10, s33, v8
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v43.h, v22.h
 	v_mov_b16_e32 v56.h, v22.h
 	v_mov_b16_e32 v57.h, v22.h
@@ -1464,324 +1464,324 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	buffer_store_b16 v22, v37, s[20:23], 0 offen
 	buffer_store_b16 v30, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v9, v21, 1
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s9, s33, v7
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v23, v8, v21, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s11, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v5, 0x83, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s8, s33, v6
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v43.l, v24.h
 	s_clause 0x1
 	buffer_store_b16 v54, v55, s[20:23], 0 offen
 	buffer_store_b16 v24, v84, s[20:23], 0 offen
 	v_add_lshl_u32 v24, v7, v21, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s10, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v4, 0x84, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v30, v6, v21, 1
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s9, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v3, 0x85, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s7, s33, v5
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s8, s4
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v2, 0x86, v12
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v57.l, v26.h
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s6, s33, v4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v30, 0x80000000, v30, s19
 	s_clause 0x1
 	buffer_store_b16 v43, v22, s[20:23], 0 offen
 	buffer_store_b16 v26, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v5, v21, 1
-	.loc	1 584 18                        ; ragged.py:584:18
+	.loc	1 692 18                        ; ragged.py:692:18
 	v_or_b32_e32 v1, 0x87, v12
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s5, s33, v3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v23, v4, v21, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s7, s4
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s1, s33, v2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v57, v24, s[20:23], 0 offen
 	buffer_store_b16 v25, v30, s[20:23], 0 offen
 	v_add_lshl_u32 v24, v3, v21, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s6, s4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v56.l, v25.h
 	v_add_lshl_u32 v25, v2, v21, 1
-	.loc	1 586 20                        ; ragged.py:586:20
+	.loc	1 694 20                        ; ragged.py:694:20
 	v_cmp_gt_i32_e64 s0, s33, v1
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s5, s4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v21, v1, v21, 1
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s19
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s19, s1, s4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v59.l, v27.h
 	v_cndmask_b32_e64 v25, 0x80000000, v25, s19
 	s_clause 0x1
 	buffer_store_b16 v56, v22, s[20:23], 0 offen
 	buffer_store_b16 v27, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v12, v20, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s0, s4
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v23, v17, v20, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s18, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v58.l, v28.h
 	s_clause 0x1
 	buffer_store_b16 v59, v24, s[20:23], 0 offen
 	buffer_store_b16 v28, v25, s[20:23], 0 offen
 	v_add_lshl_u32 v24, v16, v20, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s17, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v61.l, v29.h
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s16, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v58, v21, s[20:23], 0 offen
 	buffer_store_b16 v29, v22, s[20:23], 0 offen
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s4
 	v_add_lshl_u32 v21, v15, v20, 1
 	v_add_lshl_u32 v22, v14, v20, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s15, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v61, v23, s[20:23], 0 offen
 	buffer_store_b16 v31, v24, s[20:23], 0 offen
 	v_add_lshl_u32 v23, v13, v20, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s14, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v60.l, v31.h
 	v_add_lshl_u32 v24, v10, v20, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s13, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v63.l, v32.h
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s12, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v60, v21, s[20:23], 0 offen
 	buffer_store_b16 v32, v22, s[20:23], 0 offen
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s4
 	v_add_lshl_u32 v21, v9, v20, 1
 	v_add_lshl_u32 v22, v8, v20, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s11, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v63, v23, s[20:23], 0 offen
 	buffer_store_b16 v33, v24, s[20:23], 0 offen
 	v_add_lshl_u32 v23, v7, v20, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s10, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v62.l, v33.h
 	v_add_lshl_u32 v24, v6, v20, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s9, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v65.l, v35.h
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s8, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v62, v21, s[20:23], 0 offen
 	buffer_store_b16 v35, v22, s[20:23], 0 offen
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s4
 	v_add_lshl_u32 v21, v5, v20, 1
 	v_add_lshl_u32 v22, v4, v20, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s7, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v65, v23, s[20:23], 0 offen
 	buffer_store_b16 v38, v24, s[20:23], 0 offen
 	v_add_lshl_u32 v23, v3, v20, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s6, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v64.l, v38.h
 	v_add_lshl_u32 v24, v2, v20, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s5, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v20, v1, v20, 1
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s4
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s4, s1, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v67.l, v39.h
 	v_cndmask_b32_e64 v24, 0x80000000, v24, s4
 	s_clause 0x1
 	buffer_store_b16 v64, v21, s[20:23], 0 offen
 	buffer_store_b16 v39, v22, s[20:23], 0 offen
 	v_add_lshl_u32 v21, v12, v19, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s0, s3
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v22, v17, v19, 1
 	v_cndmask_b32_e64 v20, 0x80000000, v20, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s18, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v66.l, v41.h
 	s_clause 0x1
 	buffer_store_b16 v67, v23, s[20:23], 0 offen
 	buffer_store_b16 v41, v24, s[20:23], 0 offen
 	v_add_lshl_u32 v23, v16, v19, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s17, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v69.l, v44.h
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s16, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v66, v20, s[20:23], 0 offen
 	buffer_store_b16 v44, v21, s[20:23], 0 offen
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s3
 	v_add_lshl_u32 v20, v15, v19, 1
 	v_add_lshl_u32 v21, v14, v19, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s15, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v69, v22, s[20:23], 0 offen
 	buffer_store_b16 v45, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v13, v19, 1
 	v_cndmask_b32_e64 v20, 0x80000000, v20, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s14, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v68.l, v45.h
 	v_add_lshl_u32 v23, v10, v19, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s13, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v71.l, v47.h
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s12, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v68, v20, s[20:23], 0 offen
 	buffer_store_b16 v47, v21, s[20:23], 0 offen
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s3
 	v_add_lshl_u32 v20, v9, v19, 1
 	v_add_lshl_u32 v21, v8, v19, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s11, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v71, v22, s[20:23], 0 offen
 	buffer_store_b16 v50, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v7, v19, 1
 	v_cndmask_b32_e64 v20, 0x80000000, v20, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s10, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v70.l, v50.h
 	v_add_lshl_u32 v23, v6, v19, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s9, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v73.l, v51.h
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s8, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v70, v20, s[20:23], 0 offen
 	buffer_store_b16 v51, v21, s[20:23], 0 offen
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s3
 	v_add_lshl_u32 v20, v5, v19, 1
 	v_add_lshl_u32 v21, v4, v19, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s7, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x1
 	buffer_store_b16 v73, v22, s[20:23], 0 offen
 	buffer_store_b16 v49, v23, s[20:23], 0 offen
 	v_add_lshl_u32 v22, v3, v19, 1
 	v_cndmask_b32_e64 v20, 0x80000000, v20, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s6, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v23, v2, v19, 1
 	v_add_lshl_u32 v19, v1, v19, 1
 	v_cndmask_b32_e64 v21, 0x80000000, v21, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s5, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v12, v12, v18, 1
 	v_cndmask_b32_e64 v22, 0x80000000, v22, s3
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s3, s1, s2
 	s_and_b32 s2, s0, s2
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v72.l, v49.h
 	v_cndmask_b32_e64 v19, 0x80000000, v19, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s18, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v74.l, v46.h
 	v_mov_b16_e32 v75.l, v53.h
 	v_cndmask_b32_e64 v23, 0x80000000, v23, s3
 	v_add_lshl_u32 v17, v17, v18, 1
 	v_cndmask_b32_e64 v12, 0x80000000, v12, s2
 	v_add_lshl_u32 v16, v16, v18, 1
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s17, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	s_clause 0x5
 	buffer_store_b16 v72, v20, s[20:23], 0 offen
 	buffer_store_b16 v53, v21, s[20:23], 0 offen
@@ -1791,59 +1791,59 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	buffer_store_b16 v52, v12, s[20:23], 0 offen
 	v_add_lshl_u32 v12, v15, v18, 1
 	v_cndmask_b32_e64 v17, 0x80000000, v17, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s16, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v14, v14, v18, 1
 	v_cndmask_b32_e64 v16, 0x80000000, v16, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s15, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v13, v13, v18, 1
 	v_cndmask_b32_e64 v12, 0x80000000, v12, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s14, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v10, v10, v18, 1
 	v_cndmask_b32_e64 v14, 0x80000000, v14, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s13, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v9, v9, v18, 1
 	v_cndmask_b32_e64 v13, 0x80000000, v13, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s12, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v8, v8, v18, 1
 	v_cndmask_b32_e64 v10, 0x80000000, v10, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s11, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v7, v7, v18, 1
 	v_cndmask_b32_e64 v9, 0x80000000, v9, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s10, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v6, v6, v18, 1
 	v_cndmask_b32_e64 v8, 0x80000000, v8, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s9, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v5, v5, v18, 1
 	v_cndmask_b32_e64 v7, 0x80000000, v7, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s8, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v4, v4, v18, 1
 	v_cndmask_b32_e64 v6, 0x80000000, v6, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s7, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v3, v3, v18, 1
 	v_cndmask_b32_e64 v5, 0x80000000, v5, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s6, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_add_lshl_u32 v2, v2, v18, 1
 	v_add_lshl_u32 v1, v1, v18, 1
 	v_mov_b16_e32 v76.l, v40.h
@@ -1853,15 +1853,15 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	v_mov_b16_e32 v80.l, v11.h
 	v_mov_b16_e32 v81.l, v42.h
 	v_cndmask_b32_e64 v4, 0x80000000, v4, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 s2, s5, vcc_lo
 	s_and_b32 s1, s1, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_mov_b16_e32 v83.l, v34.h
 	v_cndmask_b32_e64 v3, 0x80000000, v3, s2
-	.loc	1 682 18                        ; ragged.py:682:18
+	.loc	1 790 18                        ; ragged.py:790:18
 	s_and_b32 vcc_lo, s0, vcc_lo
-	.loc	1 679 9                         ; ragged.py:679:9
+	.loc	1 787 9                         ; ragged.py:787:9
 	v_cndmask_b32_e64 v2, 0x80000000, v2, s1
 	v_mov_b16_e32 v82.l, v0.h
 	v_cndmask_b32_e32 v1, 0x80000000, v1, vcc_lo
@@ -1881,7 +1881,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	buffer_store_b16 v83, v3, s[20:23], 0 offen
 	buffer_store_b16 v0, v2, s[20:23], 0 offen
 	buffer_store_b16 v82, v1, s[20:23], 0 offen
-	.loc	1 544 5                         ; ragged.py:544:5
+	.loc	1 652 5                         ; ragged.py:652:5
 	s_nop 0
 	s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)
 	s_endpgm
@@ -2061,7 +2061,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_bfloat16_bm64_bn256_bk64_gs
 	.quad	.Ltmp1                          ; DW_AT_low_pc
 	.long	.Ltmp2-.Ltmp1                   ; DW_AT_high_pc
 	.byte	1                               ; DW_AT_call_file
-	.short	570                             ; DW_AT_call_line
+	.short	678                             ; DW_AT_call_line
 	.byte	21                              ; DW_AT_call_column
 	.byte	0                               ; End Of Children Mark
 	.byte	0                               ; End Of Children Mark

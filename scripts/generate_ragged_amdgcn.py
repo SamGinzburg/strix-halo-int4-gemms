@@ -40,14 +40,21 @@ from amd_strix_halo_kernels.ragged import (  # noqa: E402
     RAGGED_BWD_ACCUM_CONFIG,
     RaggedBwdDotConfig,
     RaggedDotConfig,
+    default_ragged_bwd_config,
 )
 from amd_strix_halo_kernels.ragged_artifacts import (  # noqa: E402
     RAGGED_BWD,
     RAGGED_BWD_ACCUM,
+    RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS,
+    RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES,
     RAGGED_EVEN_K,
     RAGGED_FWD,
     RAGGED_MASK_K,
     RAGGED_MODES,
+    RAGGED_STORE_DEFAULT,
+    RAGGED_STORE_PAIRED,
+    RAGGED_STORE_SCALAR,
+    RAGGED_STORE_WIDE,
     RAGGED_VARIANTS,
     ragged_config_label,
     ragged_kernel_id,
@@ -154,7 +161,7 @@ def _kernel_arg_layout(amdgcn: str, runtime_scalar_args: list[str]) -> dict[str,
             by_value_offsets.append(offset)
         elif kind == "global_buffer" and size == 8:
             global_buffer_offsets.append(offset)
-    if not by_value_offsets or len(global_buffer_offsets) < 2:
+    if len(global_buffer_offsets) < 2:
         raise ValueError("could not parse ragged AMDGCN kernel argument layout")
     if len(runtime_scalar_args) != len(by_value_offsets):
         raise ValueError(
@@ -213,11 +220,23 @@ def _fwd_args(torch: Any, *, config: RaggedDotConfig, layout: GemmLayout, scale:
     )
 
 
-def _bwd_args(torch: Any, *, config: RaggedBwdDotConfig, layout: GemmLayout, scale: ScaleSpec, variant: str) -> tuple[Any, ...]:
+def _bwd_args(
+    torch: Any,
+    *,
+    config: RaggedBwdDotConfig,
+    layout: GemmLayout,
+    scale: ScaleSpec,
+    variant: str,
+    output_dtype: str,
+    shape_specialization: tuple[int, int, int] | None = None,
+) -> tuple[Any, ...]:
     groups = 2
-    m = max(config.block_m, 64)
-    n = max(config.block_n, 64)
-    k = _compile_k(config.block_k, scale, config.block_k)
+    if shape_specialization is None:
+        m = max(config.block_m, 64)
+        n = max(config.block_n, 64)
+        k = _compile_k(config.block_k, scale, config.block_k)
+    else:
+        m, n, k = shape_specialization
     k_packed = k // 2
     scale_cols = _cdiv(k, scale.subchannel_size or k)
     lhs_shape = (groups, k_packed, m) if layout in {GemmLayout.TN, GemmLayout.TT} else (groups, m, k_packed)
@@ -234,7 +253,8 @@ def _bwd_args(torch: Any, *, config: RaggedBwdDotConfig, layout: GemmLayout, sca
         if scale.mode is ScaleMode.SUBCHANNEL
         else torch.empty((groups, n), device="cuda", dtype=torch.bfloat16)
     )
-    out = torch.empty((groups, m, n), device="cuda", dtype=torch.float32)
+    torch_output_dtype = torch.bfloat16 if output_dtype == OUTPUT_DTYPE_BF16 else torch.float32
+    out = torch.empty((groups, m, n), device="cuda", dtype=torch_output_dtype)
     if variant == RAGGED_EVEN_K:
         group_sizes = torch.tensor([k, k], device="cuda", dtype=torch.int32)
     else:
@@ -270,18 +290,43 @@ def compile_ragged_program(
     variant: str,
     config: RaggedDotConfig | RaggedBwdDotConfig,
     output_dtype: str,
+    store_strategy: str = RAGGED_STORE_DEFAULT,
+    shape_specialization: tuple[int, int, int] | None = None,
 ) -> Any:
     import torch
 
-    allowed_output_dtypes = (
-        {OUTPUT_DTYPE_BF16}
-        if mode == RAGGED_FWD
-        else {OUTPUT_DTYPE_FLOAT32}
-        if mode == RAGGED_BWD
-        else {OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16}
-    )
+    if shape_specialization is not None and not (
+        mode == RAGGED_BWD
+        and output_dtype == OUTPUT_DTYPE_BF16
+        and store_strategy == RAGGED_STORE_WIDE
+        and config.split_k == 1
+    ):
+        raise ValueError(
+            "shape specialization requires standard split-K=1 BF16 backward with wide stores"
+        )
+    if mode == RAGGED_FWD:
+        allowed_output_dtypes = {OUTPUT_DTYPE_BF16}
+    elif mode == RAGGED_BWD:
+        allowed_output_dtypes = {OUTPUT_DTYPE_FLOAT32}
+        if config.split_k == 1:
+            allowed_output_dtypes.add(OUTPUT_DTYPE_BF16)
+    else:
+        allowed_output_dtypes = {OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16}
     if output_dtype not in allowed_output_dtypes:
         raise ValueError(f"unsupported {mode} output dtype {output_dtype!r}")
+    valid_bf16_store = (
+        mode == RAGGED_BWD
+        and output_dtype == OUTPUT_DTYPE_BF16
+        and config.split_k == 1
+        and (
+            store_strategy in {RAGGED_STORE_PAIRED, RAGGED_STORE_SCALAR}
+            or (store_strategy == RAGGED_STORE_WIDE and shape_specialization is not None)
+        )
+    )
+    if store_strategy != RAGGED_STORE_DEFAULT and not valid_bf16_store:
+        raise ValueError(
+            f"store strategy {store_strategy!r} is unsupported for {mode}/{output_dtype}"
+        )
 
     if mode == RAGGED_FWD:
         from amd_strix_halo_kernels.ragged import _ragged_dot_int4_even_k_kernel, _ragged_dot_int4_kernel
@@ -327,19 +372,34 @@ def compile_ragged_program(
 
     if mode == RAGGED_BWD:
         from amd_strix_halo_kernels.ragged import _ragged_dot_int4_bwd_kernel
+        import triton
+        import triton.language as tl
 
         assert isinstance(config, RaggedBwdDotConfig)
-        args = _bwd_args(torch, config=config, layout=layout, scale=scale, variant=variant)
+        args = _bwd_args(
+            torch,
+            config=config,
+            layout=layout,
+            scale=scale,
+            variant=variant,
+            output_dtype=output_dtype,
+            shape_specialization=shape_specialization,
+        )
         lhs, rhs, a_scale, b_scale, group_sizes, out, m, n, k_packed, scale_cols = args
+        paired_store = store_strategy == RAGGED_STORE_PAIRED
+        out_arg = triton.reinterpret(out, tl.uint32) if paired_store else out
         groups = int(lhs.shape[0])
         grid = (groups * _cdiv(m, config.block_m) * _cdiv(n, config.block_n), config.split_k)
-        return _ragged_dot_int4_bwd_kernel()[grid](
+        kernel = _ragged_dot_int4_bwd_kernel(
+            specialize_runtime_args=shape_specialization is not None
+        )
+        return kernel[grid](
             lhs,
             rhs,
             a_scale,
             b_scale,
             group_sizes,
-            out,
+            out_arg,
             m,
             n,
             k_packed,
@@ -354,6 +414,7 @@ def compile_ragged_program(
             A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
             B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
             EVEN_K_FAST_PATH=variant == RAGGED_EVEN_K,
+            PAIRED_BF16_STORE=paired_store,
             num_warps=config.num_warps,
             num_stages=config.num_stages,
             matrix_instr_nonkdim=16,
@@ -421,6 +482,8 @@ def _write_artifacts(
     triton_out_dir: Path | None,
     triton: Any,
     output_dtype: str,
+    store_strategy: str,
+    shape_specialization: tuple[int, int, int] | None = None,
 ) -> dict[str, object]:
     kernel_id = ragged_kernel_id(
         mode=mode,
@@ -429,6 +492,8 @@ def _write_artifacts(
         config=config,
         variant=variant,
         output_dtype=output_dtype,
+        store_strategy=store_strategy,
+        shape_specialization=shape_specialization,
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     asm_path = out_dir / f"{kernel_id}.s"
@@ -458,6 +523,7 @@ def _write_artifacts(
         config=config,
         variant=variant,
         output_dtype=output_dtype,
+        store_strategy=store_strategy,
         amdgcn_symbol=amdgcn_symbol,
         launch_metadata=launch_metadata,
         asm_keys=sorted(asm),
@@ -465,6 +531,7 @@ def _write_artifacts(
         source_triton_commit=_triton_commit(triton),
         amdgcn=amdgcn,
         kernel_arg_layout=_kernel_arg_layout(amdgcn, runtime_scalar_args),
+        shape_specialization=shape_specialization,
     )
     metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return {
@@ -475,6 +542,8 @@ def _write_artifacts(
         "layout": layout.value,
         "scale": scale.label,
         "variant": variant,
+        "store_strategy": store_strategy,
+        "shape_specialization": shape_specialization or "runtime",
         "config_label": ragged_config_label(config),
         "amdgcn_symbol": amdgcn_symbol,
         "launch_metadata": launch_metadata,
@@ -507,9 +576,29 @@ def _build_jobs(
     layouts: Iterable[GemmLayout],
     scales: Iterable[ScaleSpec],
     variants: Iterable[str],
-) -> list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig, str]]:
+) -> list[
+    tuple[
+        str,
+        GemmLayout,
+        ScaleSpec,
+        str,
+        RaggedDotConfig | RaggedBwdDotConfig,
+        str,
+        str,
+        tuple[int, int, int] | None,
+    ]
+]:
     jobs: list[
-        tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig, str]
+        tuple[
+            str,
+            GemmLayout,
+            ScaleSpec,
+            str,
+            RaggedDotConfig | RaggedBwdDotConfig,
+            str,
+            str,
+            tuple[int, int, int] | None,
+        ]
     ] = []
     for mode in modes:
         if mode == RAGGED_BWD_ACCUM:
@@ -522,18 +611,71 @@ def _build_jobs(
                         RAGGED_EVEN_K,
                         DEFAULT_BWD_ACCUM_CONFIG,
                         output_dtype,
+                        RAGGED_STORE_DEFAULT,
+                        None,
                     )
                 )
             continue
         for layout in layouts:
             for scale in scales:
                 for variant in variants:
-                    base_config: RaggedDotConfig | RaggedBwdDotConfig = (
-                        DEFAULT_FWD_CONFIG if mode == RAGGED_FWD else DEFAULT_BWD_CONFIG
-                    )
-                    config = replace(base_config, enable_even_k_fast_path=(variant == RAGGED_EVEN_K))
-                    output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
-                    jobs.append((mode, layout, scale, variant, config, output_dtype))
+                    if mode == RAGGED_FWD:
+                        config = replace(
+                            DEFAULT_FWD_CONFIG,
+                            enable_even_k_fast_path=(variant == RAGGED_EVEN_K),
+                        )
+                        jobs.append(
+                            (
+                                mode,
+                                layout,
+                                scale,
+                                variant,
+                                config,
+                                OUTPUT_DTYPE_BF16,
+                                RAGGED_STORE_DEFAULT,
+                                None,
+                            )
+                        )
+                        continue
+                    for output_dtype in (OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32):
+                        config = default_ragged_bwd_config(
+                            layout=layout,
+                            scale=scale,
+                            variant=variant,
+                            output_dtype=output_dtype,
+                        )
+                        store_strategies = (
+                            (
+                                RAGGED_STORE_PAIRED,
+                                RAGGED_STORE_SCALAR,
+                                *(
+                                    (RAGGED_STORE_WIDE,)
+                                    if layout in RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS
+                                    else ()
+                                ),
+                            )
+                            if output_dtype == OUTPUT_DTYPE_BF16
+                            else (RAGGED_STORE_DEFAULT,)
+                        )
+                        for store_strategy in store_strategies:
+                            shape_specializations = (
+                                RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES
+                                if store_strategy == RAGGED_STORE_WIDE
+                                else (None,)
+                            )
+                            for shape_specialization in shape_specializations:
+                                jobs.append(
+                                    (
+                                        mode,
+                                        layout,
+                                        scale,
+                                        variant,
+                                        config,
+                                        output_dtype,
+                                        store_strategy,
+                                        shape_specialization,
+                                    )
+                                )
     return jobs
 
 
@@ -573,7 +715,19 @@ def main(argv: list[str] | None = None) -> int:
 
     results = []
     failures = []
-    for index, (mode, layout, scale, variant, config, output_dtype) in enumerate(jobs, start=1):
+    for index, (
+        mode,
+        layout,
+        scale,
+        variant,
+        config,
+        output_dtype,
+        store_strategy,
+        shape_specialization,
+    ) in enumerate(
+        jobs,
+        start=1,
+    ):
         kernel_id = ragged_kernel_id(
             mode=mode,
             layout=layout,
@@ -581,6 +735,8 @@ def main(argv: list[str] | None = None) -> int:
             config=config,
             variant=variant,
             output_dtype=output_dtype,
+            store_strategy=store_strategy,
+            shape_specialization=shape_specialization,
         )
         print(f"[{index}/{len(jobs)}] {kernel_id}", flush=True)
         try:
@@ -591,6 +747,8 @@ def main(argv: list[str] | None = None) -> int:
                 variant=variant,
                 config=config,
                 output_dtype=output_dtype,
+                store_strategy=store_strategy,
+                shape_specialization=shape_specialization,
             )
             results.append(
                 _write_artifacts(
@@ -606,6 +764,8 @@ def main(argv: list[str] | None = None) -> int:
                     triton_out_dir=triton_out_dir,
                     triton=triton,
                     output_dtype=output_dtype,
+                    store_strategy=store_strategy,
+                    shape_specialization=shape_specialization,
                 )
             )
         except Exception as exc:

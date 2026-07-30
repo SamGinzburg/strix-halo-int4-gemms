@@ -1,4 +1,5 @@
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -7,11 +8,15 @@ torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels import (
     GemmLayout,
+    RaggedBwdGroupInfo,
     RaggedBwdDotConfig,
     RaggedDotConfig,
+    SUPPORTED_SUBCHANNELS,
     ScaleMode,
     ScaleSpec,
     calculate_group_info,
+    default_ragged_bwd_config,
+    prepare_ragged_bwd_group_info,
     prepare_ragged_group_info,
     ragged_group_info_capacity,
     ragged_dot_int4_bwd,
@@ -25,12 +30,17 @@ from amd_strix_halo_kernels.ragged import (
     _can_use_bwd_even_k_fast_path,
     _can_use_even_k_fast_path,
     _ragged_dot_int4_even_k_kernel,
+    _ragged_dot_int4_bwd_kernel,
     _ragged_dot_int4_kernel,
+    _should_try_native_bwd,
 )
 
 
 STRICT_RTOL = 1.0e-3
 STRICT_ATOL = 1.0e-3
+ALL_RAGGED_SCALES = (ScaleSpec(ScaleMode.PER_CHANNEL),) + tuple(
+    ScaleSpec(ScaleMode.SUBCHANNEL, size) for size in SUPPORTED_SUBCHANNELS
+)
 
 
 def _assert_reference_has_signal(expected) -> None:
@@ -50,6 +60,97 @@ def test_ragged_forward_kernel_factory_separates_generic_artifacts_from_speciali
     assert generic.do_not_specialize_on_alignment == runtime_args
     assert specialized.do_not_specialize == []
     assert specialized.do_not_specialize_on_alignment == []
+
+
+def test_ragged_backward_kernel_factory_separates_generic_artifacts_from_specialized_jit() -> None:
+    pytest.importorskip("triton")
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS")
+
+    generic = _ragged_dot_int4_bwd_kernel(specialize_runtime_args=False)
+    specialized = _ragged_dot_int4_bwd_kernel(specialize_runtime_args=True)
+
+    assert generic.do_not_specialize == runtime_args
+    assert generic.do_not_specialize_on_alignment == runtime_args
+    assert specialized.do_not_specialize == []
+    assert specialized.do_not_specialize_on_alignment == []
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA/HIP")
+def test_prepare_ragged_bwd_group_info_rejects_odd_packed_capacity() -> None:
+    group_sizes = torch.tensor([3], device="cuda", dtype=torch.int32)
+
+    with pytest.raises(ValueError, match="must be even"):
+        prepare_ragged_bwd_group_info(group_sizes, k_capacity=3)
+
+
+@pytest.mark.parametrize(
+    ("layout", "scale", "variant", "expected"),
+    [
+        (GemmLayout.NN, ScaleSpec(ScaleMode.PER_CHANNEL), "evenk", (64, 64, 4)),
+        (GemmLayout.TN, ScaleSpec(ScaleMode.SUBCHANNEL, 256), "evenk", (64, 64, 4)),
+        (GemmLayout.TT, ScaleSpec(ScaleMode.PER_CHANNEL), "evenk", (64, 64, 4)),
+        (GemmLayout.NT, ScaleSpec(ScaleMode.SUBCHANNEL, 256), "maskk", (64, 64, 4)),
+        (GemmLayout.TN, ScaleSpec(ScaleMode.PER_CHANNEL), "maskk", (64, 64, 4)),
+        (GemmLayout.TT, ScaleSpec(ScaleMode.SUBCHANNEL, 256), "maskk", (64, 64, 4)),
+    ],
+)
+def test_default_ragged_bwd_config_uses_layout_scale_and_variant_policy(
+    layout,
+    scale,
+    variant,
+    expected,
+) -> None:
+    config = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale,
+        variant=variant,
+        output_dtype="bfloat16",
+    )
+
+    assert (config.block_m, config.block_n, config.num_warps) == expected
+    assert config.enable_even_k_fast_path is (variant == "evenk")
+    fp32 = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale,
+        variant=variant,
+        output_dtype="float32",
+    )
+    assert (fp32.block_m, fp32.block_n, fp32.num_warps) == (64, 256, 8)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({}, True),
+        ({"layout": GemmLayout.TN}, True),
+        ({"layout": GemmLayout.NT}, False),
+        ({"layout": GemmLayout.TT}, False),
+        ({"logical_k_capacity": 512}, False),
+        ({"rows": 2048}, False),
+        ({"out_data_ptr": 2}, False),
+        ({"output_is_bf16": False}, True),
+        ({"split_k": 2}, True),
+        ({"use_native": True, "logical_k_capacity": 512}, True),
+        ({"use_native": False}, False),
+    ],
+)
+def test_default_ragged_bwd_native_policy_requires_eligible_specialization(
+    overrides,
+    expected,
+) -> None:
+    kwargs = {
+        "use_native": None,
+        "layout": GemmLayout.NN,
+        "output_is_bf16": True,
+        "split_k": 1,
+        "rows": 4096,
+        "cols": 4096,
+        "logical_k_capacity": 4096,
+        "out_data_ptr": 16,
+    }
+    kwargs.update(overrides)
+
+    assert _should_try_native_bwd(**kwargs) is expected
 
 
 def _manual_grouped_reference(a_q, b_q, group_sizes, a_scale, b_scale):
@@ -956,7 +1057,213 @@ def test_ragged_dot_int4_bwd_tile_aligned_fast_path_matches_grouped_torch_refere
             pytest.skip(f"local Triton build does not support int4 dot_scaled: {exc}")
         raise
 
-    torch.testing.assert_close(actual, expected, rtol=1.0e-3, atol=1.0e-3)
+    expected_dtype = torch.bfloat16 if split_k == 1 else torch.float32
+    assert actual.dtype == expected_dtype
+    torch.testing.assert_close(actual, expected.to(actual.dtype), rtol=1.0e-3, atol=1.0e-3)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA/HIP graph capture")
+@pytest.mark.parametrize("layout", list(GemmLayout))
+@pytest.mark.parametrize(
+    "scale_spec",
+    [ScaleSpec(ScaleMode.PER_CHANNEL), ScaleSpec(ScaleMode.SUBCHANNEL, 32)],
+)
+def test_prepared_ragged_bwd_cudagraph_replays_dynamic_group_sizes(
+    layout,
+    scale_spec,
+) -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(811 + list(GemmLayout).index(layout) * 17 + (scale_spec.subchannel_size or 0))
+    groups, rows, k_values, cols = 3, 32, 65, 34
+    a_q = torch.randint(-4, 5, (groups, rows, k_values), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, k_values, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, layout)
+    k_capacity = 2 * (lhs.shape[1] if layout in {GemmLayout.TN, GemmLayout.TT} else lhs.shape[2])
+    group_sizes = torch.tensor([16, 32, 64], device="cuda", dtype=torch.int32)
+    config = RaggedBwdDotConfig(
+        block_m=16,
+        block_n=16,
+        block_k=16,
+        num_warps=4,
+        num_stages=3,
+    )
+    if scale_spec.mode is ScaleMode.PER_CHANNEL:
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, cols)
+    else:
+        scale_cols = (k_capacity + (scale_spec.subchannel_size or 1) - 1) // (
+            scale_spec.subchannel_size or 1
+        )
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows, scale_cols)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * scale_cols * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, scale_cols, cols)
+
+    group_info = prepare_ragged_bwd_group_info(
+        group_sizes,
+        k_capacity=k_capacity,
+        scale=scale_spec,
+        config=config,
+        dynamic_group_sizes=True,
+    )
+    assert isinstance(group_info, RaggedBwdGroupInfo)
+    assert group_info.group_sizes is group_sizes
+    assert group_info.variant == "maskk"
+    out = torch.empty((groups, rows, cols), device="cuda", dtype=torch.bfloat16)
+    if layout is GemmLayout.NN and scale_spec.mode is ScaleMode.PER_CHANNEL:
+        with pytest.raises(ValueError, match="requires use_native"):
+            ragged_dot_int4_bwd(
+                lhs,
+                rhs,
+                None,
+                group_info=group_info,
+                a_scale=a_scale,
+                b_scale=b_scale,
+                scale=scale_spec,
+                config=config,
+                layout=layout,
+                out=out,
+            )
+        with pytest.raises(ValueError, match="preallocated out"):
+            ragged_dot_int4_bwd(
+                lhs,
+                rhs,
+                None,
+                group_info=group_info,
+                a_scale=a_scale,
+                b_scale=b_scale,
+                scale=scale_spec,
+                config=config,
+                layout=layout,
+                use_native=False,
+            )
+
+    def run():
+        return ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            None,
+            group_info=group_info,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            scale=scale_spec,
+            config=config,
+            layout=layout,
+            out=out,
+            use_native=False,
+        )
+
+    assert run() is out
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = run()
+    assert captured is out
+
+    for replay_sizes in ([0, 1, 65], [16, 32, 48], [65, 17, 2]):
+        group_sizes.copy_(torch.tensor(replay_sizes, device="cuda", dtype=torch.int32))
+        graph.replay()
+        torch.cuda.synchronize()
+        if scale_spec.mode is ScaleMode.PER_CHANNEL:
+            expected = _manual_bwd_reference(a_q, b_q, group_sizes, a_scale, b_scale)
+        else:
+            expected = _manual_bwd_subchannel_reference(
+                a_q,
+                b_q,
+                group_sizes,
+                a_scale,
+                b_scale,
+                scale_spec.subchannel_size,
+            )
+        torch.testing.assert_close(
+            captured,
+            expected.to(torch.bfloat16),
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4_bwd requires CUDA/HIP")
+@pytest.mark.parametrize("cols", [20, 21], ids=("packed-even-n", "scalar-odd-n"))
+def test_ragged_dot_int4_bwd_output_dtype_contract_and_single_rounding(cols) -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(701)
+    groups, rows, contraction = 2, 16, 32
+    group_sizes = torch.tensor([32, 19], device="cuda", dtype=torch.int32)
+    a_q = torch.randint(-4, 5, (groups, rows, contraction), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, contraction, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, GemmLayout.NN)
+    a_scale = torch.linspace(0.008, 0.012, groups * rows, device="cuda", dtype=torch.bfloat16).reshape(
+        groups, rows
+    )
+    b_scale = torch.linspace(0.011, 0.009, groups * cols, device="cuda", dtype=torch.bfloat16).reshape(
+        groups, cols
+    )
+    config = RaggedBwdDotConfig(block_m=16, block_n=16, block_k=16, split_k=1, num_warps=4, num_stages=3)
+    common = {
+        "a_scale": a_scale,
+        "b_scale": b_scale,
+        "config": config,
+        "layout": GemmLayout.NN,
+        "use_native": False,
+    }
+
+    fp32 = ragged_dot_int4_bwd(lhs, rhs, group_sizes, output_dtype=torch.float32, **common)
+    bf16 = ragged_dot_int4_bwd(lhs, rhs, group_sizes, output_dtype=torch.bfloat16, **common)
+    default = ragged_dot_int4_bwd(lhs, rhs, group_sizes, **common)
+    fp32_out = torch.empty_like(fp32)
+    inferred = ragged_dot_int4_bwd(lhs, rhs, group_sizes, out=fp32_out, **common)
+
+    assert default.dtype == torch.bfloat16
+    assert inferred is fp32_out
+    assert torch.equal(inferred, fp32)
+    assert torch.equal(bf16, fp32.to(torch.bfloat16))
+    assert torch.equal(default, bf16)
+    expected = _manual_bwd_reference(a_q, b_q, group_sizes, a_scale, b_scale)
+    torch.testing.assert_close(fp32, expected, rtol=1.0e-3, atol=1.0e-3)
+    torch.testing.assert_close(bf16, expected.to(torch.bfloat16), rtol=1.0e-3, atol=1.0e-3)
+
+    with pytest.raises(ValueError, match="output_dtype must be"):
+        ragged_dot_int4_bwd(lhs, rhs, group_sizes, output_dtype=torch.float16, **common)
+    with pytest.raises(ValueError, match="does not match output_dtype"):
+        ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            group_sizes,
+            out=torch.empty_like(bf16),
+            output_dtype=torch.float32,
+            **common,
+        )
+    with pytest.raises(ValueError, match="split_k > 1 requires"):
+        ragged_dot_int4_bwd(
+            lhs,
+            rhs,
+            group_sizes,
+            output_dtype=torch.bfloat16,
+            **{**common, "config": replace(config, split_k=2)},
+        )
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4 requires CUDA/HIP")
@@ -1097,4 +1404,194 @@ def test_ragged_dot_int4_bwd_all_layouts_match_grouped_torch_reference(layout, s
             pytest.skip(f"local Triton build does not support int4 dot_scaled: {exc}")
         raise
 
-    torch.testing.assert_close(actual, expected, rtol=1.0e-3, atol=1.0e-3)
+    expected_dtype = torch.bfloat16 if split_k == 1 else torch.float32
+    assert actual.dtype == expected_dtype
+    torch.testing.assert_close(actual, expected.to(actual.dtype), rtol=1.0e-3, atol=1.0e-3)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4_bwd requires CUDA/HIP")
+@pytest.mark.parametrize("layout", list(GemmLayout))
+@pytest.mark.parametrize("scale_spec", ALL_RAGGED_SCALES)
+@pytest.mark.parametrize("variant", ["evenk", "maskk"])
+def test_ragged_dot_int4_bwd_auto_config_all_layouts_scales_and_k_variants(
+    layout,
+    scale_spec,
+    variant,
+) -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(
+        947
+        + list(GemmLayout).index(layout) * 19
+        + (scale_spec.subchannel_size or 0)
+        + (variant == "maskk")
+    )
+    expected_config = default_ragged_bwd_config(
+        layout=layout,
+        scale=scale_spec,
+        variant=variant,
+        output_dtype="bfloat16",
+    )
+    groups = 3
+    rows = expected_config.block_m
+    cols = expected_config.block_n
+    k_capacity = 64 if scale_spec.mode is ScaleMode.PER_CHANNEL else 2 * (scale_spec.subchannel_size or 1)
+    group_values = [k_capacity, 0, k_capacity] if variant == "evenk" else [k_capacity - 1, 0, k_capacity - 3]
+    group_sizes = torch.tensor(group_values, device="cuda", dtype=torch.int32)
+    a_q = torch.randint(-4, 5, (groups, rows, k_capacity), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, k_capacity, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, layout)
+    if scale_spec.mode is ScaleMode.PER_CHANNEL:
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, cols)
+        expected = _manual_bwd_reference(a_q, b_q, group_sizes, a_scale, b_scale)
+    else:
+        subchannel = scale_spec.subchannel_size or 1
+        scale_cols = (k_capacity + subchannel - 1) // subchannel
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows, scale_cols)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * scale_cols * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, scale_cols, cols)
+        expected = _manual_bwd_subchannel_reference(
+            a_q,
+            b_q,
+            group_sizes,
+            a_scale,
+            b_scale,
+            subchannel,
+        )
+
+    actual = ragged_dot_int4_bwd(
+        lhs,
+        rhs,
+        group_sizes,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        scale=scale_spec,
+        config=None,
+        layout=layout,
+        use_native=False,
+    )
+
+    assert actual.dtype == torch.bfloat16
+    torch.testing.assert_close(
+        actual,
+        expected.to(torch.bfloat16),
+        rtol=STRICT_RTOL,
+        atol=STRICT_ATOL,
+    )
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged_dot_int4_bwd requires CUDA/HIP")
+@pytest.mark.parametrize(
+    "group_values",
+    [(0, 1, 2), (15, 16, 17), (31, 32, 33), (63, 64, 65)],
+    ids=("tiny", "block-tail", "two-block-tail", "many-block-tail"),
+)
+@pytest.mark.parametrize(
+    "scale_spec",
+    [ScaleSpec(ScaleMode.PER_CHANNEL), ScaleSpec(ScaleMode.SUBCHANNEL, 32)],
+)
+@pytest.mark.parametrize("split_k", [1, 2])
+def test_ragged_dot_int4_bwd_full_blocks_and_single_tail_match_reference(
+    group_values,
+    scale_spec,
+    split_k,
+) -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(907 + sum(group_values) + split_k + (scale_spec.subchannel_size or 0))
+    groups, rows, k_capacity, cols = 3, 17, 66, 19
+    group_sizes = torch.tensor(group_values, device="cuda", dtype=torch.int32)
+    a_q = torch.randint(-4, 5, (groups, rows, k_capacity), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, k_capacity, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, GemmLayout.NN)
+    if scale_spec.mode is ScaleMode.PER_CHANNEL:
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, cols)
+        expected = _manual_bwd_reference(a_q, b_q, group_sizes, a_scale, b_scale)
+    else:
+        subchannel = scale_spec.subchannel_size or 1
+        scale_cols = (k_capacity + subchannel - 1) // subchannel
+        a_scale = torch.linspace(
+            0.008,
+            0.012,
+            groups * rows * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rows, scale_cols)
+        b_scale = torch.linspace(
+            0.011,
+            0.009,
+            groups * scale_cols * cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, scale_cols, cols)
+        expected = _manual_bwd_subchannel_reference(
+            a_q,
+            b_q,
+            group_sizes,
+            a_scale,
+            b_scale,
+            subchannel,
+        )
+
+    actual = ragged_dot_int4_bwd(
+        lhs,
+        rhs,
+        group_sizes,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        scale=scale_spec,
+        config=RaggedBwdDotConfig(
+            block_m=16,
+            block_n=16,
+            block_k=16,
+            split_k=split_k,
+            num_warps=4,
+            num_stages=3,
+        ),
+        layout=GemmLayout.NN,
+        use_native=False,
+    )
+
+    expected_dtype = torch.bfloat16 if split_k == 1 else torch.float32
+    assert actual.dtype == expected_dtype
+    torch.testing.assert_close(
+        actual,
+        expected.to(expected_dtype),
+        rtol=STRICT_RTOL,
+        atol=STRICT_ATOL,
+    )

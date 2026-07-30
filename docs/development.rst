@@ -54,8 +54,10 @@ Regenerate the packaged ragged artifact set separately:
 The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
 matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
 into wheel-packaged ``.hsaco`` objects alongside the dense matrix. Its default
-job set and ``--clean`` lifecycle cover an 80-artifact forward/backward matrix
-plus two specialized TN/per-channel/even-K ``bwd_accum`` artifacts using
+job set and ``--clean`` lifecycle cover 40 forward BF16, 40 generic backward
+FP32, 80 generic backward BF16 paired/scalar-store, and 20 exact
+4096-capacity backward BF16 wide-store artifacts, plus two specialized
+TN/per-channel/even-K ``bwd_accum`` artifacts using
 ``BM32_BN128_BK64_W4_S2_SK1`` and FP32/BF16 output. Use ``--mode bwd_accum``
 to regenerate only those specialized jobs. Dense and ragged
 cleanup/regeneration are independent.
@@ -64,10 +66,8 @@ Triton source and IR are part of the provenance update.
 
 ``uv.lock`` pins the custom Triton dependency to
 ``ec4a2c64315f3d4485e963a8391a7444a232801f``, and both dense and ragged
-generation summaries record that source commit. The 2880 dense and 81 ragged
-artifacts were regenerated at this revision. Representative old/new HSACO
-hashes were byte-identical, so regeneration alone did not produce a packaged
-native compiler uplift.
+generation summaries record that source commit. The 2880 dense and 182 ragged
+artifacts were regenerated at this revision.
 
 Direct Tuning
 -------------

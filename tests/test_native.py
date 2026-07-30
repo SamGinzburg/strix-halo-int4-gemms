@@ -161,7 +161,7 @@ def test_dispatch_runtime_status_loads_built_library_when_available() -> None:
     status = dispatch_runtime_status(library)
 
     assert status.library_path == Path(library)
-    assert status.dispatch_version == 1
+    assert status.dispatch_version == 3
     assert status.has_hip_runtime in {False, True}
     assert status.has_linked_kernels == (status.has_compiled_code_objects and status.has_hip_runtime)
 

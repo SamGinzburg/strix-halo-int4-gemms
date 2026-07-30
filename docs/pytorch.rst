@@ -40,7 +40,7 @@ Which API to Call
      - Native HSACO candidates only
    * - ``autotune_attention(...)``
      - Validate and time fused attention configs on caller-provided tensors
-     - JIT, all BF16/INT4 QK-by-PV modes
+     - Packaged D64 HSACO plus JIT fallback, all BF16/INT4 QK-by-PV modes
    * - ``autotune_ragged_dot(...)``
      - Time ragged Triton-JIT candidate configs
      - Forward and backward ragged modes
@@ -341,6 +341,18 @@ GQA is explicit: when ``Hq != Hkv``, ``enable_gqa=True`` is required and
 ``Hq % Hkv`` must be zero. The optimized path is forward-only, supports no
 dropout, and rejects input or scale tensors that require gradients.
 
+At ``D=Dv=64``, measured/default configs use packaged HSACO automatically.
+Pass ``use_precompiled=True`` to require the native path or ``False`` to force
+JIT; the default ``None`` falls back to JIT when a dimension/config is not
+packaged. Native launches do not import Triton. The packaged matrix covers all
+four QK-by-V storage combinations, no/bool/BF16/FP32 mask pointers, and
+BF16/FP32 output. Generic artifacts keep batch, heads, sequence lengths,
+causal/window semantics, and decode offsets in the runtime ABI. Exact packaged
+profiles preserve Triton's value specialization for ``(Hq,Hkv,Lq,Lk)``
+``(8,8,512,512)``, ``(16,8,2048,2048)``, and split decode
+``(8,8,1,2048)``; dispatch prefers an exact semantic profile, then the generic
+artifact, then JIT.
+
 Use ``autotune_attention(...)`` on the actual tensors and exact attention
 semantics to select a launch configuration. It validates every candidate in
 FP32 and in the requested timed output dtype at ``rtol=atol=1e-3`` or stricter:
@@ -359,6 +371,7 @@ FP32 and in the requested timed output dtype at ``rtol=atol=1e-3`` or stricter:
        enable_gqa=True,
        window_size=(127, 0),
        benchmark_db_path="benchmarks/local_attention.json",
+       use_precompiled=True,
    )
 
    tuned = int4_scaled_dot_product_attention(
@@ -377,6 +390,9 @@ Quantization, output allocation, and split-decode workspace allocation are
 excluded from timing. The result database is append-only evidence; pass
 ``best_config`` explicitly because attention dispatch does not consult that
 file. Run tuning before capture, never from inside a CUDAGraph.
+The tuner accepts the same ``use_precompiled`` control; ``True`` records
+uncovered candidates as failures (when ``continue_on_error=True``) and chooses
+among installed native coverage, while ``False`` compares JIT candidates.
 
 The default long-context decode configuration uses split reduction. For graph
 capture, provide the exact preallocated output and FP32 workspace and warm the
@@ -422,7 +438,8 @@ separate metric: INT4 Q/K with BF16 V has measured relative L2 at most 0.03
 and cosine at least 0.999; modes with experimental INT4 V use relative L2 at
 most 0.12 and cosine at least 0.99 across dense, ragged, causal, local, and GQA
 cases. BF16 output can differ by one BF16 ULP at larger magnitudes. This
-kernel is JIT-only and requires the custom Triton fork.
+packaged D64 path does not require Triton; uncovered JIT fallback and
+regeneration require the custom fork.
 
 For the model-like BF16 GQA training shape
 ``B=7,Hq=16,Hkv=8,Lq=Lk=2048,D=Dv=64``, the default

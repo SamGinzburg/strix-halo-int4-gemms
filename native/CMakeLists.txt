@@ -68,7 +68,7 @@ endif()
 install(TARGETS amd_strix_halo_kernels_dispatch
         LIBRARY DESTINATION amd_strix_halo_kernels)
 
-# Only the per-kernel launch metadata (*.json) is read at runtime. The AMDGCN
+# Only per-kernel launch metadata (*.json) is read at runtime. The AMDGCN
 # *.s assembly and the kernels/triton/ IR (*.py/*.ttir/*.ttgir/*.llir) are
 # regeneration/inspection provenance kept in the git repository, not the wheel,
 # so the binary wheel stays small enough for PyPI.

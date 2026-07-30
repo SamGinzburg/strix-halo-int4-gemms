@@ -112,6 +112,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--warmup-ms", type=int, default=25)
     parser.add_argument("--rep-ms", type=int, default=100)
+    parser.add_argument(
+        "--backend",
+        choices=("auto", "precompiled", "jit"),
+        default="auto",
+        help="attention backend preference for candidate timing",
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     return parser
 
@@ -197,6 +203,7 @@ def main(argv: list[str] | None = None) -> int:
     failures: list[dict[str, Any]] = []
     baselines: list[dict[str, Any]] = []
     aotriton_enabled = os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL") == "1"
+    use_precompiled = {"auto": None, "precompiled": True, "jit": False}[args.backend]
     for case in cases:
         _, _, _, _, logical = _make_operands(torch, case, qk_int4=False, pv_int4=False)
         enable_gqa = case.shape.query_heads != case.shape.kv_heads
@@ -261,6 +268,7 @@ def main(argv: list[str] | None = None) -> int:
                     candidates=configs,
                     warmup_ms=args.warmup_ms,
                     rep_ms=args.rep_ms,
+                    use_precompiled=use_precompiled,
                     **operand_kwargs,
                 )
             except Exception as exc:
@@ -297,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
                     "effective_tops": benchmark_record.tops,
                     "samples": benchmark_record.iterations,
                     "arithmetic": benchmark_record.metadata["arithmetic"],
+                    "dispatch_preference": benchmark_record.metadata["dispatch_preference"],
                     "numerics": {
                         **numerical_gate,
                         "max_rel_diff_denominator_clamp": numerical_gate["atol"],
@@ -333,6 +342,7 @@ def main(argv: list[str] | None = None) -> int:
             "mean_effective_tops": mean(record["effective_tops"] for record in records),
             "modes": list(modes),
             "cases": [case.name for case in cases],
+            "backend": args.backend,
             "timing": "triton.testing.do_bench; prepacked inputs; preallocated output; quantization excluded",
             "validation": (
                 "float32 optimized output versus representation-matched float32 oracle; "

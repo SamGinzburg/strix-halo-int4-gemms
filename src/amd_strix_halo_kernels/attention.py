@@ -85,6 +85,14 @@ def _triton() -> tuple[Any, Any]:
     return triton, tl
 
 
+def _cdiv(value: int, divisor: int) -> int:
+    return (value + divisor - 1) // divisor
+
+
+def _next_power_of_two(value: int) -> int:
+    return 1 << (value - 1).bit_length()
+
+
 def _require_tensor(torch: Any, name: str, tensor: Any) -> None:
     if not torch.is_tensor(tensor):
         raise TypeError(f"{name} must be a torch.Tensor")
@@ -140,7 +148,9 @@ def _mask_shape_and_strides(
     target_shape: tuple[int, int, int, int],
 ) -> tuple[Any, int, tuple[int, int, int, int]]:
     if attn_mask is None:
-        return torch.empty((0,), device=device, dtype=torch.bool), 0, (0, 0, 0, 0)
+        # Native launch ABIs require every pointer argument to be non-null even
+        # when MASK_KIND=0 makes the kernel ignore the value.
+        return torch.empty((1,), device=device, dtype=torch.bool), 0, (0, 0, 0, 0)
     _require_tensor(torch, "attn_mask", attn_mask)
     if attn_mask.device != device:
         raise ValueError(f"attn_mask must be on device {device}; got {attn_mask.device}")
@@ -453,12 +463,42 @@ def reference_scaled_dot_product_attention(
     return result.to(dtype)
 
 
-@lru_cache(maxsize=1)
-def _attention_forward_kernel() -> Any:
+@lru_cache(maxsize=2)
+def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
     _, tl = _triton()
     import triton
 
-    @triton.jit
+    runtime_args = (
+        "batch",
+        "query_heads",
+        "kv_heads",
+        "query_length",
+        "key_length",
+        "head_dim",
+        "packed_head_dim",
+        "value_dim",
+        "decode_splits",
+        "softmax_scale",
+        "mask_stride_b",
+        "mask_stride_h",
+        "mask_stride_q",
+        "mask_stride_k",
+        "is_causal",
+        "has_window",
+        "window_left",
+        "window_right",
+        "query_position_offset",
+    )
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": runtime_args,
+            "do_not_specialize_on_alignment": runtime_args,
+        }
+    )
+
+    @triton.jit(**jit_options)
     def kernel(
         query,
         key,
@@ -483,6 +523,11 @@ def _attention_forward_kernel() -> Any:
         mask_stride_h,
         mask_stride_q,
         mask_stride_k,
+        is_causal,
+        has_window,
+        window_left,
+        window_right,
+        query_position_offset,
         BLOCK_M: tl.constexpr,
         BLOCK_N: tl.constexpr,
         BLOCK_D: tl.constexpr,
@@ -491,14 +536,24 @@ def _attention_forward_kernel() -> Any:
         QK_INT4: tl.constexpr,
         PV_INT4: tl.constexpr,
         MASK_KIND: tl.constexpr,
-        IS_CAUSAL: tl.constexpr,
-        HAS_WINDOW: tl.constexpr,
-        WINDOW_LEFT: tl.constexpr,
-        WINDOW_RIGHT: tl.constexpr,
-        QUERY_POSITION_OFFSET: tl.constexpr,
         OUTPUT_BF16: tl.constexpr,
         SPLIT_DECODE: tl.constexpr,
+        SPECIALIZE_SEMANTICS: tl.constexpr,
+        IS_CAUSAL_STATIC: tl.constexpr,
+        HAS_WINDOW_STATIC: tl.constexpr,
+        SPECIALIZE_SEQUENCE: tl.constexpr,
+        QUERY_LENGTH_STATIC: tl.constexpr,
+        KEY_LENGTH_STATIC: tl.constexpr,
+        SPECIALIZE_HEADS: tl.constexpr,
+        QUERY_HEADS_STATIC: tl.constexpr,
+        KV_HEADS_STATIC: tl.constexpr,
     ):
+        if SPECIALIZE_SEQUENCE:
+            query_length = QUERY_LENGTH_STATIC
+            key_length = KEY_LENGTH_STATIC
+        if SPECIALIZE_HEADS:
+            query_heads = QUERY_HEADS_STATIC
+            kv_heads = KV_HEADS_STATIC
         program_m = tl.program_id(0)
         if SPLIT_DECODE:
             query_block = program_m // decode_splits
@@ -515,7 +570,13 @@ def _attention_forward_kernel() -> Any:
         offsets_m = start_m + tl.arange(0, BLOCK_M)
         offsets_n = tl.arange(0, BLOCK_N)
         offsets_dv = tl.arange(0, BLOCK_DV)
-        query_positions = offsets_m + QUERY_POSITION_OFFSET
+        query_positions = offsets_m + query_position_offset
+        if SPECIALIZE_SEMANTICS:
+            effective_is_causal = IS_CAUSAL_STATIC
+            effective_has_window = HAS_WINDOW_STATIC
+        else:
+            effective_is_causal = is_causal
+            effective_has_window = has_window
 
         if QK_INT4:
             offsets_dp = tl.arange(0, BLOCK_D_PACKED)
@@ -548,16 +609,16 @@ def _attention_forward_kernel() -> Any:
             blocks_per_split = (total_key_blocks + decode_splits - 1) // decode_splits
             lo = split_index * blocks_per_split * BLOCK_N
             hi = tl.minimum(hi, (split_index + 1) * blocks_per_split * BLOCK_N)
-        if HAS_WINDOW:
-            window_lo = tl.maximum(0, start_m + QUERY_POSITION_OFFSET - WINDOW_LEFT)
+        if effective_has_window:
+            window_lo = tl.maximum(0, start_m + query_position_offset - window_left)
             window_hi = tl.minimum(
                 key_length,
-                start_m + BLOCK_M - 1 + QUERY_POSITION_OFFSET + WINDOW_RIGHT + 1,
+                start_m + BLOCK_M - 1 + query_position_offset + window_right + 1,
             )
             lo = tl.maximum(lo, (window_lo // BLOCK_N) * BLOCK_N)
             hi = tl.minimum(hi, ((window_hi + BLOCK_N - 1) // BLOCK_N) * BLOCK_N)
-        if IS_CAUSAL:
-            causal_hi = tl.minimum(key_length, start_m + BLOCK_M - 1 + QUERY_POSITION_OFFSET + 1)
+        if effective_is_causal:
+            causal_hi = tl.minimum(key_length, start_m + BLOCK_M - 1 + query_position_offset + 1)
             hi = tl.minimum(hi, ((causal_hi + BLOCK_N - 1) // BLOCK_N) * BLOCK_N)
 
         m_i = tl.full([BLOCK_M], -float("inf"), tl.float32)
@@ -603,11 +664,11 @@ def _attention_forward_kernel() -> Any:
                 scores *= softmax_scale * 1.4426950408889634
                 valid = (offsets_m[:, None] < query_length) & (key_offsets[None, :] < key_length)
                 key_positions = key_offsets[None, :]
-                if IS_CAUSAL:
+                if effective_is_causal:
                     valid &= key_positions <= query_positions[:, None]
-                if HAS_WINDOW:
-                    valid &= key_positions >= query_positions[:, None] - WINDOW_LEFT
-                    valid &= key_positions <= query_positions[:, None] + WINDOW_RIGHT
+                if effective_has_window:
+                    valid &= key_positions >= query_positions[:, None] - window_left
+                    valid &= key_positions <= query_positions[:, None] + window_right
                 if MASK_KIND != 0:
                     mask_ptrs = (
                         attn_mask
@@ -681,11 +742,11 @@ def _attention_forward_kernel() -> Any:
                 scores *= softmax_scale * 1.4426950408889634
                 valid = (offsets_m[:, None] < query_length) & (key_offsets[None, :] < key_length)
                 key_positions = key_offsets[None, :]
-                if IS_CAUSAL:
+                if effective_is_causal:
                     valid &= key_positions <= query_positions[:, None]
-                if HAS_WINDOW:
-                    valid &= key_positions >= query_positions[:, None] - WINDOW_LEFT
-                    valid &= key_positions <= query_positions[:, None] + WINDOW_RIGHT
+                if effective_has_window:
+                    valid &= key_positions >= query_positions[:, None] - window_left
+                    valid &= key_positions <= query_positions[:, None] + window_right
                 if MASK_KIND != 0:
                     mask_ptrs = (
                         attn_mask
@@ -789,12 +850,21 @@ def _attention_forward_kernel() -> Any:
     return kernel
 
 
-@lru_cache(maxsize=1)
-def _attention_decode_reduce_kernel() -> Any:
+@lru_cache(maxsize=2)
+def _attention_decode_reduce_kernel(*, specialize_runtime_args: bool = True) -> Any:
     _, tl = _triton()
     import triton
 
-    @triton.jit
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": ("value_dim", "decode_splits"),
+            "do_not_specialize_on_alignment": ("value_dim", "decode_splits"),
+        }
+    )
+
+    @triton.jit(**jit_options)
     def kernel(
         workspace,
         out,
@@ -868,6 +938,7 @@ def int4_scaled_dot_product_attention(
     workspace: Any | None = None,
     config: Int4AttentionConfig | None = None,
     use_reference: bool = False,
+    use_precompiled: bool | None = None,
 ) -> Any:
     """Scaled-dot-product attention for BF16 and packed INT4 operands.
 
@@ -893,11 +964,22 @@ def int4_scaled_dot_product_attention(
     Split decode requires a contiguous FP32 ``workspace`` of shape
     ``(B, Hq, config.decode_splits, Dv + 2)`` during CUDAGraph capture. Pass a
     preallocated ``out`` tensor to keep output storage stable across replays.
+
+    ``use_precompiled=None`` (the default) selects an installed native gfx1151
+    artifact when the mode and launch config are covered, then falls back to
+    Triton JIT otherwise. Pass ``True`` to require a packaged artifact or
+    ``False`` to force JIT. Packaged artifacts currently cover ``D=Dv=64``;
+    batch, head, sequence, masking, causal, local-window, and decode-offset
+    values remain runtime arguments.
     """
 
     torch = _torch()
     if not isinstance(use_reference, bool):
         raise TypeError("use_reference must be a Python bool")
+    if use_precompiled is not None and not isinstance(use_precompiled, bool):
+        raise TypeError("use_precompiled must be a Python bool or None")
+    if use_reference and use_precompiled is True:
+        raise ValueError("use_reference=True cannot be combined with use_precompiled=True")
     if not isinstance(is_causal, bool):
         raise TypeError("is_causal must be a Python bool")
     if isinstance(dropout_p, bool) or not isinstance(dropout_p, (int, float)):
@@ -1051,18 +1133,155 @@ def int4_scaled_dot_product_attention(
             if tensor is not None and _shares_storage(workspace, tensor):
                 raise ValueError(f"workspace must not share storage with {name}")
 
-    triton, _ = _triton()
-    block_d = triton.next_power_of_2(logical_head_dim)
+    block_d = _next_power_of_two(logical_head_dim)
     packed_head_dim = int(query.shape[-1]) if qk_int4 else 1
-    block_d_packed = triton.next_power_of_2(packed_head_dim)
-    block_dv = triton.next_power_of_2(value_dim)
+    block_d_packed = _next_power_of_two(packed_head_dim)
+    block_dv = _next_power_of_two(value_dim)
     if max(block_d, block_dv) > 256:
         raise ValueError("optimized attention currently supports head_dim and value_dim up to 256")
     left, right = window if window is not None else (0, 0)
     grid = (
-        triton.cdiv(query_length, config.block_m) * config.decode_splits,
+        _cdiv(query_length, config.block_m) * config.decode_splits,
         batch * query_heads,
     )
+
+    from .attention_artifacts import (
+        ATTENTION_MASK_BF16,
+        ATTENTION_MASK_BOOL,
+        ATTENTION_MASK_FP32,
+        ATTENTION_MASK_NONE,
+        ATTENTION_OUTPUT_BF16,
+        ATTENTION_OUTPUT_FP32,
+        ATTENTION_PRECOMPILED_HEAD_DIM,
+        ATTENTION_PRECOMPILED_VALUE_DIM,
+        ATTENTION_SEMANTICS_CAUSAL,
+        ATTENTION_SEMANTICS_CAUSAL_LOCAL,
+        ATTENTION_SEMANTICS_FULL,
+        ATTENTION_SEMANTICS_LOCAL,
+        attention_forward_kernel_id,
+        attention_mode,
+        attention_precompiled_workload_shapes,
+        attention_reduce_kernel_id,
+        is_precompiled_attention_config,
+        launch_precompiled_attention_forward,
+        launch_precompiled_attention_reduce,
+        precompiled_attention_forward_available,
+        precompiled_attention_reduce_available,
+    )
+
+    mode = attention_mode(qk_int4=qk_int4, pv_int4=pv_int4)
+    if mask_kind == 0:
+        mask_dtype = ATTENTION_MASK_NONE
+    elif mask_kind == 1:
+        mask_dtype = ATTENTION_MASK_BOOL
+    elif mask_arg.dtype == torch.bfloat16:
+        mask_dtype = ATTENTION_MASK_BF16
+    else:
+        mask_dtype = ATTENTION_MASK_FP32
+    artifact_output_dtype = ATTENTION_OUTPUT_BF16 if dtype == torch.bfloat16 else ATTENTION_OUTPUT_FP32
+    if is_causal and window is not None:
+        artifact_semantics = ATTENTION_SEMANTICS_CAUSAL_LOCAL
+    elif is_causal:
+        artifact_semantics = ATTENTION_SEMANTICS_CAUSAL
+    elif window is not None:
+        artifact_semantics = ATTENTION_SEMANTICS_LOCAL
+    else:
+        artifact_semantics = ATTENTION_SEMANTICS_FULL
+    dimensions_covered = (
+        logical_head_dim == ATTENTION_PRECOMPILED_HEAD_DIM
+        and value_dim == ATTENTION_PRECOMPILED_VALUE_DIM
+    )
+    config_covered = is_precompiled_attention_config(mode, config)
+    forward_kernel_id = None
+    reduce_kernel_id = None
+    artifacts_available = False
+    if dimensions_covered and config_covered:
+        workload_shape = (query_heads, kv_heads, query_length, key_length)
+        workload_candidates: tuple[tuple[tuple[int, int, int, int] | None, str | None], ...] = (
+            ((workload_shape, artifact_semantics), (None, None))
+            if workload_shape in attention_precompiled_workload_shapes(config)
+            else ((None, None),)
+        )
+        for candidate_workload_shape, candidate_semantics in workload_candidates:
+            candidate_kernel_id = attention_forward_kernel_id(
+                mode=mode,
+                mask_dtype=mask_dtype,
+                semantics=candidate_semantics,
+                output_dtype=artifact_output_dtype,
+                head_dim=logical_head_dim,
+                value_dim=value_dim,
+                config=config,
+                workload_shape=candidate_workload_shape,
+            )
+            if precompiled_attention_forward_available(candidate_kernel_id):
+                forward_kernel_id = candidate_kernel_id
+                artifacts_available = True
+                break
+        if split_decode:
+            reduce_kernel_id = attention_reduce_kernel_id(
+                output_dtype=artifact_output_dtype,
+                value_dim=value_dim,
+                decode_splits=config.decode_splits,
+            )
+            artifacts_available = artifacts_available and precompiled_attention_reduce_available(
+                reduce_kernel_id
+            )
+
+    if use_precompiled is True and not dimensions_covered:
+        raise ValueError(
+            "precompiled attention currently requires head_dim=64 and value_dim=64; "
+            f"got head_dim={logical_head_dim}, value_dim={value_dim}"
+        )
+    if use_precompiled is True and not config_covered:
+        raise ValueError(f"precompiled attention does not cover mode {mode} with config {config}")
+    if use_precompiled is True and not artifacts_available:
+        missing = forward_kernel_id if reduce_kernel_id is None else f"{forward_kernel_id} and/or {reduce_kernel_id}"
+        raise RuntimeError(f"required precompiled attention artifact is not installed: {missing}")
+
+    if use_precompiled is not False and artifacts_available:
+        assert forward_kernel_id is not None
+        launch_precompiled_attention_forward(
+            forward_kernel_id,
+            query=query,
+            key=key,
+            value=value,
+            query_scale=query_scale if query_scale is not None else query,
+            key_scale=key_scale if key_scale is not None else key,
+            value_scale=value_scale if value_scale is not None else value,
+            attn_mask=mask_arg,
+            out=out,
+            workspace=workspace if workspace is not None else out,
+            grid=(grid[0], grid[1], 1),
+            batch=batch,
+            query_heads=query_heads,
+            kv_heads=kv_heads,
+            query_length=query_length,
+            key_length=key_length,
+            head_dim=logical_head_dim,
+            packed_head_dim=packed_head_dim,
+            value_dim=value_dim,
+            decode_splits=config.decode_splits,
+            softmax_scale=softmax_scale,
+            mask_strides=mask_strides,
+            is_causal=is_causal,
+            has_window=window is not None,
+            window_left=left,
+            window_right=right,
+            query_position_offset=query_position_offset,
+        )
+        if split_decode:
+            assert reduce_kernel_id is not None and workspace is not None
+            launch_precompiled_attention_reduce(
+                reduce_kernel_id,
+                workspace=workspace,
+                out=out,
+                grid=(batch * query_heads, 1, 1),
+                value_dim=value_dim,
+                decode_splits=config.decode_splits,
+            )
+        return out
+
+    triton, _ = _triton()
     _attention_forward_kernel()[grid](
         query,
         key,
@@ -1084,6 +1303,11 @@ def int4_scaled_dot_product_attention(
         config.decode_splits,
         softmax_scale,
         *mask_strides,
+        bool(is_causal),
+        window is not None,
+        left,
+        right,
+        query_position_offset,
         BLOCK_M=config.block_m,
         BLOCK_N=config.block_n,
         BLOCK_D=block_d,
@@ -1092,13 +1316,17 @@ def int4_scaled_dot_product_attention(
         QK_INT4=qk_int4,
         PV_INT4=pv_int4,
         MASK_KIND=mask_kind,
-        IS_CAUSAL=bool(is_causal),
-        HAS_WINDOW=window is not None,
-        WINDOW_LEFT=left,
-        WINDOW_RIGHT=right,
-        QUERY_POSITION_OFFSET=query_position_offset,
         OUTPUT_BF16=dtype == torch.bfloat16,
         SPLIT_DECODE=split_decode,
+        SPECIALIZE_SEMANTICS=False,
+        IS_CAUSAL_STATIC=False,
+        HAS_WINDOW_STATIC=False,
+        SPECIALIZE_SEQUENCE=False,
+        QUERY_LENGTH_STATIC=0,
+        KEY_LENGTH_STATIC=0,
+        SPECIALIZE_HEADS=False,
+        QUERY_HEADS_STATIC=0,
+        KV_HEADS_STATIC=0,
         num_warps=config.num_warps,
         num_stages=config.num_stages,
         matrix_instr_nonkdim=16,
@@ -1111,7 +1339,7 @@ def int4_scaled_dot_product_attention(
             value_dim,
             config.decode_splits,
             BLOCK_DV=block_dv,
-            BLOCK_SPLITS=triton.next_power_of_2(config.decode_splits),
+            BLOCK_SPLITS=_next_power_of_two(config.decode_splits),
             OUTPUT_BF16=dtype == torch.bfloat16,
             num_warps=4,
             num_stages=1,

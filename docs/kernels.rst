@@ -4,8 +4,8 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2,882 dense generated kernels plus 182
-ragged generated artifacts:
+The checked-in native matrix contains 3,552 artifacts: 2,882 dense generated
+kernels, 182 ragged generated artifacts, and 488 fused-attention artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
@@ -172,13 +172,19 @@ Ragged artifact families are generated separately from the dense registry:
      - ``evenk``
      - FP32, BF16
 
-Fused Attention JIT
--------------------
+Fused Attention Native and JIT
+------------------------------
 
-Fused attention is a separate Triton-JIT family; it is not part of the 2,882
-dense or 182 ragged native-artifact matrices above. No attention AMDGCN,
-Triton IR, metadata, or HSACO is generated or packaged, so dense/ragged
-regeneration and artifact counts are unchanged.
+Fused attention is a separate 488-artifact native family at ``D=Dv=64``:
+484 forward objects and four split-decode reducers. The forward matrix contains
+104 generic runtime-shape/runtime-semantics objects plus 380 objects specialized
+for the measured 512-prefill, 2048-training, and 1-by-2048 decode profiles. It
+crosses the measured/default configs for BF16/BF16, INT4/BF16, BF16/INT4, and
+INT4/INT4 QK-by-V storage with no mask or bool/BF16/FP32 mask pointers and
+BF16/FP32 output. Exact profiles specialize heads, query/key lengths, and
+full/causal/local control flow; cached-position and mask strides remain runtime
+arguments. Other dimensions and launch configs use generic native objects or
+fall back to Triton JIT.
 
 The kernel supports four Q/K-by-V representation modes. BF16 Q/K uses BF16
 WMMA for the score product. Packed signed-INT4 Q/K uses ``iu4`` scaled-dot
@@ -215,7 +221,10 @@ The optimized path is forward-only, requires contiguous CUDA/HIP operands,
 uses ``dropout_p=0``, and supports logical head and value dimensions through
 256. Q/K head packing and V sequence packing are padded to multiples of 16;
 scale and logical-length validation prevents padding from contributing to the
-result. The JIT requires the custom Strix Halo Triton fork.
+result. Packaged configs launch without Triton; regeneration and uncovered JIT
+fallbacks require the custom Strix Halo Triton fork. ``use_precompiled=None``
+selects native coverage automatically, ``True`` requires it, and ``False``
+forces JIT.
 
 Shape Contract
 --------------

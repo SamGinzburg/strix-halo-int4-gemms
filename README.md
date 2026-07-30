@@ -51,7 +51,7 @@ uv pip install dist/amd_strix_halo_kernels-0.1.0-py3-none-linux_x86_64.whl
 
 Runtime import does not require Triton. Native dispatch requires a compatible
 ROCm HIP runtime, ROCm PyTorch, and the packaged HSACO artifacts from the wheel.
-The wheel is runtime-only (about 28 MB): it ships the dispatch library, the
+The wheel is runtime-only (about 34.4 MiB): it ships the dispatch library, the
 HSACO code objects, and the per-kernel JSON launch metadata. The AMDGCN
 assembly and Triton IR used to generate those objects live in the repository,
 not the wheel.
@@ -115,7 +115,7 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | --- | --- |
 | `mm(...)` | Surface API for regular single-output GEMMs. Supports plain GEMM and ReLU^2. |
 | `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`. |
-| `int4_scaled_dot_product_attention(...)` | Forward fused attention with BF16 or packed INT4 Q/K and V operands. |
+| `int4_scaled_dot_product_attention(...)` | Forward fused attention with BF16 or packed INT4 Q/K and V operands; packaged D64 HSACO with JIT fallback. |
 | `reference_scaled_dot_product_attention(...)` | Quantization-matched FP32 arithmetic oracle for fused attention. |
 | `quantize_attention_qk_int4(...)` | Per-token signed-INT4 quantization and head-dimension packing for Q/K. |
 | `quantize_attention_value_int4(...)` | Per-16-token signed-INT4 quantization and sequence-dimension packing for V. |
@@ -635,6 +635,8 @@ Prefill is `Lq=Lk=512`, decode is `Lq=1,Lk=2048`, and local is
 with BF16 scales; P@V is BF16 MMA and the online-softmax/output accumulation
 is FP32 in every row. Ratios use an allocation-including PyTorch BF16 SDPA
 baseline; custom timings exclude quantization, allocation, and packing.
+These recorded timings are the tuning-run JIT measurements; the wheel now
+packages the measured/default D64 configurations as equivalent native HSACO.
 
 | Q/K storage | V storage | Prefill runtime / PyTorch | Decode runtime / PyTorch | Local runtime / PyTorch |
 | --- | --- | ---: | ---: | ---: |
@@ -670,14 +672,28 @@ boolean mask that fell off its fused fast path, so it is diagnostic rather
 than an apples-to-apples fused-kernel speedup. Local BF16 Q/K defaults to BN64
 for `Lq >= 1024` and retains BN32 for shorter queries.
 
-Attention is JIT-only and requires the custom Strix Halo Triton fork. It adds
-no native HSACO entries. Two separately tuned projection TN artifacts increase
-the current dense matrix to 2,882; the ragged matrix remains 182.
+The wheel packages 484 forward-attention artifacts and four split-decode
+reducers for `D=Dv=64`. The forward set contains 104 generic runtime-shape and
+runtime-semantics objects plus 380 specialized objects for the measured
+`Hq/Hkv/Lq/Lk` profiles `(8,8,512,512)`, `(16,8,2048,2048)`, and
+`(8,8,1,2048)`. It covers all four Q/K-by-V storage modes, no mask or
+bool/BF16/FP32 mask pointers, BF16/FP32 output, and the measured/default launch
+configs above. `use_precompiled=None` selects the exact profile when available,
+then the generic native object, while `True` requires packaged coverage and
+`False` forces JIT. Uncovered dimensions/configs retain the custom-Triton JIT
+fallback.
+
+On the packaged `(B,Hq,Hkv,Lq,Lk,D,Dv)=(1,8,8,512,512,64,64)` BF16 profile,
+`BM64_BN64_W4_S1` measured 0.036228 ms / 14.819 effective TOPS versus
+0.039234 ms / 13.684 TOPS for matched JIT (7.7% lower native latency). The
+native record passed `rtol=atol=1e-3` FP32 validation with maximum absolute
+error `6.07e-5`; timed BF16 maximum absolute error was `2.45e-4`.
 
 ## Kernel Coverage
 
-The checked-in matrix currently contains 2,882 dense generated kernels plus
-182 ragged generated artifacts:
+The checked-in matrix currently contains 3,552 native artifacts: 2,882 dense
+generated kernels, 182 ragged generated artifacts, and 488 fused-attention
+artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
@@ -698,6 +714,13 @@ matrix contains 40 generic FP32 artifacts, 80 generic BF16 paired/scalar-store
 artifacts, and 20 exact 4096-capacity BF16 wide-store NN/TN artifacts. Together
 with 40 forward BF16 artifacts and two specialized `bwd_accum` FP32/BF16
 artifacts, this forms the 182-artifact ragged matrix.
+
+Attention contributes 484 forward artifacts plus four decode reducers at
+`D=Dv=64`. Its physical input combinations are BF16/BF16, INT4/BF16,
+BF16/INT4, and INT4/INT4 for QK/V; forward variants cover no mask and
+bool/BF16/FP32 mask pointers with BF16 or FP32 output. Generic variants retain
+runtime shapes and semantics, while measured workload profiles specialize
+heads, lengths, and full/causal/local control flow.
 
 Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
 because their partial tiles are reduced with FP32 atomics.

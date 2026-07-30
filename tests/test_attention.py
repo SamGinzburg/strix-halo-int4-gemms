@@ -814,6 +814,16 @@ def test_attention_validation_failures() -> None:
         )
     with pytest.raises(TypeError, match="use_reference"):
         int4_scaled_dot_product_attention(q.detach(), k, v, use_reference=1)
+    with pytest.raises(TypeError, match="use_precompiled"):
+        int4_scaled_dot_product_attention(q.detach(), k, v, use_precompiled=1)
+    with pytest.raises(ValueError, match="cannot be combined"):
+        int4_scaled_dot_product_attention(
+            q.detach(),
+            k,
+            v,
+            use_reference=True,
+            use_precompiled=True,
+        )
     alias_q, alias_k, alias_v = _logical_inputs(query_length=5, key_length=5, seed=177)
     with pytest.raises(ValueError, match="out must not share storage with value"):
         int4_scaled_dot_product_attention(alias_q, alias_k, alias_v, out=alias_v)

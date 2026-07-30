@@ -203,7 +203,7 @@ int load_kernel_function(HipRuntime *runtime, const char *hsaco_path, const char
 
 } // namespace
 
-extern "C" int amd_strix_halo_kernels_dispatch_version() { return 1; }
+extern "C" int amd_strix_halo_kernels_dispatch_version() { return 3; }
 
 extern "C" int amd_strix_halo_kernels_has_compiled_code_objects() {
   return AMD_STRIX_HALO_HAS_HSACO;
@@ -459,6 +459,150 @@ extern "C" int amd_strix_halo_kernels_launch_ragged_bwd_hsaco(
   } else {
     return fail("unsupported ragged backward runtime scalar mode");
   }
+  error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
+                                         shared_memory_bytes, stream, params, nullptr);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipModuleLaunchKernel", error);
+  }
+  return 0;
+}
+
+extern "C" int amd_strix_halo_kernels_launch_attention_fwd_hsaco(
+    const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x, uint32_t grid_y,
+    uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,
+    uint32_t shared_memory_bytes, uintptr_t stream_handle, void *query, void *key, void *value,
+    void *query_scale, void *key_scale, void *value_scale, void *attn_mask, void *out,
+    void *workspace, int32_t batch, int32_t query_heads, int32_t kv_heads,
+    int32_t query_length, int32_t key_length, int32_t head_dim, int32_t packed_head_dim,
+    int32_t value_dim, int32_t decode_splits, float softmax_scale, int32_t mask_stride_b,
+    int32_t mask_stride_h, int32_t mask_stride_q, int32_t mask_stride_k, int32_t is_causal,
+    int32_t has_window, int32_t window_left, int32_t window_right,
+    int32_t query_position_offset, uint32_t runtime_scalar_mask) {
+  last_error.clear();
+  if (hsaco_path == nullptr || symbol == nullptr) {
+    return fail("hsaco_path and symbol must be non-null");
+  }
+  if (grid_x == 0 || grid_y == 0 || grid_z == 0 || block_x == 0 || block_y == 0 || block_z == 0) {
+    return fail("grid and block dimensions must be non-zero");
+  }
+  if (query == nullptr || key == nullptr || value == nullptr || query_scale == nullptr ||
+      key_scale == nullptr || value_scale == nullptr || attn_mask == nullptr || out == nullptr ||
+      workspace == nullptr) {
+    return fail("attention forward kernel pointers must be non-null");
+  }
+  constexpr uint32_t kAllAttentionRuntimeScalars = (1u << 19) - 1u;
+  if ((runtime_scalar_mask & ~kAllAttentionRuntimeScalars) != 0) {
+    return fail("attention forward runtime scalar mask contains unknown arguments");
+  }
+
+  if (!load_hip_runtime(true)) {
+    return 1;
+  }
+  HipRuntime *runtime = &hip_runtime;
+  hipError_t error = runtime->hipSetDevice(device_index);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipSetDevice", error);
+  }
+
+  struct NamedPointer {
+    void **pointer;
+    const char *name;
+  };
+  NamedPointer pointers[] = {
+      {&query, "query"},
+      {&key, "key"},
+      {&value, "value"},
+      {&query_scale, "query_scale"},
+      {&key_scale, "key_scale"},
+      {&value_scale, "value_scale"},
+      {&attn_mask, "attn_mask"},
+      {&out, "out"},
+      {&workspace, "workspace"},
+  };
+  for (const NamedPointer &entry : pointers) {
+    if (int rc = canonicalize_device_pointer(runtime, entry.pointer, entry.name); rc != 0) {
+      return rc;
+    }
+  }
+
+  hipFunction_t function = nullptr;
+  if (int rc = load_kernel_function(runtime, hsaco_path, symbol, &function); rc != 0) {
+    return rc;
+  }
+
+  void *reserved0 = nullptr;
+  void *reserved1 = nullptr;
+  void *pointer_params[] = {
+      &query,       &key,       &value,     &query_scale, &key_scale,
+      &value_scale, &attn_mask, &out,       &workspace,
+  };
+  void *scalar_params[] = {
+      &batch,          &query_heads,    &kv_heads,      &query_length,
+      &key_length,     &head_dim,       &packed_head_dim, &value_dim,
+      &decode_splits,  &softmax_scale,  &mask_stride_b, &mask_stride_h,
+      &mask_stride_q,  &mask_stride_k,  &is_causal,     &has_window,
+      &window_left,    &window_right,   &query_position_offset,
+  };
+  void *params[30];
+  uint32_t param_count = 0;
+  for (void *pointer_param : pointer_params) {
+    params[param_count++] = pointer_param;
+  }
+  for (uint32_t index = 0; index < 19; ++index) {
+    if ((runtime_scalar_mask & (1u << index)) != 0) {
+      params[param_count++] = scalar_params[index];
+    }
+  }
+  params[param_count++] = &reserved0;
+  params[param_count++] = &reserved1;
+  auto stream = reinterpret_cast<hipStream_t>(stream_handle);
+  error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
+                                         shared_memory_bytes, stream, params, nullptr);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipModuleLaunchKernel", error);
+  }
+  return 0;
+}
+
+extern "C" int amd_strix_halo_kernels_launch_attention_reduce_hsaco(
+    const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x, uint32_t grid_y,
+    uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,
+    uint32_t shared_memory_bytes, uintptr_t stream_handle, void *workspace, void *out,
+    int32_t value_dim, int32_t decode_splits) {
+  last_error.clear();
+  if (hsaco_path == nullptr || symbol == nullptr) {
+    return fail("hsaco_path and symbol must be non-null");
+  }
+  if (grid_x == 0 || grid_y == 0 || grid_z == 0 || block_x == 0 || block_y == 0 || block_z == 0) {
+    return fail("grid and block dimensions must be non-zero");
+  }
+  if (workspace == nullptr || out == nullptr) {
+    return fail("attention reduce kernel pointers must be non-null");
+  }
+
+  if (!load_hip_runtime(true)) {
+    return 1;
+  }
+  HipRuntime *runtime = &hip_runtime;
+  hipError_t error = runtime->hipSetDevice(device_index);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipSetDevice", error);
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &workspace, "workspace"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &out, "out"); rc != 0) {
+    return rc;
+  }
+
+  hipFunction_t function = nullptr;
+  if (int rc = load_kernel_function(runtime, hsaco_path, symbol, &function); rc != 0) {
+    return rc;
+  }
+  void *reserved0 = nullptr;
+  void *reserved1 = nullptr;
+  void *params[] = {&workspace, &out, &value_dim, &decode_splits, &reserved0, &reserved1};
+  auto stream = reinterpret_cast<hipStream_t>(stream_handle);
   error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
                                          shared_memory_bytes, stream, params, nullptr);
   if (error != hipSuccess) {

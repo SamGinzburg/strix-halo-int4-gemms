@@ -158,6 +158,43 @@ def _load_dispatch_library_cached(library_path_value: str) -> ctypes.CDLL:
         ctypes.c_int32,
     ]
     library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_attention_fwd_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        *([ctypes.c_void_p] * 9),
+        *([ctypes.c_int32] * 9),
+        ctypes.c_float,
+        *([ctypes.c_int32] * 9),
+        ctypes.c_uint32,
+    ]
+    library.amd_strix_halo_kernels_launch_attention_fwd_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_attention_reduce_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_int32,
+        ctypes.c_int32,
+    ]
+    library.amd_strix_halo_kernels_launch_attention_reduce_hsaco.restype = ctypes.c_int
     return library
 
 
@@ -559,6 +596,124 @@ def launch_ragged_bwd_hsaco(
         int(k_packed),
         int(scale_cols),
         int(runtime_scalar_mode),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+def launch_attention_fwd_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    query_ptr: int,
+    key_ptr: int,
+    value_ptr: int,
+    query_scale_ptr: int,
+    key_scale_ptr: int,
+    value_scale_ptr: int,
+    attn_mask_ptr: int,
+    out_ptr: int,
+    workspace_ptr: int,
+    batch: int,
+    query_heads: int,
+    kv_heads: int,
+    query_length: int,
+    key_length: int,
+    head_dim: int,
+    packed_head_dim: int,
+    value_dim: int,
+    decode_splits: int,
+    softmax_scale: float,
+    mask_strides: tuple[int, int, int, int],
+    is_causal: bool,
+    has_window: bool,
+    window_left: int,
+    window_right: int,
+    query_position_offset: int,
+    runtime_scalar_mask: int,
+    library_path: str | Path | None = None,
+) -> None:
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_attention_fwd_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        ctypes.c_void_p(int(query_ptr)),
+        ctypes.c_void_p(int(key_ptr)),
+        ctypes.c_void_p(int(value_ptr)),
+        ctypes.c_void_p(int(query_scale_ptr)),
+        ctypes.c_void_p(int(key_scale_ptr)),
+        ctypes.c_void_p(int(value_scale_ptr)),
+        ctypes.c_void_p(int(attn_mask_ptr)),
+        ctypes.c_void_p(int(out_ptr)),
+        ctypes.c_void_p(int(workspace_ptr)),
+        int(batch),
+        int(query_heads),
+        int(kv_heads),
+        int(query_length),
+        int(key_length),
+        int(head_dim),
+        int(packed_head_dim),
+        int(value_dim),
+        int(decode_splits),
+        float(softmax_scale),
+        *(int(value) for value in mask_strides),
+        int(is_causal),
+        int(has_window),
+        int(window_left),
+        int(window_right),
+        int(query_position_offset),
+        int(runtime_scalar_mask),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+def launch_attention_reduce_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    workspace_ptr: int,
+    out_ptr: int,
+    value_dim: int,
+    decode_splits: int,
+    library_path: str | Path | None = None,
+) -> None:
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_attention_reduce_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        ctypes.c_void_p(int(workspace_ptr)),
+        ctypes.c_void_p(int(out_ptr)),
+        int(value_dim),
+        int(decode_splits),
     )
     if rc != 0:
         raise RuntimeError(_library_last_error(library))

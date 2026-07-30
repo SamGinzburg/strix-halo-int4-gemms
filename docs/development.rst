@@ -71,14 +71,28 @@ dense base and 182 ragged artifacts were regenerated at this revision. Two
 exact subchannel-256 TN projection-gradient artifacts bring the current
 checked-in dense total to 2,882; the ragged total remains 182.
 
-Attention JIT and Tuning
-------------------------
+Attention Generation and Tuning
+-------------------------------
 
-Fused BF16/INT4 attention is JIT-only and must run with the custom Strix Halo
-Triton checkout. It does not have a native generator family: do not add it to
-dense or ragged regeneration, and do not expect attention ``.s``, IR, JSON, or
-HSACO files. Consequently, attention changes do not alter the current 2,882
-dense or 182 ragged artifact counts.
+Regenerate the 488-artifact fused-attention family separately. This produces
+104 generic forward objects, 380 measured-profile forward objects, and four
+split-decode reducers at ``D=Dv=64``; cleanup is restricted to
+``gfx1151_attention_*`` and does not touch dense or ragged families:
+
+.. code-block:: bash
+
+   TRITON_CHECKOUT=/path/to/triton
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_attention_amdgcn.py --clean
+
+The generator writes AMDGCN ``.s`` and matching runtime metadata ``.json`` to
+``kernels/amdgcn``. CMake assembles every object to packaged HSACO. Text Triton
+IR is optional via ``--triton-out-dir`` and is not required for the vendored
+attention source/assembly contract. The generation summary records the exact
+custom-Triton commit and the parser verifies pointer/scalar offsets, including
+the two hidden Triton ABI pointers, before accepting an artifact.
+
+The current totals are 2,882 dense, 182 ragged, and 488 attention artifacts
+(3,552 packaged HSACOs).
 
 Regenerate the complete attention timing database on gfx1151 with prepacked
 inputs and the experimental ROCm PyTorch SDPA baseline enabled:
@@ -102,6 +116,9 @@ FP32/timed-output validation, and timing to the public
 ``autotune_attention(...)`` API, then adds multi-case selection, PyTorch SDPA
 baselines, and the reporting JSON schema. Keep that API as the single source of
 truth when changing candidate execution or numerical gates.
+Use ``--backend precompiled`` to require packaged candidates, ``--backend jit``
+to reproduce compiler-tuning runs, or the default ``auto`` for native coverage
+with JIT fallback.
 
 Three additional checked-in databases capture exact training workloads:
 ``benchmarks/gfx1151_attention_training.json`` contains 36 numerically gated
@@ -153,8 +170,9 @@ The wheel is runtime-only. During wheel build, CMake globs every
 ``lld``, and installs the resulting ``kernels/hsaco/*.hsaco`` code objects.
 The wheel bundles those code objects, the dispatch shared library, and the
 ``kernels/amdgcn/*.json`` launch metadata that the dispatcher reads at run
-time (about 28 MB total). The generation provenance — ``*.s`` assembly and the ``kernels/triton/`` IR — stays
-in the git repository and is excluded from the wheel by the CMake install rules;
+time (about 34.4 MiB total). The generation provenance — ``*.s`` assembly and the
+``kernels/triton/`` IR — stays in the git repository and is excluded from the
+wheel by the CMake install rules;
 it is never read at run time, and keeping it out of the wheel is what keeps the
 artifact under PyPI's 100 MB per-file limit.
 

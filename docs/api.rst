@@ -12,9 +12,9 @@ families:
 * ``fused_swiglu_up_gate(...)`` selects a native dense fused SwiGLU kernel.
   The RHS logical output columns must be ``[up | gate]`` and the returned
   tensor has half as many columns.
-* ``int4_scaled_dot_product_attention(...)`` is a forward-only Triton-JIT
-  fused attention API. Q/K can be BF16 or packed INT4, and V independently can
-  be BF16 or packed INT4.
+* ``int4_scaled_dot_product_attention(...)`` is a forward-only fused attention
+  API with packaged ``D=Dv=64`` HSACO and JIT fallback. Q/K can be BF16 or
+  packed INT4, and V independently can be BF16 or packed INT4.
 * ``explicit_mm(..., kernel=...)`` launches the exact dense
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
@@ -267,8 +267,16 @@ quantization contract; the optimized result is instead required to match the
 representation-matched oracle at ``rtol=atol=1e-3``. BF16 output may also
 differ by one BF16 ULP at larger magnitudes.
 
-The optimized implementation is JIT-only and requires the custom Strix Halo
-Triton fork. There are no generated/native attention artifacts.
+The wheel includes 484 forward objects and four split-decode reducers for
+``D=Dv=64``. ``use_precompiled=None`` selects an exact measured profile first,
+then generic native coverage, and finally JIT; ``True`` requires packaged
+coverage, and ``False`` forces JIT. Native coverage includes all four QK-by-V
+representation modes, no/bool/BF16/FP32 mask pointers, BF16/FP32 output, and
+the measured/default launch configs. The 104 generic objects keep
+batch/head/sequence shapes and semantics runtime. The 380 profile objects
+specialize heads, lengths, and full/causal/local control flow for measured
+512-prefill, 2048-training, and 1-by-2048 decode shapes. Only regeneration and
+uncovered fallbacks require the custom Strix Halo Triton fork.
 
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

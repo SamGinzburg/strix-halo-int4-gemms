@@ -347,6 +347,7 @@ def autotune_attention(
     rtol: float = 1.0e-3,
     atol: float = 1.0e-3,
     continue_on_error: bool = True,
+    use_precompiled: bool | None = None,
     benchmark_runner: AttentionBenchmarkRunner | None = None,
 ) -> AttentionAutotuneResult:
     """Autotune fused BF16/INT4 attention for the supplied operands.
@@ -362,6 +363,11 @@ def autotune_attention(
     scale tensors. Tuning is eager and must run outside CUDAGraph capture; the
     returned ``best_config`` can subsequently be used with a preallocated
     output/workspace inside a graph.
+
+    Backend selection matches the attention call: ``use_precompiled=None``
+    uses installed native artifacts when covered and JIT otherwise, ``True``
+    restricts successful candidates to packaged artifacts, and ``False``
+    forces JIT.
     """
 
     torch = _attention_torch()
@@ -375,6 +381,8 @@ def autotune_attention(
         raise ValueError("rep_ms must be positive")
     if not isinstance(continue_on_error, bool):
         raise TypeError("continue_on_error must be a Python bool")
+    if use_precompiled is not None and not isinstance(use_precompiled, bool):
+        raise TypeError("use_precompiled must be a Python bool or None")
     if not isinstance(is_causal, bool):
         raise TypeError("is_causal must be a Python bool")
     if not isinstance(enable_gqa, bool):
@@ -406,22 +414,27 @@ def autotune_attention(
 
     mode = _attention_mode(qk_int4=qk_int4, pv_int4=pv_int4)
     mask_kind = _attention_mask_kind(torch, attn_mask)
-    semantics = _attention_semantics_metadata(
-        shape=shape,
-        mode=mode,
-        output_dtype=resolved_output_dtype,
-        torch=torch,
-        device=query.device,
-        attn_mask=attn_mask,
-        mask_kind=mask_kind,
-        is_causal=is_causal,
-        scale=scale,
-        enable_gqa=enable_gqa,
-        window=window,
-        query_position_offset=query_position_offset,
-        rtol=float(rtol),
-        atol=float(atol),
-    )
+    semantics = {
+        **_attention_semantics_metadata(
+            shape=shape,
+            mode=mode,
+            output_dtype=resolved_output_dtype,
+            torch=torch,
+            device=query.device,
+            attn_mask=attn_mask,
+            mask_kind=mask_kind,
+            is_causal=is_causal,
+            scale=scale,
+            enable_gqa=enable_gqa,
+            window=window,
+            query_position_offset=query_position_offset,
+            rtol=float(rtol),
+            atol=float(atol),
+        ),
+        "dispatch_preference": (
+            "auto" if use_precompiled is None else "precompiled" if use_precompiled else "jit"
+        ),
+    }
     if benchmark_db is None and benchmark_db_path is not None and Path(benchmark_db_path).exists():
         benchmark_db = BenchmarkDatabase.load(Path(benchmark_db_path))
     existing_records = tuple(benchmark_db.records()) if benchmark_db is not None else ()
@@ -471,6 +484,7 @@ def autotune_attention(
             rtol=float(rtol),
             atol=float(atol),
             semantics=semantics,
+            use_precompiled=use_precompiled,
         )
     else:
         runner = benchmark_runner
@@ -895,6 +909,7 @@ def _benchmark_attention_candidate(
     rtol: float,
     atol: float,
     semantics: dict[str, Any],
+    use_precompiled: bool | None,
 ) -> BenchmarkRecord:
     out_shape = (shape.batch, shape.query_heads, shape.query_length, shape.value_dim)
     timed_out = torch.empty(out_shape, device=query.device, dtype=output_dtype)
@@ -918,6 +933,7 @@ def _benchmark_attention_candidate(
         "head_dim": head_dim,
         "config": candidate,
         "workspace": workspace,
+        "use_precompiled": use_precompiled,
     }
     validation_out = torch.empty(out_shape, device=query.device, dtype=torch.float32)
     actual_fp32 = int4_scaled_dot_product_attention(

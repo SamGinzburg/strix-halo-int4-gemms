@@ -58,7 +58,7 @@ use ``use_native=False``, so results measure JIT rather than silently selecting
 a packaged artifact. Forward JIT kernels specialize runtime shape values and
 alignments; packaged artifacts deliberately retain generic runtime scalars.
 
-``autotune_attention(...)`` is the fused-attention JIT timing API. Unlike the
+``autotune_attention(...)`` is the fused-attention timing API. Unlike the
 synthetic dense/ragged tuners, it accepts the caller's actual Q/K/V tensors and
 scale tensors so the representation mode, shape, GQA, mask/window, cached
 position, and requested output dtype all match the intended launch. The API
@@ -88,6 +88,14 @@ failed records include the captured error. It is not an implicit runtime
 dispatch cache: pass ``result.best_config`` to the attention API. Tuning must
 run outside CUDAGraph capture. ``scripts/benchmark_attention.py`` uses this
 public tuner and adds multi-case sweeps plus PyTorch SDPA baseline reporting.
+Backend selection follows ``use_precompiled``: ``None`` uses packaged D64
+coverage (preferring an exact measured workload profile) and JIT fallback,
+``True`` restricts successful candidates to installed artifacts, and ``False``
+forces JIT. On the packaged BF16 512-prefill profile, ``BM64_BN64_W4_S1``
+measured 0.036228 ms / 14.819 effective TOPS versus 0.039234 ms / 13.684 TOPS
+for matched JIT, a 7.7% native latency reduction. FP32 validation maximum
+absolute error was ``6.07e-5`` at ``rtol=atol=1e-3``; timed BF16 maximum
+absolute error was ``2.45e-4``.
 
 Peak 4096^3 Results
 -------------------

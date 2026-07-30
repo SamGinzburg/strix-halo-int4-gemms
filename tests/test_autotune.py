@@ -321,6 +321,15 @@ def test_autotune_attention_rejects_weak_tolerances_and_all_failures() -> None:
             candidates=(config,),
             benchmark_runner=runner,
         )
+    with pytest.raises(TypeError, match="use_precompiled"):
+        autotune_attention(
+            query,
+            key,
+            value,
+            candidates=(config,),
+            use_precompiled=1,
+            benchmark_runner=runner,
+        )
     with pytest.raises(RuntimeError, match="no successful"):
         autotune_attention(
             query,

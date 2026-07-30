@@ -4,7 +4,7 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2880 dense generated kernels plus 182
+The checked-in native matrix contains 2,882 dense generated kernels plus 182
 ragged generated artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
@@ -14,6 +14,15 @@ ragged generated artifacts:
 * epilogues: plain scaled GEMM, ReLU^2, and fused SwiGLU up/gate;
 * schedules: standard plus an opt-in persistent schedule for plain int4 GEMM;
 * split-K: ``1``, ``2``, ``4``, and ``8`` for plain GEMM.
+
+The two entries beyond the 2,880 combinatorial dense matrix are exact
+subchannel-256 TN/BF16-output projection-gradient artifacts tuned for the
+``K=14336`` token reduction: ``BM16_BN512_BK32_GM4`` for output size
+``3072x1024`` and ``BM64_BN512_BK32_GM4`` for ``1024x1024``.
+Assembly inspection confirms signed-IU4 WMMA lowering with no private segment
+or flat scratch. The two kernels use 90/185 VGPRs and request 8,448/9,216
+bytes of dynamic shared memory respectively; the higher-register BM64 result
+is retained because it is the measured winner for the smaller output matrix.
 
 The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
 ``TT`` layouts, BF16 per-channel plus BF16 subchannel scales ``32``, ``64``,
@@ -162,6 +171,51 @@ Ragged artifact families are generated separately from the dense registry:
      - ``BM32_BN128_BK64_W4_S2_SK1``
      - ``evenk``
      - FP32, BF16
+
+Fused Attention JIT
+-------------------
+
+Fused attention is a separate Triton-JIT family; it is not part of the 2,882
+dense or 182 ragged native-artifact matrices above. No attention AMDGCN,
+Triton IR, metadata, or HSACO is generated or packaged, so dense/ragged
+regeneration and artifact counts are unchanged.
+
+The kernel supports four Q/K-by-V representation modes. BF16 Q/K uses BF16
+WMMA for the score product. Packed signed-INT4 Q/K uses ``iu4`` scaled-dot
+MMA. P@V always uses BF16 WMMA. BF16 V is loaded directly; packed signed-INT4
+V is unpacked and dequantized inside each key tile using its per-16-token BF16
+scale. Online-softmax probabilities remain BF16, so there is no online
+probability quantization or signed-affine correction. “INT4 V” therefore
+describes storage and memory traffic, not the P@V MMA input dtype. The P@V
+accumulator remains FP32.
+
+This corrected arithmetic reduced packed-V prefill latency by 17.4% with BF16
+Q/K and 33.9% with INT4 Q/K relative to the preceding online-P-quantized
+implementation. Mode-specific prefill tile tuning contributed about 38--42%
+in BF16-PV modes.
+
+``Int4AttentionConfig`` controls ``block_m``, ``block_n``, warps, stages, and
+decode splits. Packed V defaults and autotune candidates use ``BN16`` so one
+tile shares one V-scale vector; larger explicit power-of-two key tiles remain
+correct but measured slower because they add scale loads and register
+pressure. BF16 V generally uses ``BN64``. Packed-V query tiles use ``BM16``
+for fewer than 64 queries, ``BM32`` for mid-length BF16 Q/K, and ``BM64`` for
+long or INT4-Q/K workloads. Local and causal bounds prune whole key blocks
+before per-element masking.
+
+Split decode partitions the key sequence only when ``Lq=1`` and reduces an
+FP32 workspace of shape ``[B,Hq,decode_splits,Dv+2]``. In the measured decode
+cases it was about 2--3x faster than split-one execution, including about 73%
+lower all-INT4 latency. During CUDAGraph capture, callers must preallocate the
+workspace and output; allocation is permitted only outside capture. All four
+representation modes are covered in ordinary and graph replay tests, with a
+second graph matrix covering split decode.
+
+The optimized path is forward-only, requires contiguous CUDA/HIP operands,
+uses ``dropout_p=0``, and supports logical head and value dimensions through
+256. Q/K head packing and V sequence packing are padded to multiples of 16;
+scale and logical-length validation prevents padding from contributing to the
+result. The JIT requires the custom Strix Halo Triton fork.
 
 Shape Contract
 --------------

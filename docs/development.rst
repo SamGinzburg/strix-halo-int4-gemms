@@ -66,8 +66,66 @@ Triton source and IR are part of the provenance update.
 
 ``uv.lock`` pins the custom Triton dependency to
 ``ec4a2c64315f3d4485e963a8391a7444a232801f``, and both dense and ragged
-generation summaries record that source commit. The 2880 dense and 182 ragged
-artifacts were regenerated at this revision.
+generation summaries record that source commit. The 2,880-entry combinatorial
+dense base and 182 ragged artifacts were regenerated at this revision. Two
+exact subchannel-256 TN projection-gradient artifacts bring the current
+checked-in dense total to 2,882; the ragged total remains 182.
+
+Attention JIT and Tuning
+------------------------
+
+Fused BF16/INT4 attention is JIT-only and must run with the custom Strix Halo
+Triton checkout. It does not have a native generator family: do not add it to
+dense or ragged regeneration, and do not expect attention ``.s``, IR, JSON, or
+HSACO files. Consequently, attention changes do not alter the current 2,882
+dense or 182 ragged artifact counts.
+
+Regenerate the complete attention timing database on gfx1151 with prepacked
+inputs and the experimental ROCm PyTorch SDPA baseline enabled:
+
+.. code-block:: bash
+
+   TRITON_CHECKOUT=/path/to/triton
+   TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
+     uv run --project "$TRITON_CHECKOUT" python scripts/benchmark_attention.py \
+       --warmup-ms 25 \
+       --rep-ms 100 \
+       --output benchmarks/gfx1151_attention.json
+
+The default sweep covers BF16/BF16, INT4/BF16, BF16/INT4, and INT4/INT4 over
+prefill, split decode, and local-window cases. Use repeated ``--mode`` or
+``--case`` arguments for a smaller diagnostic sweep, and repeated
+``--config BLOCK_M,BLOCK_N,WARPS,STAGES[,DECODE_SPLITS]`` arguments for
+explicit candidates. Quantization and packing are setup work and intentionally
+excluded from the timed region. The CLI delegates candidate execution,
+FP32/timed-output validation, and timing to the public
+``autotune_attention(...)`` API, then adds multi-case selection, PyTorch SDPA
+baselines, and the reporting JSON schema. Keep that API as the single source of
+truth when changing candidate execution or numerical gates.
+
+Three additional checked-in databases capture exact training workloads:
+``benchmarks/gfx1151_attention_training.json`` contains 36 numerically gated
+BF16 GQA candidates with zero failures, and
+``benchmarks/gfx1151_attention_int4_value_training.json`` contains 24
+BF16-QK/INT4-V and INT4-QK/INT4-V candidates using BF16 P@V with zero
+failures. Regenerate the packed-V file with:
+
+.. code-block:: bash
+
+   TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
+     uv run python scripts/benchmark_attention.py \
+       --mode bf16-int4 --mode int4-int4 \
+       --case train-gqa-2048 --case train-gqa-local-128 \
+       --warmup-ms 25 --rep-ms 100 \
+       --output benchmarks/gfx1151_attention_int4_value_training.json
+
+Finally,
+``benchmarks/gfx1151_projection_training.json`` contains the seven separately
+validated subchannel-256 projection winners at ``M=14336``. The latter's two
+TN dW kernel IDs are packaged native artifacts. Preserve the exact shapes,
+packed layouts, scale orientation, BF16 output, and FP32 gradient-accumulation
+semantics when refreshing these records; four accumulation microbatches remain
+four ``M=14336`` launches rather than one ``M=57344`` launch.
 
 Direct Tuning
 -------------

@@ -4,13 +4,17 @@ from pathlib import Path
 
 import pytest
 
+from amd_strix_halo_kernels.attention import Int4AttentionConfig
 from amd_strix_halo_kernels.autotune import (
+    AttentionShape,
     RaggedAutotuneCandidate,
     RaggedDotMode,
     _normalize_ragged_k_capacity,
     artifact_supports_shape,
     autotune,
+    autotune_attention,
     autotune_ragged_dot,
+    default_attention_candidates,
     default_ragged_dot_candidates,
     find_autotune_candidates,
     generated_shape_for_kernel,
@@ -147,6 +151,184 @@ def test_runtime_shape_artifacts_reject_non_tile_multiple_shapes(tmp_path) -> No
         )
         == ()
     )
+
+
+def _cpu_attention_inputs(*, query_heads: int = 4, kv_heads: int = 2):
+    torch = pytest.importorskip("torch")
+    query = torch.zeros((1, query_heads, 5, 32), dtype=torch.bfloat16)
+    key = torch.zeros((1, kv_heads, 7, 32), dtype=torch.bfloat16)
+    value = torch.zeros((1, kv_heads, 7, 16), dtype=torch.bfloat16)
+    return torch, query, key, value
+
+
+@pytest.mark.parametrize(
+    ("pv_int4", "decode", "expected_count"),
+    [(False, False, 18), (True, False, 6), (False, True, 20), (True, True, 10)],
+)
+def test_default_attention_candidates_cover_value_modes_and_decode(
+    pv_int4,
+    decode,
+    expected_count,
+) -> None:
+    candidates = default_attention_candidates(pv_int4=pv_int4, decode=decode)
+
+    assert len(candidates) == expected_count
+    assert len(set(candidates)) == expected_count
+    if pv_int4:
+        assert {candidate.block_n for candidate in candidates} == {16}
+    if not decode:
+        assert all(candidate.decode_splits == 1 for candidate in candidates)
+
+
+def test_autotune_attention_selects_fastest_candidate_and_persists(tmp_path) -> None:
+    _, query, key, value = _cpu_attention_inputs()
+    slow = Int4AttentionConfig(block_m=16, block_n=32)
+    fast = Int4AttentionConfig(block_m=32, block_n=64)
+    database_path = tmp_path / "attention.json"
+    old_record = BenchmarkRecord(
+        "old",
+        BenchmarkShape(1, 1, 1),
+        runtime_ms=3.0,
+        tops=1.0,
+        iterations=1,
+        warmup=1,
+    )
+
+    def runner(candidate: Int4AttentionConfig, shape: AttentionShape) -> BenchmarkRecord:
+        runtime_ms = 2.0 if candidate == slow else 1.0
+        return BenchmarkRecord(
+            f"candidate-{candidate.block_m}",
+            shape.benchmark_shape,
+            runtime_ms=runtime_ms,
+            tops=10.0 / runtime_ms,
+            iterations=3,
+            warmup=1,
+        )
+
+    result = autotune_attention(
+        query,
+        key,
+        value,
+        enable_gqa=True,
+        window_size=(3, 1),
+        candidates=(slow, fast, fast),
+        benchmark_db=BenchmarkDatabase((old_record,)),
+        benchmark_db_path=database_path,
+        warmup_ms=1,
+        rep_ms=2,
+        benchmark_runner=runner,
+    )
+
+    assert result.shape == AttentionShape(1, 4, 2, 5, 7, 32, 16)
+    assert result.mode == "bf16-bf16"
+    assert result.output_dtype == "bfloat16"
+    assert result.window_size == (3, 1)
+    assert result.candidates == (slow, fast)
+    assert result.best_config == fast
+    assert result.best_record.runtime_ms == 1.0
+    assert BenchmarkDatabase.load(database_path).records() == (old_record, *result.records)
+
+
+def test_autotune_attention_infers_packed_int4_mode_with_custom_runner() -> None:
+    torch = pytest.importorskip("torch")
+    query = torch.zeros((1, 2, 5, 32), dtype=torch.uint8)
+    key = torch.zeros((1, 1, 7, 32), dtype=torch.uint8)
+    value = torch.zeros((1, 1, 8, 17), dtype=torch.uint8)
+    query_scale = torch.ones((1, 2, 5), dtype=torch.bfloat16)
+    key_scale = torch.ones((1, 1, 7), dtype=torch.bfloat16)
+    value_scale = torch.ones((1, 1, 1, 17), dtype=torch.bfloat16)
+    config = Int4AttentionConfig(block_m=16, block_n=16)
+
+    result = autotune_attention(
+        query,
+        key,
+        value,
+        query_scale=query_scale,
+        key_scale=key_scale,
+        value_scale=value_scale,
+        head_dim=63,
+        enable_gqa=True,
+        candidates=(config,),
+        benchmark_runner=lambda candidate, shape: BenchmarkRecord(
+            "packed",
+            shape.benchmark_shape,
+            runtime_ms=1.0,
+            tops=1.0,
+            iterations=1,
+            warmup=1,
+        ),
+    )
+
+    assert result.mode == "int4-int4"
+    assert result.shape == AttentionShape(1, 2, 1, 5, 7, 63, 17)
+
+
+def test_autotune_attention_records_candidate_failures() -> None:
+    _, query, key, value = _cpu_attention_inputs(query_heads=2, kv_heads=2)
+    failing = Int4AttentionConfig(block_m=16, block_n=32)
+    passing = Int4AttentionConfig(block_m=32, block_n=64)
+
+    def runner(candidate: Int4AttentionConfig, shape: AttentionShape) -> BenchmarkRecord:
+        if candidate == failing:
+            raise RuntimeError("candidate failed")
+        return BenchmarkRecord(
+            "passing",
+            shape.benchmark_shape,
+            runtime_ms=1.0,
+            tops=2.0,
+            iterations=1,
+            warmup=1,
+        )
+
+    result = autotune_attention(
+        query,
+        key,
+        value,
+        candidates=(failing, passing),
+        benchmark_runner=runner,
+    )
+
+    assert [record.success for record in result.records] == [False, True]
+    assert result.best_config == passing
+    assert "candidate failed" in result.records[0].metadata["error"]
+    assert result.records[0].metadata["numerical_gate"] == {
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 1.0e-3,
+        "atol": 1.0e-3,
+    }
+
+
+def test_autotune_attention_rejects_weak_tolerances_and_all_failures() -> None:
+    _, query, key, value = _cpu_attention_inputs(query_heads=2, kv_heads=2)
+    config = Int4AttentionConfig(block_m=16, block_n=32)
+    runner = lambda candidate, shape: (_ for _ in ()).throw(RuntimeError("boom"))
+
+    with pytest.raises(ValueError, match="rtol must be 1e-3 or stricter"):
+        autotune_attention(
+            query,
+            key,
+            value,
+            rtol=2.0e-3,
+            candidates=(config,),
+            benchmark_runner=runner,
+        )
+    with pytest.raises(TypeError, match="warmup_ms must be a Python int"):
+        autotune_attention(
+            query,
+            key,
+            value,
+            warmup_ms=True,
+            candidates=(config,),
+            benchmark_runner=runner,
+        )
+    with pytest.raises(RuntimeError, match="no successful"):
+        autotune_attention(
+            query,
+            key,
+            value,
+            candidates=(config,),
+            benchmark_runner=runner,
+        )
 
 
 def test_autotune_records_best_kernel_and_can_feed_heuristics(tmp_path) -> None:

@@ -81,6 +81,16 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("standard", "persistent"),
         help="benchmark only kernel schedule",
     )
+    parser.add_argument("--scale", action="append", default=[], help="benchmark only scale label, e.g. sc256")
+    parser.add_argument("--split-k", action="append", type=int, default=[], help="benchmark only split-K value")
+    parser.add_argument(
+        "--output-dtype",
+        action="append",
+        default=[],
+        choices=("bfloat16", "float32"),
+        help="benchmark only output dtype",
+    )
+    parser.add_argument("--even-k-only", action="store_true", help="benchmark only even-K specializations")
     parser.add_argument(
         "--warmup-ms",
         "--warmup",
@@ -96,6 +106,15 @@ def build_parser() -> argparse.ArgumentParser:
         dest="rep_ms",
         default=100,
         help="Triton do_bench measurement duration in milliseconds (default: 100)",
+    )
+    parser.add_argument(
+        "--validation-device",
+        choices=("cpu", "cuda", "none"),
+        default="cpu",
+        help=(
+            "where to compute the numerical reference; use 'none' for timing sweeps "
+            "and rerun each winner with 'cuda' (default: cpu)"
+        ),
     )
     return parser
 
@@ -130,31 +149,54 @@ def configure_extracted_native_root(
     return root
 
 
-def scale_tensors(torch: Any, kernel: Any, shape: Any) -> tuple[Any, Any]:
+def scale_tensors(torch: Any, kernel: Any, shape: Any, *, device: str = "cpu") -> tuple[Any, Any]:
     from amd_strix_halo_kernels.metadata import ScaleMode
 
     b_cols = shape.n * 2 if kernel.epilogue.value == "swiglu" else shape.n
     if kernel.scale.mode is ScaleMode.PER_CHANNEL:
-        a_scale = torch.linspace(0.75, 1.25, shape.m, dtype=torch.bfloat16)
-        b_scale = torch.linspace(1.10, 0.90, b_cols, dtype=torch.bfloat16)
+        a_scale = torch.linspace(0.75, 1.25, shape.m, dtype=torch.bfloat16, device=device)
+        b_scale = torch.linspace(1.10, 0.90, b_cols, dtype=torch.bfloat16, device=device)
         return a_scale, b_scale
     subchannel = kernel.scale.subchannel_size or 1
     scale_cols = (shape.k + subchannel - 1) // subchannel
-    a_scale = torch.linspace(0.80, 1.20, shape.m * scale_cols, dtype=torch.bfloat16).reshape(shape.m, scale_cols)
-    b_scale = torch.linspace(1.15, 0.85, b_cols * scale_cols, dtype=torch.bfloat16).reshape(scale_cols, b_cols)
+    a_scale = torch.linspace(
+        0.80,
+        1.20,
+        shape.m * scale_cols,
+        dtype=torch.bfloat16,
+        device=device,
+    ).reshape(shape.m, scale_cols)
+    b_scale = torch.linspace(
+        1.15,
+        0.85,
+        b_cols * scale_cols,
+        dtype=torch.bfloat16,
+        device=device,
+    ).reshape(scale_cols, b_cols)
     return a_scale, b_scale
 
 
-def make_inputs(torch: Any, kernel: Any, shape: Any) -> tuple[Any, Any, Any, Any, Any | None, Any]:
+def make_inputs(
+    torch: Any,
+    kernel: Any,
+    shape: Any,
+    *,
+    validation_device: str,
+) -> tuple[Any, Any, Any, Any, Any | None, Any | None]:
     from amd_strix_halo_kernels.api import explicit_mm
     from amd_strix_halo_kernels.metadata import Epilogue, GemmLayout, OperandDType
     from amd_strix_halo_kernels.quant import fake_quant_int, pack_int4_k_major
 
-    torch.manual_seed(stable_seed(kernel.kernel_id))
+    input_device = "cuda" if validation_device in {"cuda", "none"} else "cpu"
+    seed_key = (
+        f"{kernel.a_dtype.value}-{kernel.b_dtype.value}-{kernel.layout.value}-"
+        f"{kernel.scale.label}-{kernel.epilogue.value}-{shape.m}-{shape.n}-{shape.k}"
+    )
+    torch.manual_seed(stable_seed(seed_key))
     bits = 4 if kernel.a_dtype is OperandDType.INT4 else 8
     b_cols = shape.n * 2 if kernel.epilogue is Epilogue.SWIGLU else shape.n
-    a_bf16 = torch.randn((shape.m, shape.k), dtype=torch.bfloat16) * 0.1
-    b_bf16 = torch.randn((shape.k, b_cols), dtype=torch.bfloat16) * 0.1
+    a_bf16 = torch.randn((shape.m, shape.k), dtype=torch.bfloat16, device=input_device) * 0.1
+    b_bf16 = torch.randn((shape.k, b_cols), dtype=torch.bfloat16, device=input_device) * 0.1
     a_q = fake_quant_int(a_bf16, bits=bits, scale=0.1)
     b_q = fake_quant_int(b_bf16, bits=bits, scale=0.1)
     a_trans = kernel.layout in {GemmLayout.TN, GemmLayout.TT}
@@ -175,15 +217,17 @@ def make_inputs(torch: Any, kernel: Any, shape: Any) -> tuple[Any, Any, Any, Any
     else:
         a_arg = a_q.transpose(0, 1).contiguous() if a_trans else a_q
         b_arg = b_q.transpose(0, 1).contiguous() if b_trans else b_q
-    a_scale, b_scale = scale_tensors(torch, kernel, shape)
-    expected = explicit_mm(
-        a_arg,
-        b_arg,
-        kernel=kernel,
-        a_scale=a_scale,
-        b_scale=b_scale,
-        use_reference=True,
-    )
+    a_scale, b_scale = scale_tensors(torch, kernel, shape, device=input_device)
+    expected = None
+    if validation_device != "none":
+        expected = explicit_mm(
+            a_arg,
+            b_arg,
+            kernel=kernel,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            use_reference=True,
+        )
     return a_arg, b_arg, a_scale, b_scale, None, expected
 
 
@@ -202,7 +246,7 @@ def validation_tolerances(kernel: Any) -> tuple[float, float]:
     from amd_strix_halo_kernels.metadata import Epilogue
 
     if kernel.output_dtype == "bfloat16":
-        return 8.0e-3, 1.0e-2
+        return 1.0e-3, 1.0e-3
     atol = 1.0e-2 if kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} else 1.0e-3
     return 1.0e-4, atol
 
@@ -214,6 +258,7 @@ def benchmark_kernel(
     warmup_ms: int,
     rep_ms: int,
     shape_override: Any | None = None,
+    validation_device: str = "cpu",
 ) -> Any:
     from amd_strix_halo_kernels.benchmarking import BenchmarkRecord, BenchmarkShape, benchmark_triton_callable
     from amd_strix_halo_kernels.metadata import Epilogue
@@ -223,12 +268,17 @@ def benchmark_kernel(
     representative_shape = representative_generation_shape(kernel)
     shape = shape_override or representative_shape
     benchmark_shape = BenchmarkShape(shape.m, shape.n, shape.k)
-    a, b, a_scale, b_scale, gate, expected = make_inputs(torch, kernel, shape)
-    a_gpu = a.to("cuda")
-    b_gpu = b.to("cuda")
-    a_scale_gpu = a_scale.to("cuda")
-    b_scale_gpu = b_scale.to("cuda")
-    gate_gpu = None if gate is None else gate.to("cuda")
+    a, b, a_scale, b_scale, gate, expected = make_inputs(
+        torch,
+        kernel,
+        shape,
+        validation_device=validation_device,
+    )
+    a_gpu = a if a.device.type == "cuda" else a.to("cuda")
+    b_gpu = b if b.device.type == "cuda" else b.to("cuda")
+    a_scale_gpu = a_scale if a_scale.device.type == "cuda" else a_scale.to("cuda")
+    b_scale_gpu = b_scale if b_scale.device.type == "cuda" else b_scale.to("cuda")
+    gate_gpu = None if gate is None else (gate if gate.device.type == "cuda" else gate.to("cuda"))
     c_gpu = torch.empty((shape.m, shape.n), device="cuda", dtype=output_torch_dtype(torch, kernel))
 
     def run() -> Any:
@@ -244,10 +294,13 @@ def benchmark_kernel(
 
     actual = run()
     torch.cuda.synchronize()
-    actual_cpu = actual.cpu()
-    rtol, atol = validation_tolerances(kernel)
-    torch.testing.assert_close(actual_cpu, expected, rtol=rtol, atol=atol)
-    max_abs, max_rel = max_diffs(torch, actual_cpu, expected)
+    max_abs = None
+    max_rel = None
+    if expected is not None:
+        actual_for_validation = actual if expected.device.type == "cuda" else actual.cpu()
+        rtol, atol = validation_tolerances(kernel)
+        torch.testing.assert_close(actual_for_validation, expected, rtol=rtol, atol=atol)
+        max_abs, max_rel = max_diffs(torch, actual_for_validation, expected)
 
     record = benchmark_triton_callable(
         kernel=kernel,
@@ -257,7 +310,12 @@ def benchmark_kernel(
         rep_ms=rep_ms,
         notes=(
             "packaged generated HSACO; preallocated output; median of triton.testing.do_bench "
-            "device samples; correctness vs BF16 fake-quant reference"
+            "device samples; "
+            + (
+                f"correctness vs BF16 fake-quant reference on {validation_device}"
+                if expected is not None
+                else "timing-only; numerical validation deferred to winner rerun"
+            )
         ),
         metadata={
             "arch": kernel.arch,
@@ -280,6 +338,7 @@ def benchmark_kernel(
                 "k": representative_shape.k,
             },
             "runtime_shape_override": shape_override is not None,
+            "validation_device": validation_device,
         },
     )
     tops_multiplier = 2.0 if kernel.epilogue is Epilogue.SWIGLU else 1.0
@@ -368,6 +427,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.schedule:
             requested_schedules = set(args.schedule)
             selected = [kernel for kernel in selected if kernel.schedule.value in requested_schedules]
+        if args.scale:
+            requested_scales = set(args.scale)
+            selected = [kernel for kernel in selected if kernel.scale.label in requested_scales]
+        if args.split_k:
+            requested_split_k = set(args.split_k)
+            selected = [kernel for kernel in selected if kernel.tile.split_k in requested_split_k]
+        if args.output_dtype:
+            requested_output_dtypes = set(args.output_dtype)
+            selected = [kernel for kernel in selected if kernel.output_dtype in requested_output_dtypes]
+        if args.even_k_only:
+            selected = [kernel for kernel in selected if kernel.tile.even_k]
         if not selected:
             raise LookupError("no kernels selected for benchmark")
 
@@ -382,6 +452,7 @@ def main(argv: list[str] | None = None) -> int:
                         warmup_ms=args.warmup_ms,
                         rep_ms=args.rep_ms,
                         shape_override=shape_override,
+                        validation_device=args.validation_device,
                     )
                 )
             except Exception as exc:

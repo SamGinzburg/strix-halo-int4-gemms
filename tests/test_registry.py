@@ -14,6 +14,7 @@ from amd_strix_halo_kernels.metadata import (
 from amd_strix_halo_kernels.registry import (
     SMALL_M_VARIANTS,
     SMALL_N_VARIANTS,
+    TRAINING_PROJECTION_TN_SC256_TILES,
     default_registry,
     mixed_dtype_registry,
     seed_tile_configs,
@@ -27,8 +28,8 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
     expected_block_n_variants = 2
     expected_tile_variants = expected_block_m_variants * expected_block_n_variants
     expected_layouts = len(SUPPORTED_GEMM_LAYOUTS)
-    assert len(standard_kernels) == expected_layouts * 120 * expected_tile_variants
-    assert len(kernels) == expected_layouts * (120 + 40) * expected_tile_variants
+    assert len(standard_kernels) == expected_layouts * 120 * expected_tile_variants + 2
+    assert len(kernels) == expected_layouts * (120 + 40) * expected_tile_variants + 2
     ids = {kernel.kernel_id for kernel in kernels}
     assert len(ids) == len(kernels)
     assert {kernel.layout for kernel in kernels} == set(SUPPORTED_GEMM_LAYOUTS)
@@ -68,7 +69,16 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
                             and kernel.tile.split_k == split_k
                             and not kernel.tile.even_k
                         ]
-                        assert len(even) == expected_tile_variants
+                        extra_even = (
+                            2
+                            if dtype is OperandDType.INT4
+                            and epilogue is Epilogue.NONE
+                            and scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+                            and split_k == 1
+                            and layout is GemmLayout.TN
+                            else 0
+                        )
+                        assert len(even) == expected_tile_variants + extra_even
                         assert len(masked) == expected_tile_variants
                         assert {kernel.tile.block_m for kernel in even}.issuperset(SMALL_M_VARIANTS)
                         assert {kernel.tile.block_m for kernel in masked}.issuperset(SMALL_M_VARIANTS)
@@ -188,6 +198,71 @@ def test_select_filters_by_layout() -> None:
             k=4096,
             split_k=4,
         )
+
+
+def test_select_uses_measured_training_projection_tiles_only_for_exact_shapes() -> None:
+    scale = ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    cases = (
+        (GemmLayout.NT, (14336, 3072, 1024), (64, 128, 128, 4)),
+        (GemmLayout.NN, (14336, 1024, 3072), (64, 128, 128, 1)),
+        (GemmLayout.TN, (3072, 1024, 14336), (16, 512, 32, 4)),
+        (GemmLayout.NT, (14336, 1024, 1024), (64, 128, 128, 4)),
+        (GemmLayout.NN, (14336, 1024, 1024), (64, 128, 128, 1)),
+        (GemmLayout.TN, (1024, 1024, 14336), (64, 512, 32, 4)),
+        (GemmLayout.NT, (14336, 2048, 1024), (64, 128, 128, 1)),
+    )
+    for layout, (m, n, k), expected_tile in cases:
+        selected = default_registry.select(
+            dtype=OperandDType.INT4,
+            layout=layout,
+            scale=scale,
+            epilogue=Epilogue.NONE,
+            m=m,
+            n=n,
+            k=k,
+            split_k=1,
+        )
+        assert (
+            selected.tile.block_m,
+            selected.tile.block_n,
+            selected.tile.block_k,
+            selected.tile.group_size_m,
+        ) == expected_tile
+
+    combined_dw = default_registry.select(
+        dtype=OperandDType.INT4,
+        layout=GemmLayout.TN,
+        scale=scale,
+        epilogue=Epilogue.NONE,
+        m=3072,
+        n=1024,
+        k=14336,
+        split_k=1,
+    )
+    output_dw = default_registry.select(
+        dtype=OperandDType.INT4,
+        layout=GemmLayout.TN,
+        scale=scale,
+        epilogue=Epilogue.NONE,
+        m=1024,
+        n=1024,
+        k=14336,
+        split_k=1,
+    )
+    generic = default_registry.select(
+        dtype=OperandDType.INT4,
+        layout=GemmLayout.TN,
+        scale=scale,
+        epilogue=Epilogue.NONE,
+        m=2048,
+        n=1024,
+        k=14336,
+        split_k=1,
+    )
+
+    assert combined_dw.tile == TRAINING_PROJECTION_TN_SC256_TILES[0]
+    assert output_dw.tile == TRAINING_PROJECTION_TN_SC256_TILES[1]
+    assert generic.tile not in TRAINING_PROJECTION_TN_SC256_TILES
 
 
 def test_select_can_opt_into_persistent_schedule() -> None:

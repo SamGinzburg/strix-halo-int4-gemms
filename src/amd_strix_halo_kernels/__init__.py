@@ -1,13 +1,22 @@
-"""AMD Strix Halo GEMM kernel APIs."""
+"""Optimized AMD Strix Halo GEMM and attention kernel APIs."""
 
 from .api import explicit_mm, fused_swiglu_up_gate, mm
+from .attention import (
+    Int4AttentionConfig,
+    int4_scaled_dot_product_attention,
+    reference_scaled_dot_product_attention,
+)
 from .autotune import (
+    AttentionAutotuneResult,
+    AttentionShape,
     AutotuneResult,
     RaggedAutotuneCandidate,
     RaggedAutotuneResult,
     RaggedDotMode,
     autotune,
+    autotune_attention,
     autotune_ragged_dot,
+    default_attention_candidates,
     default_ragged_dot_candidates,
     find_autotune_candidates,
     generated_shape_for_kernel,
@@ -55,12 +64,15 @@ from .ragged import (
     ragged_dot_int4_bwd_accum,
     ragged_dot_int4,
 )
+from .quant import quantize_attention_qk_int4, quantize_attention_value_int4
 from .registry import KernelRegistry, default_registry, mixed_dtype_registry
 from .torch_ops import TORCH_GEMM_OP, TORCH_OP_NAMESPACE, register_torch_ops, torch_gemm
 
 __all__ = [
     "ACC_DTYPE",
     "ARCH",
+    "AttentionAutotuneResult",
+    "AttentionShape",
     "AutotuneResult",
     "BenchmarkDatabase",
     "BenchmarkRecord",
@@ -75,6 +87,7 @@ __all__ = [
     "KernelRegistry",
     "KernelSchedule",
     "KernelStatus",
+    "Int4AttentionConfig",
     "NativeRuntimeStatus",
     "OperandDType",
     "RaggedAutotuneCandidate",
@@ -92,10 +105,12 @@ __all__ = [
     "amdgcn_metadata_dir",
     "amdgcn_metadata_path_for_kernel_id",
     "autotune",
+    "autotune_attention",
     "autotune_ragged_dot",
     "calculate_group_info",
     "default_ragged_bwd_config",
     "default_registry",
+    "default_attention_candidates",
     "default_ragged_dot_candidates",
     "dispatch_runtime_status",
     "explicit_mm",
@@ -104,6 +119,7 @@ __all__ = [
     "generated_shape_for_kernel",
     "hsaco_dir",
     "hsaco_path_for_kernel_id",
+    "int4_scaled_dot_product_attention",
     "launch_generated_kernel",
     "launch_hsaco",
     "mm",
@@ -111,10 +127,13 @@ __all__ = [
     "native_library_path",
     "prepare_ragged_bwd_group_info",
     "prepare_ragged_group_info",
+    "quantize_attention_qk_int4",
+    "quantize_attention_value_int4",
     "ragged_group_info_capacity",
     "ragged_dot_int4_bwd",
     "ragged_dot_int4_bwd_accum",
     "ragged_dot_int4",
+    "reference_scaled_dot_product_attention",
     "register_torch_ops",
     "torch_gemm",
 ]

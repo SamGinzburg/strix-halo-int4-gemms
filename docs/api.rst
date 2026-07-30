@@ -12,6 +12,9 @@ families:
 * ``fused_swiglu_up_gate(...)`` selects a native dense fused SwiGLU kernel.
   The RHS logical output columns must be ``[up | gate]`` and the returned
   tensor has half as many columns.
+* ``int4_scaled_dot_product_attention(...)`` is a forward-only Triton-JIT
+  fused attention API. Q/K can be BF16 or packed INT4, and V independently can
+  be BF16 or packed INT4.
 * ``explicit_mm(..., kernel=...)`` launches the exact dense
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
@@ -121,6 +124,152 @@ group, and tile shapes; callers must guarantee that device ``group_sizes`` are
 non-negative and sum to the static row count because preparation deliberately
 does not synchronize to validate values on the host.
 
+Fused Attention Contract
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``int4_scaled_dot_product_attention(...)`` uses logical tensor order
+``(B, H, sequence, feature)`` and returns ``[B, Hq, Lq, Dv]``. Q and K must
+both be BF16 or both be packed ``uint8``; V may independently be BF16 or
+packed ``uint8``. All three operands must be contiguous and share one CUDA/HIP
+device.
+
+.. list-table:: Attention representations
+   :header-rows: 1
+
+   * - Operand
+     - BF16 shape
+     - Packed INT4 shape
+     - BF16 scale shape
+   * - Q
+     - ``[B,Hq,Lq,D]``
+     - ``[B,Hq,Lq,ceil(D/16)*8]``
+     - ``[B,Hq,Lq]``
+   * - K
+     - ``[B,Hkv,Lk,D]``
+     - ``[B,Hkv,Lk,ceil(D/16)*8]``
+     - ``[B,Hkv,Lk]``
+   * - V
+     - ``[B,Hkv,Lk,Dv]``
+     - ``[B,Hkv,ceil(Lk/16)*8,Dv]``
+     - ``[B,Hkv,ceil(Lk/16),Dv]``
+
+``quantize_attention_qk_int4(...)`` pads the logical head dimension to a
+multiple of 16, packs two signed values per byte, and returns
+``(packed, scale, original_head_dim)``. Pass that original dimension as
+``head_dim``. ``quantize_attention_value_int4(...)`` uses exactly 16-token
+groups, pads the sequence dimension, and returns ``(packed, scale)``.
+Packed V is unpacked and dequantized per tile to BF16 inside the fused kernel.
+Online-softmax probabilities are kept in BF16 and P@V uses BF16 MMA with an
+FP32 accumulator; probabilities are never quantized to INT4. Consequently,
+the packed-V option reduces input storage/bandwidth but is not an INT4 P@V
+arithmetic contract.
+
+.. code-block:: python
+
+   import torch
+   from amd_strix_halo_kernels import (
+       int4_scaled_dot_product_attention,
+       quantize_attention_qk_int4,
+       quantize_attention_value_int4,
+   )
+
+   q4, q_scale, head_dim = quantize_attention_qk_int4(query)
+   k4, k_scale, _ = quantize_attention_qk_int4(key)
+   v4, v_scale = quantize_attention_value_int4(value)
+   out = int4_scaled_dot_product_attention(
+       q4,
+       k4,
+       v4,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       value_scale=v_scale,
+       head_dim=head_dim,
+       output_dtype=torch.float32,
+   )
+
+The default softmax scale is ``1 / sqrt(head_dim)``; an explicit scale must be
+finite and positive. Output defaults to BF16 and can be FP32. A supplied
+``out`` must be contiguous and exactly match device, dtype, and
+``[B,Hq,Lq,Dv]``. Empty Q or K sequences produce zeros and do not accept a
+workspace. The optimized path supports feature dimensions through 256,
+requires ``dropout_p=0``, and rejects tensors with ``requires_grad=True``.
+
+When ``Hq != Hkv``, set ``enable_gqa=True`` and ensure ``Hq`` is divisible by
+``Hkv``. ``attn_mask`` accepts broadcastable boolean, BF16, or FP32 tensors
+with at most four dimensions; boolean false entries are masked and floating
+values are added to the logits. An explicit mask and ``is_causal=True`` are
+mutually exclusive. ``window_size=w`` selects the inclusive window ``(w,w)``;
+``(left,right)`` selects an asymmetric non-negative window. Local and causal
+bounds prune whole key blocks. ``query_position_offset`` supplies the absolute
+position of local query row zero for cached decode.
+
+Split decode is available only for ``Lq=1``. A configuration with
+``decode_splits > 1`` uses a contiguous FP32 workspace with exact shape
+``[B,Hq,decode_splits,Dv+2]``. The API allocates it outside capture, but
+CUDAGraph capture requires callers to preallocate both that workspace and
+``out`` and to warm the exact launch first. Workspace is rejected when
+``decode_splits=1``.
+
+Default tiles are mode- and length-sensitive. BF16-V attention generally uses
+``BN64``; local BF16-Q/K uses ``BN32`` below 1,024 queries and ``BN64`` at
+1,024 or more. Packed-V attention uses ``BN16`` so each tile reuses one
+16-token V-scale vector. Its query tile is ``BM16`` below 64 queries, ``BM32``
+for mid-length BF16 Q/K, and ``BM64`` for long or INT4-Q/K workloads. Larger
+explicit power-of-two ``block_n`` values remain supported and numerically
+tested across multiple V-scale groups, but are omitted from the default
+packed-V tuner catalog because they measured slower.
+
+``autotune_attention(...)`` benchmarks the caller's actual packed/BF16
+operands and exact GQA, mask, causal, local-window, cached-position, and output
+dtype semantics. Each candidate is first validated with FP32 output against
+``reference_scaled_dot_product_attention(...)`` and then the timed BF16 or
+FP32 output is validated against the correspondingly rounded oracle. Both
+checks default to and may not be relaxed beyond ``rtol=atol=1e-3``.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import autotune_attention
+
+   tuning = autotune_attention(
+       q4,
+       k4,
+       value,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+       enable_gqa=True,
+       window_size=(127, 0),
+       benchmark_db_path="benchmarks/local_attention.json",
+   )
+   config = tuning.best_config
+
+The default candidate catalog is available separately as
+``default_attention_candidates(pv_int4=..., decode=...)``. Duplicate explicit
+candidates are removed while preserving order. Failed candidates remain in
+``result.records`` when ``continue_on_error=True``; tuning fails if none pass.
+The packed-V catalog contains six prefill/training candidates and ten decode
+candidates, all with ``BN16``; callers may supply a different explicit list.
+Timing uses prepacked inputs and preallocated outputs/workspaces, excluding
+quantization and allocation. Run the eager tuner before CUDAGraph capture,
+then pass ``best_config`` and the required static output/workspace to the
+attention call. A benchmark database is append-only tuning evidence; attention
+dispatch does not silently read it or change configurations during replay.
+
+``reference_scaled_dot_product_attention(...)`` is the quantization-matched
+FP32 arithmetic oracle. Optimized outputs in all four representation modes are
+tested against it at ``rtol=atol=1e-3`` with FP32 output. For comparison with
+unquantized PyTorch attention, INT4 Q/K plus BF16 V has measured relative L2
+at most 0.03 and cosine at least 0.999. INT4 V modes are experimental and use
+the measured quality envelope of relative L2 at most 0.12 and cosine at least
+0.99 across dense, ragged, causal, local, and GQA cases. A strict elementwise
+``1e-3`` comparison to unquantized BF16 does not measure the intended
+quantization contract; the optimized result is instead required to match the
+representation-matched oracle at ``rtol=atol=1e-3``. BF16 output may also
+differ by one BF16 ULP at larger magnitudes.
+
+The optimized implementation is JIT-only and requires the custom Strix Halo
+Triton fork. There are no generated/native attention artifacts.
+
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -216,6 +365,17 @@ Surface APIs
 
 .. autofunction:: amd_strix_halo_kernels.fused_swiglu_up_gate
 
+.. autofunction:: amd_strix_halo_kernels.int4_scaled_dot_product_attention
+
+.. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention
+
+.. autofunction:: amd_strix_halo_kernels.quantize_attention_qk_int4
+
+.. autofunction:: amd_strix_halo_kernels.quantize_attention_value_int4
+
+.. autoclass:: amd_strix_halo_kernels.Int4AttentionConfig
+   :members:
+
 .. autofunction:: amd_strix_halo_kernels.explicit_mm
 
 .. autofunction:: amd_strix_halo_kernels.ragged_dot_int4
@@ -251,13 +411,23 @@ Autotuning and Benchmarks
 
 .. autofunction:: amd_strix_halo_kernels.autotune
 
+.. autofunction:: amd_strix_halo_kernels.autotune_attention
+
 .. autofunction:: amd_strix_halo_kernels.autotune_ragged_dot
+
+.. autofunction:: amd_strix_halo_kernels.default_attention_candidates
 
 .. autofunction:: amd_strix_halo_kernels.default_ragged_dot_candidates
 
 .. autofunction:: amd_strix_halo_kernels.find_autotune_candidates
 
 .. autoclass:: amd_strix_halo_kernels.AutotuneResult
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.AttentionAutotuneResult
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.AttentionShape
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.RaggedAutotuneResult

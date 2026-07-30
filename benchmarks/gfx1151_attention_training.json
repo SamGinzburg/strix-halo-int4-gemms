@@ -1,0 +1,2035 @@
+{
+  "baselines": [
+    {
+      "backend": "torch.nn.functional.scaled_dot_product_attention",
+      "case": "train-gqa-2048",
+      "effective_tops": 15.907240248771267,
+      "notes": "BF16 inputs; output allocation included; ROCm experimental AOTriton=enabled",
+      "runtime_ms": 7.560021877288818,
+      "samples": 10
+    },
+    {
+      "backend": "torch.nn.functional.scaled_dot_product_attention",
+      "case": "train-gqa-local-128",
+      "effective_tops": 0.054663877464692937,
+      "notes": "BF16 inputs; output allocation included; ROCm experimental AOTriton=enabled",
+      "runtime_ms": 133.23509216308594,
+      "samples": 1
+    }
+  ],
+  "failures": [],
+  "records": [
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.931929405524698,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 11.00071907043457,
+      "samples": 8,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 5.322311851181069,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 22.595272064208984,
+      "samples": 4,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.74717356358225,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 11.189833641052246,
+      "samples": 8,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 5.377544757497017,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 22.363195419311523,
+      "samples": 4,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 11.47740590464455,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 10.477897644042969,
+      "samples": 8,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 5.737649096786567,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 20.959644317626953,
+      "samples": 4,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 17.232914163388443,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 6.978453159332275,
+      "samples": 12,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 9.7754755216861,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 12.30212116241455,
+      "samples": 7,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 18.25726182260682,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 6.586917877197266,
+      "samples": 13,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 10.411942891583527,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 11.55010986328125,
+      "samples": 7,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 16.846422781561298,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 7.138553142547607,
+      "samples": 12,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 10.173844135616243,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 11.820417404174805,
+      "samples": 7,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 28.880018717243686,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.164093017578125,
+      "samples": 19,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 14.759251841281086,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.30746003985405e-05,
+          "max_rel_diff": 0.039271675050258636,
+          "max_tolerance_ratio": 0.042904067784547806,
+          "relative_l2": 0.0012738874647766352
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03910064697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021381834521889687
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 8.14804744720459,
+      "samples": 10,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 28.273504095792518,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.253419876098633,
+      "samples": 18,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 16.38503121340257,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.360126331448555e-05,
+          "max_rel_diff": 0.04054487869143486,
+          "max_tolerance_ratio": 0.04342864826321602,
+          "relative_l2": 0.0012692662421613932
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0400543175637722,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.002131179440766573
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 7.339570045471191,
+      "samples": 11,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 32.26393668385963,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 3.727353096008301,
+      "samples": 21,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 14.745908833009988,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 8.155420303344727,
+      "samples": 10,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 7.927113807553688,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.9187639951705933,
+      "samples": 51,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 4.119620208150078,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.7679170370101929,
+      "samples": 35,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 7.512588745540141,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.9694589972496033,
+      "samples": 48,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 4.020821313343906,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.8113579750061035,
+      "samples": 35,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 6.7895971101730295,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.0726920366287231,
+      "samples": 47,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 3.356426628394402,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 2.1699109077453613,
+      "samples": 31,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 9.55857508282451,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.7619490027427673,
+      "samples": 54,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 6.331640636336846,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.1502779722213745,
+      "samples": 45,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 11.1810679863993,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.6513820290565491,
+      "samples": 58,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 7.05008471796254,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.0330580472946167,
+      "samples": 48,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 9.798737762937815,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.7432739734649658,
+      "samples": 55,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 6.079583690639176,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.1979680061340332,
+      "samples": 44,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.808020201176998,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.673865020275116,
+      "samples": 58,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 8.100602785157085,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00029337406158447266,
+          "max_rel_diff": 0.21104982495307922,
+          "max_tolerance_ratio": 0.28576454520225525,
+          "relative_l2": 0.001029524370096624
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.2117156833410263,
+          "max_tolerance_ratio": 0.8643041849136353,
+          "relative_l2": 0.0017824028618633747
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.8990870118141174,
+      "samples": 51,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 12.155514419182152,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.5991640090942383,
+      "samples": 60,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 9.368367666733862,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00024212896823883057,
+          "max_rel_diff": 0.1703878790140152,
+          "max_tolerance_ratio": 0.23383693397045135,
+          "relative_l2": 0.0009515393758192658
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1716613620519638,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.00166615832131356
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.7774189710617065,
+      "samples": 55,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 12.767819009726983,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.5704299807548523,
+      "samples": 61,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 9.012947464334065,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.808076024055481,
+      "samples": 53,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    }
+  ],
+  "summary": {
+    "cases": [
+      "train-gqa-2048",
+      "train-gqa-local-128"
+    ],
+    "count": 36,
+    "failures": 0,
+    "mean_effective_tops": 11.48718490324485,
+    "modes": [
+      "bf16-bf16"
+    ],
+    "timing": "triton.testing.do_bench; prepacked inputs; preallocated output; quantization excluded",
+    "torch_rocm_aotriton_experimental": true,
+    "validation": "float32 optimized output versus representation-matched float32 oracle; rtol=atol=1e-3; max relative-error denominator clamped to 1e-3"
+  },
+  "winners": [
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 32.26393668385963,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.1522085666656494e-05,
+          "max_rel_diff": 0.038654133677482605,
+          "max_tolerance_ratio": 0.04125222936272621,
+          "relative_l2": 0.0012596833985298872
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.12004802376031876,
+          "relative_l2": 0.0021175977308303118
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 3.727353096008301,
+      "samples": 21,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "none",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "bfloat16"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 64,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 12.767819009726983,
+      "mode": "bf16-bf16",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.00018613040447235107,
+          "max_rel_diff": 0.13182809948921204,
+          "max_tolerance_ratio": 0.18183094263076782,
+          "relative_l2": 0.0008173432433977723
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.00048828125,
+          "max_rel_diff": 0.1316070556640625,
+          "max_tolerance_ratio": 0.45955878496170044,
+          "relative_l2": 0.0014653016114607453
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.5704299807548523,
+      "samples": 61,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    }
+  ]
+}

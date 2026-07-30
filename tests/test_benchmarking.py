@@ -1,10 +1,19 @@
 import argparse
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from scripts.benchmark_generated import configure_extracted_native_root, parse_shape
+from scripts.benchmark_attention import benchmark_cases as attention_benchmark_cases
+from scripts.benchmark_attention import build_parser as build_attention_benchmark_parser
+from scripts.benchmark_attention import default_cases as default_attention_benchmark_cases
+from scripts.benchmark_generated import (
+    build_parser,
+    configure_extracted_native_root,
+    parse_shape,
+    validation_tolerances,
+)
 
 from amd_strix_halo_kernels.benchmarking import (
     BenchmarkDatabase,
@@ -13,11 +22,13 @@ from amd_strix_halo_kernels.benchmarking import (
     summarize_runtime_samples,
     tops_for_runtime,
 )
+from amd_strix_halo_kernels.autotune import _attention_numerical_metrics as attention_numerical_metrics
 from amd_strix_halo_kernels.heuristics import choose_kernel, estimate_kernel_score, kernel_supports_shape
 from amd_strix_halo_kernels.metadata import (
     ACC_DTYPE,
     ARCH,
     Epilogue,
+    GemmLayout,
     KernelMetadata,
     OperandDType,
     SCALE_DTYPE_BF16,
@@ -70,6 +81,56 @@ def test_benchmark_generated_parse_shape() -> None:
     assert parse_shape("128,1024,64") == (128, 1024, 64)
     with pytest.raises(argparse.ArgumentTypeError):
         parse_shape("96,0,32")
+
+
+def test_benchmark_generated_supports_timing_only_and_strict_bf16_validation() -> None:
+    args = build_parser().parse_args(
+        [
+            "--validation-device",
+            "none",
+            "--scale",
+            "sc256",
+            "--split-k",
+            "1",
+            "--output-dtype",
+            "bfloat16",
+            "--even-k-only",
+        ]
+    )
+
+    assert args.validation_device == "none"
+    assert (args.scale, args.split_k, args.output_dtype, args.even_k_only) == (
+        ["sc256"],
+        [1],
+        ["bfloat16"],
+        True,
+    )
+    assert validation_tolerances(SimpleNamespace(output_dtype="bfloat16")) == (1.0e-3, 1.0e-3)
+
+
+def test_attention_training_cases_are_selectable_but_not_in_default_sweep() -> None:
+    default_names = {case.name for case in default_attention_benchmark_cases()}
+    all_names = {case.name for case in attention_benchmark_cases()}
+
+    assert default_names == {"prefill-512", "decode-2048", "local-128"}
+    assert all_names - default_names == {"train-gqa-2048", "train-gqa-local-128"}
+    args = build_attention_benchmark_parser().parse_args(
+        ["--case", "train-gqa-2048", "--case", "train-gqa-local-128"]
+    )
+    assert args.case == ["train-gqa-2048", "train-gqa-local-128"]
+
+
+def test_attention_benchmark_reports_absolute_and_clamped_relative_error() -> None:
+    torch = pytest.importorskip("torch")
+    expected = torch.tensor([2.0, 0.0], dtype=torch.float32)
+    actual = torch.tensor([2.001, 0.0005], dtype=torch.float32)
+
+    metrics = attention_numerical_metrics(torch, actual, expected, rtol=1.0e-3, atol=1.0e-3)
+
+    assert metrics["max_abs_diff"] == pytest.approx(1.0e-3, abs=1.0e-6)
+    assert metrics["max_rel_diff"] == pytest.approx(0.5, abs=1.0e-6)
+    assert metrics["relative_l2"] < 1.0e-3
+    assert metrics["max_tolerance_ratio"] < 1.0
 
 
 def test_configure_extracted_native_root_overrides_editable_package_lookup(tmp_path) -> None:
@@ -168,3 +229,102 @@ def test_checked_in_generated_benchmark_database_covers_registry() -> None:
         assert (record.max_abs_diff or 0.0) <= atol
         if kernel.epilogue is Epilogue.RELU2:
             assert (record.max_rel_diff or 0.0) <= 1.0e-3
+
+
+def test_training_projection_benchmark_matches_exact_dispatch() -> None:
+    data = json.loads((REPO_ROOT / "benchmarks" / "gfx1151_projection_training.json").read_text())
+    records = data["records"]
+    assert data["arithmetic"] == {
+        "lhs_storage": "packed signed INT4",
+        "rhs_storage": "packed signed INT4",
+        "scale_storage": "BF16",
+        "scale_granularity": "independent lhs/rhs subchannel-256 along K",
+        "dot_accumulator": "INT32 within each 256-element subchannel",
+        "scaled_accumulator": "FP32 across subchannels",
+        "output_storage": "BF16 (single final rounding)",
+        "split_k": 1,
+    }
+    assert {record["operation"] for record in records} == {
+        "combined_qkv_gate_forward",
+        "combined_qkv_gate_dx",
+        "combined_qkv_gate_dw",
+        "output_forward",
+        "output_dx",
+        "output_dw",
+        "fallback_packed_qkv_forward",
+    }
+    assert data["numerical_gate"] == {
+        "atol": 1.0e-3,
+        "rtol": 1.0e-3,
+        "winner_max_abs_diff": 0.0,
+        "winner_max_rel_diff": 0.0,
+    }
+
+    scale = ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    for record in records:
+        m, n, k = record["shape"]
+        selected = default_registry.select(
+            dtype=OperandDType.INT4,
+            layout=GemmLayout(record["layout"].lower()),
+            scale=scale,
+            epilogue=Epilogue.NONE,
+            m=m,
+            n=n,
+            k=k,
+            split_k=1,
+        )
+        assert selected.kernel_id == record["kernel_id"]
+        assert record["runtime_ms"] > 0.0
+        assert record["tops"] > 0.0
+
+
+def test_attention_training_benchmark_records_dtypes_and_numerical_gates() -> None:
+    data = json.loads((REPO_ROOT / "benchmarks" / "gfx1151_attention_training.json").read_text())
+
+    assert data["summary"]["count"] == 36
+    assert data["summary"]["failures"] == 0
+    assert len(data["winners"]) == 2
+    for record in data["records"]:
+        assert record["arithmetic"] == {
+            "query_key_storage": "bfloat16",
+            "value_storage": "bfloat16",
+            "scale_storage": "none",
+            "softmax_accumulator": "float32",
+            "timed_output": "bfloat16",
+            "validation_output": "float32",
+        }
+        numerics = record["numerics"]
+        assert (numerics["rtol"], numerics["atol"]) == (1.0e-3, 1.0e-3)
+        assert numerics["float32_validation_output"]["max_tolerance_ratio"] <= 1.0
+        assert (
+            numerics["timed_bfloat16_output_vs_bfloat16_rounded_oracle"]["max_tolerance_ratio"]
+            <= 1.0
+        )
+
+
+def test_int4_value_attention_training_benchmark_records_compute_contract() -> None:
+    data = json.loads(
+        (REPO_ROOT / "benchmarks" / "gfx1151_attention_int4_value_training.json").read_text()
+    )
+
+    assert data["summary"]["count"] == 24
+    assert data["summary"]["failures"] == 0
+    assert len(data["winners"]) == 4
+    assert {record["mode"] for record in data["records"]} == {"bf16-int4", "int4-int4"}
+    for record in data["records"]:
+        arithmetic = record["arithmetic"]
+        assert arithmetic["value_storage"] == "packed_signed_int4"
+        assert arithmetic["scale_storage"] == "bfloat16"
+        assert arithmetic["softmax_accumulator"] == "float32"
+        assert arithmetic["timed_output"] == "bfloat16"
+        numerics = record["numerics"]
+        assert (numerics["rtol"], numerics["atol"]) == (1.0e-3, 1.0e-3)
+        assert numerics["float32_validation_output"]["max_tolerance_ratio"] <= 1.0
+        assert (
+            numerics["timed_bfloat16_output_vs_bfloat16_rounded_oracle"]["max_tolerance_ratio"]
+            <= 1.0
+        )
+    for winner in data["winners"]:
+        assert winner["config"]["block_m"] == 64
+        assert winner["config"]["block_n"] == 16
+        assert winner["config"]["num_warps"] == 4

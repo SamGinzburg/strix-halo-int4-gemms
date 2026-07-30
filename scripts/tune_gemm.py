@@ -26,6 +26,7 @@ from amd_strix_halo_kernels.metadata import (
     ACC_DTYPE,
     ARCH,
     Epilogue,
+    GemmLayout,
     KernelMetadata,
     OperandDType,
     SCALE_DTYPE_BF16,
@@ -101,6 +102,13 @@ def parse_scale(value: str) -> ScaleSpec:
     raise argparse.ArgumentTypeError("scale must be pc or sc<size>")
 
 
+def parse_layout(value: str) -> GemmLayout:
+    try:
+        return GemmLayout(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("layout must be nn, nt, tn, or tt") from exc
+
+
 def parse_tile(value: str) -> TileConfig:
     parts = value.split(",")
     if len(parts) not in {7, 8}:
@@ -116,7 +124,7 @@ def default_tiles(dtype: OperandDType) -> tuple[TileConfig, ...]:
     seed_dtype = OperandDType.INT4 if dtype is OperandDType.BF16 else dtype
     seeded = seed_tile_configs(seed_dtype, epilogue=Epilogue.NONE)[0]
     if dtype in {OperandDType.BF16, OperandDType.INT4}:
-        return (
+        tiles = (
             seeded,
             TileConfig(64, 128, 128, 1, 16, 2, 2, even_k=True),
             TileConfig(64, 512, 32, 4, 16, 2, 2, even_k=True),
@@ -126,21 +134,30 @@ def default_tiles(dtype: OperandDType) -> tuple[TileConfig, ...]:
             TileConfig(64, 512, 64, 4, 8, 3, 2, even_k=True),
             TileConfig(128, 512, 32, 4, 16, 2, 2, even_k=True),
         )
-    return (
+        return tuple(dict.fromkeys(tiles))
+    tiles = (
         seeded,
         TileConfig(64, 256, 32, 4, 8, 3, 2, even_k=True),
         TileConfig(128, 256, 32, 4, 8, 3, 2, even_k=True),
         TileConfig(128, 512, 32, 4, 8, 3, 2, even_k=True),
     )
+    return tuple(dict.fromkeys(tiles))
 
 
-def make_kernel(dtype: OperandDType, scale: ScaleSpec, tile: TileConfig, shape: BenchmarkShape) -> KernelMetadata:
+def make_kernel(
+    dtype: OperandDType,
+    scale: ScaleSpec,
+    tile: TileConfig,
+    shape: BenchmarkShape,
+    *,
+    layout: GemmLayout = GemmLayout.NN,
+) -> KernelMetadata:
     even_tile = replace(tile, even_k=shape.k % (tile.block_k * tile.split_k) == 0)
     b_dtype = OperandDType.INT4 if dtype is OperandDType.BF16 else dtype
     kernel_id = (
-        make_mixed_kernel_id(dtype, b_dtype, scale, Epilogue.NONE, even_tile)
+        make_mixed_kernel_id(dtype, b_dtype, scale, Epilogue.NONE, even_tile, layout=layout)
         if dtype is OperandDType.BF16
-        else make_kernel_id(dtype, scale, Epilogue.NONE, even_tile)
+        else make_kernel_id(dtype, scale, Epilogue.NONE, even_tile, layout=layout)
     )
     return KernelMetadata(
         kernel_id=kernel_id,
@@ -154,6 +171,7 @@ def make_kernel(dtype: OperandDType, scale: ScaleSpec, tile: TileConfig, shape: 
         epilogue=Epilogue.NONE,
         tile=even_tile,
         triton_kernel_name=f"triton_{kernel_id}",
+        layout=layout,
     )
 
 
@@ -170,16 +188,23 @@ def make_inputs(kernel: KernelMetadata, shape: BenchmarkShape) -> tuple[Any, Any
     b_bits = 4 if kernel.b_dtype is OperandDType.INT4 else 8
     b_q = fake_quant_int(b_bf16, bits=b_bits, scale=0.1)
 
+    a_trans = kernel.layout in {GemmLayout.TN, GemmLayout.TT}
+    b_trans = kernel.layout in {GemmLayout.NT, GemmLayout.TT}
     if kernel.a_dtype is OperandDType.BF16:
-        a = a_bf16.contiguous()
+        a = a_bf16.transpose(0, 1).contiguous() if a_trans else a_bf16.contiguous()
     elif kernel.a_dtype is OperandDType.INT4:
-        a = pack_int4_k_major(a_q)
+        a = (
+            pack_int4_k_major(a_q).transpose(0, 1).contiguous()
+            if a_trans
+            else pack_int4_k_major(a_q)
+        )
     else:
-        a = a_q.contiguous()
+        a = a_q.transpose(0, 1).contiguous() if a_trans else a_q.contiguous()
     if kernel.b_dtype is OperandDType.INT4:
-        b = pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous()
+        packed_b_transposed = pack_int4_k_major(b_q.transpose(0, 1))
+        b = packed_b_transposed if b_trans else packed_b_transposed.transpose(0, 1).contiguous()
     else:
-        b = b_q.contiguous()
+        b = b_q.transpose(0, 1).contiguous() if b_trans else b_q.contiguous()
 
     if kernel.scale.mode is ScaleMode.PER_CHANNEL:
         if kernel.a_dtype is not OperandDType.BF16:
@@ -229,8 +254,8 @@ def launch(kernel: KernelMetadata, shape: BenchmarkShape, args: tuple[Any, ...])
         RELU2=False,
         EVEN_K=kernel.tile.even_k,
         SPLIT_K=kernel.tile.split_k,
-        A_TRANS=False,
-        B_TRANS=False,
+        A_TRANS=kernel.layout in {GemmLayout.TN, GemmLayout.TT},
+        B_TRANS=kernel.layout in {GemmLayout.NT, GemmLayout.TT},
         A_BF16=kernel.a_dtype is OperandDType.BF16,
         num_warps=kernel.tile.num_warps,
         num_stages=kernel.tile.num_stages,
@@ -280,6 +305,7 @@ def benchmark_kernel(
         "max_rel_diff": max_rel,
         "metadata": {
             "dtype_pair": f"{kernel.a_dtype.value}x{kernel.b_dtype.value}",
+            "layout": kernel.layout.value,
             "scale": kernel.scale.label,
             "output_dtype": kernel.output_dtype,
             "tile": kernel.tile.label,
@@ -307,6 +333,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Tune direct Triton generated scaled GEMM kernels on a real shape.")
     parser.add_argument("--shape", type=parse_shape, default=parse_shape("4096,4096,4096"))
     parser.add_argument("--dtype", type=parse_dtype, default=OperandDType.INT4)
+    parser.add_argument("--layout", type=parse_layout, default=GemmLayout.NN)
     parser.add_argument("--scale", type=parse_scale, action="append", default=[])
     parser.add_argument("--tile", type=parse_tile, action="append", default=[])
     parser.add_argument("--warmup-ms", type=int, default=25)
@@ -333,7 +360,7 @@ def main(argv: list[str] | None = None) -> int:
     failures = []
     for scale in scales:
         for tile in tiles:
-            kernel = make_kernel(args.dtype, scale, tile, args.shape)
+            kernel = make_kernel(args.dtype, scale, tile, args.shape, layout=args.layout)
             try:
                 record = benchmark_kernel(kernel, args.shape, warmup_ms=args.warmup_ms, rep_ms=args.rep_ms)
                 records.append(record)
@@ -354,7 +381,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.save_best_artifacts:
         best_scale = next(scale for scale in scales if scale.label == best["metadata"]["scale"])
         best_tile = next(tile for tile in tiles if tile.label == best["metadata"]["tile"])
-        best_kernel = make_kernel(args.dtype, best_scale, best_tile, args.shape)
+        best_kernel = make_kernel(args.dtype, best_scale, best_tile, args.shape, layout=args.layout)
         artifact_paths = save_artifacts(best_kernel, args.shape, args.artifact_dir)
 
     output = {

@@ -115,6 +115,10 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | --- | --- |
 | `mm(...)` | Surface API for regular single-output GEMMs. Supports plain GEMM and ReLU^2. |
 | `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`. |
+| `int4_scaled_dot_product_attention(...)` | Forward fused attention with BF16 or packed INT4 Q/K and V operands. |
+| `reference_scaled_dot_product_attention(...)` | Quantization-matched FP32 arithmetic oracle for fused attention. |
+| `quantize_attention_qk_int4(...)` | Per-token signed-INT4 quantization and head-dimension packing for Q/K. |
+| `quantize_attention_value_int4(...)` | Per-16-token signed-INT4 quantization and sequence-dimension packing for V. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot with automatic tuned JIT/exact-native BF16 dispatch and explicit backend control. |
@@ -124,6 +128,7 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `prepare_ragged_bwd_group_info(...)` | Prevalidate fixed-capacity backward group metadata for graph-safe replay. |
 | `ragged_group_info_capacity(...)` | Compute the static safe task bound used by graph-safe preparation. |
 | `autotune(...)` | Benchmark compatible packaged dense kernels for one shape. |
+| `autotune_attention(...)` | Numerically validate and benchmark fused BF16/INT4 attention configs on caller-provided tensors. |
 | `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidate configs for one shape. |
 | `default_registry` | Metadata registry for dtype, layout, scale mode, epilogue, schedule, tile, `split_k`, and `even_k`. |
 | `torch_gemm(...)` | Lazy `torch.library.custom_op` wrapper around native dispatch. |
@@ -512,9 +517,166 @@ overridden explicitly; odd overrides are rounded up too. Ragged autotuning
 always passes `use_native=False`: its results describe shape-specialized JIT
 rather than packaged HSACO dispatch.
 
+## Fused BF16/INT4 Attention
+
+`int4_scaled_dot_product_attention(...)` is a forward-only Triton-JIT fused
+scaled-dot-product attention API. Tensors use logical order `(B, H, S, D)` and
+the output is `(B, Hq, Lq, Dv)`. Q and K must use the same representation;
+V can be selected independently, giving four execution modes:
+
+| Q/K | V | Physical input shapes | Scale shapes |
+| --- | --- | --- | --- |
+| BF16 | BF16 | Q `[B,Hq,Lq,D]`; K `[B,Hkv,Lk,D]`; V `[B,Hkv,Lk,Dv]` | none |
+| INT4 | BF16 | packed Q/K `[...,ceil(D/16)*8]`; BF16 V | Q `[B,Hq,Lq]`; K `[B,Hkv,Lk]` |
+| BF16 | INT4 | BF16 Q/K; packed V `[B,Hkv,ceil(Lk/16)*8,Dv]` | V `[B,Hkv,ceil(Lk/16),Dv]` |
+| INT4 | INT4 | both packed layouts above | Q, K, and V scales above |
+
+The quantization helpers produce those packed tensors and BF16 scales:
+
+```python
+from amd_strix_halo_kernels import (
+    int4_scaled_dot_product_attention,
+    quantize_attention_qk_int4,
+    quantize_attention_value_int4,
+)
+
+q4, q_scale, head_dim = quantize_attention_qk_int4(query)
+k4, k_scale, _ = quantize_attention_qk_int4(key)
+v4, v_scale = quantize_attention_value_int4(value)
+
+out = int4_scaled_dot_product_attention(
+    q4,
+    k4,
+    v4,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    value_scale=v_scale,
+    head_dim=head_dim,
+)
+```
+
+BF16 Q/K use BF16 MMA and packed Q/K use signed INT4 MMA. P@V always uses
+BF16 MMA: online-softmax probabilities remain BF16, while packed INT4 V is
+dequantized tile-wise with its per-16-token BF16 scales. There is no online
+quantization of P. Thus “INT4 V” describes input storage and bandwidth, not an
+INT4 P@V dot product. `head_dim` and `Dv` are limited to 256. The optimized
+path requires contiguous CUDA/HIP Q/K/V, `dropout_p=0`, and tensors that do
+not require gradients. Output defaults to BF16; FP32 is available with
+`output_dtype=torch.float32`.
+
+Boolean and additive BF16/FP32 masks broadcast to `[B,Hq,Lq,Lk]`;
+`attn_mask` and `is_causal=True` are mutually exclusive. `window_size=w`
+means the inclusive local window `(w,w)`, while `(left,right)` is asymmetric.
+For cached decode, `query_position_offset` maps the local query row to its
+absolute position. GQA requires `enable_gqa=True` when `Hq != Hkv`, with
+`Hq % Hkv == 0`.
+
+Tune the actual operand representation, shape, GQA, mask/window, and output
+dtype before graph capture with `autotune_attention(...)`:
+
+```python
+from amd_strix_halo_kernels import autotune_attention, int4_scaled_dot_product_attention
+
+tuning = autotune_attention(
+    q4,
+    k4,
+    value,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    head_dim=head_dim,
+    enable_gqa=True,
+    window_size=(127, 0),
+    warmup_ms=25,
+    rep_ms=100,
+    benchmark_db_path="benchmarks/local_attention.json",
+)
+out = int4_scaled_dot_product_attention(
+    q4,
+    k4,
+    value,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    head_dim=head_dim,
+    enable_gqa=True,
+    window_size=(127, 0),
+    config=tuning.best_config,
+)
+```
+
+The tuner infers one of the four BF16/INT4 QK-by-PV modes from the supplied
+tensors and scales. Every candidate must pass both the FP32 matched-oracle
+check and the actual timed-output check at `rtol=atol=1e-3` or a stricter
+caller-supplied tolerance. Inputs are already packed and outputs/workspaces
+are preallocated, so quantization and allocation are excluded from timing.
+`benchmark_db_path` appends complete shape, masking, arithmetic, timing, and
+numerical metadata; use `best_config` explicitly for subsequent dispatch.
+Tuning is eager and cannot run inside CUDAGraph capture.
+
+Decode can use split reduction only at `Lq=1`. During CUDAGraph capture, pass a
+preallocated contiguous `out` and, when `config.decode_splits > 1`, a
+contiguous FP32 `workspace` of shape
+`[B,Hq,decode_splits,Dv+2]`; workspace is rejected for `decode_splits=1`.
+Warm the exact mode, shapes, configuration, and mask form before capture.
+
+For arithmetic validation, compare the optimized path with
+`reference_scaled_dot_product_attention(...)` or set `use_reference=True` and
+request FP32 output; all four modes use `rtol=atol=1e-3` against that matched
+quantized oracle. INT4 Q/K with BF16 V remains close to the original BF16
+PyTorch result (measured relative L2 at most 0.03 and cosine at least 0.999).
+Modes with INT4 V are experimental (relative L2 at most 0.12 and cosine at
+least 0.99 across dense, ragged, causal, local, and GQA tests); elementwise
+`1e-3` agreement with unquantized BF16 is not an
+appropriate quantization-quality criterion. BF16 output can differ from the
+FP32 oracle rounded to BF16 by one BF16 ULP at larger magnitudes.
+
+The complete gfx1151 sweep below uses `B=1`, `Hq=Hkv=8`, and `D=Dv=64`.
+Prefill is `Lq=Lk=512`, decode is `Lq=1,Lk=2048`, and local is
+`Lq=Lk=512,window_size=(127,0)`. INT4 means packed signed-INT4 input storage
+with BF16 scales; P@V is BF16 MMA and the online-softmax/output accumulation
+is FP32 in every row. Ratios use an allocation-including PyTorch BF16 SDPA
+baseline; custom timings exclude quantization, allocation, and packing.
+
+| Q/K storage | V storage | Prefill runtime / PyTorch | Decode runtime / PyTorch | Local runtime / PyTorch |
+| --- | --- | ---: | ---: | ---: |
+| BF16 | BF16 | 0.037370 ms / 1.51x | 0.047249 ms / 3.14x | 0.026690 ms / 3.40x |
+| INT4 | BF16 | 0.029615 ms / 1.91x | 0.037451 ms / 3.96x | 0.020678 ms / 4.39x |
+| BF16 | INT4 | 0.057588 ms / 0.98x | 0.050434 ms / 2.94x | 0.032301 ms / 2.81x |
+| INT4 | INT4 | 0.041758 ms / 1.35x | 0.037470 ms / 3.96x | 0.023524 ms / 3.86x |
+
+All 156 candidates passed the representation-matched FP32 and timed-BF16
+checks at `rtol=atol=1e-3`; winner FP32 maximum absolute errors were at most
+`3.23e-4`. Correcting P@V from online-quantized probabilities to BF16
+probabilities plus tile-dequantized V improved packed-V prefill by 17.4% for
+BF16 Q/K and 33.9% for INT4 Q/K versus the preceding implementation.
+
+The exact training-attention rows use
+`B=7,Hq=16,Hkv=8,Lq=Lk=2048,D=Dv=64`. BF16-value rows select
+`BM64_BN64_W4_S1`; packed-V rows select `BM64_BN16_W4_S1`.
+
+| Attention workload | Storage / accumulation / output | Runtime | Throughput | PyTorch BF16 | Verified numerics |
+| --- | --- | ---: | ---: | ---: | --- |
+| full | BF16 Q/K/V / FP32 / BF16 | 3.727353 ms | 32.264 TOPS | 7.560022 ms; 2.03x | FP32 max abs `4.16e-5`; timed BF16 max abs `1.23e-4` |
+| local `(127,0)` | BF16 Q/K/V / FP32 / BF16 | 0.570430 ms | 12.768 effective TOPS | 133.235092 ms; 233.57x* | FP32 max abs `1.87e-4`; timed BF16 max abs `4.89e-4` |
+| full | BF16 Q/K + INT4 V / BF16 P@V, FP32 accum / BF16 | 4.867351 ms | 24.707 TOPS | 7.587160 ms; 1.56x | FP32 max abs `4.29e-5`; timed BF16 max abs `1.22e-4` |
+| local `(127,0)` | BF16 Q/K + INT4 V / BF16 P@V, FP32 accum / BF16 | 0.697428 ms | 10.443 effective TOPS | 133.055969 ms; 190.78x* | FP32 max abs `2.86e-4`; timed BF16 max abs `9.77e-4` |
+| full | INT4 Q/K/V / INT4 Q@K, BF16 P@V, FP32 accum / BF16 | 4.462832 ms | 26.947 TOPS | 7.587160 ms; 1.70x | FP32 max abs `4.36e-5`; timed BF16 max abs `1.22e-4` |
+| local `(127,0)` | INT4 Q/K/V / INT4 Q@K, BF16 P@V, FP32 accum / BF16 | 0.500138 ms | 14.562 effective TOPS | 133.055969 ms; 266.04x* | FP32 max abs `2.64e-4`; timed BF16 max abs `9.77e-4` |
+
+Both the FP32 validation output and the actual timed BF16 output passed
+`rtol=atol=1e-3` against the representation-matched oracle for all 36 BF16
+and all 24 packed-V candidates. `*` Each local PyTorch baseline used one
+sample and a generic
+boolean mask that fell off its fused fast path, so it is diagnostic rather
+than an apples-to-apples fused-kernel speedup. Local BF16 Q/K defaults to BN64
+for `Lq >= 1024` and retains BN32 for shorter queries.
+
+Attention is JIT-only and requires the custom Strix Halo Triton fork. It adds
+no native HSACO entries. Two separately tuned projection TN artifacts increase
+the current dense matrix to 2,882; the ragged matrix remains 182.
+
 ## Kernel Coverage
 
-The checked-in matrix currently contains 2880 dense generated kernels plus
+The checked-in matrix currently contains 2,882 dense generated kernels plus
 182 ragged generated artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
@@ -523,7 +685,9 @@ The checked-in matrix currently contains 2880 dense generated kernels plus
   and `256`,
 - epilogues: plain scaled GEMM, ReLU^2, fused SwiGLU up/gate,
 - schedules: standard plus opt-in persistent schedule for plain int4 GEMM,
-- split-K: `1`, `2`, `4`, and `8` for plain GEMM.
+- split-K: `1`, `2`, `4`, and `8` for plain GEMM,
+- two exact subchannel-256 TN projection-gradient specializations at the
+  `M=14336` training microbatch.
 
 Ragged artifacts cover forward and backward modes, `NN`/`NT`/`TN`/`TT`
 layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
@@ -563,6 +727,27 @@ reported rows.
 | int4 fused SwiGLU | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 5.34 ms | 51.5 |
 | int8 plain GEMM | per-channel | `BM64_BN256_BK64_GM4_W8_S3_WEU2_SK1_EVENK` | 5.34 ms | 25.7 |
 | int8 plain GEMM | subchannel-256 | `BM64_BN256_BK64_GM4_W8_S3_WEU2_SK1_EVENK` | 5.58 ms | 24.6 |
+
+At the exact `M=14336` projection-training microbatch, the checked-in
+subchannel-256 BF16-output winners are:
+
+| Operation | Layout / `(M,N,K)` | Quantization / accumulation / output | Best tile | Runtime | TOPS |
+| --- | --- | --- | --- | ---: | ---: |
+| combined fwd | NT / `(14336,3072,1024)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN128_BK128_GM4` | 1.395418 ms | 64.636 |
+| combined dX | NN / `(14336,1024,3072)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN128_BK128_GM1` | 1.387102 ms | 65.024 |
+| combined dW | TN / `(3072,1024,14336)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM16_BN512_BK32_GM4` | 2.184580 ms | 41.287 |
+| output fwd | NT / `(14336,1024,1024)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN128_BK128_GM4` | 0.488196 ms | 61.583 |
+| output dX | NN / `(14336,1024,1024)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN128_BK128_GM1` | 0.498215 ms | 60.345 |
+| output dW | TN / `(1024,1024,14336)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN512_BK32_GM4` | 0.767280 ms | 39.184 |
+| fallback packed QKV fwd | NT / `(14336,2048,1024)` | packed I4×I4 + BF16 sc256 / FP32 / BF16 | `BM64_BN128_BK128_GM1` | 0.969299 ms | 62.034 |
+
+The two TN dW artifacts reduce latency by 8.33% and 16.24% versus their prior
+tiles (throughput +9.08% and +19.39%). Every winner passed a separate gfx1151
+model-like BF16 fake-quant check at `rtol=atol=1e-3` with zero maximum absolute
+and relative difference. Each 256-value subchannel uses INT32 MMA accumulation;
+the independently scaled subchannel results accumulate in FP32 before one BF16
+store. Gradient accumulation repeats `M=14336`, not
+`M=57344`; see `docs/benchmarks.rst` for operand/scale layout details.
 
 For fused SwiGLU, TOPS counts both up and gate GEMMs.
 BF16-store correctness may differ by one ULP from the BF16 reference on values

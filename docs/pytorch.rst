@@ -38,6 +38,9 @@ Which API to Call
    * - ``autotune(...)``
      - Time dense packaged kernels for one logical shape
      - Native HSACO candidates only
+   * - ``autotune_attention(...)``
+     - Validate and time fused attention configs on caller-provided tensors
+     - JIT, all BF16/INT4 QK-by-PV modes
    * - ``autotune_ragged_dot(...)``
      - Time ragged Triton-JIT candidate configs
      - Forward and backward ragged modes
@@ -250,6 +253,214 @@ does not register autograd.
        "gfx1151_int4xint4_nn_pc_none_bm64_bn512_bk32_gm4_w16_s2_weu2_sk1_evenk"
    )
    out = torch_gemm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale)
+
+Fused Attention
+---------------
+
+The fused attention API accepts contiguous CUDA/HIP tensors in
+``[batch, heads, sequence, feature]`` order. This is the BF16 path:
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import int4_scaled_dot_product_attention
+
+   # query [B,Hq,Lq,D], key [B,Hkv,Lk,D], value [B,Hkv,Lk,Dv]
+   out = int4_scaled_dot_product_attention(
+       query,
+       key,
+       value,
+       is_causal=True,
+   )  # [B,Hq,Lq,Dv], BF16 by default
+
+Quantize Q/K per token and V per 16-token/value-channel group to select any of
+the INT4 modes. Q and K must use the same representation, but V is independent:
+
+.. code-block:: python
+
+   import torch
+   from amd_strix_halo_kernels import (
+       int4_scaled_dot_product_attention,
+       quantize_attention_qk_int4,
+       quantize_attention_value_int4,
+   )
+
+   q4, q_scale, head_dim = quantize_attention_qk_int4(query)
+   k4, k_scale, _ = quantize_attention_qk_int4(key)
+   v4, v_scale = quantize_attention_value_int4(value)
+
+   qk_int4 = int4_scaled_dot_product_attention(
+       q4,
+       k4,
+       value,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+   )
+   all_int4 = int4_scaled_dot_product_attention(
+       q4,
+       k4,
+       v4,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       value_scale=v_scale,
+       head_dim=head_dim,
+       output_dtype=torch.float32,
+   )
+
+Q/K packing pads ``D`` to a multiple of 16 and returns physical shape
+``[B,H,L,ceil(D/16)*8]`` plus BF16 scales ``[B,H,L]``. V packing pads ``Lk``
+to a multiple of 16 and returns
+``[B,Hkv,ceil(Lk/16)*8,Dv]`` plus scales
+``[B,Hkv,ceil(Lk/16),Dv]``. Preserve the original Q/K dimension returned by
+the helper and pass it as ``head_dim``. Both ``head_dim`` and ``Dv`` are
+limited to 256.
+
+Packed V remains compressed in memory but is unpacked and dequantized to BF16
+inside each kernel tile. Online-softmax probabilities remain BF16 and P@V
+uses BF16 MMA with FP32 accumulation; the implementation does not quantize P
+online. Q@K alone uses INT4 MMA when Q/K are packed.
+
+Boolean masks keep true entries; BF16/FP32 masks are added to logits. Masks
+can be non-contiguous and broadcast to ``[B,Hq,Lq,Lk]``. Do not combine an
+explicit mask with ``is_causal=True``. An inclusive local window accepts an
+integer radius or ``(left,right)``; for cached decode, set the absolute
+position of the first local query:
+
+.. code-block:: python
+
+   decode = int4_scaled_dot_product_attention(
+       query[:, :, -1:, :],
+       key_cache,
+       value_cache,
+       is_causal=True,
+       window_size=(127, 0),
+       query_position_offset=key_cache.shape[-2] - 1,
+   )
+
+GQA is explicit: when ``Hq != Hkv``, ``enable_gqa=True`` is required and
+``Hq % Hkv`` must be zero. The optimized path is forward-only, supports no
+dropout, and rejects input or scale tensors that require gradients.
+
+Use ``autotune_attention(...)`` on the actual tensors and exact attention
+semantics to select a launch configuration. It validates every candidate in
+FP32 and in the requested timed output dtype at ``rtol=atol=1e-3`` or stricter:
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import autotune_attention
+
+   tuning = autotune_attention(
+       q4,
+       k4,
+       value,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+       enable_gqa=True,
+       window_size=(127, 0),
+       benchmark_db_path="benchmarks/local_attention.json",
+   )
+
+   tuned = int4_scaled_dot_product_attention(
+       q4,
+       k4,
+       value,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+       enable_gqa=True,
+       window_size=(127, 0),
+       config=tuning.best_config,
+   )
+
+Quantization, output allocation, and split-decode workspace allocation are
+excluded from timing. The result database is append-only evidence; pass
+``best_config`` explicitly because attention dispatch does not consult that
+file. Run tuning before capture, never from inside a CUDAGraph.
+
+The default long-context decode configuration uses split reduction. For graph
+capture, provide the exact preallocated output and FP32 workspace and warm the
+launch before entering the graph:
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import Int4AttentionConfig
+
+   config = Int4AttentionConfig(block_m=16, block_n=64, decode_splits=8)
+   out = torch.empty((B, Hq, 1, Dv), device=query.device, dtype=torch.bfloat16)
+   workspace = torch.empty(
+       (B, Hq, config.decode_splits, Dv + 2),
+       device=query.device,
+       dtype=torch.float32,
+   )
+
+   def run():
+       return int4_scaled_dot_product_attention(
+           query,
+           key,
+           value,
+           config=config,
+           out=out,
+           workspace=workspace,
+       )
+
+   run()
+   torch.cuda.synchronize()
+   graph = torch.cuda.CUDAGraph()
+   with torch.cuda.graph(graph):
+       captured = run()
+
+Workspace is accepted only for ``decode_splits > 1`` and split decode requires
+``Lq=1``. Warm the exact operand mode, shapes, mask form, and configuration.
+All four operand modes have normal-execution and CUDAGraph coverage, including
+split decode.
+
+Use ``reference_scaled_dot_product_attention(...)`` or ``use_reference=True``
+with FP32 output for a matched quantized oracle. The optimized-vs-oracle gate
+is ``rtol=atol=1e-3``. Quantization quality relative to original BF16 is a
+separate metric: INT4 Q/K with BF16 V has measured relative L2 at most 0.03
+and cosine at least 0.999; modes with experimental INT4 V use relative L2 at
+most 0.12 and cosine at least 0.99 across dense, ragged, causal, local, and GQA
+cases. BF16 output can differ by one BF16 ULP at larger magnitudes. This
+kernel is JIT-only and requires the custom Triton fork.
+
+For the model-like BF16 GQA training shape
+``B=7,Hq=16,Hkv=8,Lq=Lk=2048,D=Dv=64``, the default
+``BM64_BN64_W4_S1`` tile measured 3.727353 ms / 32.264 TOPS versus PyTorch at
+7.560022 ms / 15.907 TOPS. The same tile is now the long-local default and
+measured 0.570430 ms / 12.768 effective TOPS for ``window_size=(127,0)``.
+These rows use BF16 Q/K/V and BF16 output with FP32 accumulation; they are not
+INT4 attention timings. Short local BF16-Q/K queries retain ``BN32``. The
+reported 233.57x local ratio is only diagnostic: its PyTorch comparison used
+one sample and a generic boolean mask that did not remain on the fused fast
+path.
+
+With packed INT4 V and tile-wise BF16 dequantization/P@V, the same full shape
+measured 4.867351 ms / 24.707 TOPS for BF16 Q/K and 4.462832 ms / 26.947 TOPS
+for INT4 Q/K, or 1.56x and 1.70x the allocation-including PyTorch BF16
+baseline. Both use ``BM64_BN16_W4_S1`` and passed the matched FP32 and timed
+BF16 gates at ``rtol=atol=1e-3``.
+
+Projection Training Layouts
+---------------------------
+
+The exact ``M=14336`` training projection winners use signed INT4 operands,
+subchannel-256 BF16 scales, FP32 training accumulation, and BF16 kernel output.
+Forward, input-gradient, and weight-gradient calls require different packed
+layouts even when they represent the same layer:
+
+* forward ``NT`` packs A as ``[M,K/2]`` and B as ``[N,K/2]``;
+* dX ``NN`` packs A as ``[M,K/2]`` and B as ``[K/2,N]``;
+* dW ``TN`` packs A as ``[K/2,M]`` and B as ``[K/2,N]``.
+
+In all three cases, subchannel scales use ``a_scale[M,K/256]`` and the
+weight-matched ``b_scale[K/256,N]``. For dW, logical ``K=14336`` is the
+token/reduction dimension, so the subchannel groups partition tokens rather
+than a model feature axis. Do not reuse packed operands or scales across these
+three layouts without repacking. Gradient accumulation repeats the
+``M=14336`` microbatch operation into an FP32 accumulator; it does not retune
+or concatenate the launch to ``M=57344``. The native GEMM result itself is
+BF16.
 
 Ragged Dot
 ----------

@@ -29,6 +29,33 @@ from .template_config import LaunchShape, is_tile_multiple_shape
 
 SMALL_M_VARIANTS = (32, 16)
 SMALL_N_VARIANTS = (128,)
+TRAINING_PROJECTION_TN_SC256_TILES = (
+    TileConfig(16, 512, 32, 4, 16, 2, 2, even_k=True),
+    TileConfig(64, 512, 32, 4, 16, 2, 2, even_k=True),
+)
+_TRAINING_PROJECTION_SC256_GM1_TILE = TileConfig(64, 128, 128, 1, 16, 2, 2, even_k=True)
+_TRAINING_PROJECTION_SC256_GM4_TILE = replace(_TRAINING_PROJECTION_SC256_GM1_TILE, group_size_m=4)
+_TRAINING_PROJECTION_SC256_PREFERRED = {
+    (GemmLayout.NT, 14336, 3072, 1024): _TRAINING_PROJECTION_SC256_GM4_TILE.label,
+    (GemmLayout.NN, 14336, 1024, 3072): _TRAINING_PROJECTION_SC256_GM1_TILE.label,
+    (GemmLayout.TN, 3072, 1024, 14336): TRAINING_PROJECTION_TN_SC256_TILES[0].label,
+    (GemmLayout.NT, 14336, 1024, 1024): _TRAINING_PROJECTION_SC256_GM4_TILE.label,
+    (GemmLayout.NN, 14336, 1024, 1024): _TRAINING_PROJECTION_SC256_GM1_TILE.label,
+    (GemmLayout.TN, 1024, 1024, 14336): TRAINING_PROJECTION_TN_SC256_TILES[1].label,
+    (GemmLayout.NT, 14336, 2048, 1024): _TRAINING_PROJECTION_SC256_GM1_TILE.label,
+}
+
+
+def _is_training_projection_kernel(kernel: KernelMetadata) -> bool:
+    return (
+        kernel.a_dtype is OperandDType.INT4
+        and kernel.b_dtype is OperandDType.INT4
+        and kernel.layout is GemmLayout.TN
+        and kernel.scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        and kernel.epilogue is Epilogue.NONE
+        and kernel.schedule is KernelSchedule.STANDARD
+        and kernel.tile in TRAINING_PROJECTION_TN_SC256_TILES
+    )
 
 
 def _int4_split_tile(tile: TileConfig) -> TileConfig:
@@ -231,7 +258,17 @@ def iter_supported_kernel_metadata(
                     else seed_tile_configs(seed_dtype, epilogue=epilogue, scale=scale)
                 )
                 for layout in SUPPORTED_GEMM_LAYOUTS:
-                    for tile in tile_list:
+                    layout_tiles = tile_list
+                    if (
+                        tile_override is None
+                        and a_dtype is OperandDType.INT4
+                        and b_dtype is OperandDType.INT4
+                        and scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+                        and epilogue is Epilogue.NONE
+                        and layout is GemmLayout.TN
+                    ):
+                        layout_tiles = (*tile_list, *TRAINING_PROJECTION_TN_SC256_TILES)
+                    for tile in layout_tiles:
                         yield _kernel_metadata(
                             a_dtype=a_dtype,
                             b_dtype=b_dtype,
@@ -322,8 +359,24 @@ class KernelRegistry:
                 f"layout={layout.value}, schedule={schedule.value}, "
                 f"shape=({m}, {n}, {k})"
             )
-        def selection_key(kernel: KernelMetadata) -> tuple[float, int]:
-            return (kernel.measured_tops or 0.0, kernel.tile.block_m * kernel.tile.block_n)
+        preferred_tile = None
+        if (
+            selected_a_dtype is OperandDType.INT4
+            and selected_b_dtype is OperandDType.INT4
+            and scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+            and epilogue is Epilogue.NONE
+            and schedule is KernelSchedule.STANDARD
+            and (split_k is None or split_k == 1)
+        ):
+            preferred_tile = _TRAINING_PROJECTION_SC256_PREFERRED.get((layout, m, n, k))
+
+        def selection_key(kernel: KernelMetadata) -> tuple[bool, bool, float, int]:
+            return (
+                preferred_tile is not None and kernel.tile.label == preferred_tile,
+                not _is_training_projection_kernel(kernel),
+                kernel.measured_tops or 0.0,
+                kernel.tile.block_m * kernel.tile.block_n,
+            )
 
         return max(candidates, key=selection_key)
 

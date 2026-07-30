@@ -1,0 +1,1511 @@
+{
+  "baselines": [
+    {
+      "backend": "torch.nn.functional.scaled_dot_product_attention",
+      "case": "train-gqa-2048",
+      "effective_tops": 15.850342227784193,
+      "notes": "BF16 inputs; output allocation included; ROCm experimental AOTriton=enabled",
+      "runtime_ms": 7.587160110473633,
+      "samples": 10
+    },
+    {
+      "backend": "torch.nn.functional.scaled_dot_product_attention",
+      "case": "train-gqa-local-128",
+      "effective_tops": 0.05473746720041615,
+      "notes": "BF16 inputs; output allocation included; ROCm experimental AOTriton=enabled",
+      "runtime_ms": 133.05596923828125,
+      "samples": 1
+    }
+  ],
+  "failures": [],
+  "records": [
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 8.017411188184273,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 14.99974012374878,
+      "samples": 6,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 4.694448053870255,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 25.617300033569336,
+      "samples": 3,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 14.098098738102165,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 8.530163288116455,
+      "samples": 10,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 8.569510292343777,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 14.033367156982422,
+      "samples": 6,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 24.707295001907923,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.867351293563843,
+      "samples": 16,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 14.914139807106606,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 8.063427448272705,
+      "samples": 10,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 6.260963326271674,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.163262963294983,
+      "samples": 45,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 3.6406758590726906,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 2.000493049621582,
+      "samples": 32,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 9.154132518829915,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.7956129908561707,
+      "samples": 53,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 6.111068272453376,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.1917960047721863,
+      "samples": 44,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.442865610166947,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.6974279880523682,
+      "samples": 55,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 8.537462275029718,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.8530809879302979,
+      "samples": 51,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 8.943424968919764,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 13.446647644042969,
+      "samples": 6,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 5.113251094430568,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 23.51910400390625,
+      "samples": 4,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 15.832208960544008,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 7.595849990844727,
+      "samples": 11,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 10.174258670828475,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 11.81993579864502,
+      "samples": 7,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 26.946806901667397,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.462832450866699,
+      "samples": 18,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 16.192380918223453,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 7.42689323425293,
+      "samples": 11,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 7.023380063431374,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.036985993385315,
+      "samples": 47,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 16,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 3.9926861829631854,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.8241220116615295,
+      "samples": 34,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.508681720252948,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.6930599808692932,
+      "samples": 55,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 32,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 6.0429966022188655,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 1.2052210569381714,
+      "samples": 43,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 14.562274760238228,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.500137984752655,
+      "samples": 62,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 8
+      },
+      "effective_tops": 8.48326591237305,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.8585309982299805,
+      "samples": 51,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    }
+  ],
+  "summary": {
+    "cases": [
+      "train-gqa-2048",
+      "train-gqa-local-128"
+    ],
+    "count": 24,
+    "failures": 0,
+    "mean_effective_tops": 10.540153654142943,
+    "modes": [
+      "bf16-int4",
+      "int4-int4"
+    ],
+    "timing": "triton.testing.do_bench; prepacked inputs; preallocated output; quantization excluded",
+    "torch_rocm_aotriton_experimental": true,
+    "validation": "float32 optimized output versus representation-matched float32 oracle; rtol=atol=1e-3; max relative-error denominator clamped to 1e-3"
+  },
+  "winners": [
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 24.707295001907923,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.2852479964494705e-05,
+          "max_rel_diff": 0.03903565555810928,
+          "max_tolerance_ratio": 0.04268511012196541,
+          "relative_l2": 0.0012766113504767418
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.03814697265625,
+          "max_tolerance_ratio": 0.1200912594795227,
+          "relative_l2": 0.0021425478626042604
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.867351293563843,
+      "samples": 16,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "bfloat16",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 10.442865610166947,
+      "mode": "bf16-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002863798290491104,
+          "max_rel_diff": 0.18340761959552765,
+          "max_tolerance_ratio": 0.28063833713531494,
+          "relative_l2": 0.0010295187821611762
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.1831054538488388,
+          "max_tolerance_ratio": 0.8605851531028748,
+          "relative_l2": 0.0017834458267316222
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.6974279880523682,
+      "samples": 55,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-2048",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 26.946806901667397,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 4.3633393943309784e-05,
+          "max_rel_diff": 0.0408799946308136,
+          "max_tolerance_ratio": 0.04324871674180031,
+          "relative_l2": 0.001279668416827917
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0001220703125,
+          "max_rel_diff": 0.0419616661965847,
+          "max_tolerance_ratio": 0.12007685005664825,
+          "relative_l2": 0.0021440780255943537
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 4.462832450866699,
+      "samples": 18,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": null
+    },
+    {
+      "arithmetic": {
+        "query_key_storage": "packed_signed_int4",
+        "scale_storage": "bfloat16",
+        "softmax_accumulator": "float32",
+        "timed_output": "bfloat16",
+        "validation_output": "float32",
+        "value_storage": "packed_signed_int4"
+      },
+      "case": "train-gqa-local-128",
+      "config": {
+        "block_m": 64,
+        "block_n": 16,
+        "decode_splits": 1,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "effective_tops": 14.562274760238228,
+      "mode": "int4-int4",
+      "numerics": {
+        "atol": 0.001,
+        "float32_validation_output": {
+          "max_abs_diff": 0.0002637384459376335,
+          "max_rel_diff": 0.22934411466121674,
+          "max_tolerance_ratio": 0.2616157829761505,
+          "relative_l2": 0.0010311513906344771
+        },
+        "max_rel_diff_denominator_clamp": 0.001,
+        "reference": "representation-matched float32 attention oracle",
+        "rtol": 0.001,
+        "timed_bfloat16_output_vs_bfloat16_rounded_oracle": {
+          "max_abs_diff": 0.0009765625,
+          "max_rel_diff": 0.22929905354976654,
+          "max_tolerance_ratio": 0.8650518655776978,
+          "relative_l2": 0.0017840012442320585
+        }
+      },
+      "query_position_offset": 0,
+      "runtime_ms": 0.500137984752655,
+      "samples": 62,
+      "shape": {
+        "batch": 7,
+        "head_dim": 64,
+        "key_length": 2048,
+        "kv_heads": 8,
+        "query_heads": 16,
+        "query_length": 2048,
+        "value_dim": 64
+      },
+      "window_size": [
+        127,
+        0
+      ]
+    }
+  ]
+}

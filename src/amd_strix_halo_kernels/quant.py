@@ -103,6 +103,81 @@ def unpack_int4_k_major(x_packed: Any) -> Any:
     return out
 
 
+def quantize_attention_qk_int4(x: Any, *, block_size: int = 16) -> tuple[Any, Any, int]:
+    """Quantize attention Q/K rows and pack the head dimension for INT4 MMA.
+
+    ``x`` must have logical shape ``(..., sequence, head_dim)``. The returned
+    tuple is ``(packed, scale, head_dim)`` where ``packed`` is zero-padded to a
+    multiple of ``block_size`` along the head dimension and ``scale`` has shape
+    ``(..., sequence)``. Dequantization is ``codes * scale[..., None]``.
+    """
+
+    torch = _torch()
+    if not torch.is_tensor(x):
+        raise TypeError("x must be a torch.Tensor")
+    if x.ndim < 2:
+        raise ValueError("attention Q/K tensors must have at least two dimensions")
+    if not x.dtype.is_floating_point:
+        raise ValueError(f"attention Q/K quantization requires a floating tensor; got {x.dtype}")
+    if isinstance(block_size, bool) or not isinstance(block_size, int):
+        raise TypeError("block_size must be a positive multiple-of-16 Python int")
+    if block_size <= 0 or block_size % 16 != 0:
+        raise ValueError("block_size must be a positive multiple of 16")
+    head_dim = int(x.shape[-1])
+    if head_dim <= 0:
+        raise ValueError("attention head_dim must be positive")
+    scale = dynamic_lhs_int4_scales(x, ScaleSpec(ScaleMode.PER_CHANNEL))
+    codes = fake_quant_int4_with_scales(x, scale, ScaleSpec(ScaleMode.PER_CHANNEL))
+    padded_head_dim = ((head_dim + block_size - 1) // block_size) * block_size
+    if padded_head_dim != head_dim:
+        codes = torch.nn.functional.pad(codes, (0, padded_head_dim - head_dim))
+    return pack_int4_k_major(codes), scale, head_dim
+
+
+def quantize_attention_value_int4(value: Any, *, group_size: int = 16) -> tuple[Any, Any]:
+    """Quantize and sequence-pack V for the packed-value attention path.
+
+    ``value`` uses logical shape ``(..., sequence, value_dim)``. Quantization
+    scales each ``group_size``-token chunk independently for every value
+    channel. The packed result has shape ``(..., padded_sequence / 2,
+    value_dim)`` and scales have shape ``(..., ceil(sequence / group_size),
+    value_dim)``. ``group_size=16`` matches the optimized BF16 P@V tile's
+    scale-reuse granularity.
+    """
+
+    torch = _torch()
+    if not torch.is_tensor(value):
+        raise TypeError("value must be a torch.Tensor")
+    if value.ndim < 2:
+        raise ValueError("attention value tensors must have at least two dimensions")
+    if not value.dtype.is_floating_point:
+        raise ValueError(f"attention value quantization requires a floating tensor; got {value.dtype}")
+    if isinstance(group_size, bool) or not isinstance(group_size, int):
+        raise TypeError("group_size must be the Python int 16")
+    if group_size != 16:
+        raise ValueError("group_size must be 16 for the optimized packed-V attention kernel")
+    sequence = int(value.shape[-2])
+    value_dim = int(value.shape[-1])
+    if sequence <= 0 or value_dim <= 0:
+        raise ValueError("attention sequence and value dimensions must be positive")
+    padded_sequence = ((sequence + group_size - 1) // group_size) * group_size
+    value_f32 = value.to(torch.float32)
+    if padded_sequence != sequence:
+        value_f32 = torch.nn.functional.pad(value_f32, (0, 0, 0, padded_sequence - sequence))
+    grouped = value_f32.reshape(*value_f32.shape[:-2], padded_sequence // group_size, group_size, value_dim)
+    scales = (grouped.abs().amax(dim=-2).clamp_min(1.0e-12) / 7.0).to(torch.bfloat16)
+    codes = torch.clamp(
+        torch.round(grouped / scales.to(torch.float32).unsqueeze(-2)),
+        -8,
+        7,
+    ).to(torch.int8)
+    codes = codes.reshape(*value_f32.shape[:-2], padded_sequence, value_dim)
+    even = codes[..., 0::2, :].to(torch.int16) & 0xF
+    odd = codes[..., 1::2, :].to(torch.int16) & 0xF
+    packed = ((odd << 4) | even).to(torch.uint8).contiguous()
+    return packed, scales.contiguous()
+
+
 def pack_rhs_subchannel_scales(b_scale: Any) -> Any:
     """Convert logical RHS subchannel scales to weight-matched layout.
 

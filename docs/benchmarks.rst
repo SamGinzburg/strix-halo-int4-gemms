@@ -58,6 +58,37 @@ use ``use_native=False``, so results measure JIT rather than silently selecting
 a packaged artifact. Forward JIT kernels specialize runtime shape values and
 alignments; packaged artifacts deliberately retain generic runtime scalars.
 
+``autotune_attention(...)`` is the fused-attention JIT timing API. Unlike the
+synthetic dense/ragged tuners, it accepts the caller's actual Q/K/V tensors and
+scale tensors so the representation mode, shape, GQA, mask/window, cached
+position, and requested output dtype all match the intended launch. The API
+preallocates output and split-decode workspace per candidate, validates FP32
+and timed output at ``rtol=atol=1e-3`` or stricter, and reports effective TOPS.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import autotune_attention
+
+   result = autotune_attention(
+       query,
+       key,
+       value,
+       enable_gqa=True,
+       window_size=(127, 0),
+       warmup_ms=25,
+       rep_ms=100,
+       benchmark_db_path="benchmarks/local_attention.json",
+   )
+   print(result.mode, result.best_config, result.best_record.runtime_ms)
+
+The database appends successful and failed candidate records with the complete
+logical attention shape, arithmetic mode, masking semantics, and launch
+config. Successful records include timing distributions and numerical metrics;
+failed records include the captured error. It is not an implicit runtime
+dispatch cache: pass ``result.best_config`` to the attention API. Tuning must
+run outside CUDAGraph capture. ``scripts/benchmark_attention.py`` uses this
+public tuner and adds multi-case sweeps plus PyTorch SDPA baseline reporting.
+
 Peak 4096^3 Results
 -------------------
 
@@ -342,6 +373,293 @@ per-channel, subchannel, balanced, uneven, and empty-group cases is covered by
 Each record metadata entry also reports ``output_dtype``,
 ``uses_even_k_fast_path``, and ``masks_k`` so benchmark consumers can separate
 BF16/FP32 output and aligned fast-path rows from fully masked ragged-K rows.
+
+Fused Attention Results
+-----------------------
+
+``benchmarks/gfx1151_attention.json`` contains 156 Triton-JIT tuning records,
+12 selected winners, three PyTorch baselines, and zero failures. The sweep used
+25 ms warmup and 100 ms repetition windows on gfx1151. Inputs were already
+packed, outputs were preallocated, and quantization/packing was excluded from
+the custom timings. PyTorch SDPA ran with
+``TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1`` and its reported time includes
+output allocation.
+
+All cases use ``B=1``, ``Hq=Hkv=8``, and ``D=Dv=64``. Prefill is
+``Lq=Lk=512``; decode is ``Lq=1``, ``Lk=2048`` with
+``query_position_offset=2047``; local attention is ``Lq=Lk=512`` with
+inclusive window ``(127,0)``. Effective TOPS is
+``2*B*Hq*active_pairs*(D+Dv)/runtime``; local rows count only active pairs.
+
+.. list-table:: Fused attention winners
+   :header-rows: 1
+
+   * - Q/K, V
+     - Case
+     - Best config
+     - Runtime
+     - TOPS
+     - vs PyTorch
+   * - BF16, BF16
+     - prefill
+     - ``BM64_BN64_W4_S1_DS1``
+     - 0.037370 ms
+     - 14.366
+     - 1.51x
+   * - BF16, BF16
+     - decode
+     - ``BM16_BN64_W4_S1_DS4``
+     - 0.047249 ms
+     - 0.0888
+     - 3.14x
+   * - BF16, BF16
+     - local
+     - ``BM64_BN32_W4_S1_DS1``
+     - 0.026690 ms
+     - 4.405
+     - 3.40x
+   * - INT4, BF16
+     - prefill
+     - ``BM64_BN64_W4_S1_DS1``
+     - 0.029615 ms
+     - 18.128
+     - 1.91x
+   * - INT4, BF16
+     - decode
+     - ``BM16_BN64_W8_S1_DS4``
+     - 0.037451 ms
+     - 0.1120
+     - 3.96x
+   * - INT4, BF16
+     - local
+     - ``BM64_BN64_W4_S1_DS1``
+     - 0.020678 ms
+     - 5.686
+     - 4.39x
+   * - BF16, INT4
+     - prefill
+     - ``BM32_BN16_W4_S1_DS1``
+     - 0.057588 ms
+     - 9.323
+     - 0.98x
+   * - BF16, INT4
+     - decode
+     - ``BM16_BN16_W8_S1_DS8``
+     - 0.050434 ms
+     - 0.0832
+     - 2.94x
+   * - BF16, INT4
+     - local
+     - ``BM32_BN16_W4_S1_DS1``
+     - 0.032301 ms
+     - 3.640
+     - 2.81x
+   * - INT4, INT4
+     - prefill
+     - ``BM64_BN16_W4_S1_DS1``
+     - 0.041758 ms
+     - 12.857
+     - 1.35x
+   * - INT4, INT4
+     - decode
+     - ``BM16_BN16_W4_S1_DS8``
+     - 0.037470 ms
+     - 0.1119
+     - 3.96x
+   * - INT4, INT4
+     - local
+     - ``BM64_BN16_W4_S1_DS1``
+     - 0.023524 ms
+     - 4.998
+     - 3.86x
+
+The matching PyTorch BF16 baselines were 0.056506/0.148278/0.090811 ms and
+9.5011/0.02829/1.2947 TOPS for prefill/decode/local. The BF16-QK/INT4-V
+prefill row remains just below 1x and is retained rather than hidden.
+
+Mode-specific prefill tile selection reduced latency by about 38--42% for
+BF16-PV modes. The corrected packed-V path does not quantize online-softmax
+probabilities: P remains BF16, V is dequantized tile-wise from signed INT4 to
+BF16, and P@V uses BF16 MMA with FP32 accumulation. Relative to the preceding
+online-P-quantized implementation, this reduced prefill latency by 17.4% for
+BF16 Q/K and 33.9% for INT4 Q/K; local latency improved by 14.5% and 26.3%,
+and decode by 14.9% and 14.8%, respectively. These percentages describe
+controlled implementation comparisons; ``vs PyTorch`` compares the final
+selected kernel with the allocation-including PyTorch baseline.
+
+BF16 GQA Training Shape
+~~~~~~~~~~~~~~~~~~~~~~~
+
+``benchmarks/gfx1151_attention_training.json`` contains 36 candidate records
+and zero failures for the exact BF16 training shape
+``B=7,Hq=16,Hkv=8,Lq=Lk=2048,D=Dv=64``. These rows are unquantized BF16:
+Q/K/V and the timed output use BF16 storage, no scale tensors are present, and
+online-softmax/P@V accumulation is FP32. Every candidate passed the matched
+oracle at ``rtol=atol=1e-3`` in both the FP32 validation path and actual timed
+BF16-output path. Both full and local attention chose ``BM64_BN64_W4_S1``:
+
+.. list-table:: Exact BF16 GQA training results
+   :header-rows: 1
+
+   * - Case
+     - Custom runtime
+     - Effective TOPS
+     - PyTorch runtime
+     - PyTorch TOPS
+     - Ratio
+     - Winner maximum absolute error (FP32 / BF16)
+   * - full attention
+     - 3.727353 ms
+     - 32.264
+     - 7.560022 ms
+     - 15.907
+     - 2.03x
+     - ``4.16e-5`` / ``1.23e-4``
+   * - local ``(127,0)``
+     - 0.570430 ms
+     - 12.768
+     - 133.235092 ms
+     - 0.0547
+     - 233.57x
+     - ``1.87e-4`` / ``4.89e-4``
+
+The full PyTorch baseline used ten samples. The local PyTorch row used one
+sample and expressed locality as a generic boolean mask, which fell off the
+fused SDPA fast path. Its 233.57x ratio therefore demonstrates block-pruned
+local attention against that generic-mask path; it is not a stable or
+apples-to-apples fused-kernel speedup. The long-local result motivated using
+``BN64`` for local BF16-Q/K when ``Lq >= 1024``; short local queries retain
+``BN32``.
+
+Packed-INT4 V GQA Training Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``benchmarks/gfx1151_attention_int4_value_training.json`` contains 24
+candidate records and zero failures for the same exact training shape and the
+BF16-QK/INT4-V and INT4-QK/INT4-V modes. INT4 operands are prepacked signed
+4-bit storage with BF16 scales. Q@K uses BF16 or INT4 MMA according to Q/K
+storage; P remains BF16, V is dequantized tile-wise to BF16, P@V uses BF16
+MMA, and the online-softmax/P@V accumulator is FP32. All four winners use
+``BM64_BN16_W4_S1``.
+
+.. list-table:: Packed-V GQA training results
+   :header-rows: 1
+
+   * - Q/K, V storage
+     - Case
+     - Runtime
+     - Effective TOPS
+     - PyTorch BF16 ratio
+     - Winner maximum absolute error (FP32 / BF16)
+   * - BF16, INT4
+     - full
+     - 4.867351 ms
+     - 24.707
+     - 1.56x
+     - ``4.29e-5`` / ``1.22e-4``
+   * - BF16, INT4
+     - local ``(127,0)``
+     - 0.697428 ms
+     - 10.443
+     - 190.78x*
+     - ``2.86e-4`` / ``9.77e-4``
+   * - INT4, INT4
+     - full
+     - 4.462832 ms
+     - 26.947
+     - 1.70x
+     - ``4.36e-5`` / ``1.22e-4``
+   * - INT4, INT4
+     - local ``(127,0)``
+     - 0.500138 ms
+     - 14.562
+     - 266.04x*
+     - ``2.64e-4`` / ``9.77e-4``
+
+The PyTorch BF16 baselines were 7.587160 ms for full attention (ten samples)
+and 133.055969 ms for the generic-mask local path (one sample). ``*`` The
+local ratios carry the same non-apples-to-apples qualification as the BF16
+training table. Every candidate passed both numerical gates at
+``rtol=atol=1e-3``.
+
+Projection Training Results
+---------------------------
+
+``benchmarks/gfx1151_projection_training.json`` records exact
+INT4-by-INT4, subchannel-256, BF16-output projection kernels at the
+``M=14336`` model microbatch. Timings are median
+``triton.testing.do_bench`` results with 25 ms warmup, 100 ms repetition,
+prepacked operands, BF16 scales, and preallocated output.
+
+Every row uses packed signed INT4 for both operands and independent BF16
+subchannel-256 scales along K. Each subchannel dot accumulates in INT32; scaled
+subchannel results accumulate in FP32, followed by one BF16 output rounding.
+
+.. list-table:: Exact projection-training winners
+   :header-rows: 1
+
+   * - Operation
+     - Layout / ``(M,N,K)``
+     - Best tile
+     - Runtime
+     - TOPS
+     - Change from old
+   * - combined fwd
+     - NT / ``(14336,3072,1024)``
+     - ``BM64_BN128_BK128_GM4``
+     - 1.395418 ms
+     - 64.636
+     - --
+   * - combined dX
+     - NN / ``(14336,1024,3072)``
+     - ``BM64_BN128_BK128_GM1``
+     - 1.387102 ms
+     - 65.024
+     - --
+   * - combined dW
+     - TN / ``(3072,1024,14336)``
+     - ``BM16_BN512_BK32_GM4``
+     - 2.184580 ms
+     - 41.287
+     - 2.383031 ms; latency -8.33%, TOPS +9.08%
+   * - output fwd
+     - NT / ``(14336,1024,1024)``
+     - ``BM64_BN128_BK128_GM4``
+     - 0.488196 ms
+     - 61.583
+     - --
+   * - output dX
+     - NN / ``(14336,1024,1024)``
+     - ``BM64_BN128_BK128_GM1``
+     - 0.498215 ms
+     - 60.345
+     - --
+   * - output dW
+     - TN / ``(1024,1024,14336)``
+     - ``BM64_BN512_BK32_GM4``
+     - 0.767280 ms
+     - 39.184
+     - 0.916079 ms; latency -16.24%, TOPS +19.39%
+   * - fallback packed QKV fwd
+     - NT / ``(14336,2048,1024)``
+     - ``BM64_BN128_BK128_GM1``
+     - 0.969299 ms
+     - 62.034
+     - --
+
+Every selected winner was separately validated on gfx1151 using model-like
+random BF16 input fake-quantized to signed INT4 with scale 0.1. At
+``rtol=atol=1e-3``, both maximum absolute and relative differences were zero.
+The two TN dW winners are packaged as additional native artifacts, increasing
+the dense count from 2,880 to 2,882; the other rows select existing artifacts.
+
+Forward NT uses packed ``A[M,K/2]`` and ``B[N,K/2]``; dX NN uses
+``A[M,K/2]`` and ``B[K/2,N]``; dW TN uses ``A[K/2,M]`` and ``B[K/2,N]``.
+Their subchannel scales remain ``a_scale[M,K/256]`` and weight-matched
+``b_scale[K/256,N]``. In dW, ``K=14336`` is the token/reduction dimension, so
+subchannel-256 groups partition tokens. Training accumulates repeated
+``M=14336`` microbatch gradients in FP32 while each kernel stores BF16; it
+does not replace four accumulation steps with an ``M=57344`` launch.
 
 Correctness Notes
 -----------------

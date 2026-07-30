@@ -88,6 +88,16 @@ def assert_reference_has_signal(expected) -> None:
     assert max_abs >= 10 * STRICT_ATOL, f"reference signal is too small: max_abs={max_abs}"
 
 
+def assert_saturated_bf16_quality(actual, expected) -> None:
+    assert actual.dtype is torch.bfloat16
+    assert expected.dtype is torch.bfloat16
+    difference = actual.float() - expected.float()
+    relative_l2 = torch.linalg.vector_norm(difference) / torch.linalg.vector_norm(expected.float())
+    normalized_max = difference.abs().max() / expected.float().abs().max()
+    assert float(relative_l2) <= STRICT_RTOL
+    assert float(normalized_max) <= STRICT_ATOL
+
+
 def kernel_args_from_logical(a_q, b_q, kernel):
     a_trans = kernel.layout in {GemmLayout.TN, GemmLayout.TT}
     b_trans = kernel.layout in {GemmLayout.NT, GemmLayout.TT}
@@ -291,3 +301,110 @@ def test_native_dense_int4_cudagraph_replays_dynamic_operands_and_scales(
 
     assert not torch.equal(observed[0], observed[1])
     torch.testing.assert_close(observed[1], observed[2], rtol=0.0, atol=0.0)
+
+
+@pytest.mark.parametrize(
+    ("shape", "block_m"),
+    [
+        (LaunchShape(3072, 1024, 14336), 16),
+        (LaunchShape(1024, 1024, 14336), 64),
+    ],
+)
+def test_training_projection_tn_cudagraph_replays_exact_selected_kernel(shape, block_m) -> None:
+    require_native_generated_kernels(root=_native_test_root())
+    kernel = default_registry.select(
+        dtype=OperandDType.INT4,
+        layout=GemmLayout.TN,
+        scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+        epilogue=Epilogue.NONE,
+        m=shape.m,
+        n=shape.n,
+        k=shape.k,
+        split_k=1,
+    )
+    assert (kernel.tile.block_m, kernel.tile.block_n, kernel.tile.block_k) == (block_m, 512, 32)
+
+    generator = torch.Generator(device="cuda").manual_seed(stable_seed(kernel.kernel_id))
+    logical_a = fake_quant_int(
+        torch.randn((shape.m, shape.k), device="cuda", dtype=torch.bfloat16, generator=generator) * 0.1,
+        bits=4,
+        scale=0.1,
+    )
+    logical_b = fake_quant_int(
+        torch.randn((shape.k, shape.n), device="cuda", dtype=torch.bfloat16, generator=generator) * 0.1,
+        bits=4,
+        scale=0.1,
+    )
+    a, b = kernel_args_from_logical(logical_a, logical_b, kernel)
+    a_scale_host, b_scale_host = scale_tensors(kernel, shape)
+    a_scale = a_scale_host.to("cuda")
+    b_scale = b_scale_host.to("cuda")
+
+    def run():
+        return explicit_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale)
+
+    run()
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = run()
+
+    replay_logical_a = fake_quant_int(
+        torch.randn((shape.m, shape.k), device="cuda", dtype=torch.bfloat16, generator=generator) * 0.1,
+        bits=4,
+        scale=0.1,
+    )
+    replay_logical_b = fake_quant_int(
+        torch.randn((shape.k, shape.n), device="cuda", dtype=torch.bfloat16, generator=generator) * 0.1,
+        bits=4,
+        scale=0.1,
+    )
+    replay_a, replay_b = kernel_args_from_logical(replay_logical_a, replay_logical_b, kernel)
+    a.copy_(replay_a)
+    b.copy_(replay_b)
+    a_scale.mul_(0.75)
+    b_scale.mul_(1.125)
+    graph.replay()
+    torch.cuda.synchronize()
+    expected = explicit_mm(
+        a,
+        b,
+        kernel=kernel,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        use_reference=True,
+    )
+    eager = run().clone()
+
+    torch.testing.assert_close(captured, eager, rtol=0.0, atol=0.0)
+    torch.testing.assert_close(eager, expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    first_replay = captured.clone()
+    graph.replay()
+    torch.cuda.synchronize()
+    torch.testing.assert_close(captured, first_replay, rtol=0.0, atol=0.0)
+
+    # Saturated INT4 is an accumulation-order stress case rather than the
+    # model-like elementwise numerical gate above. Require global error below
+    # 1e-3 and preserve exact graph/eager agreement.
+    saturated_a = torch.randint(
+        -8, 8, (shape.m, shape.k), device="cuda", dtype=torch.int8, generator=generator
+    )
+    saturated_b = torch.randint(
+        -8, 8, (shape.k, shape.n), device="cuda", dtype=torch.int8, generator=generator
+    )
+    replay_a, replay_b = kernel_args_from_logical(saturated_a, saturated_b, kernel)
+    a.copy_(replay_a)
+    b.copy_(replay_b)
+    graph.replay()
+    torch.cuda.synchronize()
+    saturated_eager = run().clone()
+    saturated_expected = explicit_mm(
+        a,
+        b,
+        kernel=kernel,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        use_reference=True,
+    )
+    torch.testing.assert_close(captured, saturated_eager, rtol=0.0, atol=0.0)
+    assert_saturated_bf16_quality(saturated_eager, saturated_expected)

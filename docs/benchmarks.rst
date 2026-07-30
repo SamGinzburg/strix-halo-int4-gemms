@@ -252,6 +252,57 @@ block, and block+1 runtime shapes.
      - 5.134 ms
      - 26.8
 
+Backward Output Contract and Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The standard ragged INT4 backward API materializes ``G`` independent FP32
+``[M, N]`` planes. At ``M=N=K=4096``, ``G=8``, that is 536,870,912 output
+bytes--16x the bytes in the forward BF16 ``[M, N]`` output. The hard lower
+bound here is the number of bytes required by the output contract; a standalone
+``out.zero_()`` measurement of 2.256479 ms (237.924 GB/s) is a bandwidth
+reference, not a theoretical minimum or the full kernel runtime. For context,
+the complete-operation budgets at 60 and 55 TOPS are 2.290649 and 2.498890 ms,
+respectively.
+
+Fixed-work measurements with ``BM64_BN256_BK64``, NN/PC, show the effect as
+the number of output planes grows:
+
+.. list-table:: Fixed-work backward scaling
+   :header-rows: 1
+
+   * - Groups
+     - Output bytes vs. forward
+     - TOPS
+   * - 1
+     - 2x
+     - 49.722
+   * - 2
+     - 4x
+     - 48.807
+   * - 4
+     - 8x
+     - 44.639
+   * - 8
+     - 16x
+     - 36.067
+
+The TOPS numerator remains ``2*M*N*K``, rather than scaling with ``G``, because
+the group K extents sum to the fixed total K. At ``G=8``, changing ``BK64`` to
+``BK32`` reached 36.327 TOPS, while larger ``BM128/BN256`` and ``BM64/BN512``
+variants reached 31.754 and 32.304 TOPS. Under the current grouped FP32 output
+contract, these results indicate that tile and stage tuning alone is not a
+credible path to forward-like 55--60 TOPS; that range would require an
+algorithm or contract that reduces or fuses outputs, lowers output precision,
+or fuses the consumer. This conclusion does not apply to such alternative
+semantics.
+
+An experimental reduced-output prototype demonstrates that distinction: it
+sums the group contributions into one FP32 ``[M, N]`` output, passed comparison
+with the PyTorch reference at ``rtol=atol=1e-3``, and measured 60.092 TOPS with
+``BK32`` (55.524 TOPS with ``BK64``). Because it changes the standard backward
+result from ``G`` independent planes to one reduced plane, it is evidence about
+the bottleneck rather than a drop-in replacement.
+
 Compared with the preceding checked-in 816-record database, the largest
 forward changes are NT subchannel-256 (+10.3%), TN subchannel-256 (+10.0%), TN
 per-channel (+3.4%), NN subchannel-256 (+3.0%), and NT per-channel (+2.6%).

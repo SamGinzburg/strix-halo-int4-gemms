@@ -73,7 +73,7 @@
     "subchannel_size": 128
   },
   "shape_specialization": "runtime",
-  "source_triton_commit": "de1b9dea3d0977616ccb26e2e47e131a38073aa1",
+  "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f",
   "status": "generated",
   "triton_artifacts": {
     "llir": "kernels/triton/gfx1151_ragged_int4_fwd_nn_sc128_maskk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.llir",

@@ -49,7 +49,7 @@ Regenerate the packaged ragged artifact set separately:
 .. code-block:: bash
 
    TRITON_CHECKOUT=/path/to/triton
-   uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean --no-triton-artifacts
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean
 
 The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
 matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
@@ -58,6 +58,15 @@ job set and ``--clean`` lifecycle cover an 80-artifact forward/backward matrix
 plus one specialized TN/per-channel/even-K ``bwd_accum`` artifact using
 ``BM64_BN128_BK64_W4_S2_SK1``. Use ``--mode bwd_accum`` to regenerate only
 that specialized job. Dense and ragged cleanup/regeneration are independent.
+Do not pass ``--no-triton-artifacts`` for checked-in regeneration: the tracked
+Triton source and IR are part of the provenance update.
+
+``uv.lock`` pins the custom Triton dependency to
+``ec4a2c64315f3d4485e963a8391a7444a232801f``, and both dense and ragged
+generation summaries record that source commit. The 2880 dense and 81 ragged
+artifacts were regenerated at this revision. Representative old/new HSACO
+hashes were byte-identical, so regeneration alone did not produce a packaged
+native compiler uplift.
 
 Direct Tuning
 -------------

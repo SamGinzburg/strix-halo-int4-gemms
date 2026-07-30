@@ -41,7 +41,7 @@ rocm = [
 rocm-triton-fork = [
     { name = "numpy" },
     { name = "torch", version = "2.9.1+rocm7.2.0.lw.git7e1940d4", source = { url = "https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/torch-2.9.1%2Brocm7.2.0.lw.git7e1940d4-cp312-cp312-linux_x86_64.whl" }, marker = "python_full_version < '3.13' and sys_platform == 'linux'" },
-    { name = "triton", version = "3.7.0+gitde1b9dea", source = { git = "https://github.com/SamGinzburg/triton?rev=amd-strix-halo#de1b9dea3d0977616ccb26e2e47e131a38073aa1" } },
+    { name = "triton", version = "3.7.0+gitec4a2c64", source = { git = "https://github.com/SamGinzburg/triton?rev=amd-strix-halo#ec4a2c64315f3d4485e963a8391a7444a232801f" } },
 ]
 torch = [
     { name = "torch", version = "2.9.1+rocm7.2.0.lw.git7e1940d4", source = { url = "https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/torch-2.9.1%2Brocm7.2.0.lw.git7e1940d4-cp312-cp312-linux_x86_64.whl" }, marker = "extra == 'extra-22-amd-strix-halo-kernels-rocm' or extra == 'extra-22-amd-strix-halo-kernels-rocm-triton-fork'" },
@@ -1231,8 +1231,8 @@ wheels = [
 
 [[package]]
 name = "triton"
-version = "3.7.0+gitde1b9dea"
-source = { git = "https://github.com/SamGinzburg/triton?rev=amd-strix-halo#de1b9dea3d0977616ccb26e2e47e131a38073aa1" }
+version = "3.7.0+gitec4a2c64"
+source = { git = "https://github.com/SamGinzburg/triton?rev=amd-strix-halo#ec4a2c64315f3d4485e963a8391a7444a232801f" }
 
 [[package]]
 name = "twine"

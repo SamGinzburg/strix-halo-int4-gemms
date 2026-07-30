@@ -524,25 +524,25 @@ JIT fallback paths support `TT`.
 
 ## Performance Snapshot
 
-The table below reports the latest packaged-native 4096x4096x4096 autotune
-results measured with `triton.testing.do_bench`, prepacked operands, BF16 scale
-tensors, and preallocated outputs.
+The table below reports averages of two matched current-wheel packaged-native
+4096x4096x4096 runs measured with `triton.testing.do_bench`, prepacked
+operands, BF16 scale tensors, and preallocated outputs.
 
 All benchmarks are run on a Framework Strix Halo desktop. Clocks were not
 pinned, so treat the table as a throughput snapshot rather than a lab-grade
-hardware characterization. The key result is that int4 MMA provides roughly
-2x the throughput of int8 or BF16 on this target.
+hardware characterization. Prepacked int4 remains the fastest path among the
+reported rows.
 
 | Kernel | Scale | Tile | Runtime | TOPS |
 | --- | --- | --- | ---: | ---: |
-| int4 plain GEMM | per-channel | `BM64_BN512_BK32_GM4_W16_S2_WEU2_SK1_EVENK` | 1.81 ms | 76.0 |
-| int4 plain GEMM | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 2.15 ms | 63.8 |
-| int4 ReLU^2 | per-channel | `BM64_BN512_BK32_GM4_W16_S2_WEU2_SK1_EVENK` | 1.81 ms | 75.8 |
-| int4 ReLU^2 | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 2.16 ms | 63.6 |
-| int4 fused SwiGLU | per-channel | `BM128_BN128_BK32_GM4_W16_S3_WEU2_SK1_EVENK` | 4.56 ms | 60.3 |
-| int4 fused SwiGLU | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 4.62 ms | 59.5 |
+| int4 plain GEMM | per-channel | `BM64_BN512_BK32_GM4_W16_S2_WEU2_SK1_EVENK` | 1.83 ms | 75.2 |
+| int4 plain GEMM | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 2.14 ms | 64.2 |
+| int4 ReLU^2 | per-channel | `BM64_BN512_BK32_GM4_W16_S2_WEU2_SK1_EVENK` | 1.83 ms | 75.0 |
+| int4 ReLU^2 | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 2.15 ms | 63.9 |
+| int4 fused SwiGLU | per-channel | `BM128_BN128_BK32_GM4_W16_S3_WEU2_SK1_EVENK` | 4.48 ms | 61.3 |
+| int4 fused SwiGLU | subchannel-256 | `BM64_BN128_BK128_GM1_W16_S2_WEU2_SK1_EVENK` | 5.34 ms | 51.5 |
 | int8 plain GEMM | per-channel | `BM64_BN256_BK64_GM4_W8_S3_WEU2_SK1_EVENK` | 5.34 ms | 25.7 |
-| int8 plain GEMM | subchannel-256 | `BM64_BN256_BK64_GM4_W8_S3_WEU2_SK1_EVENK` | 5.61 ms | 24.5 |
+| int8 plain GEMM | subchannel-256 | `BM64_BN256_BK64_GM4_W8_S3_WEU2_SK1_EVENK` | 5.58 ms | 24.6 |
 
 For fused SwiGLU, TOPS counts both up and gate GEMMs.
 BF16-store correctness may differ by one ULP from the BF16 reference on values
@@ -552,35 +552,52 @@ Persistent dense scheduling remains opt-in and experimental. In a separate
 4096³ per-channel plain-GEMM comparison, the best persistent result was about
 42.0 TOPS versus 77.1 TOPS for standard scheduling, which remains the default.
 
+The dense and ragged matrices were regenerated with Triton
+`ec4a2c64315f3d4485e963a8391a7444a232801f`. Representative old/new HSACO
+hashes are identical, so the compiler update did not automatically improve
+packaged-native code. Most dense rows moved by less than 2%. The refreshed
+subchannel-256 SwiGLU snapshot is 13.4% lower than the older table, but its
+kernel is byte-identical too; treat that as a historical measurement-condition
+difference, not a compiler regression.
+
 ### Ragged Dot Performance Snapshot
 
-The table below reports 4096x4096x4096 balanced-group rows from
-`benchmarks/ragged_dot_int4.json`. The full checked-in sweep contains 816
-candidate timing records across 3 runtime shapes, balanced/uneven group
-distributions, all four layouts, per-channel/subchannel-256 scales, forward
-M-ragged dot, and backward K-ragged split-K dot. The default grid benchmarks 7
-forward candidates and 10 backward candidates per shape/layout/scale/case.
-Timings use 8 RHS groups, prepacked operands, BF16 scales, preallocated
-outputs, and exclude quantization/packing.
+The table below selects maximum TOPS for each mode/layout/scale from the
+4096x4096x4096 balanced-group rows in `benchmarks/ragged_dot_int4.json`. The
+fresh Triton `ec4a2c64` sweep used 25 ms warmup and 100 ms repetition windows
+and completed all 816 records with zero failures. It covers 3 runtime shapes,
+balanced/uneven group distributions, all four layouts,
+per-channel/subchannel-256 scales, forward M-ragged dot, and backward K-ragged
+split-K dot. Timings use 8 RHS groups, prepacked operands, BF16 scales,
+preallocated outputs, and exclude quantization/packing.
 
 | Mode | Layout | Scale | Best config | Runtime | TOPS |
 | --- | --- | --- | --- | ---: | ---: |
-| fwd | NN | per-channel | `BM64_BN256_BK64_GST1_W8_S3` | 2.258 ms | 60.9 |
-| fwd | NN | subchannel-256 | `BM32_BN128_BK64_GST1_W4_S3` | 2.738 ms | 50.2 |
-| fwd | NT | per-channel | `BM64_BN256_BK128_GST1_W8_S3` | 4.063 ms | 33.8 |
-| fwd | NT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.167 ms | 33.0 |
-| fwd | TN | per-channel | `BM64_BN256_BK64_GST1_W8_S3` | 3.297 ms | 41.7 |
-| fwd | TN | subchannel-256 | `BM32_BN128_BK64_GST1_W4_S3` | 3.854 ms | 35.7 |
-| fwd | TT | per-channel | `BM64_BN128_BK64_GST2_W8_S3` | 5.292 ms | 26.0 |
-| fwd | TT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.627 ms | 29.7 |
-| bwd | NN | per-channel | `BM32_BN128_BK64_W4_S3_SK1` | 3.263 ms | 42.1 |
-| bwd | NN | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 3.664 ms | 37.5 |
-| bwd | NT | per-channel | `BM64_BN128_BK64_W8_S3_SK1` | 3.485 ms | 39.4 |
-| bwd | NT | subchannel-256 | `BM64_BN256_BK128_W8_S3_SK1` | 3.543 ms | 38.8 |
-| bwd | TN | per-channel | `BM32_BN128_BK64_W4_S3_SK1` | 3.896 ms | 35.3 |
-| bwd | TN | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 4.396 ms | 31.3 |
-| bwd | TT | per-channel | `BM32_BN128_BK64_W4_S3_SK1` | 3.908 ms | 35.2 |
-| bwd | TT | subchannel-256 | `BM64_BN256_BK64_W8_S3_SK1` | 4.164 ms | 33.0 |
+| fwd | NN | per-channel | `BM64_BN256_BK64_GST1_W8_S3` | 2.203 ms | 62.4 |
+| fwd | NN | subchannel-256 | `BM64_BN256_BK128_GST1_W8_S3` | 2.671 ms | 51.5 |
+| fwd | NT | per-channel | `BM64_BN256_BK128_GST1_W8_S3` | 4.024 ms | 34.2 |
+| fwd | NT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.069 ms | 33.8 |
+| fwd | TN | per-channel | `BM64_BN256_BK64_GST2_W8_S3` | 3.275 ms | 42.0 |
+| fwd | TN | subchannel-256 | `BM32_BN128_BK64_GST1_W4_S3` | 3.773 ms | 36.4 |
+| fwd | TT | per-channel | `BM64_BN128_BK64_GST2_W8_S3` | 5.275 ms | 26.1 |
+| fwd | TT | subchannel-256 | `BM64_BN128_BK64_GST2_W8_S3` | 4.672 ms | 29.4 |
+| bwd | NN | per-channel | `BM64_BN256_BK64_W8_S3_SK1` | 3.834 ms | 35.8 |
+| bwd | NN | subchannel-256 | `BM64_BN256_BK64_W8_S3_SK1` | 4.512 ms | 30.5 |
+| bwd | NT | per-channel | `BM64_BN256_BK64_W8_S3_SK1` | 3.695 ms | 37.2 |
+| bwd | NT | subchannel-256 | `BM64_BN128_BK64_W8_S3_SK1` | 4.265 ms | 32.2 |
+| bwd | TN | per-channel | `BM32_BN128_BK64_W4_S3_SK1` | 4.744 ms | 29.0 |
+| bwd | TN | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 5.453 ms | 25.2 |
+| bwd | TT | per-channel | `BM64_BN128_BK64_W8_S3_SK1` | 4.320 ms | 31.8 |
+| bwd | TT | subchannel-256 | `BM32_BN128_BK64_W4_S3_SK1` | 5.134 ms | 26.8 |
+
+Compared with the preceding checked-in 816-record database, the largest
+forward changes are NT subchannel-256 (+10.3%), TN subchannel-256 (+10.0%), TN
+per-channel (+3.4%), NN subchannel-256 (+3.0%), and NT per-channel (+2.6%).
+Backward records are mostly within ±1%, with TT subchannel-256 at +2.7%. The
+older prose table's backward rows were out of sync with that database, so their
+larger visible changes are table corrections rather than compiler regressions.
+The measured deltas are JIT results, not generated-HSACO improvements; the
+packaged artifacts are byte-identical across the compiler update.
 
 The checked-in records live in `benchmarks/ragged_dot_int4.json`. The benchmark
 script is a reporting wrapper around `autotune_ragged_dot(...)`; regenerate the
@@ -618,7 +635,7 @@ repository:
 ```bash
 TRITON_CHECKOUT=/path/to/triton
 uv run --project "$TRITON_CHECKOUT" python scripts/regenerate_amdgcn.py
-uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean --no-triton-artifacts
+uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --clean
 ```
 
 `scripts/regenerate_amdgcn.py` regenerates the dense matrix.
@@ -633,8 +650,10 @@ regeneration can therefore run independently. Wheel builds assemble every
 files plus matching JSON metadata.
 
 The generated artifacts are checked in under `kernels/amdgcn/` and
-`kernels/triton/`. Do not hand-edit generated assembly or Triton IR; update the
-registry/generator scripts, regenerate, and keep matching metadata JSON.
+`kernels/triton/`. The lockfile and generation summaries record Triton commit
+`ec4a2c64315f3d4485e963a8391a7444a232801f`. Do not hand-edit generated
+assembly or Triton IR; update the registry/generator scripts, regenerate, and
+keep matching metadata JSON.
 
 ## Development
 

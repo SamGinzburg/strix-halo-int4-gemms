@@ -20,8 +20,9 @@ families:
   ragged HSACO artifacts for generated configs and fall back to Triton JIT
   unless ``use_native=True`` is passed.
 * ``ragged_dot_int4_bwd_accum(...)`` sums 64-row task-packed products into one
-  FP32 weight-gradient tensor per expert. It uses the specialized packaged
-  TN/per-channel/even-K artifact when available.
+  weight-gradient tensor per expert. It accumulates tiles in FP32, stores FP32
+  by default, and can store BF16 once at the final output. It uses the matching
+  specialized packaged TN/per-channel/even-K artifact when available.
 
 Dense native kernels support ``GemmLayout.NN``, ``GemmLayout.NT``, and
 ``GemmLayout.TN``. Ragged native/JIT kernels support ``NN``, ``NT``,
@@ -121,7 +122,9 @@ be invoked outside capture.
 and on one CUDA/HIP device. ``expert_task_ranges[E, 2]`` accepts int32 or int64
 half-open ranges and validates ``0 <= start <= end <= T``. The function
 canonicalizes int64 ranges to int32 for the native ABI. This validation reads
-range values on the host, so it must run outside graph capture.
+range values on the host, so it must run outside graph capture. ``output_dtype``
+accepts only ``torch.float32`` and ``torch.bfloat16``; an explicit ``out``
+tensor must match the selected dtype.
 
 Surface APIs
 ------------

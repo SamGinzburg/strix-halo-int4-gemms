@@ -55,9 +55,10 @@ The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
 matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
 into wheel-packaged ``.hsaco`` objects alongside the dense matrix. Its default
 job set and ``--clean`` lifecycle cover an 80-artifact forward/backward matrix
-plus one specialized TN/per-channel/even-K ``bwd_accum`` artifact using
-``BM64_BN128_BK64_W4_S2_SK1``. Use ``--mode bwd_accum`` to regenerate only
-that specialized job. Dense and ragged cleanup/regeneration are independent.
+plus two specialized TN/per-channel/even-K ``bwd_accum`` artifacts using
+``BM32_BN128_BK64_W4_S2_SK1`` and FP32/BF16 output. Use ``--mode bwd_accum``
+to regenerate only those specialized jobs. Dense and ragged
+cleanup/regeneration are independent.
 Do not pass ``--no-triton-artifacts`` for checked-in regeneration: the tracked
 Triton source and IR are part of the provenance update.
 

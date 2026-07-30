@@ -4,7 +4,7 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 2880 dense generated kernels plus 81
+The checked-in native matrix contains 2880 dense generated kernels plus 82
 ragged generated artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
@@ -22,9 +22,10 @@ The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
 source of truth. The packaged forward config is
 ``BM64_BN256_BK64_GST1_W8_S3`` and stores BF16. The packaged backward config
 is ``BM64_BN256_BK64_W8_S3_SK1`` and stores FP32.
-Those combinations account for 80 artifacts. One additional specialized
-``bwd_accum`` artifact covers TN, per-channel scaling, and even K with
-``BM64_BN128_BK64_W4_S2_SK1`` and FP32 output.
+Those combinations account for 80 artifacts. Two additional specialized
+``bwd_accum`` artifacts cover TN, per-channel scaling, and even K with
+``BM32_BN128_BK64_W4_S2_SK1``. Both accumulate in FP32 registers; one stores
+FP32 and the other stores BF16.
 
 BF16×INT4 metadata is development-only. None of its 1080 registry entries is
 included in the checked-in native matrix or packaged wheel.
@@ -150,9 +151,9 @@ Ragged artifact families are generated separately from the dense registry:
    * - backward task accumulation
      - ``TN``
      - per-channel
-     - ``BM64_BN128_BK64_W4_S2_SK1``
+     - ``BM32_BN128_BK64_W4_S2_SK1``
      - ``evenk``
-     - FP32
+     - FP32, BF16
 
 Shape Contract
 --------------
@@ -161,7 +162,7 @@ Generated artifacts are runtime-shape launchable. ``M``, ``N``, and ``K`` are
 kernel arguments; the metadata ``generation_shape`` is the representative shape
 used to compile and preserve IR.
 
-All 81 packaged ragged artifacts prevent specialization by both value and
+All 82 packaged ragged artifacts prevent specialization by both value and
 alignment for M, N, packed K, and scale-column runtime scalars. Forward
 artifacts do the same for the compact task count. Consequently, a single
 packaged ragged HSACO remains valid immediately below, exactly at, and
@@ -207,7 +208,8 @@ contiguous ``lhs[T, 32, M]`` and ``rhs[T, 32, N]`` packed-int4 tensors with
 BF16 scales ``[T, M]`` and ``[T, N]``. All tensors must share one CUDA/HIP
 device. Each int32 or int64 ``expert_task_ranges[e] = [start, end)`` must
 satisfy ``0 <= start <= end <= T``; the API converts int64 ranges to int32 to
-match the native artifact ABI before dispatch.
+match the native artifact ABI before dispatch. The output defaults to FP32;
+BF16 output rounds once at the final store after the task range is accumulated.
 
 Layouts
 -------

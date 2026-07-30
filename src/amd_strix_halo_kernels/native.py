@@ -10,7 +10,7 @@ from typing import Any
 
 from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
 from .quant import dynamic_lhs_int4_scales
-from .ragged_artifacts import RAGGED_BWD, RAGGED_FWD, ragged_kernel_id
+from .ragged_artifacts import RAGGED_BWD, RAGGED_BWD_ACCUM, RAGGED_FWD, ragged_kernel_id
 from .template_config import LaunchShape
 
 
@@ -652,13 +652,21 @@ def launch_ragged_bwd_kernel(
     a_scale = _require_bfloat16_scale(torch, "a_scale", _require_contiguous("a_scale", a_scale))
     b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
     out = _require_contiguous("out", out)
+    if out.dtype == torch.bfloat16:
+        if mode != RAGGED_BWD_ACCUM:
+            raise ValueError("bf16 native ragged backward output is supported only for bwd_accum")
+        output_dtype = "bfloat16"
+    elif out.dtype == torch.float32:
+        output_dtype = "float32"
+    else:
+        raise ValueError(f"native ragged backward output must be bf16 or fp32; got {out.dtype}")
     kernel_id = ragged_kernel_id(
         mode=mode,
         layout=layout,
         scale=scale,
         config=config,
         variant=variant,
-        output_dtype="float32",
+        output_dtype=output_dtype,
     )
     hsaco_path, artifact, symbol = _ragged_artifact_symbol(kernel_id, root=root)
     block_size = _block_size_for_artifact(kernel_id, artifact)

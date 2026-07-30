@@ -348,9 +348,15 @@ def test_all_native_ragged_backward_artifacts_match_cpu_reference(
 
 @pytest.mark.parametrize("range_dtype", [torch.int32, torch.int64])
 @pytest.mark.parametrize("shape_offset", RUNTIME_SHAPE_OFFSETS, ids=("subtile", "exact", "tail"))
+@pytest.mark.parametrize(
+    "output_dtype",
+    [torch.float32, torch.bfloat16],
+    ids=("fp32", "bf16"),
+)
 def test_native_ragged_backward_accum_artifact_matches_cpu_reference(
     range_dtype,
     shape_offset,
+    output_dtype,
     native_runtime,
 ) -> None:
     native_root, library = native_runtime
@@ -387,11 +393,29 @@ def test_native_ragged_backward_accum_artifact_matches_cpu_reference(
         a_scale=a_scale.to("cuda"),
         b_scale=b_scale.to("cuda"),
         config=RAGGED_BWD_ACCUM_CONFIG,
+        output_dtype=output_dtype,
         use_native=True,
         native_root=str(native_root),
         native_library_path=str(library),
     )
     torch.cuda.synchronize()
 
-    assert actual.dtype == torch.float32
-    torch.testing.assert_close(actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    assert actual.dtype == output_dtype
+    if output_dtype == torch.bfloat16:
+        fp32_actual = ragged_dot_int4_bwd_accum(
+            lhs.to("cuda"),
+            rhs.to("cuda"),
+            task_ranges.to("cuda"),
+            a_scale=a_scale.to("cuda"),
+            b_scale=b_scale.to("cuda"),
+            config=RAGGED_BWD_ACCUM_CONFIG,
+            output_dtype=torch.float32,
+            use_native=True,
+            native_root=str(native_root),
+            native_library_path=str(library),
+        )
+        torch.cuda.synchronize()
+        assert torch.equal(actual, fp32_actual.to(torch.bfloat16))
+        torch.testing.assert_close(fp32_actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    else:
+        torch.testing.assert_close(actual.cpu(), expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)

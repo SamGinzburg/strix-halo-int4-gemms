@@ -1,10 +1,10 @@
 {
   "amdgcn_stats": {
-    "iu4_wmma": 32,
-    "lines": 2266,
-    "waitcnt": 88
+    "iu4_wmma": 16,
+    "lines": 1727,
+    "waitcnt": 43
   },
-  "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1",
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1",
   "arch": "gfx1151",
   "asm_keys": [
     "amdgcn",
@@ -16,14 +16,14 @@
   ],
   "config": {
     "block_k": 64,
-    "block_m": 64,
+    "block_m": 32,
     "block_n": 128,
     "enable_even_k_fast_path": true,
     "num_stages": 2,
     "num_warps": 4,
     "split_k": 1
   },
-  "config_label": "BM64_BN128_BK64_W4_S2_SK1",
+  "config_label": "BM32_BN128_BK64_W4_S2_SK1",
   "family": "ragged_dot_int4",
   "kernel_arg_layout": {
     "by_value_arg_count": 4,
@@ -44,7 +44,7 @@
       "SCALE_COLS"
     ]
   },
-  "kernel_id": "gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1",
+  "kernel_id": "gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1",
   "launch_metadata": {
     "dynamic_grid": 1,
     "grid_x": 0,
@@ -56,7 +56,7 @@
   },
   "layout": "tn",
   "mode": "bwd_accum",
-  "output_dtype": "float32",
+  "output_dtype": "bfloat16",
   "rhs_subchannel_scale_layout": null,
   "runtime_shape_args": [
     "M",
@@ -72,10 +72,10 @@
   "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f",
   "status": "generated",
   "triton_artifacts": {
-    "llir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1.llir",
-    "source": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1.py",
-    "ttgir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1.ttgir",
-    "ttir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_float32_bm64_bn128_bk64_w4_s2_sk1.ttir"
+    "llir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1.llir",
+    "source": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1.py",
+    "ttgir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1.ttgir",
+    "ttir": "kernels/triton/gfx1151_ragged_int4_bwd_accum_tn_pc_evenk_bfloat16_bm32_bn128_bk64_w4_s2_sk1.ttir"
   },
   "variant": "evenk"
 }

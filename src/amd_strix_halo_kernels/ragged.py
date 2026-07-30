@@ -59,7 +59,12 @@ class RaggedBwdDotConfig:
             raise ValueError("num_warps and num_stages must be positive")
 
 
-RAGGED_BWD_ACCUM_CONFIG = RaggedBwdDotConfig(block_n=128, num_warps=4, num_stages=2)
+RAGGED_BWD_ACCUM_CONFIG = RaggedBwdDotConfig(
+    block_m=32,
+    block_n=128,
+    num_warps=4,
+    num_stages=2,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1741,6 +1746,7 @@ def ragged_dot_int4_bwd_accum(
     b_scale: Any,
     config: RaggedBwdDotConfig = RAGGED_BWD_ACCUM_CONFIG,
     out: Any | None = None,
+    output_dtype: Any | None = None,
     use_native: bool | None = None,
     native_root: str | None = None,
     native_library_path: str | None = None,
@@ -1750,8 +1756,10 @@ def ragged_dot_int4_bwd_accum(
     ``lhs`` and ``rhs`` contain 64-row task tiles packed along the row axis,
     with shapes ``[T, 32, M]`` and ``[T, 32, N]``. Per-task, per-output-channel
     scales have shapes ``[T, M]`` and ``[T, N]``. ``expert_task_ranges[e]`` is
-    the half-open task range owned by expert ``e``. The fp32 output has shape
-    ``[E, M, N]`` and is written once after all tasks for an expert are summed.
+    the half-open task range owned by expert ``e``. The output has shape
+    ``[E, M, N]`` and defaults to fp32. ``output_dtype=torch.bfloat16`` stores
+    the final fp32 tile accumulation directly as bf16 without an intermediate
+    fp32 output tensor.
     Task ranges are validated on the host and normalized to int32, so this API
     is not safe to invoke while a CUDA graph is being captured.
     """
@@ -1806,14 +1814,26 @@ def ragged_dot_int4_bwd_accum(
         raise ValueError("task-packed int4 dW scales must have shapes [tasks, M] and [tasks, N]")
     if not a_scale.is_contiguous() or not b_scale.is_contiguous():
         raise ValueError("task-packed int4 dW scales must be contiguous")
+    if output_dtype is None:
+        output_dtype = torch.float32
+    if output_dtype not in {torch.float32, torch.bfloat16}:
+        raise ValueError(
+            f"output_dtype must be torch.float32 or torch.bfloat16; got {output_dtype}"
+        )
     if out is None:
-        out = torch.empty((experts, rows, cols), device=lhs.device, dtype=torch.float32)
+        out = torch.empty((experts, rows, cols), device=lhs.device, dtype=output_dtype)
     else:
         _require_cuda_tensor(torch, "out", out)
         if out.device != lhs.device:
             raise ValueError(f"out must be on device {lhs.device}; got {out.device}")
-        if tuple(out.shape) != (experts, rows, cols) or out.dtype != torch.float32 or not out.is_contiguous():
-            raise ValueError("out must be contiguous fp32 with shape [experts, M, N]")
+        if tuple(out.shape) != (experts, rows, cols):
+            raise ValueError(
+                f"out must have shape ({experts}, {rows}, {cols}); got {tuple(out.shape)}"
+            )
+        if out.dtype != output_dtype:
+            raise ValueError(f"out dtype {out.dtype} does not match output_dtype {output_dtype}")
+        if not out.is_contiguous():
+            raise ValueError("out must be contiguous")
     if experts == 0 or rows == 0 or cols == 0:
         return out
 

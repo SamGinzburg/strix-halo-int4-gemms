@@ -242,7 +242,12 @@ def _bwd_args(torch: Any, *, config: RaggedBwdDotConfig, layout: GemmLayout, sca
     return lhs, rhs, a_scale, b_scale, group_sizes, out, m, n, k_packed, scale_cols
 
 
-def _bwd_accum_args(torch: Any, *, config: RaggedBwdDotConfig) -> tuple[Any, ...]:
+def _bwd_accum_args(
+    torch: Any,
+    *,
+    config: RaggedBwdDotConfig,
+    output_dtype: str,
+) -> tuple[Any, ...]:
     tasks, experts = 4, 2
     m = max(config.block_m, 64)
     n = max(config.block_n, 64)
@@ -252,12 +257,31 @@ def _bwd_accum_args(torch: Any, *, config: RaggedBwdDotConfig) -> tuple[Any, ...
     a_scale = torch.empty((tasks, m), device="cuda", dtype=torch.bfloat16)
     b_scale = torch.empty((tasks, n), device="cuda", dtype=torch.bfloat16)
     task_ranges = torch.tensor([[0, 2], [2, 4]], device="cuda", dtype=torch.int32)
-    out = torch.empty((experts, m, n), device="cuda", dtype=torch.float32)
+    torch_output_dtype = torch.bfloat16 if output_dtype == OUTPUT_DTYPE_BF16 else torch.float32
+    out = torch.empty((experts, m, n), device="cuda", dtype=torch_output_dtype)
     return lhs, rhs, a_scale, b_scale, task_ranges, out, m, n, k_packed, 1
 
 
-def compile_ragged_program(*, mode: str, layout: GemmLayout, scale: ScaleSpec, variant: str, config: RaggedDotConfig | RaggedBwdDotConfig) -> Any:
+def compile_ragged_program(
+    *,
+    mode: str,
+    layout: GemmLayout,
+    scale: ScaleSpec,
+    variant: str,
+    config: RaggedDotConfig | RaggedBwdDotConfig,
+    output_dtype: str,
+) -> Any:
     import torch
+
+    allowed_output_dtypes = (
+        {OUTPUT_DTYPE_BF16}
+        if mode == RAGGED_FWD
+        else {OUTPUT_DTYPE_FLOAT32}
+        if mode == RAGGED_BWD
+        else {OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16}
+    )
+    if output_dtype not in allowed_output_dtypes:
+        raise ValueError(f"unsupported {mode} output dtype {output_dtype!r}")
 
     if mode == RAGGED_FWD:
         from amd_strix_halo_kernels.ragged import _ragged_dot_int4_even_k_kernel, _ragged_dot_int4_kernel
@@ -344,6 +368,7 @@ def compile_ragged_program(*, mode: str, layout: GemmLayout, scale: ScaleSpec, v
         lhs, rhs, a_scale, b_scale, task_ranges, out, m, n, k_packed, scale_cols = _bwd_accum_args(
             torch,
             config=config,
+            output_dtype=output_dtype,
         )
         experts = int(task_ranges.shape[0])
         grid = (experts * _cdiv(m, config.block_m) * _cdiv(n, config.block_n),)
@@ -395,8 +420,8 @@ def _write_artifacts(
     out_dir: Path,
     triton_out_dir: Path | None,
     triton: Any,
+    output_dtype: str,
 ) -> dict[str, object]:
-    output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
     kernel_id = ragged_kernel_id(
         mode=mode,
         layout=layout,
@@ -482,19 +507,23 @@ def _build_jobs(
     layouts: Iterable[GemmLayout],
     scales: Iterable[ScaleSpec],
     variants: Iterable[str],
-) -> list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig]]:
-    jobs: list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig]] = []
+) -> list[tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig, str]]:
+    jobs: list[
+        tuple[str, GemmLayout, ScaleSpec, str, RaggedDotConfig | RaggedBwdDotConfig, str]
+    ] = []
     for mode in modes:
         if mode == RAGGED_BWD_ACCUM:
-            jobs.append(
-                (
-                    mode,
-                    GemmLayout.TN,
-                    ScaleSpec(ScaleMode.PER_CHANNEL),
-                    RAGGED_EVEN_K,
-                    DEFAULT_BWD_ACCUM_CONFIG,
+            for output_dtype in (OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16):
+                jobs.append(
+                    (
+                        mode,
+                        GemmLayout.TN,
+                        ScaleSpec(ScaleMode.PER_CHANNEL),
+                        RAGGED_EVEN_K,
+                        DEFAULT_BWD_ACCUM_CONFIG,
+                        output_dtype,
+                    )
                 )
-            )
             continue
         for layout in layouts:
             for scale in scales:
@@ -503,7 +532,8 @@ def _build_jobs(
                         DEFAULT_FWD_CONFIG if mode == RAGGED_FWD else DEFAULT_BWD_CONFIG
                     )
                     config = replace(base_config, enable_even_k_fast_path=(variant == RAGGED_EVEN_K))
-                    jobs.append((mode, layout, scale, variant, config))
+                    output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
+                    jobs.append((mode, layout, scale, variant, config, output_dtype))
     return jobs
 
 
@@ -543,8 +573,7 @@ def main(argv: list[str] | None = None) -> int:
 
     results = []
     failures = []
-    for index, (mode, layout, scale, variant, config) in enumerate(jobs, start=1):
-        output_dtype = OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32
+    for index, (mode, layout, scale, variant, config, output_dtype) in enumerate(jobs, start=1):
         kernel_id = ragged_kernel_id(
             mode=mode,
             layout=layout,
@@ -561,6 +590,7 @@ def main(argv: list[str] | None = None) -> int:
                 scale=scale,
                 variant=variant,
                 config=config,
+                output_dtype=output_dtype,
             )
             results.append(
                 _write_artifacts(
@@ -575,6 +605,7 @@ def main(argv: list[str] | None = None) -> int:
                     out_dir=args.out_dir,
                     triton_out_dir=triton_out_dir,
                     triton=triton,
+                    output_dtype=output_dtype,
                 )
             )
         except Exception as exc:

@@ -227,14 +227,16 @@ def test_ragged_generator_default_jobs_include_specialized_bwd_accum() -> None:
         variants=RAGGED_VARIANTS,
     )
     accum_jobs = [job for job in jobs if job[0] == RAGGED_BWD_ACCUM]
-    assert len(jobs) == 81
-    assert len(accum_jobs) == 1
-    assert accum_jobs[0][1:] == (
-        GemmLayout.TN,
-        ScaleSpec(ScaleMode.PER_CHANNEL),
-        module.RAGGED_EVEN_K,
-        module.DEFAULT_BWD_ACCUM_CONFIG,
-    )
+    assert len(jobs) == 82
+    assert len(accum_jobs) == 2
+    assert {job[-1] for job in accum_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
+    for job in accum_jobs:
+        assert job[1:-1] == (
+            GemmLayout.TN,
+            ScaleSpec(ScaleMode.PER_CHANNEL),
+            module.RAGGED_EVEN_K,
+            module.DEFAULT_BWD_ACCUM_CONFIG,
+        )
 
 
 def test_dense_generator_compiles_representative_dtype_pairs() -> None:
@@ -402,38 +404,43 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
     from amd_strix_halo_kernels.ragged import RAGGED_BWD_ACCUM_CONFIG
 
     accum_config = RAGGED_BWD_ACCUM_CONFIG
-    accum_kernel_id = ragged_kernel_id(
-        mode=RAGGED_BWD_ACCUM,
-        layout=GemmLayout.TN,
-        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
-        config=accum_config,
-        variant=RAGGED_EVEN_K,
-        output_dtype=OUTPUT_DTYPE_FLOAT32,
-    )
-    expected_ids.add(accum_kernel_id)
-    accum_asm_path = amdgcn_dir / f"{accum_kernel_id}.s"
-    accum_metadata_path = amdgcn_dir / f"{accum_kernel_id}.json"
-    assert accum_asm_path.exists(), accum_kernel_id
-    assert accum_metadata_path.exists(), accum_kernel_id
-    accum_metadata = json.loads(accum_metadata_path.read_text())
-    assert accum_metadata["mode"] == RAGGED_BWD_ACCUM
-    assert accum_metadata["layout"] == GemmLayout.TN.value
-    assert accum_metadata["scale"] == {"mode": ScaleMode.PER_CHANNEL.value, "subchannel_size": None}
-    assert accum_metadata["variant"] == RAGGED_EVEN_K
-    assert accum_metadata["config"] == ragged_config_dict(accum_config)
-    assert accum_metadata["kernel_arg_layout"]["runtime_scalar_args"] == [
-        "M",
-        "N",
-        "K_PACKED",
-        "SCALE_COLS",
-    ]
-    for artifact_path in accum_metadata["triton_artifacts"].values():
-        assert not Path(artifact_path).is_absolute()
-        assert (REPO_ROOT / artifact_path).exists()
+    for output_dtype in (OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16):
+        accum_kernel_id = ragged_kernel_id(
+            mode=RAGGED_BWD_ACCUM,
+            layout=GemmLayout.TN,
+            scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+            config=accum_config,
+            variant=RAGGED_EVEN_K,
+            output_dtype=output_dtype,
+        )
+        expected_ids.add(accum_kernel_id)
+        accum_asm_path = amdgcn_dir / f"{accum_kernel_id}.s"
+        accum_metadata_path = amdgcn_dir / f"{accum_kernel_id}.json"
+        assert accum_asm_path.exists(), accum_kernel_id
+        assert accum_metadata_path.exists(), accum_kernel_id
+        accum_metadata = json.loads(accum_metadata_path.read_text())
+        assert accum_metadata["mode"] == RAGGED_BWD_ACCUM
+        assert accum_metadata["layout"] == GemmLayout.TN.value
+        assert accum_metadata["scale"] == {
+            "mode": ScaleMode.PER_CHANNEL.value,
+            "subchannel_size": None,
+        }
+        assert accum_metadata["variant"] == RAGGED_EVEN_K
+        assert accum_metadata["output_dtype"] == output_dtype
+        assert accum_metadata["config"] == ragged_config_dict(accum_config)
+        assert accum_metadata["kernel_arg_layout"]["runtime_scalar_args"] == [
+            "M",
+            "N",
+            "K_PACKED",
+            "SCALE_COLS",
+        ]
+        for artifact_path in accum_metadata["triton_artifacts"].values():
+            assert not Path(artifact_path).is_absolute()
+            assert (REPO_ROOT / artifact_path).exists()
 
     checked_in_ids = {path.stem for path in amdgcn_dir.glob("gfx1151_ragged_int4_*.json")}
     assert checked_in_ids == expected_ids
-    assert len(expected_ids) == 81
+    assert len(expected_ids) == 82
     summary = json.loads((amdgcn_dir / "ragged_generation_summary.json").read_text())
     assert summary["failures"] == []
     assert {entry["kernel_id"] for entry in summary["generated"]} == expected_ids

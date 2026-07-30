@@ -594,6 +594,63 @@ def test_native_ragged_dot_int4_bwd_accum_matches_task_sum_reference() -> None:
 
 
 @pytest.mark.skipif(not torch.cuda.is_available() or torch.version.hip is None, reason="requires ROCm")
+def test_ragged_dot_int4_bwd_accum_bf16_matches_single_final_rounding() -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(727)
+    tasks, experts, rows, cols, task_rows = 4, 3, 64, 128, 64
+    a_q = torch.randint(-4, 5, (tasks, rows, task_rows), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (tasks, task_rows, cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_bwd_args(a_q, b_q, GemmLayout.TN)
+    a_scale = torch.rand((tasks, rows), device="cuda", dtype=torch.bfloat16) * 0.01
+    b_scale = torch.rand((tasks, cols), device="cuda", dtype=torch.bfloat16) * 0.01
+    task_ranges = torch.tensor([[0, 2], [2, 2], [2, 4]], device="cuda", dtype=torch.int32)
+
+    fp32 = ragged_dot_int4_bwd_accum(
+        lhs,
+        rhs,
+        task_ranges,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        use_native=False,
+    )
+    bf16_out = torch.empty_like(fp32, dtype=torch.bfloat16)
+    bf16 = ragged_dot_int4_bwd_accum(
+        lhs,
+        rhs,
+        task_ranges,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        out=bf16_out,
+        output_dtype=torch.bfloat16,
+        use_native=False,
+    )
+
+    assert bf16 is bf16_out
+    assert torch.equal(bf16, fp32.to(torch.bfloat16))
+    assert torch.count_nonzero(bf16[1]) == 0
+    with pytest.raises(ValueError, match="output_dtype must be"):
+        ragged_dot_int4_bwd_accum(
+            lhs,
+            rhs,
+            task_ranges,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            output_dtype=torch.float16,
+            use_native=False,
+        )
+    with pytest.raises(ValueError, match="does not match output_dtype"):
+        ragged_dot_int4_bwd_accum(
+            lhs,
+            rhs,
+            task_ranges,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            out=bf16_out,
+            use_native=False,
+        )
+
+
+@pytest.mark.skipif(not torch.cuda.is_available() or torch.version.hip is None, reason="requires ROCm")
 @pytest.mark.parametrize(
     ("backend", "layout", "scale", "contraction"),
     [

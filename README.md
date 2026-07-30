@@ -118,7 +118,7 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
-| `ragged_dot_int4_bwd_accum(...)` | Dropless 64-row task-packed int4 weight-gradient accumulation with one fp32 output per expert. |
+| `ragged_dot_int4_bwd_accum(...)` | Dropless 64-row task-packed int4 weight-gradient accumulation with one fp32 or bf16 output per expert. |
 | `calculate_group_info(...)` | Build exact compact aligned row-block tasks from `group_sizes`. |
 | `prepare_ragged_group_info(...)` | Build fixed-capacity device-only row-block tasks for graph capture and projection reuse. |
 | `ragged_group_info_capacity(...)` | Compute the static safe task bound used by graph-safe preparation. |
@@ -457,7 +457,7 @@ each expert a contiguous half-open task range. The TN kernel accumulates every
 task in that range in FP32 registers and writes `out[E, M, N]` once, avoiding
 both a worst-case padded routed batch and atomic partial-gradient buffers.
 Tasks must use `block_k=64` and `split_k=1`; the shipped tuned artifact uses
-`block_m=64`, `block_n=128`, four warps, and two stages. The caller prepares
+`block_m=32`, `block_n=128`, four warps, and two stages. The caller prepares
 and quantizes tasks, including zero-padding a final partial task. All operands,
 scales, ranges, and an optional output must be contiguous CUDA/HIP tensors on
 one device. Ranges may be int32 or int64 and must satisfy
@@ -496,7 +496,7 @@ above.
 ## Kernel Coverage
 
 The checked-in matrix currently contains 2880 dense generated kernels plus
-81 ragged generated artifacts:
+82 ragged generated artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
@@ -512,8 +512,9 @@ layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
 source of truth. The default packaged forward config is
 `BM64_BN256_BK64_GST1_W8_S3` and stores BF16. The default packaged backward
 config is `BM64_BN256_BK64_W8_S3_SK1` and stores FP32. Those combinations form
-an 80-artifact matrix. The additional specialized `bwd_accum` artifact is
-TN/per-channel/even-K with `BM64_BN128_BK64_W4_S2_SK1` and FP32 output.
+an 80-artifact matrix. Two additional specialized `bwd_accum` artifacts cover
+TN/per-channel/even-K with `BM32_BN128_BK64_W4_S2_SK1`; the packaged variants
+store either FP32 or BF16 after accumulating each output tile in FP32.
 
 Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
 because their partial tiles are reduced with FP32 atomics.
@@ -640,8 +641,9 @@ uv run --project "$TRITON_CHECKOUT" python scripts/generate_ragged_amdgcn.py --c
 
 `scripts/regenerate_amdgcn.py` regenerates the dense matrix.
 `scripts/generate_ragged_amdgcn.py` regenerates the ragged `.s` and `.json`
-artifact set, including the specialized `bwd_accum` artifact by default;
-`--mode bwd_accum` regenerates only that job. Dense `--clean` deletes only
+artifact set, including FP32 and BF16 variants of the specialized `bwd_accum`
+artifact by default; `--mode bwd_accum` regenerates only those two jobs. Dense
+`--clean` deletes only
 `gfx1151_int4xint4_*` and `gfx1151_int8xint8_*` generated files, preserving
 ragged and mixed families in the shared artifact directories. Dense and ragged
 regeneration can therefore run independently. Wheel builds assemble every

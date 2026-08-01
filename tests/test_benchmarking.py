@@ -108,6 +108,13 @@ def test_benchmark_generated_supports_timing_only_and_strict_bf16_validation() -
     assert validation_tolerances(SimpleNamespace(output_dtype="bfloat16")) == (1.0e-3, 1.0e-3)
 
 
+def test_benchmark_generated_accepts_int4_output_with_strict_validation() -> None:
+    args = build_parser().parse_args(["--output-dtype", "int4"])
+
+    assert args.output_dtype == ["int4"]
+    assert validation_tolerances(SimpleNamespace(output_dtype="int4")) == (1.0e-3, 1.0e-3)
+
+
 def test_attention_training_cases_are_selectable_but_not_in_default_sweep() -> None:
     default_names = {case.name for case in default_attention_benchmark_cases()}
     all_names = {case.name for case in attention_benchmark_cases()}
@@ -328,3 +335,63 @@ def test_int4_value_attention_training_benchmark_records_compute_contract() -> N
         assert winner["config"]["block_m"] == 64
         assert winner["config"]["block_n"] == 16
         assert winner["config"]["num_warps"] == 4
+
+
+def test_int4_qk_attention_training_benchmark_records_compute_contract() -> None:
+    data = json.loads(
+        (REPO_ROOT / "benchmarks" / "gfx1151_attention_int4_qk_training.json").read_text()
+    )
+
+    assert data["summary"]["count"] == 2
+    assert data["summary"]["failures"] == 0
+    assert len(data["winners"]) == 2
+    for record in data["records"]:
+        assert record["mode"] == "int4-bf16"
+        assert record["dispatch_preference"] == "precompiled"
+        assert record["arithmetic"] == {
+            "query_key_storage": "packed_signed_int4",
+            "scale_storage": "bfloat16",
+            "softmax_accumulator": "float32",
+            "timed_output": "bfloat16",
+            "validation_output": "float32",
+            "value_storage": "bfloat16",
+        }
+        numerics = record["numerics"]
+        assert (numerics["rtol"], numerics["atol"]) == (1.0e-3, 1.0e-3)
+        assert numerics["float32_validation_output"]["max_tolerance_ratio"] <= 1.0
+        assert (
+            numerics["timed_bfloat16_output_vs_bfloat16_rounded_oracle"][
+                "max_tolerance_ratio"
+            ]
+            <= 1.0
+        )
+
+
+def test_int4_qk_attention_backward_benchmark_records_all_gradients() -> None:
+    data = json.loads(
+        (REPO_ROOT / "benchmarks" / "gfx1151_attention_backward_training.json").read_text()
+    )
+
+    assert len(data["records"]) == 2
+    observed_windows = {
+        tuple(record["metadata"]["window_size"] or ()) for record in data["records"]
+    }
+    assert observed_windows == {
+        (),
+        (127, 0),
+    }
+    for record in data["records"]:
+        assert record["success"] is True
+        metadata = record["metadata"]
+        assert metadata["phase"] == "backward"
+        assert metadata["mode"] == "int4-bf16"
+        assert metadata["dispatch_preference"] == "precompiled"
+        assert metadata["gradient_dtype"] == "float32"
+        assert metadata["numerical_gate"] == {
+            "atol": 1.0e-3,
+            "reference": "representation-matched float32 attention oracle",
+            "rtol": 1.0e-3,
+        }
+        assert set(metadata["numerics"]) == {"grad_query", "grad_key", "grad_value"}
+        for gradient_metrics in metadata["numerics"].values():
+            assert gradient_metrics["max_tolerance_ratio"] <= 1.0

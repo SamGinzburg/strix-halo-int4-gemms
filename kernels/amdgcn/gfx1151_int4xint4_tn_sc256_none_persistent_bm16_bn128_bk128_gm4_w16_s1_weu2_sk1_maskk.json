@@ -4,7 +4,7 @@
   "amdgcn_stats": {
     "iu4_wmma": 64,
     "iu8_wmma": 0,
-    "lines": 3472,
+    "lines": 3457,
     "waitcnt": 332
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_int4xint4_tn_sc256_none_persistent_bm16_bn128_bk128_gm4_w16_s1_weu2_sk1_maskk",
@@ -39,6 +39,7 @@
   "measured_tops": null,
   "notes": "",
   "output_dtype": "bfloat16",
+  "output_scale": null,
   "rhs_subchannel_scale_layout": "kgroup_output",
   "runtime_shape_args": [
     "M",
@@ -52,7 +53,7 @@
   "scale_dtype": "bfloat16",
   "schedule": "persistent",
   "shape_specialization": "runtime",
-  "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f",
+  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
   "status": "generated",
   "tile": {
     "block_k": 128,

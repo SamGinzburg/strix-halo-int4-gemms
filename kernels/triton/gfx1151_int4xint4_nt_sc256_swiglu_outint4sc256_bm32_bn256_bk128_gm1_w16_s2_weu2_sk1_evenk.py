@@ -395,7 +395,7 @@ module {
     %acc_105 = arith.addf %acc_104, %acc_101 : tensor<32x256xf32> loc(#loc193)
     %acc_106 = arith.divf %gate_acc_99#1, %acc_105 : tensor<32x256xf32> loc(#loc194)
     %acc_107 = arith.mulf %gate_acc_99#0, %acc_106 : tensor<32x256xf32> loc(#loc195)
-    tt.call @generate_amdgcn._store_int4_output__Pu8_Pbf16_fp32S32_256S_i32S32S_i32_i32_c32_c256(%c, %gate, %acc_107, %offs_m_65, %pid_n_40, %N) : (!tt.ptr<i8>, !tt.ptr<bf16>, tensor<32x256xf32>, tensor<32xi32>, i32, i32) -> () loc(#loc74)
+    tt.call @__main__._store_int4_output__Pu8_Pbf16_fp32S32_256S_i32S32S_i32_i32_c32_c256(%c, %gate, %acc_107, %offs_m_65, %pid_n_40, %N) : (!tt.ptr<i8>, !tt.ptr<bf16>, tensor<32x256xf32>, tensor<32xi32>, i32, i32) -> () loc(#loc74)
     tt.return loc(#loc)
   } loc(#loc)
   tt.func private @triton.language.standard.cdiv__i32_c32(%x: i32 loc("x"(#loc75))) -> i32 attributes {noinline = false} {
@@ -454,7 +454,7 @@ module {
     %0 = ub.poison : tensor<32x256xi32> loc(#loc79)
     tt.return %0 : tensor<32x256xi32> loc(#loc79)
   } loc(#loc79)
-  tt.func private @generate_amdgcn._store_int4_output__Pu8_Pbf16_fp32S32_256S_i32S32S_i32_i32_c32_c256(%c: !tt.ptr<i8> loc("c"(#loc82)), %c_scale: !tt.ptr<bf16> loc("c_scale"(#loc82)), %acc: tensor<32x256xf32> loc("acc"(#loc82)), %offs_m: tensor<32xi32> loc("offs_m"(#loc82)), %pid_n: i32 loc("pid_n"(#loc82)), %N: i32 loc("N"(#loc82))) attributes {noinline = false} {
+  tt.func private @__main__._store_int4_output__Pu8_Pbf16_fp32S32_256S_i32S32S_i32_i32_c32_c256(%c: !tt.ptr<i8> loc("c"(#loc82)), %c_scale: !tt.ptr<bf16> loc("c_scale"(#loc82)), %acc: tensor<32x256xf32> loc("acc"(#loc82)), %offs_m: tensor<32xi32> loc("offs_m"(#loc82)), %pid_n: i32 loc("pid_n"(#loc82)), %N: i32 loc("N"(#loc82))) attributes {noinline = false} {
     %row_amax = math.absf %acc : tensor<32x256xf32> loc(#loc203)
     %row_amax_0 = tt.call @triton.language.standard.max__fp32S32_256S_c1_cFalse_cTrue_cFalse(%row_amax) : (tensor<32x256xf32>) -> tensor<32xf32> loc(#loc204)
     %scale = arith.constant 9.99999996E-13 : f32 loc(#loc205)

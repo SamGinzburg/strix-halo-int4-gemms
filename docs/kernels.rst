@@ -4,8 +4,8 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 3,852 artifacts: 3,062 dense generated
-kernels, 302 ragged generated artifacts, and 488 fused-attention artifacts:
+The checked-in native matrix contains 4,156 artifacts: 3,062 dense generated
+kernels, 302 ragged generated artifacts, and 792 fused-attention artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
@@ -181,10 +181,11 @@ Ragged artifact families are generated separately from the dense registry:
 Fused Attention Native and JIT
 ------------------------------
 
-Fused attention is a separate 488-artifact native family at ``D=Dv=64``:
-484 forward objects and four split-decode reducers. The forward matrix contains
-104 generic runtime-shape/runtime-semantics objects plus 380 objects specialized
-for the measured 512-prefill, 2048-training, and 1-by-2048 decode profiles. It
+Fused attention is a separate 792-artifact native family at ``D=Dv=64``:
+532 forward objects, four split-decode reducers, 128 dQ objects, and 128
+combined dK/dV objects. The forward matrix contains 112 generic
+runtime-shape/runtime-semantics objects plus 420 objects specialized for the
+measured 512-prefill, 2048-training, and 1-by-2048 decode profiles. It
 crosses the measured/default configs for BF16/BF16, INT4/BF16, BF16/INT4, and
 INT4/INT4 QK-by-V storage with no mask or bool/BF16/FP32 mask pointers and
 BF16/FP32 output. Exact profiles specialize heads, query/key lengths, and
@@ -223,14 +224,23 @@ workspace and output; allocation is permitted only outside capture. All four
 representation modes are covered in ordinary and graph replay tests, with a
 second graph matrix covering split decode.
 
-The optimized path is forward-only, requires contiguous CUDA/HIP operands,
-uses ``dropout_p=0``, and supports logical head and value dimensions through
-256. Q/K head packing and V sequence packing are padded to multiples of 16;
-scale and logical-length validation prevents padding from contributing to the
-result. Packaged configs launch without Triton; regeneration and uncovered JIT
-fallbacks require the custom Strix Halo Triton fork. ``use_precompiled=None``
-selects native coverage automatically, ``True`` requires it, and ``False``
-forces JIT.
+Backward is an explicit two-phase launch: a query-owned dQ kernel followed by
+a key-owned combined dK/dV kernel. It uses no gradient atomics and returns
+logical FP32 gradients for every BF16/INT4 storage combination. Each phase has
+64 generic objects and 64 exact 2048-token GQA objects, specialized across
+full/causal/local semantics and every BF16/FP32 saved-output by BF16/FP32
+upstream-gradient dtype pair. The public attention APIs intentionally do not
+register implicit autograd; call the explicit backward API with the saved
+forward output.
+
+The optimized paths require contiguous CUDA/HIP operands, use
+``dropout_p=0``, and support logical head and value dimensions through 256.
+Q/K head packing and V sequence packing are padded to multiples of 16; scale
+and logical-length validation prevents padding from contributing to the
+result. Packaged configs launch without Triton; regeneration and uncovered
+JIT fallbacks require the custom Strix Halo Triton fork.
+``use_precompiled=None`` selects native coverage automatically, ``True``
+requires it, and ``False`` forces JIT.
 
 Shape Contract
 --------------

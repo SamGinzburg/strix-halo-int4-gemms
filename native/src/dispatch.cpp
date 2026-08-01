@@ -657,6 +657,86 @@ extern "C" int amd_strix_halo_kernels_launch_attention_fwd_hsaco(
   return 0;
 }
 
+extern "C" int amd_strix_halo_kernels_launch_attention_bwd_hsaco(
+    const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x, uint32_t grid_y,
+    uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,
+    uint32_t shared_memory_bytes, uintptr_t stream_handle, void *buffer0, void *buffer1,
+    void *buffer2, void *buffer3, void *buffer4, void *buffer5, void *buffer6, void *buffer7,
+    void *buffer8, void *buffer9, void *buffer10, void *buffer11, int32_t batch,
+    int32_t query_heads, int32_t kv_heads, int32_t query_length, int32_t key_length,
+    int32_t head_dim, int32_t packed_head_dim, int32_t value_dim, float softmax_scale,
+    int32_t mask_stride_b, int32_t mask_stride_h, int32_t mask_stride_q,
+    int32_t mask_stride_k, int32_t is_causal, int32_t has_window, int32_t window_left,
+    int32_t window_right, int32_t query_position_offset, uint32_t runtime_scalar_mask) {
+  last_error.clear();
+  if (hsaco_path == nullptr || symbol == nullptr) {
+    return fail("hsaco_path and symbol must be non-null");
+  }
+  if (grid_x == 0 || grid_y == 0 || grid_z == 0 || block_x == 0 || block_y == 0 || block_z == 0) {
+    return fail("grid and block dimensions must be non-zero");
+  }
+  void *buffers[] = {buffer0, buffer1, buffer2, buffer3, buffer4, buffer5,
+                     buffer6, buffer7, buffer8, buffer9, buffer10, buffer11};
+  for (void *buffer : buffers) {
+    if (buffer == nullptr) {
+      return fail("attention backward kernel pointers must be non-null");
+    }
+  }
+  constexpr uint32_t kAllAttentionBackwardRuntimeScalars = (1u << 18) - 1u;
+  if ((runtime_scalar_mask & ~kAllAttentionBackwardRuntimeScalars) != 0) {
+    return fail("attention backward runtime scalar mask contains unknown arguments");
+  }
+  if (!load_hip_runtime(true)) {
+    return 1;
+  }
+  HipRuntime *runtime = &hip_runtime;
+  hipError_t error = runtime->hipSetDevice(device_index);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipSetDevice", error);
+  }
+  const char *buffer_names[] = {
+      "buffer0", "buffer1", "buffer2", "buffer3", "buffer4", "buffer5",
+      "buffer6", "buffer7", "buffer8", "buffer9", "buffer10", "buffer11",
+  };
+  for (uint32_t index = 0; index < 12; ++index) {
+    if (int rc = canonicalize_device_pointer(runtime, &buffers[index], buffer_names[index]); rc != 0) {
+      return rc;
+    }
+  }
+  hipFunction_t function = nullptr;
+  if (int rc = load_kernel_function(runtime, hsaco_path, symbol, &function); rc != 0) {
+    return rc;
+  }
+  void *scalar_params[] = {
+      &batch,          &query_heads,    &kv_heads,      &query_length,
+      &key_length,     &head_dim,       &packed_head_dim, &value_dim,
+      &softmax_scale,  &mask_stride_b,  &mask_stride_h, &mask_stride_q,
+      &mask_stride_k,  &is_causal,      &has_window,    &window_left,
+      &window_right,   &query_position_offset,
+  };
+  void *reserved0 = nullptr;
+  void *reserved1 = nullptr;
+  void *params[32];
+  uint32_t param_count = 0;
+  for (uint32_t index = 0; index < 12; ++index) {
+    params[param_count++] = &buffers[index];
+  }
+  for (uint32_t index = 0; index < 18; ++index) {
+    if ((runtime_scalar_mask & (1u << index)) != 0) {
+      params[param_count++] = scalar_params[index];
+    }
+  }
+  params[param_count++] = &reserved0;
+  params[param_count++] = &reserved1;
+  auto stream = reinterpret_cast<hipStream_t>(stream_handle);
+  error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
+                                         shared_memory_bytes, stream, params, nullptr);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipModuleLaunchKernel", error);
+  }
+  return 0;
+}
+
 extern "C" int amd_strix_halo_kernels_launch_attention_reduce_hsaco(
     const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x, uint32_t grid_y,
     uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,

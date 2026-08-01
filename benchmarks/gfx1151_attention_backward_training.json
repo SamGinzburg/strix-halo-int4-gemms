@@ -1,0 +1,203 @@
+{
+  "records": [
+    {
+      "iterations": 3,
+      "kernel_id": "attention_bwd_int4-bf16_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1",
+      "max_abs_diff": 4.7315843403339386e-05,
+      "max_rel_diff": 0.03938859701156616,
+      "metadata": {
+        "arithmetic": {
+          "query_key_storage": "packed_signed_int4",
+          "scale_storage": "bfloat16",
+          "softmax_accumulator": "float32",
+          "timed_output": "float32",
+          "validation_output": "float32",
+          "value_storage": "bfloat16"
+        },
+        "attention_shape": {
+          "batch": 7,
+          "head_dim": 64,
+          "key_length": 2048,
+          "kv_heads": 8,
+          "query_heads": 16,
+          "query_length": 2048,
+          "value_dim": 64
+        },
+        "config": {
+          "block_m": 32,
+          "block_n": 16,
+          "dkv_block_m": 32,
+          "dkv_block_n": 16,
+          "dkv_num_stages": 1,
+          "dkv_num_warps": 2,
+          "num_stages": 1,
+          "num_warps": 2
+        },
+        "config_label": "DQM32_DQN16_DQW2_DQS1_DKVM32_DKVN16_DKVW2_DKVS1",
+        "device": "AMD Radeon 8060S Graphics",
+        "dispatch_preference": "precompiled",
+        "dropped_nonpositive_sample_count": 0,
+        "enable_gqa": true,
+        "family": "fused_attention",
+        "gradient_dtype": "float32",
+        "is_causal": false,
+        "mask_kind": "none",
+        "mask_shape": null,
+        "mode": "int4-bf16",
+        "numerical_gate": {
+          "atol": 0.001,
+          "reference": "representation-matched float32 attention oracle",
+          "rtol": 0.001
+        },
+        "numerics": {
+          "grad_key": {
+            "max_abs_diff": 9.11572715267539e-06,
+            "max_rel_diff": 0.009115726687014103,
+            "max_tolerance_ratio": 0.009114881977438927,
+            "relative_l2": 0.0034520102199167013
+          },
+          "grad_query": {
+            "max_abs_diff": 6.107882654760033e-06,
+            "max_rel_diff": 0.006107882596552372,
+            "max_tolerance_ratio": 0.006107281427830458,
+            "relative_l2": 0.00355120119638741
+          },
+          "grad_value": {
+            "max_abs_diff": 4.7315843403339386e-05,
+            "max_rel_diff": 0.03938859701156616,
+            "max_tolerance_ratio": 0.04677661508321762,
+            "relative_l2": 0.0012907871278002858
+          }
+        },
+        "phase": "backward",
+        "query_position_offset": 0,
+        "raw_sample_count": 3,
+        "rep_ms": 100,
+        "runtime_ms_max": 27.50555992126465,
+        "runtime_ms_mean": 27.446646372477215,
+        "runtime_ms_median": 27.43258285522461,
+        "runtime_ms_min": 27.401796340942383,
+        "runtime_ms_p20": 27.41411094665527,
+        "runtime_ms_p80": 27.476369094848636,
+        "sample_count": 3,
+        "softmax_scale": null,
+        "timing_backend": "triton.testing.do_bench",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25,
+        "window_size": null
+      },
+      "notes": "prepacked inputs; preallocated FP32 gradients/lse/delta; quantization and allocations excluded",
+      "runtime_ms": 27.43258285522461,
+      "shape": {
+        "k": 64,
+        "m": 2048,
+        "n": 2048
+      },
+      "success": true,
+      "tops": 15.343316275734393,
+      "warmup": 25
+    },
+    {
+      "iterations": 28,
+      "kernel_id": "attention_bwd_int4-bf16_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1",
+      "max_abs_diff": 0.0010415315628051758,
+      "max_rel_diff": 0.6327515244483948,
+      "metadata": {
+        "arithmetic": {
+          "query_key_storage": "packed_signed_int4",
+          "scale_storage": "bfloat16",
+          "softmax_accumulator": "float32",
+          "timed_output": "float32",
+          "validation_output": "float32",
+          "value_storage": "bfloat16"
+        },
+        "attention_shape": {
+          "batch": 7,
+          "head_dim": 64,
+          "key_length": 2048,
+          "kv_heads": 8,
+          "query_heads": 16,
+          "query_length": 2048,
+          "value_dim": 64
+        },
+        "config": {
+          "block_m": 32,
+          "block_n": 16,
+          "dkv_block_m": 32,
+          "dkv_block_n": 16,
+          "dkv_num_stages": 1,
+          "dkv_num_warps": 2,
+          "num_stages": 1,
+          "num_warps": 2
+        },
+        "config_label": "DQM32_DQN16_DQW2_DQS1_DKVM32_DKVN16_DKVW2_DKVS1",
+        "device": "AMD Radeon 8060S Graphics",
+        "dispatch_preference": "precompiled",
+        "dropped_nonpositive_sample_count": 0,
+        "enable_gqa": true,
+        "family": "fused_attention",
+        "gradient_dtype": "float32",
+        "is_causal": false,
+        "mask_kind": "none",
+        "mask_shape": null,
+        "mode": "int4-bf16",
+        "numerical_gate": {
+          "atol": 0.001,
+          "reference": "representation-matched float32 attention oracle",
+          "rtol": 0.001
+        },
+        "numerics": {
+          "grad_key": {
+            "max_abs_diff": 0.00014433288015425205,
+            "max_rel_diff": 0.12659525871276855,
+            "max_tolerance_ratio": 0.1439954787492752,
+            "relative_l2": 0.003432156518101692
+          },
+          "grad_query": {
+            "max_abs_diff": 0.00011626817286014557,
+            "max_rel_diff": 0.09144801646471024,
+            "max_tolerance_ratio": 0.11442507058382034,
+            "relative_l2": 0.00348354852758348
+          },
+          "grad_value": {
+            "max_abs_diff": 0.0010415315628051758,
+            "max_rel_diff": 0.6327515244483948,
+            "max_tolerance_ratio": 0.9469173550605774,
+            "relative_l2": 0.0011885622516274452
+          }
+        },
+        "phase": "backward",
+        "query_position_offset": 0,
+        "raw_sample_count": 28,
+        "rep_ms": 100,
+        "runtime_ms_max": 2.544934034347534,
+        "runtime_ms_mean": 2.4134526337896074,
+        "runtime_ms_median": 2.403788447380066,
+        "runtime_ms_min": 2.3879990577697754,
+        "runtime_ms_p20": 2.396551418304443,
+        "runtime_ms_p80": 2.414857530593872,
+        "sample_count": 28,
+        "softmax_scale": null,
+        "timing_backend": "triton.testing.do_bench",
+        "torch_hip": "7.2.26015-fc0010cf6a",
+        "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+        "warmup_ms": 25,
+        "window_size": [
+          127,
+          0
+        ]
+      },
+      "notes": "prepacked inputs; preallocated FP32 gradients/lse/delta; quantization and allocations excluded",
+      "runtime_ms": 2.403788447380066,
+      "shape": {
+        "k": 64,
+        "m": 2048,
+        "n": 2048
+      },
+      "success": true,
+      "tops": 10.604516241761264,
+      "warmup": 25
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_maskk:                      ; @amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_maskk
 .Lfunc_begin0:
 	.file	1 "<repo>/scripts" "generate_amdgcn.py"
-	.loc	1 80 0                          ; generate_amdgcn.py:80:0
+	.loc	1 106 0                         ; generate_amdgcn.py:106:0
 	.cfi_sections .debug_frame
 	.cfi_startproc
 ; %bb.0:
@@ -15,66 +15,66 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_load_b64 s[28:29], s[0:1], 0x30
 	s_load_b32 s13, s[0:1], 0x38
 .Ltmp0:
-	.loc	1 90 16 prologue_end            ; generate_amdgcn.py:90:16
+	.loc	1 117 16 prologue_end           ; generate_amdgcn.py:117:16
 	s_abs_i32 s6, s2
-	.loc	1 101 14                        ; generate_amdgcn.py:101:14
+	.loc	1 128 14                        ; generate_amdgcn.py:128:14
 	v_and_b32_e32 v39, 7, v0
-	.loc	1 99 32                         ; generate_amdgcn.py:99:32
+	.loc	1 126 32                        ; generate_amdgcn.py:126:32
 	v_lshrrev_b32_e32 v35, 3, v0
-	.loc	1 100 32                        ; generate_amdgcn.py:100:32
+	.loc	1 127 32                        ; generate_amdgcn.py:127:32
 	v_lshrrev_b32_e32 v36, 1, v0
 	s_load_b64 s[20:21], s[0:1], 0x20
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_bfe_i32 v14, v0, 6, 1
-	.loc	1 101 14                        ; generate_amdgcn.py:101:14
+	.loc	1 128 14                        ; generate_amdgcn.py:128:14
 	v_lshlrev_b32_e32 v33, 1, v39
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_bfe_i32 v15, v0, 4, 1
 	v_bfe_i32 v40, v0, 3, 1
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_and_b32_e32 v42, 0x88, v14
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_and_b32_e32 v51, 0x88, v15
 	s_delay_alu instid0(VALU_DEP_3)
 	v_and_b32_e32 v40, 0x88, v40
 .Ltmp1:
 	.file	2 "<triton>/python/triton/language" "standard.py"
-	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:88:17 ]
+	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:115:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s29, 0xff
 .Ltmp2:
-	.loc	2 43 13 is_stmt 0               ; standard.py:43:13 @[ generate_amdgcn.py:87:17 ]
+	.loc	2 43 13 is_stmt 0               ; standard.py:43:13 @[ generate_amdgcn.py:114:17 ]
 	s_add_i32 s7, s28, 31
 .Ltmp3:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:88:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:115:17 ]
 	s_ashr_i32 s5, s4, 31
 .Ltmp4:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:87:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:114:17 ]
 	s_ashr_i32 s9, s7, 31
 .Ltmp5:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:88:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:115:17 ]
 	s_lshr_b32 s5, s5, 24
 .Ltmp6:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:87:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:114:17 ]
 	s_lshr_b32 s9, s9, 27
 .Ltmp7:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:88:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:115:17 ]
 	s_add_i32 s4, s4, s5
 .Ltmp8:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:87:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:114:17 ]
 	s_add_i32 s7, s7, s9
 .Ltmp9:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:88:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:115:17 ]
 	s_ashr_i32 s4, s4, 8
 .Ltmp10:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:87:17 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:114:17 ]
 	s_ashr_i32 s7, s7, 5
 .Ltmp11:
-	.loc	1 89 24 is_stmt 1               ; generate_amdgcn.py:89:24
+	.loc	1 116 24 is_stmt 1              ; generate_amdgcn.py:116:24
 	s_lshl_b32 s12, s4, 2
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
-	.loc	1 90 16                         ; generate_amdgcn.py:90:16
+	.loc	1 117 16                        ; generate_amdgcn.py:117:16
 	s_abs_i32 s4, s12
 	s_cvt_f32_u32 s5, s4
 	s_sub_i32 s8, 0, s4
@@ -106,18 +106,18 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_xor_b32 s4, s4, s8
 	s_sub_i32 s14, s4, s8
 	s_delay_alu instid0(SALU_CYCLE_1)
-	.loc	1 91 19                         ; generate_amdgcn.py:91:19
+	.loc	1 118 19                        ; generate_amdgcn.py:118:19
 	s_lshl_b32 s15, s14, 2
-	.loc	1 93 29                         ; generate_amdgcn.py:93:29
+	.loc	1 120 29                        ; generate_amdgcn.py:120:29
 	s_mul_i32 s14, s14, s12
-	.loc	1 92 31                         ; generate_amdgcn.py:92:31
+	.loc	1 119 31                        ; generate_amdgcn.py:119:31
 	s_sub_i32 s4, s7, s15
-	.loc	1 93 29                         ; generate_amdgcn.py:93:29
+	.loc	1 120 29                        ; generate_amdgcn.py:120:29
 	s_sub_i32 s2, s2, s14
-	.loc	1 92 20                         ; generate_amdgcn.py:92:20
+	.loc	1 119 20                        ; generate_amdgcn.py:119:20
 	s_min_i32 s16, s4, 4
 	s_load_b256 s[4:11], s[0:1], 0x0
-	.loc	1 94 13                         ; generate_amdgcn.py:94:13
+	.loc	1 121 13                        ; generate_amdgcn.py:121:13
 	s_abs_i32 s17, s16
 	s_abs_i32 s14, s2
 	s_cvt_f32_u32 s18, s17
@@ -128,10 +128,10 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_mov_b64 s[24:25], s[6:7]
 	s_mov_b32 s7, 0x31027000
 	s_mul_f32 s18, s18, 0x4f7ffffe
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_mov_b32 s27, s7
 	s_delay_alu instid0(SALU_CYCLE_2) | instskip(SKIP_1) | instid1(SALU_CYCLE_2)
-	.loc	1 94 13                         ; generate_amdgcn.py:94:13
+	.loc	1 121 13                        ; generate_amdgcn.py:121:13
 	s_cvt_u32_f32 s6, s18
 	s_sub_i32 s18, 0, s17
 	s_mul_i32 s18, s18, s6
@@ -145,9 +145,9 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_mul_i32 s19, s12, s17
 	s_add_i32 s18, s12, 1
 	s_sub_i32 s14, s14, s19
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_mov_b32 s26, s6
-	.loc	1 94 13                         ; generate_amdgcn.py:94:13
+	.loc	1 121 13                        ; generate_amdgcn.py:121:13
 	s_sub_i32 s19, s14, s17
 	s_cmp_ge_u32 s14, s17
 	s_cselect_b32 s12, s18, s12
@@ -155,88 +155,88 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_add_i32 s18, s12, 1
 	s_cmp_ge_u32 s14, s17
 	s_cselect_b32 s12, s18, s12
-	.loc	1 96 22                         ; generate_amdgcn.py:96:22
+	.loc	1 123 22                        ; generate_amdgcn.py:123:22
 	s_lshr_b32 s14, s13, 31
-	.loc	1 94 13                         ; generate_amdgcn.py:94:13
+	.loc	1 121 13                        ; generate_amdgcn.py:121:13
 	s_xor_b32 s33, s12, s28
-	.loc	1 108 23                        ; generate_amdgcn.py:108:23
+	.loc	1 135 23                        ; generate_amdgcn.py:135:23
 	s_lshl_b32 s30, s3, 4
-	.loc	1 94 13                         ; generate_amdgcn.py:94:13
+	.loc	1 121 13                        ; generate_amdgcn.py:121:13
 	s_sub_i32 s12, s33, s28
-	.loc	1 96 22                         ; generate_amdgcn.py:96:22
+	.loc	1 123 22                        ; generate_amdgcn.py:123:22
 	s_add_i32 s3, s13, s14
-	.loc	1 93 28                         ; generate_amdgcn.py:93:28
+	.loc	1 120 28                        ; generate_amdgcn.py:120:28
 	s_mul_i32 s14, s12, s16
-	.loc	1 108 18                        ; generate_amdgcn.py:108:18
+	.loc	1 135 18                        ; generate_amdgcn.py:135:18
 	v_or_b32_e32 v3, s30, v33
-	.loc	1 93 28                         ; generate_amdgcn.py:93:28
+	.loc	1 120 28                        ; generate_amdgcn.py:120:28
 	s_sub_i32 s2, s2, s14
-	.loc	1 96 22                         ; generate_amdgcn.py:96:22
+	.loc	1 123 22                        ; generate_amdgcn.py:123:22
 	s_ashr_i32 s31, s3, 1
-	.loc	1 93 13                         ; generate_amdgcn.py:93:13
+	.loc	1 120 13                        ; generate_amdgcn.py:120:13
 	s_add_i32 s2, s2, s15
-	.loc	1 100 14                        ; generate_amdgcn.py:100:14
+	.loc	1 127 14                        ; generate_amdgcn.py:127:14
 	s_lshl_b32 s3, s12, 8
-	.loc	1 99 14                         ; generate_amdgcn.py:99:14
+	.loc	1 126 14                        ; generate_amdgcn.py:126:14
 	s_lshl_b32 s23, s2, 5
-	.loc	1 109 23                        ; generate_amdgcn.py:109:23
+	.loc	1 136 23                        ; generate_amdgcn.py:136:23
 	v_cmp_gt_i32_e32 vcc_lo, s31, v3
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cmp_gt_i32 s13, 1
-	.loc	1 127 30                        ; generate_amdgcn.py:127:30
+	.loc	1 154 30                        ; generate_amdgcn.py:154:30
 	v_mul_lo_u32 v5, s31, v35
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cselect_b32 s22, -1, 0
-	.loc	1 127 30                        ; generate_amdgcn.py:127:30
+	.loc	1 154 30                        ; generate_amdgcn.py:154:30
 	s_mul_i32 s12, s23, s31
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_and_b32 vcc_lo, s22, vcc_lo
-	.loc	1 101 14                        ; generate_amdgcn.py:101:14
+	.loc	1 128 14                        ; generate_amdgcn.py:128:14
 	v_and_b32_e32 v38, 1, v0
-	.loc	1 129 30                        ; generate_amdgcn.py:129:30
+	.loc	1 156 30                        ; generate_amdgcn.py:156:30
 	s_lshl_b32 s14, s31, 7
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_and_b32 s5, s5, 0xffff
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_and_b32 s25, s25, 0xffff
-	.loc	1 127 30                        ; generate_amdgcn.py:127:30
+	.loc	1 154 30                        ; generate_amdgcn.py:154:30
 	v_add3_u32 v47, v5, v33, s12
-	.loc	1 101 14                        ; generate_amdgcn.py:101:14
+	.loc	1 128 14                        ; generate_amdgcn.py:128:14
 	v_lshlrev_b32_e32 v34, 3, v38
-	.loc	1 129 30                        ; generate_amdgcn.py:129:30
+	.loc	1 156 30                        ; generate_amdgcn.py:156:30
 	s_mul_i32 s12, s3, s31
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	s_add_i32 s12, s12, s30
 	v_mad_u64_u32 v[1:2], null, s31, v36, v[34:35]
-	.loc	1 108 18                        ; generate_amdgcn.py:108:18
+	.loc	1 135 18                        ; generate_amdgcn.py:135:18
 	v_or_b32_e32 v4, s30, v34
-	.loc	1 127 30                        ; generate_amdgcn.py:127:30
+	.loc	1 154 30                        ; generate_amdgcn.py:154:30
 	v_add_nc_u32_e32 v2, s30, v47
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 110 23                        ; generate_amdgcn.py:110:23
+	.loc	1 137 23                        ; generate_amdgcn.py:137:23
 	v_cmp_gt_i32_e64 s2, s31, v4
-	.loc	1 129 30                        ; generate_amdgcn.py:129:30
+	.loc	1 156 30                        ; generate_amdgcn.py:156:30
 	v_add_nc_u32_e32 v46, s12, v1
 	v_add3_u32 v37, s12, s14, v1
 	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_cndmask_b32_e32 v1, 0x80000000, v2, vcc_lo
 	s_mov_b32 s12, 0
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_and_b32 vcc_lo, s22, s2
 	s_cmpk_lt_i32 s13, 0x42
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_dual_cndmask_b32 v2, 0x80000000, v46 :: v_dual_cndmask_b32 v3, 0x80000000, v37
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	buffer_load_u16 v50, v1, s[4:7], 0 offen
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_clause 0x1
 	buffer_load_b64 v[44:45], v2, s[24:27], 0 offen
 	buffer_load_b64 v[48:49], v3, s[24:27], 0 offen
 	v_mov_b32_e32 v1, 0
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_lshlrev_b32_e32 v13, 1, v0
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_lshlrev_b32_e32 v41, 3, v0
 	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
 	v_dual_mov_b32 v20, v1 :: v_dual_lshlrev_b32 v39, 4, v39
@@ -246,11 +246,11 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_mov_b32_e32 v7, v1
 	v_dual_mov_b32 v8, v1 :: v_dual_and_b32 v43, 0x778, v41
 	v_mov_b32_e32 v18, v1
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_xor_b32_e32 v42, v42, v16
 	v_mov_b32_e32 v2, v1
 	v_mov_b32_e32 v3, v1
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_xor_b32_e32 v43, v51, v43
 	v_mov_b32_e32 v17, v1
 	v_dual_mov_b32 v19, v1 :: v_dual_add_nc_u32 v42, 0, v42
@@ -275,103 +275,103 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_mov_b32_e32 v14, v1
 	v_mov_b32_e32 v15, v1
 	v_mov_b32_e32 v16, v1
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_waitcnt vmcnt(2)
 	ds_store_b16 v42, v50 offset:4096
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_waitcnt vmcnt(0)
 	ds_store_2addr_stride64_b64 v43, v[44:45], v[48:49] offset1:4
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cbranch_scc1 .LBB0_4
 ; %bb.1:                                ; %.lr.ph
 	v_sub_nc_u32_e32 v44, s31, v34
 	v_sub_nc_u32_e32 v45, s31, v33
-	.loc	1 108 18                        ; generate_amdgcn.py:108:18
+	.loc	1 135 18                        ; generate_amdgcn.py:135:18
 	s_add_i32 s0, s30, 32
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	s_mov_b32 s13, s12
 	s_mov_b32 s14, s12
-	.loc	1 110 23                        ; generate_amdgcn.py:110:23
+	.loc	1 137 23                        ; generate_amdgcn.py:137:23
 	v_cmp_lt_i32_e32 vcc_lo, s0, v44
-	.loc	1 129 30                        ; generate_amdgcn.py:129:30
+	.loc	1 156 30                        ; generate_amdgcn.py:156:30
 	v_add_nc_u32_e32 v3, 32, v37
 	v_add_nc_u32_e32 v2, 32, v46
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	s_mov_b32 s15, s12
 	s_mov_b32 s16, s12
 	s_mov_b32 s17, s12
 	s_mov_b32 s18, s12
 	s_mov_b32 s19, s12
-	.loc	1 127 30                        ; generate_amdgcn.py:127:30
+	.loc	1 154 30                        ; generate_amdgcn.py:154:30
 	v_add_nc_u32_e32 v1, s0, v47
-	.loc	1 109 23                        ; generate_amdgcn.py:109:23
+	.loc	1 136 23                        ; generate_amdgcn.py:136:23
 	v_cmp_lt_i32_e64 s0, s0, v45
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_mov_b32_e32 v9, s12
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_dual_cndmask_b32 v3, 0x80000000, v3 :: v_dual_cndmask_b32 v2, 0x80000000, v2
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_mov_b32_e32 v10, s13
 	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_cndmask_b32_e64 v1, 0x80000000, v1, s0
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_mov_b32 s26, s6
 	s_mov_b32 s27, s7
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_dual_mov_b32 v11, s14 :: v_dual_mov_b32 v14, s17
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	buffer_load_u16 v37, v1, s[4:7], 0 offen
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_clause 0x1
 	buffer_load_b64 v[66:67], v2, s[24:27], 0 offen
 	buffer_load_b64 v[68:69], v3, s[24:27], 0 offen
 	v_or_b32_e32 v1, v40, v39
 	v_or3_b32 v3, v39, v41, v40
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_dual_mov_b32 v12, s15 :: v_dual_mov_b32 v13, s16
 	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
 	v_dual_mov_b32 v15, s18 :: v_dual_add_nc_u32 v2, 0, v1
 	v_xor_b32_e32 v1, 8, v1
 	v_dual_mov_b32 v16, s19 :: v_dual_add_nc_u32 v47, 0, v3
 .Ltmp12:
-	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:106:32 ]
+	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:133:32 ]
 	s_add_i32 s0, s31, 31
 	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
 .Ltmp13:
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_add_nc_u32_e32 v46, 0x1000, v2
 	v_add_nc_u32_e32 v1, 0, v1
 	v_xor_b32_e32 v2, 8, v3
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[54:57], v47 offset1:4
 .Ltmp14:
-	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:106:32 ]
+	.loc	2 43 12                         ; standard.py:43:12 @[ generate_amdgcn.py:133:32 ]
 	s_lshr_b32 s0, s0, 5
 .Ltmp15:
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	ds_load_2addr_b64 v[50:53], v46 offset1:32
 	v_add_nc_u32_e32 v48, 0x1000, v1
 	v_add_nc_u32_e32 v49, 0, v2
 	ds_load_2addr_b64 v[58:61], v48 offset1:32
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[62:65], v49 offset1:4
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_max_u32 s0, s0, 2
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_waitcnt lgkmcnt(0)
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cmp_eq_u32 s0, 2
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_barrier
 	s_waitcnt vmcnt(2)
 	ds_store_b16 v42, v37 offset:4096
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_waitcnt vmcnt(0)
 	ds_store_2addr_stride64_b64 v43, v[66:67], v[68:69] offset1:4
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_wmma_i32_16x16x16_iu4 v[1:8], v[54:55], v[50:51], v[9:16] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[17:24], v[56:57], v[50:51], v[9:16] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[25:32], v[54:55], v[52:53], v[9:16] neg_lo:[1,1,0]
@@ -382,7 +382,7 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
 	v_wmma_i32_16x16x16_iu4 v[25:32], v[62:63], v[60:61], v[25:32] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[9:16], v[64:65], v[60:61], v[9:16] neg_lo:[1,1,0]
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cbranch_scc1 .LBB0_4
 ; %bb.2:                                ; %.peel.next
 	v_lshl_or_b32 v36, s33, 8, v36
@@ -400,52 +400,52 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 .LBB0_3:                                ; =>This Inner Loop Header: Depth=1
 	.loc	1 0 9 is_stmt 0                 ; generate_amdgcn.py:0:9
 	s_delay_alu instid0(VALU_DEP_1)
-	.loc	1 127 22 is_stmt 1              ; generate_amdgcn.py:127:22
+	.loc	1 154 22 is_stmt 1              ; generate_amdgcn.py:154:22
 	v_add_nc_u32_e32 v34, s2, v33
-	.loc	1 129 30                        ; generate_amdgcn.py:129:30
+	.loc	1 156 30                        ; generate_amdgcn.py:156:30
 	v_add_nc_u32_e32 v37, s2, v35
-	.loc	1 110 23                        ; generate_amdgcn.py:110:23
+	.loc	1 137 23                        ; generate_amdgcn.py:137:23
 	v_cmp_lt_i32_e32 vcc_lo, s2, v44
-	.loc	1 109 23                        ; generate_amdgcn.py:109:23
+	.loc	1 136 23                        ; generate_amdgcn.py:136:23
 	v_cmp_lt_i32_e64 s0, s2, v45
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_add_nc_u32_e32 v50, s2, v36
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_add_i32 s1, s1, -1
 	s_add_i32 s2, s2, 32
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_cndmask_b32_e32 v37, 0x80000000, v37, vcc_lo
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_cndmask_b32_e64 v34, 0x80000000, v34, s0
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_cndmask_b32_e32 v50, 0x80000000, v50, vcc_lo
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cmp_lg_u32 s1, 0
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	buffer_load_u16 v34, v34, s[4:7], 0 offen
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_clause 0x1
 	buffer_load_b64 v[66:67], v37, s[24:27], 0 offen
 	buffer_load_b64 v[68:69], v50, s[24:27], 0 offen
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	ds_load_2addr_b64 v[50:53], v46 offset1:32
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[54:57], v47 offset1:4
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	ds_load_2addr_b64 v[58:61], v48 offset1:32
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[62:65], v49 offset1:4
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	s_waitcnt vmcnt(2)
 	ds_store_b16 v42, v34 offset:4096
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	s_waitcnt vmcnt(0)
 	ds_store_2addr_stride64_b64 v43, v[66:67], v[68:69] offset1:4
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	v_wmma_i32_16x16x16_iu4 v[1:8], v[54:55], v[50:51], v[1:8] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[17:24], v[56:57], v[50:51], v[17:24] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[25:32], v[54:55], v[52:53], v[25:32] neg_lo:[1,1,0]
@@ -456,43 +456,43 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
 	v_wmma_i32_16x16x16_iu4 v[25:32], v[62:63], v[60:61], v[25:32] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[9:16], v[64:65], v[60:61], v[9:16] neg_lo:[1,1,0]
-	.loc	1 106 9                         ; generate_amdgcn.py:106:9
+	.loc	1 133 9                         ; generate_amdgcn.py:133:9
 	s_cbranch_scc1 .LBB0_3
 .LBB0_4:                                ; %._crit_edge
 	.loc	1 0 0 is_stmt 0                 ; generate_amdgcn.py:0
 	v_and_b32_e32 v33, 0xfe, v0
-	.loc	1 132 23 is_stmt 1              ; generate_amdgcn.py:132:23
+	.loc	1 159 23 is_stmt 1              ; generate_amdgcn.py:159:23
 	s_and_not1_b32 vcc_lo, exec_lo, s22
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	s_cbranch_vccnz .LBB0_6
 ; %bb.5:
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_or_b32_e32 v34, v40, v39
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_or3_b32 v35, v39, v41, v40
 	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_add_nc_u32_e32 v36, 0, v34
 	v_xad_u32 v39, v34, 8, 0
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	v_add_nc_u32_e32 v37, 0, v35
 	v_xad_u32 v43, v35, 8, 0
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	v_add_nc_u32_e32 v40, 0x1000, v36
 	v_add_nc_u32_e32 v47, 0x1000, v39
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[34:37], v37 offset1:4
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	ds_load_2addr_b64 v[39:42], v40 offset1:32
-	.loc	1 129 22                        ; generate_amdgcn.py:129:22
+	.loc	1 156 22                        ; generate_amdgcn.py:156:22
 	ds_load_2addr_stride64_b64 v[43:46], v43 offset1:4
-	.loc	1 127 22                        ; generate_amdgcn.py:127:22
+	.loc	1 154 22                        ; generate_amdgcn.py:154:22
 	ds_load_2addr_b64 v[47:50], v47 offset1:32
-	.loc	1 132 23                        ; generate_amdgcn.py:132:23
+	.loc	1 159 23                        ; generate_amdgcn.py:159:23
 	s_waitcnt lgkmcnt(2)
 	v_wmma_i32_16x16x16_iu4 v[1:8], v[34:35], v[39:40], v[1:8] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[17:24], v[36:37], v[39:40], v[17:24] neg_lo:[1,1,0]
@@ -504,41 +504,41 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_wmma_i32_16x16x16_iu4 v[25:32], v[43:44], v[49:50], v[25:32] neg_lo:[1,1,0]
 	v_wmma_i32_16x16x16_iu4 v[9:16], v[45:46], v[49:50], v[9:16] neg_lo:[1,1,0]
 .LBB0_6:                                ; %._crit_edge._crit_edge
-	.loc	1 142 22                        ; generate_amdgcn.py:142:22
+	.loc	1 169 22                        ; generate_amdgcn.py:169:22
 	v_and_or_b32 v34, v0, 15, s23
-	.loc	1 142 14 is_stmt 0              ; generate_amdgcn.py:142:14
+	.loc	1 169 14 is_stmt 0              ; generate_amdgcn.py:169:14
 	s_and_b32 s1, s9, 0xffff
 	s_mov_b32 s2, 0x7ffffffe
 	s_mov_b32 s0, s8
-	.loc	1 141 15 is_stmt 1              ; generate_amdgcn.py:141:15
+	.loc	1 168 15 is_stmt 1              ; generate_amdgcn.py:168:15
 	v_cvt_f32_i32_e32 v48, v19
-	.loc	1 142 22                        ; generate_amdgcn.py:142:22
+	.loc	1 169 22                        ; generate_amdgcn.py:169:22
 	v_lshlrev_b32_e32 v35, 1, v34
-	.loc	1 100 14                        ; generate_amdgcn.py:100:14
+	.loc	1 127 14                        ; generate_amdgcn.py:127:14
 	v_or_b32_e32 v34, s3, v0
 	s_mov_b32 s3, 0x31027000
-	.loc	1 141 15                        ; generate_amdgcn.py:141:15
+	.loc	1 168 15                        ; generate_amdgcn.py:168:15
 	v_cvt_f32_i32_e32 v39, v1
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_cmp_eq_u32_e32 vcc_lo, 0, v38
-	.loc	1 142 14                        ; generate_amdgcn.py:142:14
+	.loc	1 169 14                        ; generate_amdgcn.py:169:14
 	v_or_b32_e32 v36, 32, v35
-	.loc	1 141 15                        ; generate_amdgcn.py:141:15
+	.loc	1 168 15                        ; generate_amdgcn.py:168:15
 	v_cvt_f32_i32_e32 v40, v2
 	v_cvt_f32_i32_e32 v41, v3
 	v_cvt_f32_i32_e32 v42, v4
-	.loc	1 142 14                        ; generate_amdgcn.py:142:14
+	.loc	1 169 14                        ; generate_amdgcn.py:169:14
 	s_clause 0x1
 	buffer_load_u16 v35, v35, s[0:3], 0 offen
 	buffer_load_u16 v36, v36, s[0:3], 0 offen
-	.loc	1 143 14                        ; generate_amdgcn.py:143:14
+	.loc	1 170 14                        ; generate_amdgcn.py:170:14
 	s_and_b32 s1, s11, 0xffff
 	s_mov_b32 s0, s10
-	.loc	1 141 15                        ; generate_amdgcn.py:141:15
+	.loc	1 168 15                        ; generate_amdgcn.py:168:15
 	v_cvt_f32_i32_e32 v44, v6
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_cndmask_b32_e64 v4, 0x840, 0, vcc_lo
-	.loc	1 141 15                        ; generate_amdgcn.py:141:15
+	.loc	1 168 15                        ; generate_amdgcn.py:168:15
 	v_cvt_f32_i32_e32 v43, v5
 	v_cvt_f32_i32_e32 v45, v7
 	v_cvt_f32_i32_e32 v58, v12
@@ -565,7 +565,7 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_cvt_f32_i32_e32 v28, v28
 	v_cvt_f32_i32_e32 v30, v30
 	v_cvt_f32_i32_e32 v32, v32
-	.loc	1 218 23                        ; generate_amdgcn.py:218:23
+	.loc	1 247 23                        ; generate_amdgcn.py:247:23
 	s_mul_i32 s4, s29, 5
 	s_mul_i32 s5, s29, 6
 	s_mul_i32 s6, s29, 7
@@ -586,48 +586,48 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	s_mul_i32 s25, s29, 24
 	s_mul_i32 s26, s29, 25
 	s_mul_i32 s27, s29, 26
-	.loc	1 218 9 is_stmt 0               ; generate_amdgcn.py:218:9
+	.loc	1 247 9 is_stmt 0               ; generate_amdgcn.py:247:9
 	s_and_b32 s21, s21, 0xffff
 	s_mov_b32 s22, s2
-	.loc	1 218 23                        ; generate_amdgcn.py:218:23
+	.loc	1 247 23                        ; generate_amdgcn.py:247:23
 	s_mul_i32 s28, s29, 27
 	s_mul_i32 s30, s29, 28
 	s_mul_i32 s31, s29, 29
 	s_mul_i32 s33, s29, 30
-	.loc	1 142 14 is_stmt 1              ; generate_amdgcn.py:142:14
+	.loc	1 169 14 is_stmt 1              ; generate_amdgcn.py:169:14
 	s_waitcnt vmcnt(1)
 	v_lshlrev_b32_e32 v19, 16, v35
-	.loc	1 143 14                        ; generate_amdgcn.py:143:14
+	.loc	1 170 14                        ; generate_amdgcn.py:170:14
 	v_lshlrev_b32_e32 v37, 1, v34
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_and_b32_e32 v1, 0xf0, v0
 	v_and_b32_e32 v0, 14, v0
 	v_lshlrev_b32_e32 v2, 5, v38
-	.loc	1 144 9 is_stmt 0               ; generate_amdgcn.py:144:9
+	.loc	1 171 9 is_stmt 0               ; generate_amdgcn.py:171:9
 	v_lshlrev_b32_e32 v3, 2, v33
-	.loc	1 143 14 is_stmt 1              ; generate_amdgcn.py:143:14
+	.loc	1 170 14 is_stmt 1              ; generate_amdgcn.py:170:14
 	buffer_load_u16 v37, v37, s[0:3], 0 offen
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_lshlrev_b32_e32 v6, 2, v1
-	.loc	1 144 9 is_stmt 0               ; generate_amdgcn.py:144:9
+	.loc	1 171 9 is_stmt 0               ; generate_amdgcn.py:171:9
 	v_lshlrev_b32_e32 v5, 6, v38
 	v_lshlrev_b32_e32 v7, 2, v0
 	v_xor_b32_e32 v3, v4, v3
 	v_lshlrev_b32_e32 v4, 3, v1
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_lshl_add_u32 v12, v1, 1, 0
 	v_add3_u32 v1, 0, v6, v2
-	.loc	1 218 23 is_stmt 1              ; generate_amdgcn.py:218:23
+	.loc	1 247 23 is_stmt 1              ; generate_amdgcn.py:247:23
 	v_mad_u64_u32 v[16:17], null, s23, s29, v[34:35]
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_lshl_or_b32 v2, v0, 11, v3
 	v_or3_b32 v17, v4, v5, v7
 	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 144 16 is_stmt 0              ; generate_amdgcn.py:144:16
+	.loc	1 171 16 is_stmt 0              ; generate_amdgcn.py:171:16
 	v_lshl_add_u32 v0, v0, 1, v1
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_xad_u32 v88, v2, 8, 0
 	v_xad_u32 v89, v2, 16, 0
 	v_xad_u32 v90, v2, 24, 0
@@ -650,9 +650,9 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_xad_u32 v107, 0x6870, v17, 0
 	v_xad_u32 v108, 0x7038, v17, 0
 	v_xad_u32 v35, 0x7878, v17, 0
-	.loc	1 218 23 is_stmt 1              ; generate_amdgcn.py:218:23
+	.loc	1 247 23 is_stmt 1              ; generate_amdgcn.py:247:23
 	s_mul_i32 s1, s29, 3
-	.loc	1 218 9 is_stmt 0               ; generate_amdgcn.py:218:9
+	.loc	1 247 9 is_stmt 0               ; generate_amdgcn.py:247:9
 	v_add_lshl_u32 v34, v16, s29, 2
 	s_mov_b32 s23, s3
 	v_add_lshl_u32 v38, v16, s1, 2
@@ -678,21 +678,21 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_add_lshl_u32 v82, v16, s27, 2
 	v_add_lshl_u32 v83, v16, s28, 2
 	v_add_lshl_u32 v84, v16, s30, 2
-	.loc	1 218 23                        ; generate_amdgcn.py:218:23
+	.loc	1 247 23                        ; generate_amdgcn.py:247:23
 	s_mul_i32 s0, s29, 31
-	.loc	1 218 9                         ; generate_amdgcn.py:218:9
+	.loc	1 247 9                         ; generate_amdgcn.py:247:9
 	v_add_lshl_u32 v85, v16, s31, 2
 	v_add_lshl_u32 v86, v16, s33, 2
-	.loc	1 143 14 is_stmt 1              ; generate_amdgcn.py:143:14
+	.loc	1 170 14 is_stmt 1              ; generate_amdgcn.py:170:14
 	s_waitcnt vmcnt(0)
 	v_lshlrev_b32_e32 v1, 16, v37
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_xad_u32 v37, 0x1008, v17, 0
-	.loc	1 142 14                        ; generate_amdgcn.py:142:14
+	.loc	1 169 14                        ; generate_amdgcn.py:169:14
 	v_lshlrev_b32_e32 v17, 16, v36
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_add_nc_u32_e32 v87, 0, v2
-	.loc	1 144 16 is_stmt 0              ; generate_amdgcn.py:144:16
+	.loc	1 171 16 is_stmt 0              ; generate_amdgcn.py:171:16
 	ds_store_b32 v0, v1
 	s_waitcnt lgkmcnt(0)
 	s_barrier
@@ -700,19 +700,19 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	ds_load_b128 v[4:7], v12 offset:16
 	ds_load_b128 v[8:11], v12 offset:512
 	ds_load_b128 v[12:15], v12 offset:528
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_mul_f32_e32 v124, v6, v17
 	v_mul_f32_e32 v25, v2, v19
 	v_mul_f32_e32 v29, v4, v19
 	v_mul_f32_e32 v122, v4, v17
 	v_mul_f32_e32 v21, v0, v19
 	v_mul_f32_e32 v110, v8, v19
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_mul_f32_e32 v4, v25, v41
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_dual_mul_f32 v31, v5, v19 :: v_dual_mul_f32 v126, v8, v17
 	v_dual_mul_f32 v109, v7, v19 :: v_dual_mul_f32 v130, v12, v17
 	v_mul_f32_e32 v119, v1, v17
@@ -731,12 +731,12 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	v_dual_mul_f32 v129, v11, v17 :: v_dual_mul_f32 v114, v12, v19
 	v_dual_mul_f32 v116, v14, v19 :: v_dual_mul_f32 v123, v5, v17
 	v_mul_f32_e32 v125, v7, v17
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_mul_f32_e32 v10, v31, v44
 	v_dual_mul_f32 v3, v119, v26 :: v_dual_mul_f32 v26, v130, v59
-	.loc	1 144 16                        ; generate_amdgcn.py:144:16
+	.loc	1 171 16                        ; generate_amdgcn.py:171:16
 	v_mul_f32_e32 v131, v13, v17
-	.loc	1 144 9                         ; generate_amdgcn.py:144:9
+	.loc	1 171 9                         ; generate_amdgcn.py:171:9
 	v_mul_f32_e32 v0, v21, v39
 	v_mul_f32_e32 v17, v110, v47
 	v_mul_f32_e32 v19, v111, v18
@@ -785,7 +785,7 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	ds_load_b64 v[27:28], v107
 	ds_load_b64 v[29:30], v108
 	ds_load_b64 v[31:32], v35
-	.loc	1 218 9 is_stmt 1               ; generate_amdgcn.py:218:9
+	.loc	1 247 9 is_stmt 1               ; generate_amdgcn.py:247:9
 	v_lshl_add_u32 v35, s29, 3, v33
 	v_lshl_add_u32 v36, s29, 4, v33
 	v_lshl_add_u32 v37, s29, 5, v33
@@ -841,7 +841,7 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	buffer_atomic_add_f32 v28, v85, s[20:23], 0 offen
 	buffer_atomic_add_f32 v30, v86, s[20:23], 0 offen
 	buffer_atomic_add_f32 v32, v0, s[20:23], 0 offen
-	.loc	1 80 1                          ; generate_amdgcn.py:80:1
+	.loc	1 106 1                         ; generate_amdgcn.py:106:1
 	s_nop 0
 	s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)
 	s_endpgm
@@ -1018,19 +1018,19 @@ amd_strix_halo_gfx1151_int4xint4_nt_pc_none_bm32_bn256_bk32_gm4_w8_s2_weu2_sk2_m
 	.long	42                              ; DW_AT_abstract_origin
 	.long	.Ldebug_ranges0                 ; DW_AT_ranges
 	.byte	1                               ; DW_AT_call_file
-	.byte	88                              ; DW_AT_call_line
+	.byte	115                             ; DW_AT_call_line
 	.byte	17                              ; DW_AT_call_column
 	.byte	4                               ; Abbrev [4] 0x4d:0xc DW_TAG_inlined_subroutine
 	.long	42                              ; DW_AT_abstract_origin
 	.long	.Ldebug_ranges1                 ; DW_AT_ranges
 	.byte	1                               ; DW_AT_call_file
-	.byte	87                              ; DW_AT_call_line
+	.byte	114                             ; DW_AT_call_line
 	.byte	17                              ; DW_AT_call_column
 	.byte	4                               ; Abbrev [4] 0x59:0xc DW_TAG_inlined_subroutine
 	.long	42                              ; DW_AT_abstract_origin
 	.long	.Ldebug_ranges2                 ; DW_AT_ranges
 	.byte	1                               ; DW_AT_call_file
-	.byte	106                             ; DW_AT_call_line
+	.byte	133                             ; DW_AT_call_line
 	.byte	32                              ; DW_AT_call_column
 	.byte	0                               ; End Of Children Mark
 	.byte	0                               ; End Of Children Mark

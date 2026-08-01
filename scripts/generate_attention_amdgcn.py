@@ -29,11 +29,20 @@ from amd_strix_halo_kernels.artifacts import (  # noqa: E402
     write_triton_text_artifacts,
 )
 from amd_strix_halo_kernels.attention import (  # noqa: E402
+    Int4AttentionBackwardConfig,
     Int4AttentionConfig,
     _attention_decode_reduce_kernel,
     _attention_forward_kernel,
 )
+from amd_strix_halo_kernels.attention_backward import (  # noqa: E402
+    _attention_backward_dkv_kernel,
+    _attention_backward_kernel,
+)
 from amd_strix_halo_kernels.attention_artifacts import (  # noqa: E402
+    ATTENTION_BACKWARD_DKV,
+    ATTENTION_BACKWARD_DQ,
+    ATTENTION_BACKWARD_PHASES,
+    ATTENTION_BACKWARD_RUNTIME_SCALAR_ARGS,
     ATTENTION_DECODE_REDUCE,
     ATTENTION_FORWARD,
     ATTENTION_FORWARD_RUNTIME_SCALAR_ARGS,
@@ -46,6 +55,7 @@ from amd_strix_halo_kernels.attention_artifacts import (  # noqa: E402
     ATTENTION_OUTPUT_DTYPES,
     ATTENTION_OUTPUT_FP32,
     ATTENTION_PRECOMPILED_CONFIGS,
+    ATTENTION_PRECOMPILED_BACKWARD_CONFIGS,
     ATTENTION_PRECOMPILED_DECODE_SPLITS,
     ATTENTION_PRECOMPILED_HEAD_DIM,
     ATTENTION_PRECOMPILED_VALUE_DIM,
@@ -55,6 +65,8 @@ from amd_strix_halo_kernels.attention_artifacts import (  # noqa: E402
     ATTENTION_SEMANTICS_LOCAL,
     attention_forward_kernel_id,
     attention_forward_metadata_dict,
+    attention_backward_kernel_id,
+    attention_backward_metadata_dict,
     attention_precompiled_workload_shapes,
     attention_reduce_kernel_id,
     attention_reduce_metadata_dict,
@@ -75,6 +87,18 @@ class ForwardJob:
 class ReduceJob:
     output_dtype: str
     decode_splits: int
+
+
+@dataclass(frozen=True, slots=True)
+class BackwardJob:
+    phase: str
+    mode: str
+    mask_dtype: str
+    semantics: str | None
+    output_dtype: str
+    grad_output_dtype: str
+    config: Int4AttentionBackwardConfig
+    workload_shape: tuple[int, int, int, int] | None
 
 
 def _triton_checkout_root(triton: Any) -> Path | None:
@@ -187,6 +211,21 @@ def _config(values: tuple[int, int, int, int, int]) -> Int4AttentionConfig:
     )
 
 
+def _backward_config(
+    values: tuple[int, int, int, int, int, int, int, int],
+) -> Int4AttentionBackwardConfig:
+    return Int4AttentionBackwardConfig(
+        block_m=values[0],
+        block_n=values[1],
+        num_warps=values[2],
+        num_stages=values[3],
+        dkv_block_m=values[4],
+        dkv_block_n=values[5],
+        dkv_num_warps=values[6],
+        dkv_num_stages=values[7],
+    )
+
+
 def _mode_flags(mode: str) -> tuple[bool, bool]:
     qk, pv = mode.split("-", 1)
     return qk == "int4", pv == "int4"
@@ -230,6 +269,16 @@ def _check_reduce_runtime_abi(program: Any) -> None:
     actual = _runtime_scalar_args(program)
     if actual != expected:
         raise RuntimeError(f"attention reduce runtime ABI mismatch: expected {expected}, got {actual}")
+
+
+def _check_backward_runtime_abi(program: Any, *, require_full: bool) -> None:
+    actual = _runtime_scalar_args(program)
+    expected = ATTENTION_BACKWARD_RUNTIME_SCALAR_ARGS
+    if require_full and actual != expected:
+        raise RuntimeError(f"attention backward runtime ABI mismatch: expected {expected}, got {actual}")
+    expected_subset = tuple(name for name in expected if name in actual)
+    if actual != expected_subset or len(actual) != len(set(actual)):
+        raise RuntimeError(f"attention backward runtime ABI is not an ordered subset: {actual}")
 
 
 def compile_forward_program(job: ForwardJob) -> Any:
@@ -369,6 +418,192 @@ def compile_forward_program(job: ForwardJob) -> Any:
     return program
 
 
+def compile_backward_program(job: BackwardJob) -> Any:
+    import torch
+
+    qk_int4, pv_int4 = _mode_flags(job.mode)
+    batch, query_heads, kv_heads = 2, 4, 2
+    if job.workload_shape is None:
+        query_length, key_length = 65, 130
+    else:
+        query_heads, kv_heads, query_length, key_length = job.workload_shape
+    head_dim = ATTENTION_PRECOMPILED_HEAD_DIM
+    value_dim = ATTENTION_PRECOMPILED_VALUE_DIM
+    packed_head_dim = head_dim // 2 if qk_int4 else 1
+    query_dtype = torch.uint8 if qk_int4 else torch.bfloat16
+    value_dtype = torch.uint8 if pv_int4 else torch.bfloat16
+    query = torch.empty(
+        (batch, query_heads, query_length, packed_head_dim if qk_int4 else head_dim),
+        device="cuda",
+        dtype=query_dtype,
+    )
+    key = torch.empty(
+        (batch, kv_heads, key_length, packed_head_dim if qk_int4 else head_dim),
+        device="cuda",
+        dtype=query_dtype,
+    )
+    packed_key_capacity = _cdiv(key_length, 16) * 8
+    value = torch.empty(
+        (batch, kv_heads, packed_key_capacity if pv_int4 else key_length, value_dim),
+        device="cuda",
+        dtype=value_dtype,
+    )
+    query_scale = (
+        torch.empty((batch, query_heads, query_length), device="cuda", dtype=torch.bfloat16)
+        if qk_int4
+        else query
+    )
+    key_scale = (
+        torch.empty((batch, kv_heads, key_length), device="cuda", dtype=torch.bfloat16)
+        if qk_int4
+        else key
+    )
+    value_scale = (
+        torch.empty(
+            (batch, kv_heads, _cdiv(key_length, 16), value_dim),
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+        if pv_int4
+        else value
+    )
+    if job.mask_dtype == ATTENTION_MASK_NONE:
+        attn_mask = torch.empty((1,), device="cuda", dtype=torch.bool)
+        mask_strides = (0, 0, 0, 0)
+    else:
+        mask_torch_dtype = {
+            ATTENTION_MASK_BOOL: torch.bool,
+            ATTENTION_MASK_BF16: torch.bfloat16,
+            ATTENTION_MASK_FP32: torch.float32,
+        }[job.mask_dtype]
+        attn_mask = torch.empty(
+            (batch, query_heads, query_length, key_length),
+            device="cuda",
+            dtype=mask_torch_dtype,
+        )
+        mask_strides = tuple(int(value) for value in attn_mask.stride())
+    output_torch_dtype = (
+        torch.bfloat16 if job.output_dtype == ATTENTION_OUTPUT_BF16 else torch.float32
+    )
+    grad_output_torch_dtype = (
+        torch.bfloat16 if job.grad_output_dtype == ATTENTION_OUTPUT_BF16 else torch.float32
+    )
+    output = torch.empty(
+        (batch, query_heads, query_length, value_dim),
+        device="cuda",
+        dtype=output_torch_dtype,
+    )
+    grad_output = torch.empty_like(output, dtype=grad_output_torch_dtype)
+    lse = torch.empty((batch, query_heads, query_length), device="cuda", dtype=torch.float32)
+    delta = torch.empty_like(lse)
+    grad_query = torch.empty(
+        (batch, query_heads, query_length, head_dim),
+        device="cuda",
+        dtype=torch.float32,
+    )
+    grad_key = torch.empty(
+        (batch, kv_heads, key_length, head_dim),
+        device="cuda",
+        dtype=torch.float32,
+    )
+    grad_value = torch.empty(
+        (batch, kv_heads, key_length, value_dim),
+        device="cuda",
+        dtype=torch.float32,
+    )
+    is_causal, has_window = _semantic_flags(job.semantics)
+    specialize_runtime_args = job.workload_shape is not None
+    static_kwargs = {
+        "BLOCK_D": head_dim,
+        "BLOCK_D_PACKED": packed_head_dim,
+        "BLOCK_DV": value_dim,
+        "QK_INT4": qk_int4,
+        "PV_INT4": pv_int4,
+        "MASK_KIND": _mask_kind(job.mask_dtype),
+        "SPECIALIZE_SEMANTICS": job.semantics is not None,
+        "IS_CAUSAL_STATIC": is_causal,
+        "HAS_WINDOW_STATIC": has_window,
+        "SPECIALIZE_SEQUENCE": job.workload_shape is not None,
+        "QUERY_LENGTH_STATIC": query_length if job.workload_shape is not None else 0,
+        "KEY_LENGTH_STATIC": key_length if job.workload_shape is not None else 0,
+        "SPECIALIZE_HEADS": job.workload_shape is not None,
+        "QUERY_HEADS_STATIC": query_heads if job.workload_shape is not None else 0,
+        "KV_HEADS_STATIC": kv_heads if job.workload_shape is not None else 0,
+        "matrix_instr_nonkdim": 16,
+        "kpack": 1,
+    }
+    scalar_args = (
+        batch,
+        query_heads,
+        kv_heads,
+        query_length,
+        key_length,
+        head_dim,
+        packed_head_dim,
+        value_dim,
+        0.125,
+        *mask_strides,
+        is_causal,
+        has_window,
+        9,
+        2,
+        2,
+    )
+    if job.phase == ATTENTION_BACKWARD_DQ:
+        grid = (_cdiv(query_length, job.config.block_m), batch * query_heads)
+        program = _attention_backward_kernel(
+            specialize_runtime_args=specialize_runtime_args
+        )[grid](
+            query,
+            key,
+            value,
+            query_scale,
+            key_scale,
+            value_scale,
+            attn_mask,
+            output,
+            grad_output,
+            lse,
+            delta,
+            grad_query,
+            *scalar_args,
+            BLOCK_M=job.config.block_m,
+            BLOCK_N=job.config.block_n,
+            GRAD_QUERY_BF16=False,
+            num_warps=job.config.num_warps,
+            num_stages=job.config.num_stages,
+            **static_kwargs,
+        )
+    elif job.phase == ATTENTION_BACKWARD_DKV:
+        grid = (_cdiv(key_length, job.config.dkv_block_n), batch * kv_heads)
+        program = _attention_backward_dkv_kernel(
+            specialize_runtime_args=specialize_runtime_args
+        )[grid](
+            query,
+            key,
+            value,
+            query_scale,
+            key_scale,
+            value_scale,
+            attn_mask,
+            grad_output,
+            lse,
+            delta,
+            grad_key,
+            grad_value,
+            *scalar_args,
+            BLOCK_M=job.config.dkv_block_m,
+            BLOCK_N=job.config.dkv_block_n,
+            num_warps=job.config.dkv_num_warps,
+            num_stages=job.config.dkv_num_stages,
+            **static_kwargs,
+        )
+    else:
+        raise ValueError(f"unsupported attention backward phase {job.phase!r}")
+    _check_backward_runtime_abi(program, require_full=not specialize_runtime_args)
+    return program
+
+
 def compile_reduce_program(job: ReduceJob) -> Any:
     import torch
 
@@ -398,7 +633,7 @@ def compile_reduce_program(job: ReduceJob) -> Any:
 
 def _write_artifacts(
     *,
-    job: ForwardJob | ReduceJob,
+    job: ForwardJob | BackwardJob | ReduceJob,
     program: Any,
     out_dir: Path,
     triton_out_dir: Path | None,
@@ -410,6 +645,19 @@ def _write_artifacts(
             mask_dtype=job.mask_dtype,
             semantics=job.semantics,
             output_dtype=job.output_dtype,
+            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
+            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            config=job.config,
+            workload_shape=job.workload_shape,
+        )
+    elif isinstance(job, BackwardJob):
+        kernel_id = attention_backward_kernel_id(
+            phase=job.phase,
+            mode=job.mode,
+            mask_dtype=job.mask_dtype,
+            semantics=job.semantics,
+            output_dtype=job.output_dtype,
+            grad_output_dtype=job.grad_output_dtype,
             head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
             value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
             config=job.config,
@@ -472,6 +720,37 @@ def _write_artifacts(
             amdgcn=amdgcn,
             kernel_arg_layout=kernel_arg_layout,
         )
+    elif isinstance(job, BackwardJob):
+        runtime_scalar_args = _runtime_scalar_args(program)
+        scalar_sizes = tuple(
+            1 if name in {"is_causal", "has_window"} else 4
+            for name in runtime_scalar_args
+        )
+        kernel_arg_layout = _kernel_arg_layout(
+            amdgcn,
+            runtime_scalar_args=runtime_scalar_args,
+            expected_scalar_sizes=scalar_sizes,
+            visible_global_buffers=12,
+        )
+        metadata = attention_backward_metadata_dict(
+            kernel_id=kernel_id,
+            phase=job.phase,
+            mode=job.mode,
+            mask_dtype=job.mask_dtype,
+            semantics=job.semantics,
+            output_dtype=job.output_dtype,
+            grad_output_dtype=job.grad_output_dtype,
+            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
+            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            config=job.config,
+            workload_shape=job.workload_shape,
+            amdgcn_symbol=amdgcn_symbol,
+            launch_metadata=launch_metadata,
+            asm_keys=asm,
+            source_triton_commit=_triton_commit(triton),
+            amdgcn=amdgcn,
+            kernel_arg_layout=kernel_arg_layout,
+        )
     else:
         runtime_scalar_args = _runtime_scalar_args(program)
         kernel_arg_layout = _kernel_arg_layout(
@@ -511,8 +790,8 @@ def build_jobs(
     modes: Iterable[str],
     mask_dtypes: Iterable[str],
     output_dtypes: Iterable[str],
-) -> tuple[ForwardJob | ReduceJob, ...]:
-    jobs: list[ForwardJob | ReduceJob] = []
+) -> tuple[ForwardJob | BackwardJob | ReduceJob, ...]:
+    jobs: list[ForwardJob | BackwardJob | ReduceJob] = []
     if ATTENTION_FORWARD in phases:
         for mode in modes:
             for values in ATTENTION_PRECOMPILED_CONFIGS[mode]:
@@ -546,6 +825,43 @@ def build_jobs(
                                         workload_shape,
                                     )
                                 )
+    for phase in ATTENTION_BACKWARD_PHASES:
+        if phase not in phases:
+            continue
+        for mode in modes:
+            for values in ATTENTION_PRECOMPILED_BACKWARD_CONFIGS:
+                config = _backward_config(values)
+                for mask_dtype in mask_dtypes:
+                    for output_dtype in output_dtypes:
+                        for grad_output_dtype in output_dtypes:
+                            jobs.append(
+                                BackwardJob(
+                                    phase=phase,
+                                    mode=mode,
+                                    mask_dtype=mask_dtype,
+                                    semantics=None,
+                                    output_dtype=output_dtype,
+                                    grad_output_dtype=grad_output_dtype,
+                                    config=config,
+                                    workload_shape=None,
+                                )
+                            )
+            specialized_config = _backward_config(ATTENTION_PRECOMPILED_BACKWARD_CONFIGS[0])
+            for semantics in ATTENTION_SEMANTICS:
+                for output_dtype in output_dtypes:
+                    for grad_output_dtype in output_dtypes:
+                        jobs.append(
+                            BackwardJob(
+                                phase=phase,
+                                mode=mode,
+                                mask_dtype=ATTENTION_MASK_NONE,
+                                semantics=semantics,
+                                output_dtype=output_dtype,
+                                grad_output_dtype=grad_output_dtype,
+                                config=specialized_config,
+                                workload_shape=(16, 8, 2048, 2048),
+                            )
+                        )
     if ATTENTION_DECODE_REDUCE in phases:
         for decode_splits in ATTENTION_PRECOMPILED_DECODE_SPLITS:
             for output_dtype in output_dtypes:
@@ -555,7 +871,11 @@ def build_jobs(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate precompiled gfx1151 fused-attention artifacts.")
-    parser.add_argument("--phase", action="append", choices=(ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE))
+    parser.add_argument(
+        "--phase",
+        action="append",
+        choices=(ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE, *ATTENTION_BACKWARD_PHASES),
+    )
     parser.add_argument("--mode", action="append", choices=tuple(ATTENTION_PRECOMPILED_CONFIGS))
     parser.add_argument("--mask-dtype", action="append", choices=ATTENTION_MASK_DTYPES)
     parser.add_argument("--output-dtype", action="append", choices=ATTENTION_OUTPUT_DTYPES)
@@ -576,7 +896,10 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("attention artifact generation requires a ROCm torch device")
     if args.limit is not None and args.limit <= 0:
         raise ValueError("--limit must be positive")
-    phases = tuple(args.phase or (ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE))
+    phases = tuple(
+        args.phase
+        or (ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE, *ATTENTION_BACKWARD_PHASES)
+    )
     modes = tuple(args.mode or ATTENTION_PRECOMPILED_CONFIGS)
     mask_dtypes = tuple(args.mask_dtype or ATTENTION_MASK_DTYPES)
     output_dtypes = tuple(args.output_dtype or ATTENTION_OUTPUT_DTYPES)
@@ -599,7 +922,12 @@ def main(argv: list[str] | None = None) -> int:
     failures: list[dict[str, Any]] = []
     for index, job in enumerate(jobs, start=1):
         try:
-            program = compile_forward_program(job) if isinstance(job, ForwardJob) else compile_reduce_program(job)
+            if isinstance(job, ForwardJob):
+                program = compile_forward_program(job)
+            elif isinstance(job, BackwardJob):
+                program = compile_backward_program(job)
+            else:
+                program = compile_reduce_program(job)
             record = _write_artifacts(
                 job=job,
                 program=program,

@@ -3,15 +3,23 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels import (
+    Int4AttentionBackwardConfig,
     Int4AttentionConfig,
     autotune_attention,
+    autotune_attention_backward,
+    default_attention_backward_candidates,
     int4_scaled_dot_product_attention,
+    int4_scaled_dot_product_attention_backward,
     quantize_attention_qk_int4,
     quantize_attention_value_int4,
     reference_scaled_dot_product_attention,
+    reference_scaled_dot_product_attention_backward,
 )
 from amd_strix_halo_kernels.quant import unpack_int4_k_major
-from amd_strix_halo_kernels.attention import _default_attention_config
+from amd_strix_halo_kernels.attention import (
+    _default_attention_backward_config,
+    _default_attention_config,
+)
 
 
 STRICT_RTOL = 1.0e-3
@@ -100,6 +108,30 @@ def test_attention_config_rejects_invalid_launch_values() -> None:
         Int4AttentionConfig(block_n=24)
     with pytest.raises(TypeError, match="num_warps"):
         Int4AttentionConfig(num_warps=True)
+    with pytest.raises(ValueError, match="dkv_block_n must be a power of two"):
+        Int4AttentionBackwardConfig(dkv_block_n=24)
+    with pytest.raises(TypeError, match="dkv_num_warps"):
+        Int4AttentionBackwardConfig(dkv_num_warps=True)
+
+
+def test_attention_backward_defaults_separate_full_and_local_dq_tiles() -> None:
+    full = _default_attention_backward_config(window=None)
+    local = _default_attention_backward_config(window=(127, 0))
+
+    assert (full.block_m, full.block_n, full.num_warps) == (32, 16, 2)
+    assert (local.block_m, local.block_n, local.num_warps) == (32, 16, 2)
+    assert (full.dkv_block_m, full.dkv_block_n, full.dkv_num_warps) == (32, 16, 2)
+    assert (local.dkv_block_m, local.dkv_block_n, local.dkv_num_warps) == (32, 16, 2)
+
+
+def test_default_attention_backward_candidates_are_unique_and_window_aware() -> None:
+    full = default_attention_backward_candidates(windowed=False)
+    local = default_attention_backward_candidates(windowed=True)
+
+    assert len(full) == len(set(full)) == 5
+    assert len(local) == len(set(local)) == 3
+    assert all(config.block_m <= 32 for config in local)
+    assert any(config.block_m == 64 for config in full)
 
 
 def test_attention_defaults_use_measured_bf16_local_tiles() -> None:
@@ -120,6 +152,18 @@ def test_attention_defaults_use_measured_bf16_local_tiles() -> None:
 
     assert (short.block_m, short.block_n, short.num_warps) == (64, 32, 4)
     assert (training.block_m, training.block_n, training.num_warps) == (64, 64, 4)
+
+
+def test_attention_defaults_use_measured_int4_qk_training_local_tile() -> None:
+    config = _default_attention_config(
+        qk_int4=True,
+        pv_int4=False,
+        query_length=2048,
+        key_length=2048,
+        window=(127, 0),
+    )
+
+    assert (config.block_m, config.block_n, config.num_warps) == (32, 32, 2)
 
 
 @pytest.mark.parametrize(
@@ -537,6 +581,380 @@ def test_int4_qk_bf16_pv_preserves_sdpa_quality() -> None:
     expected = torch.nn.functional.scaled_dot_product_attention(q.float(), k.float(), v.float())
 
     _assert_quality(actual, expected, max_relative_l2=0.03, min_cosine=0.999)
+
+
+@requires_gpu
+@pytest.mark.parametrize("qk_int4", [False, True], ids=["bf16-qk", "int4-qk"])
+@pytest.mark.parametrize("pv_int4", [False, True], ids=["bf16-pv", "int4-pv"])
+@pytest.mark.parametrize(
+    "forward_output_dtype",
+    [torch.float32, torch.bfloat16],
+    ids=["fp32-output", "bf16-output"],
+)
+@pytest.mark.parametrize(
+    "case",
+    [
+        "dense",
+        "ragged",
+        "causal",
+        "local",
+        "causal-local",
+        "offset-local",
+        "bool-mask",
+        "empty-row-mask",
+        "additive-mask",
+        "gqa",
+    ],
+)
+def test_attention_backward_matches_logical_gradient_oracle(
+    qk_int4,
+    pv_int4,
+    forward_output_dtype,
+    case,
+) -> None:
+    pytest.importorskip("triton")
+    query_heads, kv_heads = (4, 2) if case == "gqa" else (2, 2)
+    query_length, key_length = (13, 21) if case != "dense" else (16, 16)
+    q, k, v = _logical_inputs(
+        query_heads=query_heads,
+        kv_heads=kv_heads,
+        query_length=query_length,
+        key_length=key_length,
+        head_dim=33,
+        value_dim=32,
+        seed=173 + len(case) + int(qk_int4),
+    )
+    query, key, value, operand_kwargs = _attention_operands(
+        q,
+        k,
+        v,
+        qk_int4=qk_int4,
+        pv_int4=pv_int4,
+    )
+    semantic_kwargs = {}
+    if case == "causal":
+        semantic_kwargs["is_causal"] = True
+    elif case == "local":
+        semantic_kwargs["window_size"] = (5, 1)
+    elif case == "causal-local":
+        semantic_kwargs.update(is_causal=True, window_size=(5, 1))
+    elif case == "offset-local":
+        semantic_kwargs.update(window_size=(5, 1), query_position_offset=8)
+    elif case == "bool-mask":
+        mask = torch.rand((query_length, key_length), device="cuda") > 0.2
+        mask[:, 0] = True
+        semantic_kwargs["attn_mask"] = mask
+    elif case == "empty-row-mask":
+        mask = torch.ones((query_length, key_length), device="cuda", dtype=torch.bool)
+        mask[0] = False
+        semantic_kwargs["attn_mask"] = mask
+    elif case == "additive-mask":
+        mask = torch.zeros((query_length, key_length), device="cuda", dtype=torch.float32)
+        mask[:, -3:] = -2.0
+        semantic_kwargs["attn_mask"] = mask
+    elif case == "gqa":
+        semantic_kwargs["enable_gqa"] = True
+    grad_output = (
+        torch.randn((1, query_heads, query_length, 32), device="cuda", dtype=torch.bfloat16) * 0.2
+    ).contiguous()
+    kwargs = {**operand_kwargs, **semantic_kwargs}
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        output_dtype=forward_output_dtype,
+        use_precompiled=False,
+        **kwargs,
+    )
+    actual = int4_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        output,
+        grad_output,
+        config=Int4AttentionBackwardConfig(block_m=16, block_n=16),
+        **kwargs,
+    )
+    expected = reference_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        grad_output,
+        **kwargs,
+    )
+
+    for actual_gradient, expected_gradient in zip(actual, expected, strict=True):
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
+
+
+@requires_gpu
+def test_attention_backward_cudagraph_replay_matches_logical_gradient_oracle() -> None:
+    pytest.importorskip("triton")
+    first = _logical_inputs(
+        query_heads=4,
+        kv_heads=2,
+        query_length=16,
+        key_length=32,
+        head_dim=32,
+        value_dim=16,
+        seed=191,
+    )
+    second = _logical_inputs(
+        query_heads=4,
+        kv_heads=2,
+        query_length=16,
+        key_length=32,
+        head_dim=32,
+        value_dim=16,
+        seed=193,
+    )
+    query, key, value, kwargs = _attention_operands(*first, qk_int4=True, pv_int4=True)
+    next_query, next_key, next_value, next_kwargs = _attention_operands(
+        *second,
+        qk_int4=True,
+        pv_int4=True,
+    )
+    grad_output = (
+        torch.randn((1, 4, 16, 16), device="cuda", dtype=torch.bfloat16) * 0.2
+    ).contiguous()
+    next_grad_output = (
+        torch.randn((1, 4, 16, 16), device="cuda", dtype=torch.bfloat16) * 0.2
+    ).contiguous()
+    output = torch.empty((1, 4, 16, 16), device="cuda", dtype=torch.float32)
+    grad_query = torch.empty((1, 4, 16, 32), device="cuda", dtype=torch.float32)
+    grad_key = torch.empty((1, 2, 32, 32), device="cuda", dtype=torch.float32)
+    grad_value = torch.empty((1, 2, 32, 16), device="cuda", dtype=torch.float32)
+    lse = torch.empty((1, 4, 16), device="cuda", dtype=torch.float32)
+    delta = torch.empty((1, 4, 16), device="cuda", dtype=torch.float32)
+    forward_config = Int4AttentionConfig(block_m=16, block_n=16)
+    backward_config = Int4AttentionBackwardConfig(block_m=16, block_n=16)
+    semantics = dict(enable_gqa=True, window_size=(7, 1))
+
+    def run():
+        int4_scaled_dot_product_attention(
+            query,
+            key,
+            value,
+            out=output,
+            output_dtype=torch.float32,
+            config=forward_config,
+            use_precompiled=False,
+            **kwargs,
+            **semantics,
+        )
+        return int4_scaled_dot_product_attention_backward(
+            query,
+            key,
+            value,
+            output,
+            grad_output,
+            grad_query=grad_query,
+            grad_key=grad_key,
+            grad_value=grad_value,
+            lse=lse,
+            delta=delta,
+            config=backward_config,
+            **kwargs,
+            **semantics,
+        )
+
+    run()
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = run()
+
+    query.copy_(next_query)
+    key.copy_(next_key)
+    value.copy_(next_value)
+    grad_output.copy_(next_grad_output)
+    for name in ("query_scale", "key_scale", "value_scale"):
+        kwargs[name].copy_(next_kwargs[name])
+    graph.replay()
+    torch.cuda.synchronize()
+    expected = reference_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        grad_output,
+        **kwargs,
+        **semantics,
+    )
+
+    for actual_gradient, expected_gradient, expected_buffer in zip(
+        captured,
+        expected,
+        (grad_query, grad_key, grad_value),
+        strict=True,
+    ):
+        assert actual_gradient.data_ptr() == expected_buffer.data_ptr()
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
+
+
+@requires_gpu
+def test_attention_backward_autotune_gates_numerics_and_returns_usable_config() -> None:
+    pytest.importorskip("triton")
+    q, k, v = _logical_inputs(
+        query_heads=4,
+        kv_heads=2,
+        query_length=17,
+        key_length=23,
+        head_dim=32,
+        value_dim=32,
+        seed=197,
+    )
+    query, key, value, kwargs = _attention_operands(q, k, v, qk_int4=True, pv_int4=False)
+    semantics = dict(enable_gqa=True, window_size=(7, 1))
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        output_dtype=torch.bfloat16,
+        use_precompiled=False,
+        **kwargs,
+        **semantics,
+    )
+    grad_output = (
+        torch.randn_like(output, dtype=torch.bfloat16) * 0.2
+    ).contiguous()
+    candidate = Int4AttentionBackwardConfig(
+        block_m=16,
+        block_n=16,
+        num_warps=2,
+    )
+
+    result = autotune_attention_backward(
+        query,
+        key,
+        value,
+        output,
+        grad_output,
+        candidates=(candidate,),
+        warmup_ms=0,
+        rep_ms=1,
+        **kwargs,
+        **semantics,
+    )
+
+    assert result.best_config == candidate
+    assert result.best_record.success
+    assert result.best_record.runtime_ms > 0.0
+    assert result.best_record.max_abs_diff <= STRICT_ATOL
+    assert set(result.best_record.metadata["numerics"]) == {
+        "grad_query",
+        "grad_key",
+        "grad_value",
+    }
+
+
+@requires_gpu
+@pytest.mark.parametrize(("query_length", "key_length"), [(0, 5), (5, 0), (0, 0)])
+def test_attention_backward_empty_sequences_return_zero_gradients(query_length, key_length) -> None:
+    pytest.importorskip("triton")
+    q, k, v = _logical_inputs(
+        query_length=query_length,
+        key_length=key_length,
+        head_dim=32,
+        value_dim=32,
+        seed=199,
+    )
+    output = torch.empty((1, 2, query_length, 32), device="cuda", dtype=torch.float32)
+    grad_output = torch.empty_like(output, dtype=torch.bfloat16)
+
+    gradients = int4_scaled_dot_product_attention_backward(q, k, v, output, grad_output)
+
+    assert [tuple(gradient.shape) for gradient in gradients] == [
+        (1, 2, query_length, 32),
+        (1, 2, key_length, 32),
+        (1, 2, key_length, 32),
+    ]
+    assert all(torch.count_nonzero(gradient) == 0 for gradient in gradients)
+
+
+@requires_gpu
+def test_attention_backward_validation_failures(monkeypatch) -> None:
+    q, k, v = _logical_inputs(
+        query_length=16,
+        key_length=16,
+        head_dim=32,
+        value_dim=32,
+        seed=211,
+    )
+    output = int4_scaled_dot_product_attention(
+        q,
+        k,
+        v,
+        output_dtype=torch.float32,
+        use_precompiled=False,
+    )
+    grad_output = torch.randn_like(output, dtype=torch.bfloat16)
+
+    with pytest.raises(ValueError, match="gradient_dtype=torch.float32"):
+        int4_scaled_dot_product_attention_backward(
+            q,
+            k,
+            v,
+            output,
+            grad_output,
+            gradient_dtype=torch.bfloat16,
+        )
+    with pytest.raises(ValueError, match="grad_query must not share storage with output"):
+        int4_scaled_dot_product_attention_backward(
+            q,
+            k,
+            v,
+            output,
+            grad_output,
+            grad_query=output,
+        )
+    shared_grad = torch.empty_like(output)
+    with pytest.raises(ValueError, match="grad_key must not share storage with grad_value"):
+        int4_scaled_dot_product_attention_backward(
+            q,
+            k,
+            v,
+            output,
+            grad_output,
+            grad_key=shared_grad,
+            grad_value=shared_grad,
+        )
+    shared_state = torch.empty((1, 2, 16), device="cuda", dtype=torch.float32)
+    with pytest.raises(ValueError, match="delta must not share storage with lse"):
+        int4_scaled_dot_product_attention_backward(
+            q,
+            k,
+            v,
+            output,
+            grad_output,
+            lse=shared_state,
+            delta=shared_state,
+        )
+
+    grad_query = torch.empty_like(output)
+    grad_key = torch.empty_like(output)
+    grad_value = torch.empty_like(output)
+    monkeypatch.setattr(torch.cuda, "is_current_stream_capturing", lambda: True)
+    with pytest.raises(ValueError, match="requires preallocated FP32 lse and delta"):
+        int4_scaled_dot_product_attention_backward(
+            q,
+            k,
+            v,
+            output,
+            grad_output,
+            grad_query=grad_query,
+            grad_key=grad_key,
+            grad_value=grad_value,
+        )
 
 
 @requires_gpu

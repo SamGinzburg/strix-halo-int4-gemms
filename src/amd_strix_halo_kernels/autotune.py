@@ -10,11 +10,14 @@ from typing import Any, Callable, Iterable, Sequence
 
 from .api import explicit_mm
 from .attention import (
+    Int4AttentionBackwardConfig,
     Int4AttentionConfig,
     _normalize_window,
     int4_scaled_dot_product_attention,
+    reference_scaled_dot_product_attention_backward,
     reference_scaled_dot_product_attention,
 )
+from .attention_backward import int4_scaled_dot_product_attention_backward
 from .benchmarking import (
     BenchmarkDatabase,
     BenchmarkRecord,
@@ -54,6 +57,9 @@ from .registry import KernelRegistry, default_registry
 BenchmarkRunner = Callable[[KernelMetadata, BenchmarkShape], BenchmarkRecord]
 RaggedBenchmarkRunner = Callable[["RaggedAutotuneCandidate", BenchmarkShape], BenchmarkRecord]
 AttentionBenchmarkRunner = Callable[[Int4AttentionConfig, "AttentionShape"], BenchmarkRecord]
+AttentionBackwardBenchmarkRunner = Callable[
+    [Int4AttentionBackwardConfig, "AttentionShape"], BenchmarkRecord
+]
 
 
 class RaggedDotMode(str, Enum):
@@ -116,6 +122,22 @@ class AttentionAutotuneResult:
     candidates: tuple[Int4AttentionConfig, ...]
     records: tuple[BenchmarkRecord, ...]
     best_config: Int4AttentionConfig
+    best_record: BenchmarkRecord
+    benchmark_db: BenchmarkDatabase
+
+
+@dataclass(frozen=True, slots=True)
+class AttentionBackwardAutotuneResult:
+    """Numerically validated tuning result for fused attention backward."""
+
+    shape: AttentionShape
+    mode: str
+    is_causal: bool
+    window_size: tuple[int, int] | None
+    query_position_offset: int
+    candidates: tuple[Int4AttentionBackwardConfig, ...]
+    records: tuple[BenchmarkRecord, ...]
+    best_config: Int4AttentionBackwardConfig
     best_record: BenchmarkRecord
     benchmark_db: BenchmarkDatabase
 
@@ -398,6 +420,33 @@ def default_attention_candidates(
     )
 
 
+def default_attention_backward_candidates(
+    *,
+    windowed: bool,
+) -> tuple[Int4AttentionBackwardConfig, ...]:
+    """Return measured-safe attention-backward launch candidates.
+
+    Local attention uses compact query tiles so each CTA stays close to the
+    active band. Full attention also considers the wider dQ tile. The
+    key-owned dK/dV schedule is deliberately fixed to the measured no-atomic
+    32x16, two-wave winner.
+    """
+
+    if not isinstance(windowed, bool):
+        raise TypeError("windowed must be a Python bool")
+    dq_shapes = ((16, 16), (32, 16), (32, 32))
+    if not windowed:
+        dq_shapes += ((64, 32), (64, 64))
+    return tuple(
+        Int4AttentionBackwardConfig(
+            block_m=block_m,
+            block_n=block_n,
+            num_warps=2 if block_m <= 32 else 4,
+        )
+        for block_m, block_n in dq_shapes
+    )
+
+
 def autotune_attention(
     query: Any,
     key: Any,
@@ -618,6 +667,228 @@ def autotune_attention(
     )
 
 
+def autotune_attention_backward(
+    query: Any,
+    key: Any,
+    value: Any,
+    output: Any,
+    grad_output: Any,
+    *,
+    query_scale: Any | None = None,
+    key_scale: Any | None = None,
+    value_scale: Any | None = None,
+    attn_mask: Any | None = None,
+    is_causal: bool = False,
+    scale: float | None = None,
+    enable_gqa: bool = False,
+    window_size: int | tuple[int, int] | None = None,
+    query_position_offset: int = 0,
+    head_dim: int | None = None,
+    candidates: Iterable[Int4AttentionBackwardConfig] | None = None,
+    benchmark_db: BenchmarkDatabase | None = None,
+    benchmark_db_path: str | Path | None = None,
+    warmup_ms: int = 25,
+    rep_ms: int = 100,
+    rtol: float = 1.0e-3,
+    atol: float = 1.0e-3,
+    continue_on_error: bool = True,
+    use_precompiled: bool | None = None,
+    benchmark_runner: AttentionBackwardBenchmarkRunner | None = None,
+) -> AttentionBackwardAutotuneResult:
+    """Autotune explicit fused attention backward with a strict gradient gate.
+
+    Every real-device candidate must match the representation-aware FP32
+    logical dQ/dK/dV oracle at the requested tolerances. ``rtol`` and ``atol``
+    cannot exceed ``1e-3``. Input quantization and all output/state allocations
+    are excluded from timing.
+    """
+
+    torch = _attention_torch()
+    if isinstance(warmup_ms, bool) or not isinstance(warmup_ms, int):
+        raise TypeError("warmup_ms must be a Python int")
+    if isinstance(rep_ms, bool) or not isinstance(rep_ms, int):
+        raise TypeError("rep_ms must be a Python int")
+    if warmup_ms < 0:
+        raise ValueError("warmup_ms must be non-negative")
+    if rep_ms <= 0:
+        raise ValueError("rep_ms must be positive")
+    if not isinstance(continue_on_error, bool):
+        raise TypeError("continue_on_error must be a Python bool")
+    if use_precompiled is not None and not isinstance(use_precompiled, bool):
+        raise TypeError("use_precompiled must be a Python bool or None")
+    if not isinstance(is_causal, bool):
+        raise TypeError("is_causal must be a Python bool")
+    if not isinstance(enable_gqa, bool):
+        raise TypeError("enable_gqa must be a Python bool")
+    _check_attention_tolerance("rtol", rtol)
+    _check_attention_tolerance("atol", atol)
+    window = _normalize_window(window_size)
+    shape, qk_int4, pv_int4 = _attention_shape_from_inputs(
+        torch,
+        query,
+        key,
+        value,
+        query_scale=query_scale,
+        key_scale=key_scale,
+        value_scale=value_scale,
+        head_dim=head_dim,
+        enable_gqa=enable_gqa,
+    )
+    expected_output_shape = (
+        shape.batch,
+        shape.query_heads,
+        shape.query_length,
+        shape.value_dim,
+    )
+    for name, tensor in (("output", output), ("grad_output", grad_output)):
+        if not torch.is_tensor(tensor):
+            raise TypeError(f"{name} must be a torch.Tensor")
+        if (
+            tensor.device != query.device
+            or tensor.dtype not in {torch.bfloat16, torch.float32}
+            or tuple(tensor.shape) != expected_output_shape
+            or not tensor.is_contiguous()
+        ):
+            raise ValueError(
+                f"{name} must be contiguous BF16/FP32 with shape "
+                f"{expected_output_shape} on device {query.device}"
+            )
+    candidate_tuple = _normalize_attention_backward_candidates(
+        candidates,
+        windowed=window is not None,
+    )
+    if not candidate_tuple:
+        raise LookupError("no attention backward autotune candidates")
+    mode = _attention_mode(qk_int4=qk_int4, pv_int4=pv_int4)
+    mask_kind = _attention_mask_kind(torch, attn_mask)
+    semantics = {
+        **_attention_semantics_metadata(
+            shape=shape,
+            mode=mode,
+            output_dtype=torch.float32,
+            torch=torch,
+            device=query.device,
+            attn_mask=attn_mask,
+            mask_kind=mask_kind,
+            is_causal=is_causal,
+            scale=scale,
+            enable_gqa=enable_gqa,
+            window=window,
+            query_position_offset=query_position_offset,
+            rtol=float(rtol),
+            atol=float(atol),
+        ),
+        "phase": "backward",
+        "gradient_dtype": "float32",
+        "dispatch_preference": (
+            "auto" if use_precompiled is None else "precompiled" if use_precompiled else "jit"
+        ),
+    }
+    if benchmark_db is None and benchmark_db_path is not None and Path(benchmark_db_path).exists():
+        benchmark_db = BenchmarkDatabase.load(Path(benchmark_db_path))
+    existing_records = tuple(benchmark_db.records()) if benchmark_db is not None else ()
+
+    if benchmark_runner is None:
+        if query.device.type != "cuda" or not torch.cuda.is_available() or torch.version.hip is None:
+            raise RuntimeError("attention backward autotuning requires a ROCm torch CUDA/HIP device")
+        if torch.cuda.is_current_stream_capturing():
+            raise RuntimeError("attention backward autotuning cannot run during CUDAGraph capture")
+        expected = reference_scaled_dot_product_attention_backward(
+            query,
+            key,
+            value,
+            grad_output,
+            query_scale=query_scale,
+            key_scale=key_scale,
+            value_scale=value_scale,
+            attn_mask=attn_mask,
+            is_causal=is_causal,
+            scale=scale,
+            enable_gqa=enable_gqa,
+            window_size=window,
+            query_position_offset=query_position_offset,
+            head_dim=head_dim,
+            gradient_dtype=torch.float32,
+        )
+        runner = lambda candidate, tuned_shape: _benchmark_attention_backward_candidate(
+            torch,
+            candidate,
+            tuned_shape,
+            query=query,
+            key=key,
+            value=value,
+            output=output,
+            grad_output=grad_output,
+            expected=expected,
+            query_scale=query_scale,
+            key_scale=key_scale,
+            value_scale=value_scale,
+            attn_mask=attn_mask,
+            is_causal=is_causal,
+            scale=scale,
+            enable_gqa=enable_gqa,
+            window=window,
+            query_position_offset=query_position_offset,
+            head_dim=head_dim,
+            warmup_ms=warmup_ms,
+            rep_ms=rep_ms,
+            rtol=float(rtol),
+            atol=float(atol),
+            semantics=semantics,
+            use_precompiled=use_precompiled,
+        )
+    else:
+        runner = benchmark_runner
+
+    records: list[BenchmarkRecord] = []
+    for candidate in candidate_tuple:
+        try:
+            record = runner(candidate, shape)
+        except Exception as exc:
+            if not continue_on_error:
+                raise
+            record = BenchmarkRecord(
+                kernel_id=_attention_backward_candidate_id(mode, candidate),
+                shape=shape.benchmark_shape,
+                runtime_ms=float("inf"),
+                tops=0.0,
+                iterations=0,
+                warmup=warmup_ms,
+                success=False,
+                notes="attention backward autotune candidate failed",
+                metadata={
+                    **semantics,
+                    "config": _attention_backward_config_dict(candidate),
+                    "config_label": _attention_backward_config_label(candidate),
+                    "error": repr(exc),
+                },
+            )
+        records.append(record)
+    successful_pairs = tuple(
+        (candidate, record)
+        for candidate, record in zip(candidate_tuple, records, strict=True)
+        if record.success
+    )
+    if not successful_pairs:
+        raise RuntimeError("attention backward autotune produced no successful benchmark records")
+    best_config, best_record = min(successful_pairs, key=lambda pair: pair[1].runtime_ms)
+    updated_db = BenchmarkDatabase((*existing_records, *records))
+    if benchmark_db_path is not None:
+        updated_db.save(Path(benchmark_db_path))
+    return AttentionBackwardAutotuneResult(
+        shape=shape,
+        mode=mode,
+        is_causal=is_causal,
+        window_size=window,
+        query_position_offset=query_position_offset,
+        candidates=candidate_tuple,
+        records=tuple(records),
+        best_config=best_config,
+        best_record=best_record,
+        benchmark_db=updated_db,
+    )
+
+
 def _attention_torch() -> Any:
     try:
         import torch
@@ -788,6 +1059,31 @@ def _normalize_attention_candidates(
     return tuple(normalized)
 
 
+def _normalize_attention_backward_candidates(
+    candidates: Iterable[Int4AttentionBackwardConfig] | None,
+    *,
+    windowed: bool,
+) -> tuple[Int4AttentionBackwardConfig, ...]:
+    values = (
+        default_attention_backward_candidates(windowed=windowed)
+        if candidates is None
+        else tuple(candidates)
+    )
+    normalized: list[Int4AttentionBackwardConfig] = []
+    seen: set[Int4AttentionBackwardConfig] = set()
+    for candidate in values:
+        if not isinstance(candidate, Int4AttentionBackwardConfig):
+            raise TypeError(
+                "attention backward candidates must be "
+                "Int4AttentionBackwardConfig instances"
+            )
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        normalized.append(candidate)
+    return tuple(normalized)
+
+
 def _attention_mode(*, qk_int4: bool, pv_int4: bool) -> str:
     return f"{'int4' if qk_int4 else 'bf16'}-{'int4' if pv_int4 else 'bf16'}"
 
@@ -811,6 +1107,37 @@ def _attention_config_label(config: Int4AttentionConfig) -> str:
 
 def _attention_candidate_id(mode: str, config: Int4AttentionConfig) -> str:
     return f"attention_{mode}_{_attention_config_label(config).lower()}"
+
+
+def _attention_backward_config_dict(
+    config: Int4AttentionBackwardConfig,
+) -> dict[str, int]:
+    return {
+        "block_m": config.block_m,
+        "block_n": config.block_n,
+        "num_warps": config.num_warps,
+        "num_stages": config.num_stages,
+        "dkv_block_m": config.dkv_block_m,
+        "dkv_block_n": config.dkv_block_n,
+        "dkv_num_warps": config.dkv_num_warps,
+        "dkv_num_stages": config.dkv_num_stages,
+    }
+
+
+def _attention_backward_config_label(config: Int4AttentionBackwardConfig) -> str:
+    return (
+        f"DQM{config.block_m}_DQN{config.block_n}_DQW{config.num_warps}_"
+        f"DQS{config.num_stages}_DKVM{config.dkv_block_m}_"
+        f"DKVN{config.dkv_block_n}_DKVW{config.dkv_num_warps}_"
+        f"DKVS{config.dkv_num_stages}"
+    )
+
+
+def _attention_backward_candidate_id(
+    mode: str,
+    config: Int4AttentionBackwardConfig,
+) -> str:
+    return f"attention_bwd_{mode}_{_attention_backward_config_label(config).lower()}"
 
 
 def _attention_mask_kind(torch: Any, attn_mask: Any | None) -> str:
@@ -931,6 +1258,30 @@ def _attention_effective_tops(
             query_position_offset=query_position_offset,
         )
         * (shape.head_dim + shape.value_dim)
+    )
+    return operations / (runtime_ms * 1.0e9)
+
+
+def _attention_backward_effective_tops(
+    shape: AttentionShape,
+    runtime_ms: float,
+    *,
+    is_causal: bool,
+    window: tuple[int, int] | None,
+    query_position_offset: int,
+) -> float:
+    # Mathematical work for score recomputation plus dP, dQ, dK, and dV.
+    operations = (
+        2
+        * shape.batch
+        * shape.query_heads
+        * _attention_active_pairs(
+            shape,
+            is_causal=is_causal,
+            window=window,
+            query_position_offset=query_position_offset,
+        )
+        * (4 * shape.head_dim + 3 * shape.value_dim)
     )
     return operations / (runtime_ms * 1.0e9)
 
@@ -1082,6 +1433,144 @@ def _benchmark_attention_candidate(
                 "float32_validation_output": fp32_metrics,
                 "timed_output_vs_rounded_oracle": timed_metrics,
             },
+            **summary,
+        },
+    )
+
+
+def _benchmark_attention_backward_candidate(
+    torch: Any,
+    candidate: Int4AttentionBackwardConfig,
+    shape: AttentionShape,
+    *,
+    query: Any,
+    key: Any,
+    value: Any,
+    output: Any,
+    grad_output: Any,
+    expected: tuple[Any, Any, Any],
+    query_scale: Any | None,
+    key_scale: Any | None,
+    value_scale: Any | None,
+    attn_mask: Any | None,
+    is_causal: bool,
+    scale: float | None,
+    enable_gqa: bool,
+    window: tuple[int, int] | None,
+    query_position_offset: int,
+    head_dim: int | None,
+    warmup_ms: int,
+    rep_ms: int,
+    rtol: float,
+    atol: float,
+    semantics: dict[str, Any],
+    use_precompiled: bool | None,
+) -> BenchmarkRecord:
+    grad_buffers = (
+        torch.empty(
+            (shape.batch, shape.query_heads, shape.query_length, shape.head_dim),
+            device=query.device,
+            dtype=torch.float32,
+        ),
+        torch.empty(
+            (shape.batch, shape.kv_heads, shape.key_length, shape.head_dim),
+            device=query.device,
+            dtype=torch.float32,
+        ),
+        torch.empty(
+            (shape.batch, shape.kv_heads, shape.key_length, shape.value_dim),
+            device=query.device,
+            dtype=torch.float32,
+        ),
+    )
+    state_shape = (shape.batch, shape.query_heads, shape.query_length)
+    lse = torch.empty(state_shape, device=query.device, dtype=torch.float32)
+    delta = torch.empty(state_shape, device=query.device, dtype=torch.float32)
+    common_kwargs = {
+        "query_scale": query_scale,
+        "key_scale": key_scale,
+        "value_scale": value_scale,
+        "attn_mask": attn_mask,
+        "is_causal": is_causal,
+        "scale": scale,
+        "enable_gqa": enable_gqa,
+        "window_size": window,
+        "query_position_offset": query_position_offset,
+        "head_dim": head_dim,
+        "grad_query": grad_buffers[0],
+        "grad_key": grad_buffers[1],
+        "grad_value": grad_buffers[2],
+        "lse": lse,
+        "delta": delta,
+        "config": candidate,
+        "use_precompiled": use_precompiled,
+    }
+
+    def run() -> tuple[Any, Any, Any]:
+        return int4_scaled_dot_product_attention_backward(
+            query,
+            key,
+            value,
+            output,
+            grad_output,
+            **common_kwargs,
+        )
+
+    actual = run()
+    metrics: dict[str, dict[str, float]] = {}
+    for name, actual_gradient, expected_gradient in zip(
+        ("grad_query", "grad_key", "grad_value"),
+        actual,
+        expected,
+        strict=True,
+    ):
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=rtol,
+            atol=atol,
+        )
+        metrics[name] = _attention_numerical_metrics(
+            torch,
+            actual_gradient,
+            expected_gradient,
+            rtol=rtol,
+            atol=atol,
+        )
+    samples = triton_do_bench_samples(run, warmup_ms=warmup_ms, rep_ms=rep_ms)
+    summary = summarize_runtime_samples(samples)
+    runtime_ms = float(summary["runtime_ms_median"])
+    mode = str(semantics["mode"])
+    return BenchmarkRecord(
+        kernel_id=_attention_backward_candidate_id(mode, candidate),
+        shape=shape.benchmark_shape,
+        runtime_ms=runtime_ms,
+        tops=_attention_backward_effective_tops(
+            shape,
+            runtime_ms,
+            is_causal=is_causal,
+            window=window,
+            query_position_offset=query_position_offset,
+        ),
+        iterations=int(summary["sample_count"]),
+        warmup=warmup_ms,
+        max_abs_diff=max(metric["max_abs_diff"] for metric in metrics.values()),
+        max_rel_diff=max(metric["max_rel_diff"] for metric in metrics.values()),
+        notes=(
+            "prepacked inputs; preallocated FP32 gradients/lse/delta; "
+            "quantization and allocations excluded"
+        ),
+        metadata={
+            **semantics,
+            "config": _attention_backward_config_dict(candidate),
+            "config_label": _attention_backward_config_label(candidate),
+            "timing_backend": "triton.testing.do_bench",
+            "warmup_ms": warmup_ms,
+            "rep_ms": rep_ms,
+            "torch_version": str(torch.__version__),
+            "torch_hip": str(torch.version.hip),
+            "device": torch.cuda.get_device_name(query.device),
+            "numerics": metrics,
             **summary,
         },
     )

@@ -101,12 +101,16 @@ Peak 4096^3 Results
 -------------------
 
 The rows are averages of two matched current-wheel runs. The artifact matrix
-was regenerated with Triton ``ec4a2c64315f3d4485e963a8391a7444a232801f``, but
-representative old/new HSACO hashes are identical. Treat small timing changes
-as measurement variation, not automatic packaged-native compiler uplift. Most
-dense rows moved by less than 2%. The refreshed subchannel-256 SwiGLU snapshot
-is 13.4% lower than the older table, but that kernel is byte-identical too, so
-the difference cannot be attributed to the compiler update.
+is now regenerated with Triton
+``0da3c5a751b2d03461e961b62dc3598f85884617``. Its unaligned gfx1151 byte-store
+vectorization specifically changes packed INT4 output epilogues: a
+representative masked ragged subchannel-256 SwiGLU output changed from 31
+``buffer_store_b8`` instructions to four ``buffer_store_b64`` instructions,
+while code size fell from 34,260 to 32,624 bytes and reported private scratch
+from 560 to 448 bytes. BF16/FP32 output kernels are outside that compiler
+change. The refreshed subchannel-256 SwiGLU snapshot is 13.4% lower than the
+older table, but that non-packed-output kernel is byte-identical, so the
+difference cannot be attributed to this compiler update.
 
 .. list-table::
    :header-rows: 1
@@ -539,6 +543,66 @@ apples-to-apples fused-kernel speedup. The long-local result motivated using
 ``BN64`` for local BF16-Q/K when ``Lq >= 1024``; short local queries retain
 ``BN32``.
 
+INT4 Q/K, BF16 V GQA Training Shape
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``benchmarks/gfx1151_attention_int4_qk_training.json`` records the final
+precompiled ``BM64_BN64_W4_S1`` forward kernels for the same exact training
+shape. Q and K use packed signed-INT4 storage with BF16 scales; V, P@V, and the
+timed output are BF16, while online-softmax and output accumulation are FP32.
+Both the FP32 validation output and timed BF16 output passed the
+representation-matched oracle at ``rtol=atol=1e-3``.
+
+.. list-table:: INT4-QK/BF16-V GQA forward results
+   :header-rows: 1
+
+   * - Case
+     - Runtime
+     - Effective TOPS
+     - PyTorch BF16 runtime
+     - Ratio
+     - Maximum absolute error (FP32 / BF16)
+   * - full attention
+     - 3.443859 ms
+     - 34.920
+     - 7.628077 ms
+     - 2.21x
+     - ``4.17e-5`` / ``1.22e-4``
+   * - local ``(127,0)``
+     - 0.446277 ms
+     - 16.320
+     - 133.630676 ms
+     - 299.43x*
+     - ``1.70e-4`` / ``4.88e-4``
+
+``benchmarks/gfx1151_attention_backward_training.json`` records the packaged
+backward pair: a query-owned dQ kernel and a key-owned combined dK/dV kernel.
+Saved softmax state, accumulation, and dQ/dK/dV output use FP32. Every gradient
+passed the representation-matched FP32 oracle at ``rtol=atol=1e-3``.
+
+.. list-table:: INT4-QK/BF16-V GQA backward results
+   :header-rows: 1
+
+   * - Case
+     - Runtime
+     - Effective TOPS
+     - dQ / dK / dV maximum absolute error
+     - Worst combined-tolerance ratio
+   * - full attention
+     - 27.432583 ms
+     - 15.343
+     - ``6.11e-6`` / ``9.12e-6`` / ``4.73e-5``
+     - 0.047
+   * - local ``(127,0)``
+     - 2.403788 ms
+     - 10.605
+     - ``1.16e-4`` / ``1.44e-4`` / ``1.04e-3``
+     - 0.947
+
+No PyTorch backward timing was recorded, so the backward rows make no speedup
+claim. The local forward PyTorch baseline has the same generic-mask caveat as
+the BF16 local row above.
+
 Packed-INT4 V GQA Training Shape
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -690,20 +754,23 @@ preallocated buffers.
      - Fused INT4 producer + down
      - Chain speedup
    * - dense SwiGLU
-     - 1.083098 ms
-     - 7.651269 ms
-     - 1.636956 ms
-     - 4.674x
+     - 1.138743 ms
+     - 7.669192 ms
+     - 1.673244 ms
+     - 4.583x
    * - ragged SwiGLU, 8 balanced groups
-     - 2.326497 ms
-     - 9.487750 ms
-     - 2.934893 ms
-     - 3.387x
+     - 2.220436 ms
+     - 9.998160 ms
+     - 2.816951 ms
+     - 3.549x
 
-The ragged complete-N-tile optimization reduced the preceding packaged fused
-producer measurement from 2.856235 ms to 2.326497 ms (18.5%) and the fused
-chain from 3.565771 ms to 2.934893 ms (17.7%). Clocks were not pinned, so the
-same snapshot qualification as the README tables applies.
+These are averages of two current-wheel runs with 10 warmups and 50 timed
+iterations. Against two identically configured old-compiler runs, the ragged
+packed-output producer improved from 2.287215 to 2.220436 ms (2.9%), while the
+producer-plus-down chain improved from 2.967869 to 2.816951 ms (5.1%). The
+dense producer assembly was already vectorized; its small timing movement is
+measurement variation. Clocks were not pinned, so the same snapshot
+qualification as the README tables applies.
 
 Native dense and ragged tests compare against a representation-matched
 quantizer. Packed codes and BF16 scales are exact; dequantized results pass
@@ -721,6 +788,12 @@ random BF16 fake-quant reference. BF16-store paths, including standard ragged
 backward at ``split_k=1``, can differ by one ULP near rounding ties. Treat
 those separately from FP32 atomic split-K rows when evaluating absolute error
 summaries.
+
+Packed-INT4 output rows preallocate both the packed ``uint8`` output and its
+BF16 subchannel-256 scale tensor. Validation requires bit-exact packed codes,
+exact BF16 scales, and dequantized agreement with the representation-matched
+reference at ``rtol=atol=1e-3``. Use ``--output-dtype int4`` to select this
+180-artifact subset.
 
 Regenerate Benchmarks
 ---------------------

@@ -1,9 +1,9 @@
-#blocked = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [1, 32], warpsPerCTA = [2, 4], order = [1, 0]}>
+#blocked = #ttg.blocked<{sizePerThread = [1, 8], threadsPerWarp = [2, 16], warpsPerCTA = [8, 1], order = [1, 0]}>
 #blocked1 = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [32, 1], warpsPerCTA = [2, 4], order = [0, 1]}>
 #blocked2 = #ttg.blocked<{sizePerThread = [1], threadsPerWarp = [32], warpsPerCTA = [8], order = [0]}>
 #blocked3 = #ttg.blocked<{sizePerThread = [1, 2], threadsPerWarp = [1, 32], warpsPerCTA = [2, 4], order = [1, 0]}>
 #blocked4 = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [1, 32], warpsPerCTA = [1, 8], order = [1, 0]}>
-#blocked5 = #ttg.blocked<{sizePerThread = [1, 1, 2], threadsPerWarp = [1, 32, 1], warpsPerCTA = [2, 4, 1], order = [2, 1, 0]}>
+#blocked5 = #ttg.blocked<{sizePerThread = [1, 8, 2], threadsPerWarp = [2, 16, 1], warpsPerCTA = [8, 1, 1], order = [2, 1, 0]}>
 #linear = #ttg.linear<{register = [[0, 1, 0], [0, 2, 0], [0, 4, 0], [0, 64, 0], [16, 0, 0], [32, 0, 0]], lane = [[1, 0, 0], [2, 0, 0], [4, 0, 0], [8, 0, 0], [0, 0, 1]], warp = [[0, 8, 0], [0, 16, 0], [0, 32, 0]], block = []}>
 #loc = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1001:5)
 #loc1 = loc(unknown)
@@ -45,7 +45,6 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
     %q_2 = arith.constant dense<-8.000000e+00> : tensor<64x256xf32, #mma> loc(#loc121)
     %quant_scale = arith.constant dense<7.000000e+00> : tensor<64xf32, #ttg.slice<{dim = 1, parent = #mma}>> loc(#loc122)
     %quant_scale_3 = arith.constant dense<9.99999996E-13> : tensor<64xf32, #ttg.slice<{dim = 1, parent = #mma}>> loc(#loc122)
-    %packed = arith.constant dense<4> : tensor<64x128xi32, #blocked> loc(#loc123)
     %c128_i32 = arith.constant 128 : i32 loc(#loc1)
     %c1_i32 = arith.constant 1 : i32 loc(#loc1)
     %c256_i32 = arith.constant 256 : i32 loc(#loc1)
@@ -53,6 +52,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
     %c0_i32 = arith.constant 0 : i32 loc(#loc1)
     %c16_i32 = arith.constant 16 : i32 loc(#loc1)
     %num_pid_n = arith.constant 255 : i32 loc(#loc201)
+    %packed = arith.constant dense<4> : tensor<64x128xi32, #blocked> loc(#loc124)
     %pid = tt.get_program_id x : i32 loc(#loc125)
     %num_pid_n_4 = arith.addi %N, %num_pid_n : i32 loc(#loc202)
     %num_pid_n_5 = arith.divsi %num_pid_n_4, %c256_i32 : i32 loc(#loc203)
@@ -255,7 +255,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
     %q_pairs = tt.reshape %q_85 : tensor<64x256xi32, #mma> -> tensor<64x128x2xi32, #linear> loc(#loc196)
     %0 = ttg.convert_layout %q_pairs : tensor<64x128x2xi32, #linear> -> tensor<64x128x2xi32, #blocked5> loc(#loc91)
     %outLHS, %outRHS = tt.split %0 : tensor<64x128x2xi32, #blocked5> -> tensor<64x128xi32, #blocked> loc(#loc91)
-    %packed_86 = arith.shli %outRHS, %packed : tensor<64x128xi32, #blocked> loc(#loc123)
+    %packed_86 = arith.shli %outRHS, %packed : tensor<64x128xi32, #blocked> loc(#loc124)
     %packed_87 = arith.ori %outLHS, %packed_86 : tensor<64x128xi32, #blocked> loc(#loc197)
     %packed_88 = arith.trunci %packed_87 : tensor<64x128xi32, #blocked> to tensor<64x128xi8, #blocked> loc(#loc198)
     %offs_n_packed = arith.muli %pid_n, %c128_i32 : i32 loc(#loc199)
@@ -277,7 +277,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
     %15 = tt.splat %offs_n_packed : i32 -> tensor<64x128xi32, #blocked> loc(#loc99)
     %16 = arith.addi %15, %14 : tensor<64x128xi32, #blocked> loc(#loc99)
     %17 = tt.broadcast %1 : tensor<64x1xi1, #blocked> -> tensor<64x128xi1, #blocked> loc(#loc100)
-    amdg.buffer_store %packed_88, %out[%16], %17 : tensor<64x128xi8, #blocked> loc(#loc100)
+    amdg.buffer_store %packed_88, %out[%16], %17 {contiguity = 8 : i32} : tensor<64x128xi8, #blocked> loc(#loc100)
     %18 = arith.divsi %N, %c256_i32 : i32 loc(#loc101)
     %19 = arith.extsi %18 : i32 to i64 loc(#loc102)
     %20 = arith.muli %block_start_9, %19 : i64 loc(#loc103)
@@ -296,8 +296,8 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
 #loc2 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1232:32)
 #loc3 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1239:13)
 #loc4 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1238:24)
-#loc5 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1246:27)
-#loc6 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1031:21)
+#loc5 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1031:21)
+#loc6 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1246:27)
 #loc7 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1030:15)
 #loc8 = loc("<triton>/python/triton/language/standard.py":43:13)
 #loc9 = loc("<triton>/python/triton/language/standard.py":43:12)
@@ -392,8 +392,8 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
 #loc120 = loc("acc"(#loc2))
 #loc121 = loc("q"(#loc3))
 #loc122 = loc("quant_scale"(#loc4))
-#loc123 = loc("packed"(#loc5))
-#loc124 = loc("num_pid_n"(#loc6))
+#loc123 = loc("num_pid_n"(#loc5))
+#loc124 = loc("packed"(#loc6))
 #loc125 = loc("pid"(#loc7))
 #loc126 = loc("swizzle_group"(#loc10))
 #loc127 = loc("group_size"(#loc11))
@@ -469,9 +469,9 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
 #loc198 = loc("packed"(#loc93))
 #loc199 = loc("offs_n_packed"(#loc94))
 #loc200 = loc("offs_n_packed"(#loc95))
-#loc201 = loc(callsite(#loc1 at #loc124))
-#loc202 = loc(callsite(#loc8 at #loc124))
-#loc203 = loc(callsite(#loc9 at #loc124))
+#loc201 = loc(callsite(#loc1 at #loc123))
+#loc202 = loc(callsite(#loc8 at #loc123))
+#loc203 = loc(callsite(#loc9 at #loc123))
 #loc204 = loc("gate_acc"(#loc158))
 #loc205 = loc("gate_i32"(#loc160))
 #loc206 = loc(callsite(#loc83 at #loc191))

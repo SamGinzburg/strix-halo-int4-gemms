@@ -187,6 +187,7 @@ def test_generate_attention_amdgcn_help_does_not_compile_kernels() -> None:
 def test_attention_generator_catalog_is_complete_and_unique() -> None:
     sys.path.insert(0, str(REPO_ROOT / "src"))
     from amd_strix_halo_kernels.attention_artifacts import (
+        ATTENTION_BACKWARD_PHASES,
         ATTENTION_DECODE_REDUCE,
         ATTENTION_FORWARD,
         ATTENTION_MASK_DTYPES,
@@ -194,6 +195,7 @@ def test_attention_generator_catalog_is_complete_and_unique() -> None:
         ATTENTION_PRECOMPILED_CONFIGS,
         ATTENTION_PRECOMPILED_HEAD_DIM,
         ATTENTION_PRECOMPILED_VALUE_DIM,
+        attention_backward_kernel_id,
         attention_forward_kernel_id,
         attention_reduce_kernel_id,
     )
@@ -206,7 +208,7 @@ def test_attention_generator_catalog_is_complete_and_unique() -> None:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     jobs = module.build_jobs(
-        phases=(ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE),
+        phases=(ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE, *ATTENTION_BACKWARD_PHASES),
         modes=tuple(ATTENTION_PRECOMPILED_CONFIGS),
         mask_dtypes=ATTENTION_MASK_DTYPES,
         output_dtypes=ATTENTION_OUTPUT_DTYPES,
@@ -227,6 +229,21 @@ def test_attention_generator_catalog_is_complete_and_unique() -> None:
                     workload_shape=job.workload_shape,
                 )
             )
+        elif isinstance(job, module.BackwardJob):
+            kernel_ids.append(
+                attention_backward_kernel_id(
+                    phase=job.phase,
+                    mode=job.mode,
+                    mask_dtype=job.mask_dtype,
+                    semantics=job.semantics,
+                    output_dtype=job.output_dtype,
+                    grad_output_dtype=job.grad_output_dtype,
+                    head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
+                    value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+                    config=job.config,
+                    workload_shape=job.workload_shape,
+                )
+            )
         else:
             kernel_ids.append(
                 attention_reduce_kernel_id(
@@ -236,13 +253,15 @@ def test_attention_generator_catalog_is_complete_and_unique() -> None:
                 )
             )
 
-    assert len(jobs) == 488
+    assert len(jobs) == 792
     assert len(kernel_ids) == len(set(kernel_ids))
 
 
 def test_attention_runtime_scalar_mask_validates_specialized_abi() -> None:
     from amd_strix_halo_kernels.attention_artifacts import (
+        ATTENTION_BACKWARD_RUNTIME_SCALAR_ARGS,
         ATTENTION_FORWARD_RUNTIME_SCALAR_ARGS,
+        _attention_backward_runtime_scalar_mask,
         _attention_forward_runtime_scalar_mask,
     )
 
@@ -260,11 +279,21 @@ def test_attention_runtime_scalar_mask_validates_specialized_abi() -> None:
     with pytest.raises(RuntimeError, match="invalid forward runtime scalar ABI"):
         _attention_forward_runtime_scalar_mask("invalid", invalid_metadata)
 
+    backward_metadata = {
+        "kernel_arg_layout": {"runtime_scalar_args": list(ATTENTION_BACKWARD_RUNTIME_SCALAR_ARGS)}
+    }
+    assert _attention_backward_runtime_scalar_mask("backward", backward_metadata) == (1 << 18) - 1
+    backward_subset = ["batch", "key_length", "has_window"]
+    backward_subset_metadata = {"kernel_arg_layout": {"runtime_scalar_args": backward_subset}}
+    assert _attention_backward_runtime_scalar_mask("specialized", backward_subset_metadata) == (
+        (1 << 0) | (1 << 4) | (1 << 14)
+    )
+
 
 def test_checked_in_attention_artifact_matrix_has_valid_runtime_abi() -> None:
     metadata_paths = sorted((REPO_ROOT / "kernels" / "amdgcn").glob("gfx1151_attention_*.json"))
     assembly_paths = sorted((REPO_ROOT / "kernels" / "amdgcn").glob("gfx1151_attention_*.s"))
-    assert len(metadata_paths) == len(assembly_paths) == 488
+    assert len(metadata_paths) == len(assembly_paths) == 792
 
     phases = []
     for metadata_path in metadata_paths:
@@ -277,12 +306,14 @@ def test_checked_in_attention_artifact_matrix_has_valid_runtime_abi() -> None:
         assert len(layout["hidden_global_buffer_offsets"]) == 2
         assert (REPO_ROOT / "kernels" / "amdgcn" / f"{metadata['kernel_id']}.s").exists()
 
-    assert phases.count("forward") == 484
+    assert phases.count("forward") == 532
     assert phases.count("decode_reduce") == 4
+    assert phases.count("backward_dq") == 128
+    assert phases.count("backward_dkv") == 128
     summary = json.loads(
         (REPO_ROOT / "kernels" / "amdgcn" / "attention_generation_summary.json").read_text()
     )
-    assert summary["selected_jobs"] == summary["generated_count"] == 488
+    assert summary["selected_jobs"] == summary["generated_count"] == 792
     assert summary["failure_count"] == 0
     assert summary["failures"] == []
 
@@ -771,6 +802,15 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
                         "SCALE_COLS",
                         "NUM_TASKS",
                     ]
+                    if (
+                        layout is GemmLayout.NN
+                        and scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+                        and variant == "maskk"
+                        and epilogue is Epilogue.SWIGLU
+                    ):
+                        amdgcn = asm_path.read_text()
+                        assert amdgcn.count("buffer_store_b64") >= 4
+                        assert "buffer_store_b8" not in amdgcn
 
     from amd_strix_halo_kernels.ragged import RAGGED_BWD_ACCUM_CONFIG
 

@@ -87,7 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-dtype",
         action="append",
         default=[],
-        choices=("bfloat16", "float32"),
+        choices=("bfloat16", "float32", "int4"),
         help="benchmark only output dtype",
     )
     parser.add_argument("--even-k-only", action="store_true", help="benchmark only even-K specializations")
@@ -234,18 +234,25 @@ def make_inputs(
 def max_diffs(torch: Any, actual: Any, expected: Any) -> tuple[float, float]:
     diff = (actual.to(torch.float32) - expected.to(torch.float32)).abs()
     max_abs = float(diff.max().item())
-    max_rel = float((diff / torch.clamp(expected.to(torch.float32).abs(), min=1.0e-3)).max().item())
+    denominator = torch.clamp(expected.to(torch.float32).abs(), min=1.0e-3)
+    max_rel = float((diff / denominator).max().item())
     return max_abs, max_rel
 
 
 def output_torch_dtype(torch: Any, kernel: Any) -> Any:
-    return torch.bfloat16 if kernel.output_dtype == "bfloat16" else torch.float32
+    if kernel.output_dtype == "bfloat16":
+        return torch.bfloat16
+    if kernel.output_dtype == "float32":
+        return torch.float32
+    if kernel.output_dtype == "int4":
+        return torch.uint8
+    raise ValueError(f"unsupported kernel output dtype: {kernel.output_dtype}")
 
 
 def validation_tolerances(kernel: Any) -> tuple[float, float]:
     from amd_strix_halo_kernels.metadata import Epilogue
 
-    if kernel.output_dtype == "bfloat16":
+    if kernel.output_dtype in {"bfloat16", "int4"}:
         return 1.0e-3, 1.0e-3
     atol = 1.0e-2 if kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} else 1.0e-3
     return 1.0e-4, atol
@@ -260,7 +267,11 @@ def benchmark_kernel(
     shape_override: Any | None = None,
     validation_device: str = "cpu",
 ) -> Any:
-    from amd_strix_halo_kernels.benchmarking import BenchmarkRecord, BenchmarkShape, benchmark_triton_callable
+    from amd_strix_halo_kernels.benchmarking import (
+        BenchmarkRecord,
+        BenchmarkShape,
+        benchmark_triton_callable,
+    )
     from amd_strix_halo_kernels.metadata import Epilogue
     from amd_strix_halo_kernels.native import launch_generated_kernel
     from amd_strix_halo_kernels.template_config import representative_generation_shape
@@ -278,8 +289,22 @@ def benchmark_kernel(
     b_gpu = b if b.device.type == "cuda" else b.to("cuda")
     a_scale_gpu = a_scale if a_scale.device.type == "cuda" else a_scale.to("cuda")
     b_scale_gpu = b_scale if b_scale.device.type == "cuda" else b_scale.to("cuda")
-    gate_gpu = None if gate is None else (gate if gate.device.type == "cuda" else gate.to("cuda"))
-    c_gpu = torch.empty((shape.m, shape.n), device="cuda", dtype=output_torch_dtype(torch, kernel))
+    gate_gpu = (
+        None
+        if gate is None
+        else (gate if gate.device.type == "cuda" else gate.to("cuda"))
+    )
+    int4_output = kernel.output_dtype == "int4"
+    c_gpu = torch.empty(
+        (shape.m, shape.n // 2) if int4_output else (shape.m, shape.n),
+        device="cuda",
+        dtype=output_torch_dtype(torch, kernel),
+    )
+    output_scale_gpu = (
+        torch.empty((shape.m, shape.n // 256), device="cuda", dtype=torch.bfloat16)
+        if int4_output
+        else None
+    )
 
     def run() -> Any:
         return launch_generated_kernel(
@@ -290,17 +315,48 @@ def benchmark_kernel(
             b_scale=b_scale_gpu,
             gate=gate_gpu,
             c=c_gpu,
+            output_scale=output_scale_gpu,
         )
 
     actual = run()
     torch.cuda.synchronize()
     max_abs = None
     max_rel = None
+    quantized_validation = None
     if expected is not None:
-        actual_for_validation = actual if expected.device.type == "cuda" else actual.cpu()
         rtol, atol = validation_tolerances(kernel)
-        torch.testing.assert_close(actual_for_validation, expected, rtol=rtol, atol=atol)
-        max_abs, max_rel = max_diffs(torch, actual_for_validation, expected)
+        if int4_output:
+            actual_packed = (
+                actual.packed if expected.packed.device.type == "cuda" else actual.packed.cpu()
+            )
+            actual_scale = (
+                actual.scale if expected.scale.device.type == "cuda" else actual.scale.cpu()
+            )
+            torch.testing.assert_close(actual_packed, expected.packed, rtol=0.0, atol=0.0)
+            torch.testing.assert_close(actual_scale, expected.scale, rtol=0.0, atol=0.0)
+            actual_dequantized = actual.dequantize()
+            if expected.packed.device.type != "cuda":
+                actual_dequantized = actual_dequantized.cpu()
+            expected_dequantized = expected.dequantize()
+            torch.testing.assert_close(
+                actual_dequantized,
+                expected_dequantized,
+                rtol=rtol,
+                atol=atol,
+            )
+            max_abs, max_rel = max_diffs(torch, actual_dequantized, expected_dequantized)
+            scale_max_abs, _ = max_diffs(torch, actual_scale, expected.scale)
+            quantized_validation = {
+                "packed_codes_exact": True,
+                "bf16_scales_exact": True,
+                "scale_max_abs_diff": scale_max_abs,
+                "dequantized_rtol": rtol,
+                "dequantized_atol": atol,
+            }
+        else:
+            actual_for_validation = actual if expected.device.type == "cuda" else actual.cpu()
+            torch.testing.assert_close(actual_for_validation, expected, rtol=rtol, atol=atol)
+            max_abs, max_rel = max_diffs(torch, actual_for_validation, expected)
 
     record = benchmark_triton_callable(
         kernel=kernel,
@@ -312,7 +368,12 @@ def benchmark_kernel(
             "packaged generated HSACO; preallocated output; median of triton.testing.do_bench "
             "device samples; "
             + (
-                f"correctness vs BF16 fake-quant reference on {validation_device}"
+                (
+                    "exact packed codes/BF16 scales plus dequantized correctness"
+                    if int4_output
+                    else "BF16 fake-quant correctness"
+                )
+                + f" on {validation_device}"
                 if expected is not None
                 else "timing-only; numerical validation deferred to winner rerun"
             )
@@ -339,6 +400,7 @@ def benchmark_kernel(
             },
             "runtime_shape_override": shape_override is not None,
             "validation_device": validation_device,
+            "quantized_output_validation": quantized_validation,
         },
     )
     tops_multiplier = 2.0 if kernel.epilogue is Epilogue.SWIGLU else 1.0
@@ -397,7 +459,10 @@ def main(argv: list[str] | None = None) -> int:
     extracted = add_import_path(wheel)
     try:
         import torch
-        from amd_strix_halo_kernels.benchmarking import BenchmarkDatabase, BenchmarkShape
+        from amd_strix_halo_kernels.benchmarking import (
+            BenchmarkDatabase,
+            BenchmarkShape,
+        )
         from amd_strix_halo_kernels import native
         from amd_strix_halo_kernels.registry import default_registry
 
@@ -456,7 +521,9 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
             except Exception as exc:
-                raise RuntimeError(f"benchmark failed for [{index}/{len(selected)}] {kernel.kernel_id}") from exc
+                raise RuntimeError(
+                    f"benchmark failed for [{index}/{len(selected)}] {kernel.kernel_id}"
+                ) from exc
         BenchmarkDatabase(records).save(args.output)
         print(args.output)
         print_summary(records)

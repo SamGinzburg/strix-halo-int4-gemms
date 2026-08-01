@@ -33,8 +33,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3659,
-        "waitcnt": 46
+        "lines": 2995,
+        "waitcnt": 59
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -48,7 +48,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -62,8 +62,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3695,
-        "waitcnt": 46
+        "lines": 3154,
+        "waitcnt": 57
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -77,7 +77,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -91,8 +91,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6583,
-        "waitcnt": 108
+        "lines": 5987,
+        "waitcnt": 114
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -106,7 +106,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -149,8 +149,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3703,
-        "waitcnt": 47
+        "lines": 3072,
+        "waitcnt": 66
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -164,7 +164,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -178,8 +178,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3773,
-        "waitcnt": 48
+        "lines": 3231,
+        "waitcnt": 64
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -193,7 +193,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -207,8 +207,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6686,
-        "waitcnt": 106
+        "lines": 6149,
+        "waitcnt": 123
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -222,7 +222,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -265,8 +265,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3854,
-        "waitcnt": 54
+        "lines": 3278,
+        "waitcnt": 61
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -280,7 +280,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -294,8 +294,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3965,
-        "waitcnt": 58
+        "lines": 3374,
+        "waitcnt": 65
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -309,7 +309,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -323,8 +323,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7290,
-        "waitcnt": 152
+        "lines": 6668,
+        "waitcnt": 175
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -338,7 +338,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -381,8 +381,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4003,
-        "waitcnt": 55
+        "lines": 3429,
+        "waitcnt": 62
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -396,7 +396,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -410,8 +410,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4114,
-        "waitcnt": 59
+        "lines": 3520,
+        "waitcnt": 66
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -425,7 +425,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -439,8 +439,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7312,
-        "waitcnt": 154
+        "lines": 6919,
+        "waitcnt": 170
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -454,7 +454,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -497,8 +497,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3949,
-        "waitcnt": 69
+        "lines": 3367,
+        "waitcnt": 77
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -512,7 +512,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -526,8 +526,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4006,
-        "waitcnt": 66
+        "lines": 3440,
+        "waitcnt": 74
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -541,7 +541,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -555,8 +555,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7085,
-        "waitcnt": 148
+        "lines": 6733,
+        "waitcnt": 135
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -570,7 +570,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -613,8 +613,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4082,
-        "waitcnt": 70
+        "lines": 3504,
+        "waitcnt": 78
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -628,7 +628,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -642,8 +642,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4139,
-        "waitcnt": 67
+        "lines": 3577,
+        "waitcnt": 75
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -657,7 +657,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -671,8 +671,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7224,
-        "waitcnt": 163
+        "lines": 6716,
+        "waitcnt": 158
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -686,7 +686,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -729,8 +729,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3905,
-        "waitcnt": 89
+        "lines": 3330,
+        "waitcnt": 96
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -744,7 +744,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -758,8 +758,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3950,
-        "waitcnt": 88
+        "lines": 3403,
+        "waitcnt": 95
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -773,7 +773,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -787,7 +787,7 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7115,
+        "lines": 6770,
         "waitcnt": 157
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
@@ -802,7 +802,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -845,8 +845,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4082,
-        "waitcnt": 67
+        "lines": 3521,
+        "waitcnt": 75
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -860,7 +860,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -874,8 +874,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4140,
-        "waitcnt": 71
+        "lines": 3589,
+        "waitcnt": 78
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -889,7 +889,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -903,8 +903,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7255,
-        "waitcnt": 150
+        "lines": 6716,
+        "waitcnt": 152
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -918,7 +918,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -961,8 +961,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3801,
-        "waitcnt": 57
+        "lines": 3229,
+        "waitcnt": 71
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -976,7 +976,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -990,8 +990,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3808,
-        "waitcnt": 58
+        "lines": 3242,
+        "waitcnt": 71
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1005,7 +1005,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1019,8 +1019,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 6877,
-        "waitcnt": 125
+        "lines": 6646,
+        "waitcnt": 107
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1034,7 +1034,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1077,8 +1077,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4023,
-        "waitcnt": 58
+        "lines": 3446,
+        "waitcnt": 72
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1092,7 +1092,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1106,8 +1106,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4030,
-        "waitcnt": 59
+        "lines": 3459,
+        "waitcnt": 72
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1121,7 +1121,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1135,8 +1135,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7045,
-        "waitcnt": 135
+        "lines": 6835,
+        "waitcnt": 113
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1150,7 +1150,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1193,8 +1193,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3650,
-        "waitcnt": 35
+        "lines": 2937,
+        "waitcnt": 48
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1208,7 +1208,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1222,8 +1222,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3706,
-        "waitcnt": 37
+        "lines": 3099,
+        "waitcnt": 46
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1237,7 +1237,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1251,8 +1251,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6646,
-        "waitcnt": 118
+        "lines": 6077,
+        "waitcnt": 126
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1266,7 +1266,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1309,8 +1309,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3587,
-        "waitcnt": 42
+        "lines": 3100,
+        "waitcnt": 49
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1324,7 +1324,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1338,8 +1338,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3666,
-        "waitcnt": 40
+        "lines": 3086,
+        "waitcnt": 50
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1353,7 +1353,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1367,8 +1367,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6359,
-        "waitcnt": 94
+        "lines": 6206,
+        "waitcnt": 117
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1382,7 +1382,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1425,8 +1425,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3787,
-        "waitcnt": 59
+        "lines": 3216,
+        "waitcnt": 66
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1440,7 +1440,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1454,8 +1454,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3783,
-        "waitcnt": 59
+        "lines": 3256,
+        "waitcnt": 66
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1469,7 +1469,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1483,8 +1483,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 6864,
-        "waitcnt": 167
+        "lines": 6458,
+        "waitcnt": 179
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1498,7 +1498,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1541,8 +1541,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3822,
-        "waitcnt": 62
+        "lines": 3148,
+        "waitcnt": 66
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1556,7 +1556,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1570,8 +1570,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3876,
-        "waitcnt": 59
+        "lines": 3308,
+        "waitcnt": 65
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1585,7 +1585,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1599,8 +1599,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 6989,
-        "waitcnt": 108
+        "lines": 6643,
+        "waitcnt": 146
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1614,7 +1614,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1657,8 +1657,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3786,
-        "waitcnt": 43
+        "lines": 3209,
+        "waitcnt": 50
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1672,7 +1672,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1686,8 +1686,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3834,
-        "waitcnt": 43
+        "lines": 3261,
+        "waitcnt": 50
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1701,7 +1701,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1715,8 +1715,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7169,
-        "waitcnt": 145
+        "lines": 6636,
+        "waitcnt": 153
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1730,7 +1730,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1773,8 +1773,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3867,
-        "waitcnt": 63
+        "lines": 3290,
+        "waitcnt": 70
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1788,7 +1788,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1802,8 +1802,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3915,
-        "waitcnt": 63
+        "lines": 3342,
+        "waitcnt": 70
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1817,7 +1817,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1831,8 +1831,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7177,
-        "waitcnt": 126
+        "lines": 6636,
+        "waitcnt": 137
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1846,7 +1846,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1889,8 +1889,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3783,
-        "waitcnt": 43
+        "lines": 3209,
+        "waitcnt": 50
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1904,7 +1904,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1918,8 +1918,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3831,
-        "waitcnt": 43
+        "lines": 3261,
+        "waitcnt": 50
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1933,7 +1933,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -1947,8 +1947,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7168,
-        "waitcnt": 145
+        "lines": 6618,
+        "waitcnt": 153
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -1962,7 +1962,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2005,8 +2005,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3860,
-        "waitcnt": 62
+        "lines": 3284,
+        "waitcnt": 69
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2020,7 +2020,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2034,8 +2034,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3907,
-        "waitcnt": 62
+        "lines": 3335,
+        "waitcnt": 69
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2049,7 +2049,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2063,8 +2063,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7217,
-        "waitcnt": 133
+        "lines": 6694,
+        "waitcnt": 145
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2078,7 +2078,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2121,8 +2121,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3677,
-        "waitcnt": 39
+        "lines": 3157,
+        "waitcnt": 52
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2136,7 +2136,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2150,8 +2150,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3757,
-        "waitcnt": 39
+        "lines": 3215,
+        "waitcnt": 48
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2165,7 +2165,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2179,8 +2179,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 6837,
-        "waitcnt": 93
+        "lines": 6308,
+        "waitcnt": 105
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2194,7 +2194,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2237,8 +2237,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3725,
-        "waitcnt": 58
+        "lines": 3217,
+        "waitcnt": 71
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2252,7 +2252,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2266,8 +2266,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3793,
-        "waitcnt": 58
+        "lines": 3242,
+        "waitcnt": 67
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2281,7 +2281,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2295,8 +2295,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 6926,
-        "waitcnt": 76
+        "lines": 6403,
+        "waitcnt": 84
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2310,7 +2310,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "nt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2353,8 +2353,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3773,
-        "waitcnt": 47
+        "lines": 3257,
+        "waitcnt": 56
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2368,7 +2368,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2382,8 +2382,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3911,
-        "waitcnt": 48
+        "lines": 3276,
+        "waitcnt": 56
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2397,7 +2397,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2411,8 +2411,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6775,
-        "waitcnt": 112
+        "lines": 6244,
+        "waitcnt": 115
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2426,7 +2426,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2469,8 +2469,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3792,
-        "waitcnt": 51
+        "lines": 3271,
+        "waitcnt": 60
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2484,7 +2484,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2498,8 +2498,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3915,
-        "waitcnt": 52
+        "lines": 3275,
+        "waitcnt": 60
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2513,7 +2513,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2527,8 +2527,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6872,
-        "waitcnt": 116
+        "lines": 6152,
+        "waitcnt": 120
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2542,7 +2542,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2585,8 +2585,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4262,
-        "waitcnt": 82
+        "lines": 3614,
+        "waitcnt": 100
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2600,7 +2600,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2614,8 +2614,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4330,
-        "waitcnt": 94
+        "lines": 3811,
+        "waitcnt": 104
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2629,7 +2629,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2643,8 +2643,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7406,
-        "waitcnt": 194
+        "lines": 7032,
+        "waitcnt": 192
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2658,7 +2658,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2701,8 +2701,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4326,
-        "waitcnt": 93
+        "lines": 3798,
+        "waitcnt": 102
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2716,7 +2716,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2730,8 +2730,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4478,
-        "waitcnt": 114
+        "lines": 3967,
+        "waitcnt": 121
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2745,7 +2745,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2759,8 +2759,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7552,
-        "waitcnt": 197
+        "lines": 7031,
+        "waitcnt": 186
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2774,7 +2774,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2817,8 +2817,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4308,
-        "waitcnt": 90
+        "lines": 3762,
+        "waitcnt": 101
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2832,7 +2832,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2846,8 +2846,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4495,
-        "waitcnt": 99
+        "lines": 3925,
+        "waitcnt": 114
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2861,7 +2861,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2875,8 +2875,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7549,
-        "waitcnt": 247
+        "lines": 7114,
+        "waitcnt": 223
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2890,7 +2890,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2933,8 +2933,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4372,
-        "waitcnt": 97
+        "lines": 3887,
+        "waitcnt": 107
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2948,7 +2948,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2962,8 +2962,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4480,
-        "waitcnt": 109
+        "lines": 3983,
+        "waitcnt": 114
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -2977,7 +2977,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -2991,8 +2991,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7666,
-        "waitcnt": 241
+        "lines": 7207,
+        "waitcnt": 235
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3006,7 +3006,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3049,8 +3049,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4252,
-        "waitcnt": 102
+        "lines": 3685,
+        "waitcnt": 120
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3064,7 +3064,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3078,8 +3078,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4529,
-        "waitcnt": 105
+        "lines": 3899,
+        "waitcnt": 117
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3093,7 +3093,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3107,8 +3107,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7589,
-        "waitcnt": 265
+        "lines": 7104,
+        "waitcnt": 234
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3122,7 +3122,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3165,8 +3165,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4377,
-        "waitcnt": 97
+        "lines": 3889,
+        "waitcnt": 106
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3180,7 +3180,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3194,8 +3194,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4466,
-        "waitcnt": 105
+        "lines": 4029,
+        "waitcnt": 112
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3209,7 +3209,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3223,8 +3223,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7696,
-        "waitcnt": 262
+        "lines": 7235,
+        "waitcnt": 240
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3238,7 +3238,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3281,8 +3281,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3938,
-        "waitcnt": 73
+        "lines": 3529,
+        "waitcnt": 82
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3296,7 +3296,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3310,8 +3310,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4062,
-        "waitcnt": 72
+        "lines": 3507,
+        "waitcnt": 79
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3325,7 +3325,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3339,8 +3339,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7472,
-        "waitcnt": 189
+        "lines": 7118,
+        "waitcnt": 215
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3354,7 +3354,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3397,8 +3397,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4082,
-        "waitcnt": 72
+        "lines": 3639,
+        "waitcnt": 80
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3412,7 +3412,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3426,8 +3426,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4201,
-        "waitcnt": 71
+        "lines": 3676,
+        "waitcnt": 82
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3441,7 +3441,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3455,8 +3455,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7754,
-        "waitcnt": 220
+        "lines": 7300,
+        "waitcnt": 231
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3470,7 +3470,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tn",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tn_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3513,8 +3513,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3793,
-        "waitcnt": 60
+        "lines": 3196,
+        "waitcnt": 49
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3528,7 +3528,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3542,8 +3542,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3899,
-        "waitcnt": 63
+        "lines": 3264,
+        "waitcnt": 49
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3557,7 +3557,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3571,8 +3571,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6510,
-        "waitcnt": 112
+        "lines": 6042,
+        "waitcnt": 123
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3586,7 +3586,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3629,8 +3629,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3713,
-        "waitcnt": 36
+        "lines": 3319,
+        "waitcnt": 74
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3644,7 +3644,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3658,8 +3658,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 16,
-        "lines": 3842,
-        "waitcnt": 40
+        "lines": 3319,
+        "waitcnt": 73
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3673,7 +3673,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3687,8 +3687,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 6536,
-        "waitcnt": 121
+        "lines": 6047,
+        "waitcnt": 131
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3702,7 +3702,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc32_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3745,8 +3745,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4151,
-        "waitcnt": 76
+        "lines": 3565,
+        "waitcnt": 85
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3760,7 +3760,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3774,8 +3774,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4216,
-        "waitcnt": 79
+        "lines": 3729,
+        "waitcnt": 88
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3789,7 +3789,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3803,8 +3803,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7171,
-        "waitcnt": 168
+        "lines": 6637,
+        "waitcnt": 180
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3818,7 +3818,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3861,8 +3861,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4098,
-        "waitcnt": 73
+        "lines": 3537,
+        "waitcnt": 82
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3876,7 +3876,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3890,8 +3890,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4264,
-        "waitcnt": 78
+        "lines": 3737,
+        "waitcnt": 86
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3905,7 +3905,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3919,8 +3919,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7238,
-        "waitcnt": 170
+        "lines": 6780,
+        "waitcnt": 188
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3934,7 +3934,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc64_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -3977,8 +3977,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4233,
-        "waitcnt": 92
+        "lines": 3720,
+        "waitcnt": 111
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -3992,7 +3992,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4006,8 +4006,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4456,
-        "waitcnt": 96
+        "lines": 3802,
+        "waitcnt": 99
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4021,7 +4021,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4035,8 +4035,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7337,
-        "waitcnt": 233
+        "lines": 6939,
+        "waitcnt": 235
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4050,7 +4050,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4093,8 +4093,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4266,
-        "waitcnt": 93
+        "lines": 3748,
+        "waitcnt": 117
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4108,7 +4108,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4122,8 +4122,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4406,
-        "waitcnt": 97
+        "lines": 3844,
+        "waitcnt": 103
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4137,7 +4137,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4151,8 +4151,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7515,
-        "waitcnt": 220
+        "lines": 7090,
+        "waitcnt": 228
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4166,7 +4166,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc128_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4209,8 +4209,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4248,
-        "waitcnt": 101
+        "lines": 3724,
+        "waitcnt": 119
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4224,7 +4224,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4238,8 +4238,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4410,
-        "waitcnt": 90
+        "lines": 3792,
+        "waitcnt": 98
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4253,7 +4253,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4267,8 +4267,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7344,
-        "waitcnt": 233
+        "lines": 6952,
+        "waitcnt": 238
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4282,7 +4282,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4325,8 +4325,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4282,
-        "waitcnt": 92
+        "lines": 3733,
+        "waitcnt": 93
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4340,7 +4340,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4354,8 +4354,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4501,
-        "waitcnt": 110
+        "lines": 3921,
+        "waitcnt": 120
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4369,7 +4369,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4383,8 +4383,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7571,
-        "waitcnt": 222
+        "lines": 7167,
+        "waitcnt": 234
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4398,7 +4398,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_sc256_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4441,8 +4441,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3897,
-        "waitcnt": 58
+        "lines": 3426,
+        "waitcnt": 68
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4456,7 +4456,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4470,8 +4470,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4028,
-        "waitcnt": 57
+        "lines": 3507,
+        "waitcnt": 65
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4485,7 +4485,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4499,8 +4499,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7390,
-        "waitcnt": 187
+        "lines": 6992,
+        "waitcnt": 217
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4514,7 +4514,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4557,8 +4557,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 3986,
-        "waitcnt": 54
+        "lines": 3372,
+        "waitcnt": 68
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4572,7 +4572,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_none_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4586,8 +4586,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 32,
-        "lines": 4067,
-        "waitcnt": 55
+        "lines": 3550,
+        "waitcnt": 64
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4601,7 +4601,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_relu2_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -4615,8 +4615,8 @@
     {
       "amdgcn_stats": {
         "iu4_wmma": 64,
-        "lines": 7354,
-        "waitcnt": 169
+        "lines": 6869,
+        "waitcnt": 197
       },
       "amdgcn_symbol": "amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3",
       "asm": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.s",
@@ -4630,7 +4630,7 @@
         "num_ctas": 1,
         "num_warps": 8,
         "persistent": 0,
-        "shared_memory_bytes": 65536
+        "shared_memory_bytes": 8192
       },
       "layout": "tt",
       "metadata": "kernels/amdgcn/gfx1151_ragged_int4_fwd_tt_pc_maskk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.json",
@@ -8841,5 +8841,5 @@
     }
   ],
   "repo_root": "<repo>",
-  "source_triton_commit": "ec4a2c64315f3d4485e963a8391a7444a232801f"
+  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617"
 }

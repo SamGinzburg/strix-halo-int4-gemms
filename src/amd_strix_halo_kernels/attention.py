@@ -36,6 +36,44 @@ class Int4AttentionConfig:
             raise ValueError("decode_splits must be a power of two")
 
 
+@dataclass(frozen=True, slots=True)
+class Int4AttentionBackwardConfig:
+    """Launch configuration for fused attention backward kernels."""
+
+    block_m: int = 32
+    block_n: int = 16
+    num_warps: int = 2
+    num_stages: int = 1
+    dkv_block_m: int = 32
+    dkv_block_n: int = 16
+    dkv_num_warps: int = 2
+    dkv_num_stages: int = 1
+
+    def __post_init__(self) -> None:
+        for name, value in (
+            ("block_m", self.block_m),
+            ("block_n", self.block_n),
+            ("num_warps", self.num_warps),
+            ("num_stages", self.num_stages),
+            ("dkv_block_m", self.dkv_block_m),
+            ("dkv_block_n", self.dkv_block_n),
+            ("dkv_num_warps", self.dkv_num_warps),
+            ("dkv_num_stages", self.dkv_num_stages),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a positive Python int")
+            if value <= 0:
+                raise ValueError(f"{name} must be positive")
+        if self.block_m < 16 or self.block_m & (self.block_m - 1):
+            raise ValueError("block_m must be a power of two greater than or equal to 16")
+        if self.block_n < 16 or self.block_n & (self.block_n - 1):
+            raise ValueError("block_n must be a power of two greater than or equal to 16")
+        if self.dkv_block_m < 16 or self.dkv_block_m & (self.dkv_block_m - 1):
+            raise ValueError("dkv_block_m must be a power of two greater than or equal to 16")
+        if self.dkv_block_n < 16 or self.dkv_block_n & (self.dkv_block_n - 1):
+            raise ValueError("dkv_block_n must be a power of two greater than or equal to 16")
+
+
 def _default_attention_config(
     *,
     qk_int4: bool,
@@ -64,8 +102,22 @@ def _default_attention_config(
         else:
             block_m = 64
         return Int4AttentionConfig(block_m=block_m, block_n=16)
+    if qk_int4 and window is not None and query_length >= 1024:
+        return Int4AttentionConfig(block_m=32, block_n=32, num_warps=2)
     block_n = 32 if window is not None and not qk_int4 and query_length < 1024 else 64
     return Int4AttentionConfig(block_m=64 if query_length >= 64 else 16, block_n=block_n)
+
+
+def _default_attention_backward_config(
+    *,
+    window: tuple[int, int] | None,
+) -> Int4AttentionBackwardConfig:
+    """Return measured backward defaults for full or bounded attention."""
+
+    # This compact query tile is the measured winner for both full and local
+    # attention. It is spill-free on gfx1151; the former 64x64 dQ tile spilled
+    # 260 bytes per thread and was 28% slower on the training profile.
+    return Int4AttentionBackwardConfig()
 
 
 def _torch() -> Any:
@@ -463,6 +515,143 @@ def reference_scaled_dot_product_attention(
     return result.to(dtype)
 
 
+def reference_scaled_dot_product_attention_backward(
+    query: Any,
+    key: Any,
+    value: Any,
+    grad_output: Any,
+    *,
+    query_scale: Any | None = None,
+    key_scale: Any | None = None,
+    value_scale: Any | None = None,
+    attn_mask: Any | None = None,
+    is_causal: bool = False,
+    scale: float | None = None,
+    enable_gqa: bool = False,
+    window_size: int | tuple[int, int] | None = None,
+    query_position_offset: int = 0,
+    head_dim: int | None = None,
+    gradient_dtype: Any | None = None,
+) -> tuple[Any, Any, Any]:
+    """Autograd oracle for logical Q/K/V gradients of quantized attention.
+
+    Packed INT4 operands are treated as fixed quantized representations. The
+    returned gradients correspond to the logical dequantized Q, K, and V
+    tensors; gradients for packed codes and quantization scales are not
+    defined by this API.
+    """
+
+    torch = _torch()
+    if not isinstance(is_causal, bool):
+        raise TypeError("is_causal must be a Python bool")
+    if attn_mask is not None and is_causal:
+        raise ValueError("attn_mask and is_causal cannot both be set")
+    if isinstance(query_position_offset, bool) or not isinstance(query_position_offset, int):
+        raise TypeError("query_position_offset must be a non-negative Python int")
+    if query_position_offset < 0:
+        raise ValueError("query_position_offset must be non-negative")
+    window = _normalize_window(window_size)
+    qk_int4, pv_int4, batch, query_heads, kv_heads, query_length, key_length, value_dim = _validate_inputs(
+        torch,
+        query,
+        key,
+        value,
+        query_scale=query_scale,
+        key_scale=key_scale,
+        value_scale=value_scale,
+        head_dim=head_dim,
+        enable_gqa=enable_gqa,
+    )
+    logical_head_dim = int(head_dim) if head_dim is not None else (
+        int(query.shape[-1]) * 2 if qk_int4 else int(query.shape[-1])
+    )
+    softmax_scale = _softmax_scale(scale, logical_head_dim)
+    _require_tensor(torch, "grad_output", grad_output)
+    expected_grad_output_shape = (batch, query_heads, query_length, value_dim)
+    if (
+        grad_output.device != query.device
+        or grad_output.dtype not in {torch.bfloat16, torch.float32}
+        or tuple(grad_output.shape) != expected_grad_output_shape
+        or not grad_output.is_contiguous()
+    ):
+        raise ValueError(
+            "grad_output must be contiguous BF16/FP32 with shape "
+            f"{expected_grad_output_shape} on device {query.device}"
+        )
+    dtype = torch.float32 if gradient_dtype is None else gradient_dtype
+    if dtype not in {torch.bfloat16, torch.float32}:
+        raise ValueError("gradient_dtype must be torch.bfloat16 or torch.float32")
+    _mask_shape_and_strides(
+        torch,
+        attn_mask,
+        device=query.device,
+        target_shape=(batch, query_heads, query_length, key_length),
+    )
+
+    if qk_int4:
+        logical_query = (
+            _unpack_qk(torch, query, logical_head_dim).to(torch.float32)
+            * query_scale.to(torch.float32)[..., None]
+        )
+        logical_key = (
+            _unpack_qk(torch, key, logical_head_dim).to(torch.float32)
+            * key_scale.to(torch.float32)[..., None]
+        )
+    else:
+        logical_query = query.to(torch.float32)
+        logical_key = key.to(torch.float32)
+    if pv_int4:
+        value_codes = _unpack_value(torch, value)[..., :key_length, :]
+        expanded_scale = value_scale.repeat_interleave(16, dim=-2)[..., :key_length, :]
+        logical_value = (value_codes.to(torch.float32) * expanded_scale.to(torch.float32)).to(
+            torch.bfloat16
+        )
+    else:
+        logical_value = value
+
+    with torch.enable_grad():
+        logical_query = logical_query.detach().requires_grad_(True)
+        logical_key = logical_key.detach().requires_grad_(True)
+        logical_value = logical_value.to(torch.float32).detach().requires_grad_(True)
+        expanded_key = logical_key
+        expanded_value = logical_value
+        if enable_gqa and query_heads != kv_heads:
+            repeat = query_heads // kv_heads
+            expanded_key = logical_key.repeat_interleave(repeat, dim=1)
+            expanded_value = logical_value.repeat_interleave(repeat, dim=1)
+        scores = torch.matmul(logical_query, expanded_key.transpose(-2, -1)) * softmax_scale
+        allowed, additive = _materialize_score_mask(
+            torch,
+            attn_mask,
+            device=query.device,
+            shape=(batch, query_heads, query_length, key_length),
+            is_causal=is_causal,
+            window=window,
+            query_position_offset=query_position_offset,
+        )
+        scores = scores.masked_fill(~allowed, -float("inf"))
+        if additive is not None:
+            scores = scores + additive
+        row_max = scores.amax(dim=-1, keepdim=True)
+        unnormalized = torch.exp(scores - row_max).nan_to_num(0.0)
+        denominator = unnormalized.sum(dim=-1, keepdim=True)
+        numerator = torch.matmul(
+            unnormalized.to(torch.bfloat16).to(torch.float32),
+            expanded_value,
+        )
+        result = torch.where(
+            denominator > 0.0,
+            numerator / denominator.clamp_min(1.0e-30),
+            0.0,
+        )
+        gradients = torch.autograd.grad(
+            result,
+            (logical_query, logical_key, logical_value),
+            grad_output.to(torch.float32),
+        )
+    return tuple(gradient.to(dtype) for gradient in gradients)  # type: ignore[return-value]
+
+
 @lru_cache(maxsize=2)
 def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
     _, tl = _triton()
@@ -651,7 +840,14 @@ def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
                         mask=key_offsets < key_length,
                         other=0.0,
                     ).to(tl.float32)
-                    scores = score_i32.to(tl.float32) * query_row_scale[:, None] * key_row_scale[None, :]
+                    query_score_scale = query_row_scale * (
+                        softmax_scale * 1.4426950408889634
+                    )
+                    scores = (
+                        score_i32.to(tl.float32)
+                        * query_score_scale[:, None]
+                        * key_row_scale[None, :]
+                    )
                 else:
                     key_base = (batch_index * kv_heads + kv_head) * key_length * head_dim
                     key_ptrs = key + key_base + offsets_d[:, None] + key_offsets[None, :] * head_dim
@@ -661,7 +857,7 @@ def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
                         other=0.0,
                     )
                     scores = tl.dot(query_tile, key_tile, out_dtype=tl.float32)
-                scores *= softmax_scale * 1.4426950408889634
+                    scores *= softmax_scale * 1.4426950408889634
                 valid = (offsets_m[:, None] < query_length) & (key_offsets[None, :] < key_length)
                 key_positions = key_offsets[None, :]
                 if effective_is_causal:
@@ -729,7 +925,14 @@ def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
                         mask=key_offsets < key_length,
                         other=0.0,
                     ).to(tl.float32)
-                    scores = score_i32.to(tl.float32) * query_row_scale[:, None] * key_row_scale[None, :]
+                    query_score_scale = query_row_scale * (
+                        softmax_scale * 1.4426950408889634
+                    )
+                    scores = (
+                        score_i32.to(tl.float32)
+                        * query_score_scale[:, None]
+                        * key_row_scale[None, :]
+                    )
                 else:
                     key_base = (batch_index * kv_heads + kv_head) * key_length * head_dim
                     key_ptrs = key + key_base + offsets_d[:, None] + key_offsets[None, :] * head_dim
@@ -739,7 +942,7 @@ def _attention_forward_kernel(*, specialize_runtime_args: bool = True) -> Any:
                         other=0.0,
                     )
                     scores = tl.dot(query_tile, key_tile, out_dtype=tl.float32)
-                scores *= softmax_scale * 1.4426950408889634
+                    scores *= softmax_scale * 1.4426950408889634
                 valid = (offsets_m[:, None] < query_length) & (key_offsets[None, :] < key_length)
                 key_positions = key_offsets[None, :]
                 if effective_is_causal:
@@ -960,7 +1163,9 @@ def int4_scaled_dot_product_attention(
     ``window_size`` is an inclusive local radius: integer ``w`` means
     ``(w, w)`` and a tuple specifies ``(left, right)``. ``query_position_offset``
     maps local query indices to absolute positions for cached decoding. The
-    optimized path is forward-only and currently requires ``dropout_p=0``.
+    optimized forward path has no implicit autograd registration and currently
+    requires ``dropout_p=0``. Use
+    :func:`int4_scaled_dot_product_attention_backward` for explicit gradients.
     Split decode requires a contiguous FP32 ``workspace`` of shape
     ``(B, Hq, config.decode_splits, Dv + 2)`` during CUDAGraph capture. Pass a
     preallocated ``out`` tensor to keep output storage stable across replays.
@@ -1282,6 +1487,11 @@ def int4_scaled_dot_product_attention(
         return out
 
     triton, _ = _triton()
+    specialize_profile = (query_heads, kv_heads, query_length, key_length) in {
+        (8, 8, 512, 512),
+        (16, 8, 2048, 2048),
+        (8, 8, 1, 2048),
+    }
     _attention_forward_kernel()[grid](
         query,
         key,
@@ -1318,15 +1528,15 @@ def int4_scaled_dot_product_attention(
         MASK_KIND=mask_kind,
         OUTPUT_BF16=dtype == torch.bfloat16,
         SPLIT_DECODE=split_decode,
-        SPECIALIZE_SEMANTICS=False,
-        IS_CAUSAL_STATIC=False,
-        HAS_WINDOW_STATIC=False,
-        SPECIALIZE_SEQUENCE=False,
-        QUERY_LENGTH_STATIC=0,
-        KEY_LENGTH_STATIC=0,
-        SPECIALIZE_HEADS=False,
-        QUERY_HEADS_STATIC=0,
-        KV_HEADS_STATIC=0,
+        SPECIALIZE_SEMANTICS=True,
+        IS_CAUSAL_STATIC=bool(is_causal),
+        HAS_WINDOW_STATIC=window is not None,
+        SPECIALIZE_SEQUENCE=specialize_profile,
+        QUERY_LENGTH_STATIC=query_length if specialize_profile else 0,
+        KEY_LENGTH_STATIC=key_length if specialize_profile else 0,
+        SPECIALIZE_HEADS=True,
+        QUERY_HEADS_STATIC=query_heads,
+        KV_HEADS_STATIC=kv_heads,
         num_warps=config.num_warps,
         num_stages=config.num_stages,
         matrix_instr_nonkdim=16,

@@ -107,8 +107,10 @@ def test_native_dispatcher_exports_attention_hsaco_entrypoints() -> None:
     dispatch = (REPO_ROOT / "native" / "src" / "dispatch.cpp").read_text()
 
     assert "amd_strix_halo_kernels_launch_attention_fwd_hsaco" in dispatch
+    assert "amd_strix_halo_kernels_launch_attention_bwd_hsaco" in dispatch
     assert "amd_strix_halo_kernels_launch_attention_reduce_hsaco" in dispatch
     assert "library.amd_strix_halo_kernels_launch_attention_fwd_hsaco.argtypes" in native_py
+    assert "library.amd_strix_halo_kernels_launch_attention_bwd_hsaco.argtypes" in native_py
     assert "library.amd_strix_halo_kernels_launch_attention_reduce_hsaco.argtypes" in native_py
     assert "query_position_offset" in dispatch
     assert "runtime_scalar_mask" in dispatch

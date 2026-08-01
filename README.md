@@ -51,7 +51,7 @@ uv pip install dist/amd_strix_halo_kernels-0.1.0-py3-none-linux_x86_64.whl
 
 Runtime import does not require Triton. Native dispatch requires a compatible
 ROCm HIP runtime, ROCm PyTorch, and the packaged HSACO artifacts from the wheel.
-The wheel is runtime-only (about 34.4 MiB): it ships the dispatch library, the
+The wheel is runtime-only (about 43.8 MiB): it ships the dispatch library, the
 HSACO code objects, and the per-kernel JSON launch metadata. The AMDGCN
 assembly and Triton IR used to generate those objects live in the repository,
 not the wheel.
@@ -115,8 +115,10 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | --- | --- |
 | `mm(...)` | Dense plain or ReLU^2 GEMM with BF16, FP32 split-K, or packed-INT4 output. |
 | `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`, optionally emitted as packed INT4. |
-| `int4_scaled_dot_product_attention(...)` | Forward fused attention with BF16 or packed INT4 Q/K and V operands; packaged D64 HSACO with JIT fallback. |
-| `reference_scaled_dot_product_attention(...)` | Quantization-matched FP32 arithmetic oracle for fused attention. |
+| `int4_scaled_dot_product_attention(...)` | Explicit fused attention forward with BF16 or packed INT4 Q/K and V operands; packaged D64 HSACO with JIT fallback. |
+| `int4_scaled_dot_product_attention_backward(...)` | Explicit logical dQ/dK/dV for every BF16/INT4 attention storage mode; FP32 optimized gradients. |
+| `reference_scaled_dot_product_attention(...)` | Quantization-matched FP32 arithmetic oracle for fused attention forward. |
+| `reference_scaled_dot_product_attention_backward(...)` | Quantization-matched FP32 gradient oracle for fused attention backward. |
 | `quantize_attention_qk_int4(...)` | Per-token signed-INT4 quantization and head-dimension packing for Q/K. |
 | `quantize_attention_value_int4(...)` | Per-16-token signed-INT4 quantization and sequence-dimension packing for V. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
@@ -129,6 +131,7 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `ragged_group_info_capacity(...)` | Compute the static safe task bound used by graph-safe preparation. |
 | `autotune(...)` | Benchmark compatible packaged dense kernels for one shape. |
 | `autotune_attention(...)` | Numerically validate and benchmark fused BF16/INT4 attention configs on caller-provided tensors. |
+| `autotune_attention_backward(...)` | Numerically gate dQ/dK/dV, then benchmark explicit attention-backward configs. |
 | `autotune_ragged_dot(...)` | Benchmark Triton-JIT ragged forward or backward candidate configs for one shape. |
 | `default_registry` | Metadata registry for dtype, layout, scale mode, epilogue, schedule, tile, `split_k`, and `even_k`. |
 | `torch_gemm(...)` | Lazy `torch.library.custom_op` wrapper around native dispatch. |
@@ -602,10 +605,12 @@ rejects INT4 and restricts BF16 candidates to `split_k=1`.
 
 ## Fused BF16/INT4 Attention
 
-`int4_scaled_dot_product_attention(...)` is a forward-only Triton-JIT fused
-scaled-dot-product attention API. Tensors use logical order `(B, H, S, D)` and
-the output is `(B, Hq, Lq, Dv)`. Q and K must use the same representation;
-V can be selected independently, giving four execution modes:
+`int4_scaled_dot_product_attention(...)` and
+`int4_scaled_dot_product_attention_backward(...)` are explicit fused forward
+and backward APIs with packaged gfx1151 HSACO and Triton-JIT fallback. They do
+not register implicit autograd. Tensors use logical order `(B, H, S, D)` and
+the forward output is `(B, Hq, Lq, Dv)`. Q and K must use the same
+representation; V can be selected independently, giving four execution modes:
 
 | Q/K | V | Physical input shapes | Scale shapes |
 | --- | --- | --- | --- |
@@ -636,6 +641,18 @@ out = int4_scaled_dot_product_attention(
     value_scale=v_scale,
     head_dim=head_dim,
 )
+
+grad_q, grad_k, grad_v = int4_scaled_dot_product_attention_backward(
+    q4,
+    k4,
+    v4,
+    out,
+    grad_output,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    value_scale=v_scale,
+    head_dim=head_dim,
+)
 ```
 
 BF16 Q/K use BF16 MMA and packed Q/K use signed INT4 MMA. P@V always uses
@@ -644,8 +661,12 @@ dequantized tile-wise with its per-16-token BF16 scales. There is no online
 quantization of P. Thus “INT4 V” describes input storage and bandwidth, not an
 INT4 P@V dot product. `head_dim` and `Dv` are limited to 256. The optimized
 path requires contiguous CUDA/HIP Q/K/V, `dropout_p=0`, and tensors that do
-not require gradients. Output defaults to BF16; FP32 is available with
-`output_dtype=torch.float32`.
+not set `requires_grad`; training calls the explicit backward API. Forward
+output defaults to BF16; FP32 is available with
+`output_dtype=torch.float32`. Backward accepts the exact saved forward output
+and a contiguous BF16 or FP32 `grad_output`, and returns logical dequantized
+dQ/dK/dV. The optimized gradient contract is FP32 so every representation can
+meet the elementwise `rtol=atol=1e-3` gate without BF16 rounding ambiguity.
 
 Boolean and additive BF16/FP32 masks broadcast to `[B,Hq,Lq,Lk]`;
 `attn_mask` and `is_causal=True` are mutually exclusive. `window_size=w`
@@ -695,11 +716,21 @@ are preallocated, so quantization and allocation are excluded from timing.
 numerical metadata; use `best_config` explicitly for subsequent dispatch.
 Tuning is eager and cannot run inside CUDAGraph capture.
 
+Use `autotune_attention_backward(...)` for the explicit gradient phase. It
+preserves the same operand, GQA, mask, causal, local-window, and cached-offset
+semantics, validates dQ, dK, and dV separately against
+`reference_scaled_dot_product_attention_backward(...)`, and rejects a
+candidate before timing if any gradient exceeds caller tolerances. The
+default `rtol` and `atol` are `1e-3` and cannot be relaxed.
+
 Decode can use split reduction only at `Lq=1`. During CUDAGraph capture, pass a
 preallocated contiguous `out` and, when `config.decode_splits > 1`, a
 contiguous FP32 `workspace` of shape
 `[B,Hq,decode_splits,Dv+2]`; workspace is rejected for `decode_splits=1`.
 Warm the exact mode, shapes, configuration, and mask form before capture.
+Backward graph capture additionally requires preallocated FP32 `grad_query`,
+`grad_key`, `grad_value`, `lse`, and `delta`; `lse` and `delta` have shape
+`[B,Hq,Lq]`. Captured backward launches do not allocate or use atomics.
 
 For arithmetic validation, compare the optimized path with
 `reference_scaled_dot_product_attention(...)` or set `use_reference=True` and
@@ -742,6 +773,8 @@ The exact training-attention rows use
 | --- | --- | ---: | ---: | ---: | --- |
 | full | BF16 Q/K/V / FP32 / BF16 | 3.727353 ms | 32.264 TOPS | 7.560022 ms; 2.03x | FP32 max abs `4.16e-5`; timed BF16 max abs `1.23e-4` |
 | local `(127,0)` | BF16 Q/K/V / FP32 / BF16 | 0.570430 ms | 12.768 effective TOPS | 133.235092 ms; 233.57x* | FP32 max abs `1.87e-4`; timed BF16 max abs `4.89e-4` |
+| full | INT4 Q/K + BF16 V / INT4 Q@K, BF16 P@V, FP32 accum / BF16 | 3.443859 ms | 34.920 TOPS | 7.628077 ms; 2.21x | FP32 max abs `4.17e-5`; timed BF16 max abs `1.22e-4` |
+| local `(127,0)` | INT4 Q/K + BF16 V / INT4 Q@K, BF16 P@V, FP32 accum / BF16 | 0.446277 ms | 16.320 effective TOPS | 133.630676 ms; 299.43x* | FP32 max abs `1.70e-4`; timed BF16 max abs `4.88e-4` |
 | full | BF16 Q/K + INT4 V / BF16 P@V, FP32 accum / BF16 | 4.867351 ms | 24.707 TOPS | 7.587160 ms; 1.56x | FP32 max abs `4.29e-5`; timed BF16 max abs `1.22e-4` |
 | local `(127,0)` | BF16 Q/K + INT4 V / BF16 P@V, FP32 accum / BF16 | 0.697428 ms | 10.443 effective TOPS | 133.055969 ms; 190.78x* | FP32 max abs `2.86e-4`; timed BF16 max abs `9.77e-4` |
 | full | INT4 Q/K/V / INT4 Q@K, BF16 P@V, FP32 accum / BF16 | 4.462832 ms | 26.947 TOPS | 7.587160 ms; 1.70x | FP32 max abs `4.36e-5`; timed BF16 max abs `1.22e-4` |
@@ -749,15 +782,26 @@ The exact training-attention rows use
 
 Both the FP32 validation output and the actual timed BF16 output passed
 `rtol=atol=1e-3` against the representation-matched oracle for all 36 BF16
-and all 24 packed-V candidates. `*` Each local PyTorch baseline used one
-sample and a generic
+and all 24 packed-V candidates; both packaged INT4-QK/BF16-V records pass the
+same gate. `*` Each local PyTorch baseline used one sample and a generic
 boolean mask that fell off its fused fast path, so it is diagnostic rather
 than an apples-to-apples fused-kernel speedup. Local BF16 Q/K defaults to BN64
 for `Lq >= 1024` and retains BN32 for shorter queries.
 
-The wheel packages 484 forward-attention artifacts and four split-decode
-reducers for `D=Dv=64`. The forward set contains 104 generic runtime-shape and
-runtime-semantics objects plus 380 specialized objects for the measured
+The packaged INT4-QK/BF16-V backward kernels use FP32 saved softmax state,
+accumulation, and gradient outputs. At the same training shape, full backward
+measures 27.432583 ms / 15.343 TOPS; local `(127,0)` measures 2.403788 ms /
+10.605 effective TOPS. All dQ/dK/dV tensors pass the representation-matched
+FP32 oracle at `rtol=atol=1e-3`. Full-case maximum absolute errors are
+`6.11e-6`/`9.12e-6`/`4.73e-5`; local errors are
+`1.16e-4`/`1.44e-4`/`1.04e-3`, with a worst combined-tolerance ratio of
+`0.947`. No PyTorch backward timing was recorded, so these rows do not claim a
+backward speedup.
+
+The wheel packages 532 forward-attention artifacts, four split-decode
+reducers, and 256 backward phase artifacts for `D=Dv=64`. The forward set
+contains 112 generic runtime-shape/runtime-semantics objects plus 420
+specialized objects for the measured
 `Hq/Hkv/Lq/Lk` profiles `(8,8,512,512)`, `(16,8,2048,2048)`, and
 `(8,8,1,2048)`. It covers all four Q/K-by-V storage modes, no mask or
 bool/BF16/FP32 mask pointers, BF16/FP32 output, and the measured/default launch
@@ -765,6 +809,13 @@ configs above. `use_precompiled=None` selects the exact profile when available,
 then the generic native object, while `True` requires packaged coverage and
 `False` forces JIT. Uncovered dimensions/configs retain the custom-Triton JIT
 fallback.
+
+Backward contains separate dQ and combined dK/dV kernels. Each phase has 64
+generic objects and 64 exact `(Hq,Hkv,Lq,Lk)=(16,8,2048,2048)` semantic
+profiles. Artifacts are specialized for all four QK-by-V storage modes,
+no/bool/BF16/FP32 masks where applicable, and every BF16/FP32 saved-output by
+BF16/FP32 `grad_output` pair. `use_precompiled` has the same auto/require/JIT
+meaning as forward.
 
 On the packaged `(B,Hq,Hkv,Lq,Lk,D,Dv)=(1,8,8,512,512,64,64)` BF16 profile,
 `BM64_BN64_W4_S1` measured 0.036228 ms / 14.819 effective TOPS versus
@@ -774,8 +825,8 @@ error `6.07e-5`; timed BF16 maximum absolute error was `2.45e-4`.
 
 ## Kernel Coverage
 
-The checked-in matrix currently contains 3,852 native artifacts: 3,062 dense
-generated kernels, 302 ragged generated artifacts, and 488 fused-attention
+The checked-in matrix currently contains 4,156 native artifacts: 3,062 dense
+generated kernels, 302 ragged generated artifacts, and 792 fused-attention
 artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
@@ -801,12 +852,16 @@ artifacts, and 20 exact 4096-capacity BF16 wide-store NN/TN artifacts. Together
 with 160 forward artifacts and two specialized `bwd_accum` FP32/BF16
 artifacts, this forms the 302-artifact ragged matrix.
 
-Attention contributes 484 forward artifacts plus four decode reducers at
-`D=Dv=64`. Its physical input combinations are BF16/BF16, INT4/BF16,
+Attention contributes 532 forward artifacts, four decode reducers, and 256
+backward artifacts at `D=Dv=64`. Its physical input combinations are
+BF16/BF16, INT4/BF16,
 BF16/INT4, and INT4/INT4 for QK/V; forward variants cover no mask and
 bool/BF16/FP32 mask pointers with BF16 or FP32 output. Generic variants retain
 runtime shapes and semantics, while measured workload profiles specialize
 heads, lengths, and full/causal/local control flow.
+Backward packages both dQ and dK/dV phases, FP32 logical gradients, and all
+BF16/FP32 saved-output and `grad_output` pointer types so native dispatch never
+reinterprets one storage type as another.
 
 Non-split dense kernels can write BF16 or fused packed INT4 plus BF16 sc256
 scales. Split-K dense kernels write FP32 because their partial tiles are
@@ -867,17 +922,22 @@ then launches the same down GEMM.
 
 | Path | BF16 producer + quant + down | Fused INT4 producer + down | Speedup |
 | --- | ---: | ---: | ---: |
-| dense SwiGLU | 7.651 ms | 1.637 ms | 4.67× |
-| 8-group ragged SwiGLU | 9.488 ms | 2.935 ms | 3.39× |
+| dense SwiGLU | 7.669 ms | 1.673 ms | 4.58× |
+| 8-group ragged SwiGLU | 9.998 ms | 2.817 ms | 3.55× |
 
-The fused producer alone measured 1.083 ms dense and 2.326 ms ragged; removing
-the redundant complete-N-tile masks reduced packaged ragged producer latency
-from 2.856 ms by 18.5%. Every native output artifact is checked against the
-representation-matched quantizer: packed codes and BF16 scales are exact, and
-dequantized results pass `rtol=atol=1e-3`. Relative to the unquantized BF16
-activation, ordinary INT4 quantization has the expected lossy quality envelope
-(dense cosine 0.9806); `1e-3` is the kernel-fidelity gate, not a claim that
-four-bit quantization reproduces arbitrary BF16 values elementwise.
+The fused producer alone measured 1.139 ms dense and 2.220 ms ragged. These are
+averages of two current-wheel runs with 10 warmups and 50 timed iterations.
+Against two identically configured old-compiler runs, the newly vectorized
+ragged packed-output producer improved from 2.287 to 2.220 ms (2.9%), and its
+producer-plus-down chain improved from 2.968 to 2.817 ms (5.1%). The dense
+producer assembly was already vectorized and its small timing movement is
+measurement variation. Every one of the 180 native output artifacts is checked
+against the representation-matched quantizer: packed codes and BF16 scales are
+exact, and dequantized results pass `rtol=atol=1e-3`. Relative to the
+unquantized BF16 activation, ordinary INT4 quantization has the expected lossy
+quality envelope (dense cosine 0.9806); `1e-3` is the kernel-fidelity gate, not
+a claim that four-bit quantization reproduces arbitrary BF16 values
+elementwise.
 
 For fused SwiGLU, TOPS counts both up and gate GEMMs.
 BF16-store correctness may differ by one ULP from the BF16 reference on values
@@ -887,13 +947,16 @@ Persistent dense scheduling remains opt-in and experimental. In a separate
 4096³ per-channel plain-GEMM comparison, the best persistent result was about
 42.0 TOPS versus 77.1 TOPS for standard scheduling, which remains the default.
 
-The dense and ragged matrices were regenerated with Triton
-`ec4a2c64315f3d4485e963a8391a7444a232801f`. Representative old/new HSACO
-hashes are identical, so the compiler update did not automatically improve
-packaged-native code. Most dense rows moved by less than 2%. The refreshed
-subchannel-256 SwiGLU snapshot is 13.4% lower than the older table, but its
-kernel is byte-identical too; treat that as a historical measurement-condition
-difference, not a compiler regression.
+The dense, ragged, and attention matrices are regenerated with Triton
+`0da3c5a751b2d03461e961b62dc3598f85884617`. That compiler revision vectorizes
+unaligned gfx1151 byte stores. In the representative masked ragged
+subchannel-256 SwiGLU packed-output kernel, the output path changed from 31
+`buffer_store_b8` instructions to four `buffer_store_b64` instructions; code
+size fell from 34,260 to 32,624 bytes and reported private scratch from 560 to
+448 bytes. The BF16/FP32 attention outputs already use wider stores (the exact
+INT4-QK/BF16-V training forward uses four `buffer_store_b128` instructions),
+so this compiler change targets packed INT4 GEMM/ragged epilogues rather than
+attention directly.
 
 ### Ragged Dot Performance Snapshot
 

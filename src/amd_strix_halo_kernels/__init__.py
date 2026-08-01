@@ -2,11 +2,15 @@
 
 from .api import explicit_mm, fused_swiglu_up_gate, mm
 from .attention import (
+    Int4AttentionBackwardConfig,
     Int4AttentionConfig,
     int4_scaled_dot_product_attention,
     reference_scaled_dot_product_attention,
+    reference_scaled_dot_product_attention_backward,
 )
+from .attention_backward import int4_scaled_dot_product_attention_backward
 from .autotune import (
+    AttentionBackwardAutotuneResult,
     AttentionAutotuneResult,
     AttentionShape,
     AutotuneResult,
@@ -15,8 +19,10 @@ from .autotune import (
     RaggedDotMode,
     autotune,
     autotune_attention,
+    autotune_attention_backward,
     autotune_ragged_dot,
     default_attention_candidates,
+    default_attention_backward_candidates,
     default_ragged_dot_candidates,
     find_autotune_candidates,
     generated_shape_for_kernel,
@@ -79,6 +85,7 @@ __all__ = [
     "ACC_DTYPE",
     "ARCH",
     "AttentionAutotuneResult",
+    "AttentionBackwardAutotuneResult",
     "AttentionShape",
     "AutotuneResult",
     "BenchmarkDatabase",
@@ -95,6 +102,7 @@ __all__ = [
     "KernelSchedule",
     "KernelStatus",
     "Int4AttentionConfig",
+    "Int4AttentionBackwardConfig",
     "NativeRuntimeStatus",
     "OperandDType",
     "OutputDType",
@@ -115,11 +123,13 @@ __all__ = [
     "amdgcn_metadata_path_for_kernel_id",
     "autotune",
     "autotune_attention",
+    "autotune_attention_backward",
     "autotune_ragged_dot",
     "calculate_group_info",
     "default_ragged_bwd_config",
     "default_registry",
     "default_attention_candidates",
+    "default_attention_backward_candidates",
     "default_ragged_dot_candidates",
     "dispatch_runtime_status",
     "dequantize_int4_output",
@@ -130,6 +140,7 @@ __all__ = [
     "hsaco_dir",
     "hsaco_path_for_kernel_id",
     "int4_scaled_dot_product_attention",
+    "int4_scaled_dot_product_attention_backward",
     "launch_generated_kernel",
     "launch_hsaco",
     "mm",
@@ -145,6 +156,7 @@ __all__ = [
     "ragged_dot_int4_bwd_accum",
     "ragged_dot_int4",
     "reference_scaled_dot_product_attention",
+    "reference_scaled_dot_product_attention_backward",
     "register_torch_ops",
     "torch_gemm",
 ]

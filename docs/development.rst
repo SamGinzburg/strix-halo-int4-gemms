@@ -66,19 +66,21 @@ Do not pass ``--no-triton-artifacts`` for checked-in regeneration: the tracked
 Triton source and IR are part of the provenance update.
 
 ``uv.lock`` pins the custom Triton dependency to
-``ec4a2c64315f3d4485e963a8391a7444a232801f``, and both dense and ragged
-generation summaries record that source commit. The 2,880-entry combinatorial
-dense base, two exact subchannel-256 TN projection-gradient artifacts, and 180
-packed-INT4 output artifacts bring the checked-in dense total to 3,062. The
+``0da3c5a751b2d03461e961b62dc3598f85884617``, and the dense, ragged, and
+attention generation summaries record that source commit. The 2,880-entry
+combinatorial dense base, two exact subchannel-256 TN projection-gradient
+artifacts, and 180 packed-INT4 output artifacts bring the checked-in dense
+total to 3,062. The
 ragged matrix contains 302 artifacts after adding its 120 packed-output
 variants.
 
 Attention Generation and Tuning
 -------------------------------
 
-Regenerate the 488-artifact fused-attention family separately. This produces
-104 generic forward objects, 380 measured-profile forward objects, and four
-split-decode reducers at ``D=Dv=64``; cleanup is restricted to
+Regenerate the 792-artifact fused-attention family separately. This produces
+112 generic forward objects, 420 measured-profile forward objects, four
+split-decode reducers, 128 dQ objects, and 128 combined dK/dV objects at
+``D=Dv=64``; cleanup is restricted to
 ``gfx1151_attention_*`` and does not touch dense or ragged families:
 
 .. code-block:: bash
@@ -93,8 +95,8 @@ attention source/assembly contract. The generation summary records the exact
 custom-Triton commit and the parser verifies pointer/scalar offsets, including
 the two hidden Triton ABI pointers, before accepting an artifact.
 
-The current totals are 3,062 dense, 302 ragged, and 488 attention artifacts
-(3,852 packaged HSACOs).
+The current totals are 3,062 dense, 302 ragged, and 792 attention artifacts
+(4,156 packaged HSACOs).
 
 Regenerate the complete attention timing database on gfx1151 with prepacked
 inputs and the experimental ROCm PyTorch SDPA baseline enabled:
@@ -122,12 +124,26 @@ Use ``--backend precompiled`` to require packaged candidates, ``--backend jit``
 to reproduce compiler-tuning runs, or the default ``auto`` for native coverage
 with JIT fallback.
 
-Three additional checked-in databases capture exact training workloads:
+Backward artifacts are emitted as separate ``backward_dq`` and
+``backward_dkv`` phases. Each phase includes generic and exact 2048-token GQA
+profiles for every BF16/INT4 input-storage mode and every BF16/FP32 saved-output
+by BF16/FP32 upstream-gradient dtype pair. The public
+``autotune_attention_backward(...)`` API is the numerical gate and tuning
+source of truth: dQ, dK, and dV must each pass ``rtol=atol=1e-3`` or stricter
+before candidate timing. Rebuild and test the wheel after regeneration because
+these pointer dtypes are part of the native ABI.
+
+Five additional checked-in databases capture exact training workloads:
 ``benchmarks/gfx1151_attention_training.json`` contains 36 numerically gated
 BF16 GQA candidates with zero failures, and
 ``benchmarks/gfx1151_attention_int4_value_training.json`` contains 24
 BF16-QK/INT4-V and INT4-QK/INT4-V candidates using BF16 P@V with zero
-failures. Regenerate the packed-V file with:
+failures. ``benchmarks/gfx1151_attention_int4_qk_training.json`` records the
+final packaged INT4-QK/BF16-V forward full/local kernels, while
+``benchmarks/gfx1151_attention_backward_training.json`` records the matching
+packaged backward full/local kernels with separate dQ and combined dK/dV
+phases. Both require all representation-matched outputs or gradients to pass
+``rtol=atol=1e-3``. Regenerate the packed-V file with:
 
 .. code-block:: bash
 
@@ -172,7 +188,7 @@ The wheel is runtime-only. During wheel build, CMake globs every
 ``lld``, and installs the resulting ``kernels/hsaco/*.hsaco`` code objects.
 The wheel bundles those code objects, the dispatch shared library, and the
 ``kernels/amdgcn/*.json`` launch metadata that the dispatcher reads at run
-time (about 34.4 MiB total). The generation provenance — ``*.s`` assembly and the
+time (about 43.8 MiB total). The generation provenance — ``*.s`` assembly and the
 ``kernels/triton/`` IR — stays in the git repository and is excluded from the
 wheel by the CMake install rules;
 it is never read at run time, and keeping it out of the wheel is what keeps the

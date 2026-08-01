@@ -7,14 +7,21 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels import (
+    Int4AttentionBackwardConfig,
     Int4AttentionConfig,
     autotune_attention,
+    autotune_attention_backward,
     int4_scaled_dot_product_attention,
+    int4_scaled_dot_product_attention_backward,
     quantize_attention_qk_int4,
     quantize_attention_value_int4,
     reference_scaled_dot_product_attention,
+    reference_scaled_dot_product_attention_backward,
 )
 from amd_strix_halo_kernels.attention_artifacts import (
+    ATTENTION_BACKWARD_DKV,
+    ATTENTION_BACKWARD_DQ,
+    ATTENTION_BACKWARD_PHASES,
     ATTENTION_MASK_BF16,
     ATTENTION_MASK_BOOL,
     ATTENTION_MASK_DTYPES,
@@ -23,6 +30,7 @@ from amd_strix_halo_kernels.attention_artifacts import (
     ATTENTION_OUTPUT_BF16,
     ATTENTION_OUTPUT_DTYPES,
     ATTENTION_PRECOMPILED_CONFIGS,
+    ATTENTION_PRECOMPILED_BACKWARD_CONFIGS,
     ATTENTION_PRECOMPILED_DECODE_SPLITS,
     ATTENTION_SEMANTICS,
     ATTENTION_SEMANTICS_CAUSAL,
@@ -30,9 +38,11 @@ from amd_strix_halo_kernels.attention_artifacts import (
     ATTENTION_SEMANTICS_FULL,
     ATTENTION_SEMANTICS_LOCAL,
     attention_forward_kernel_id,
+    attention_backward_kernel_id,
     attention_precompiled_workload_shapes,
     attention_reduce_kernel_id,
     precompiled_attention_forward_available,
+    precompiled_attention_backward_available,
     precompiled_attention_reduce_available,
 )
 
@@ -55,6 +65,19 @@ def _config(values):
         num_warps=values[2],
         num_stages=values[3],
         decode_splits=values[4],
+    )
+
+
+def _backward_config(values):
+    return Int4AttentionBackwardConfig(
+        block_m=values[0],
+        block_n=values[1],
+        num_warps=values[2],
+        num_stages=values[3],
+        dkv_block_m=values[4],
+        dkv_block_n=values[5],
+        dkv_num_warps=values[6],
+        dkv_num_stages=values[7],
     )
 
 
@@ -83,6 +106,36 @@ SEMANTIC_CASES = tuple(
     for semantics in ATTENTION_SEMANTICS
     if mask_dtype == ATTENTION_MASK_NONE
     or semantics not in {ATTENTION_SEMANTICS_CAUSAL, ATTENTION_SEMANTICS_CAUSAL_LOCAL}
+)
+
+BACKWARD_CASES = tuple(
+    (mode, _backward_config(values), mask_dtype, None, output_dtype, grad_output_dtype, None)
+    for mode in ATTENTION_PRECOMPILED_CONFIGS
+    for values in ATTENTION_PRECOMPILED_BACKWARD_CONFIGS
+    for mask_dtype in ATTENTION_MASK_DTYPES
+    for output_dtype in ATTENTION_OUTPUT_DTYPES
+    for grad_output_dtype in ATTENTION_OUTPUT_DTYPES
+) + tuple(
+    (
+        mode,
+        _backward_config(ATTENTION_PRECOMPILED_BACKWARD_CONFIGS[0]),
+        ATTENTION_MASK_NONE,
+        semantics,
+        output_dtype,
+        grad_output_dtype,
+        (16, 8, 2048, 2048),
+    )
+    for mode in ATTENTION_PRECOMPILED_CONFIGS
+    for semantics in ATTENTION_SEMANTICS
+    for output_dtype in ATTENTION_OUTPUT_DTYPES
+    for grad_output_dtype in ATTENTION_OUTPUT_DTYPES
+)
+
+BACKWARD_NUMERIC_CASES = tuple(
+    case
+    for case in BACKWARD_CASES
+    if case[-1] is None
+    or (case[4] == ATTENTION_OUTPUT_BF16 and case[5] == ATTENTION_OUTPUT_BF16)
 )
 
 
@@ -157,10 +210,16 @@ def _case_id(case):
             f"lq{workload_shape[2]}-lk{workload_shape[3]}"
         )
     )
+
+
+def _backward_case_id(case):
+    mode, config, mask_dtype, semantics, output_dtype, grad_output_dtype, workload_shape = case
+    workload_label = "runtime" if workload_shape is None else "train-gqa-2048"
     return (
-        f"{mode}-{mask_dtype}-{semantics or 'runtime'}-{output_dtype}-{workload_label}-"
-        f"bm{config.block_m}-bn{config.block_n}-"
-        f"w{config.num_warps}-ds{config.decode_splits}"
+        f"{mode}-{mask_dtype}-{semantics or 'runtime'}-"
+        f"out{output_dtype}-dout{grad_output_dtype}-{workload_label}-"
+        f"dqm{config.block_m}-dqn{config.block_n}-"
+        f"dkvm{config.dkv_block_m}-dkvn{config.dkv_block_n}"
     )
 
 
@@ -186,7 +245,7 @@ def _assert_native_numerics(actual, expected) -> None:
 
 @requires_native_attention
 def test_all_precompiled_attention_artifacts_are_installed() -> None:
-    assert len(FORWARD_CASES) == 484
+    assert len(FORWARD_CASES) == 532
     for mode, config, mask_dtype, semantics, output_dtype, workload_shape in FORWARD_CASES:
         kernel_id = attention_forward_kernel_id(
             mode=mode,
@@ -207,6 +266,30 @@ def test_all_precompiled_attention_artifacts_are_installed() -> None:
                 decode_splits=decode_splits,
             )
             assert precompiled_attention_reduce_available(kernel_id)
+    assert len(BACKWARD_CASES) == 128
+    for (
+        mode,
+        config,
+        mask_dtype,
+        semantics,
+        output_dtype,
+        grad_output_dtype,
+        workload_shape,
+    ) in BACKWARD_CASES:
+        for phase in ATTENTION_BACKWARD_PHASES:
+            kernel_id = attention_backward_kernel_id(
+                phase=phase,
+                mode=mode,
+                mask_dtype=mask_dtype,
+                semantics=semantics,
+                output_dtype=output_dtype,
+                grad_output_dtype=grad_output_dtype,
+                head_dim=64,
+                value_dim=64,
+                config=config,
+                workload_shape=workload_shape,
+            )
+            assert precompiled_attention_backward_available(kernel_id, phase=phase)
 
 
 @requires_native_attention
@@ -285,6 +368,117 @@ def test_every_precompiled_attention_forward_has_strict_numerics(
     )
 
     _assert_native_numerics(actual, expected)
+
+
+@requires_native_attention
+@pytest.mark.parametrize(
+    (
+        "mode",
+        "config",
+        "mask_dtype",
+        "artifact_semantics",
+        "output_dtype",
+        "grad_output_dtype",
+        "workload_shape",
+    ),
+    BACKWARD_NUMERIC_CASES,
+    ids=[_backward_case_id(case) for case in BACKWARD_NUMERIC_CASES],
+)
+def test_every_precompiled_attention_backward_pair_has_strict_numerics(
+    mode,
+    config,
+    mask_dtype,
+    artifact_semantics,
+    output_dtype,
+    grad_output_dtype,
+    workload_shape,
+) -> None:
+    if workload_shape is None:
+        query_heads, kv_heads, query_length, key_length = 4, 2, 17, 29
+    else:
+        query_heads, kv_heads, query_length, key_length = workload_shape
+    logical = _logical_inputs(
+        query_length=query_length,
+        key_length=key_length,
+        query_heads=query_heads,
+        kv_heads=kv_heads,
+        seed=607 + config.block_m + config.block_n,
+    )
+    query, key, value, operand_kwargs = _operands(mode, *logical)
+    if artifact_semantics is None:
+        allowed_semantics = (
+            ATTENTION_SEMANTICS
+            if mask_dtype == ATTENTION_MASK_NONE
+            else (ATTENTION_SEMANTICS_FULL, ATTENTION_SEMANTICS_LOCAL)
+        )
+        semantic_index = (
+            tuple(ATTENTION_PRECOMPILED_CONFIGS).index(mode)
+            + config.block_m
+            + config.block_n
+        )
+        semantics = allowed_semantics[semantic_index % len(allowed_semantics)]
+    else:
+        semantics = artifact_semantics
+    mask_kwargs = _mask_kwargs(
+        mask_dtype,
+        semantics,
+        query_length=query_length,
+        key_length=key_length,
+        query_position_offset=2,
+    )
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        output_dtype=(
+            torch.bfloat16 if output_dtype == ATTENTION_OUTPUT_BF16 else torch.float32
+        ),
+        use_precompiled=False,
+        **operand_kwargs,
+        **mask_kwargs,
+    )
+    generator = torch.Generator(device="cuda").manual_seed(619)
+    grad_output = (
+        torch.randn(
+            output.shape,
+            device="cuda",
+            dtype=(
+                torch.bfloat16
+                if grad_output_dtype == ATTENTION_OUTPUT_BF16
+                else torch.float32
+            ),
+            generator=generator,
+        )
+        * 0.2
+    ).contiguous()
+
+    actual = int4_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        output,
+        grad_output,
+        config=config,
+        use_precompiled=True,
+        **operand_kwargs,
+        **mask_kwargs,
+    )
+    expected = reference_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        grad_output,
+        **operand_kwargs,
+        **mask_kwargs,
+    )
+
+    for actual_gradient, expected_gradient in zip(actual, expected, strict=True):
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
 
 
 @requires_native_attention
@@ -398,6 +592,157 @@ def test_attention_autotuner_can_require_precompiled_backend() -> None:
     assert result.best_record.success
     assert result.best_record.metadata["dispatch_preference"] == "precompiled"
     assert result.best_record.max_abs_diff <= STRICT_ATOL
+
+
+@requires_native_attention
+def test_attention_backward_auto_dispatch_does_not_require_triton(monkeypatch) -> None:
+    import amd_strix_halo_kernels.attention_backward as attention_backward_module
+
+    def fail_if_jit_is_loaded():
+        raise AssertionError("covered installed attention backward attempted Triton JIT")
+
+    monkeypatch.setattr(attention_backward_module, "_triton", fail_if_jit_is_loaded)
+    logical = _logical_inputs(query_length=16, key_length=16, seed=457)
+    query, key, value, kwargs = _operands("int4-bf16", *logical)
+    forward_config = _config(ATTENTION_PRECOMPILED_CONFIGS["int4-bf16"][0])
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        config=forward_config,
+        output_dtype=torch.float32,
+        use_precompiled=True,
+        **kwargs,
+    )
+    grad_output = (torch.randn_like(output, dtype=torch.bfloat16) * 0.2).contiguous()
+
+    actual = int4_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        output,
+        grad_output,
+        **kwargs,
+    )
+    expected = reference_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        grad_output,
+        **kwargs,
+    )
+
+    for actual_gradient, expected_gradient in zip(actual, expected, strict=True):
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
+
+
+@requires_native_attention
+def test_attention_backward_autotuner_can_require_precompiled_backend() -> None:
+    logical = _logical_inputs(query_length=16, key_length=16, seed=461)
+    query, key, value, kwargs = _operands("int4-bf16", *logical)
+    forward_config = _config(ATTENTION_PRECOMPILED_CONFIGS["int4-bf16"][0])
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        config=forward_config,
+        output_dtype=torch.bfloat16,
+        use_precompiled=True,
+        **kwargs,
+    )
+    grad_output = (torch.randn_like(output, dtype=torch.bfloat16) * 0.2).contiguous()
+    config = _backward_config(ATTENTION_PRECOMPILED_BACKWARD_CONFIGS[0])
+
+    result = autotune_attention_backward(
+        query,
+        key,
+        value,
+        output,
+        grad_output,
+        candidates=(config,),
+        warmup_ms=0,
+        rep_ms=1,
+        use_precompiled=True,
+        **kwargs,
+    )
+
+    assert result.best_config == config
+    assert result.best_record.success
+    assert result.best_record.metadata["dispatch_preference"] == "precompiled"
+    assert result.best_record.max_abs_diff <= STRICT_ATOL
+
+
+@requires_native_attention
+def test_precompiled_attention_backward_cudagraph_replay() -> None:
+    logical = _logical_inputs(query_length=16, key_length=16, seed=467)
+    query, key, value, kwargs = _operands("int4-int4", *logical)
+    forward_config = _config(ATTENTION_PRECOMPILED_CONFIGS["int4-int4"][0])
+    output = int4_scaled_dot_product_attention(
+        query,
+        key,
+        value,
+        config=forward_config,
+        output_dtype=torch.bfloat16,
+        use_precompiled=True,
+        **kwargs,
+    )
+    grad_output = (torch.randn_like(output, dtype=torch.bfloat16) * 0.2).contiguous()
+    next_grad_output = (torch.randn_like(output, dtype=torch.bfloat16) * 0.2).contiguous()
+    grad_query = torch.empty((1, 4, 16, 64), device="cuda", dtype=torch.float32)
+    grad_key = torch.empty((1, 2, 16, 64), device="cuda", dtype=torch.float32)
+    grad_value = torch.empty((1, 2, 16, 64), device="cuda", dtype=torch.float32)
+    lse = torch.empty((1, 4, 16), device="cuda", dtype=torch.float32)
+    delta = torch.empty_like(lse)
+    config = _backward_config(ATTENTION_PRECOMPILED_BACKWARD_CONFIGS[0])
+    launch_kwargs = dict(
+        grad_query=grad_query,
+        grad_key=grad_key,
+        grad_value=grad_value,
+        lse=lse,
+        delta=delta,
+        config=config,
+        use_precompiled=True,
+        **kwargs,
+    )
+
+    int4_scaled_dot_product_attention_backward(
+        query, key, value, output, grad_output, **launch_kwargs
+    )
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = int4_scaled_dot_product_attention_backward(
+            query, key, value, output, grad_output, **launch_kwargs
+        )
+    grad_output.copy_(next_grad_output)
+    graph.replay()
+    torch.cuda.synchronize()
+    expected = reference_scaled_dot_product_attention_backward(
+        query,
+        key,
+        value,
+        grad_output,
+        **kwargs,
+    )
+
+    for actual_gradient, expected_gradient, expected_buffer in zip(
+        captured,
+        expected,
+        (grad_query, grad_key, grad_value),
+        strict=True,
+    ):
+        assert actual_gradient.data_ptr() == expected_buffer.data_ptr()
+        torch.testing.assert_close(
+            actual_gradient,
+            expected_gradient,
+            rtol=STRICT_RTOL,
+            atol=STRICT_ATOL,
+        )
 
 
 @requires_native_attention

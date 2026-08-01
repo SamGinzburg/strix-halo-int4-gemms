@@ -12,9 +12,11 @@ families:
 * ``fused_swiglu_up_gate(...)`` selects a native dense fused SwiGLU kernel.
   The RHS logical output columns must be ``[up | gate]`` and the returned
   tensor has half as many columns.
-* ``int4_scaled_dot_product_attention(...)`` is a forward-only fused attention
-  API with packaged ``D=Dv=64`` HSACO and JIT fallback. Q/K can be BF16 or
-  packed INT4, and V independently can be BF16 or packed INT4.
+* ``int4_scaled_dot_product_attention(...)`` and
+  ``int4_scaled_dot_product_attention_backward(...)`` are explicit fused
+  attention forward/backward APIs with packaged ``D=Dv=64`` HSACO and JIT
+  fallback. Q/K can be BF16 or packed INT4, and V independently can be BF16
+  or packed INT4. These APIs do not register implicit autograd.
 * ``explicit_mm(..., kernel=...)`` launches the exact dense
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
@@ -256,6 +258,35 @@ finite and positive. Output defaults to BF16 and can be FP32. A supplied
 workspace. The optimized path supports feature dimensions through 256,
 requires ``dropout_p=0``, and rejects tensors with ``requires_grad=True``.
 
+Explicit backward takes the exact saved forward ``output`` and a contiguous
+BF16 or FP32 ``grad_output`` with shape ``[B,Hq,Lq,Dv]``. It returns dQ, dK,
+and dV for the logical dequantized operands, irrespective of whether their
+forward storage was BF16 or packed INT4. The optimized path always writes FP32
+gradients; BF16 gradients are available only from the reference path because
+one BF16 ULP can exceed the required absolute ``1e-3`` numerical bound.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import int4_scaled_dot_product_attention_backward
+
+   grad_query, grad_key, grad_value = int4_scaled_dot_product_attention_backward(
+       q4,
+       k4,
+       v4,
+       out,
+       grad_output,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       value_scale=v_scale,
+       head_dim=head_dim,
+       enable_gqa=True,
+   )
+
+The dQ phase is query-owned and the combined dK/dV phase is key-owned. The
+GQA reduction loops over the query heads belonging to each KV head, so the
+optimized kernels do not use gradient atomics. Empty query or key sequences
+return zero gradients.
+
 When ``Hq != Hkv``, set ``enable_gqa=True`` and ensure ``Hq`` is divisible by
 ``Hkv``. ``attn_mask`` accepts broadcastable boolean, BF16, or FP32 tensors
 with at most four dimensions; boolean false entries are masked and floating
@@ -317,6 +348,22 @@ then pass ``best_config`` and the required static output/workspace to the
 attention call. A benchmark database is append-only tuning evidence; attention
 dispatch does not silently read it or change configurations during replay.
 
+``autotune_attention_backward(...)`` applies the same execution model to the
+explicit gradient API. It validates dQ, dK, and dV separately against
+``reference_scaled_dot_product_attention_backward(...)`` before timing a
+candidate. ``default_attention_backward_candidates(windowed=...)`` exposes
+the default full/local candidate sets. Timings exclude allocations by reusing
+preallocated gradients, LSE, and delta buffers. The tolerance defaults to
+``rtol=atol=1e-3`` and cannot be relaxed; tuning is forbidden during graph
+capture.
+
+For CUDAGraph replay, callers must preallocate FP32 ``grad_query``,
+``grad_key``, ``grad_value``, ``lse``, and ``delta``. The state buffers use
+shape ``[B,Hq,Lq]``. Warm the exact forward/backward representations, pointer
+dtypes, mask form, and configuration before capture. Mutating operand, scale,
+mask, saved-output, or upstream-gradient contents between replays is observed
+without changing their storage addresses.
+
 ``reference_scaled_dot_product_attention(...)`` is the quantization-matched
 FP32 arithmetic oracle. Optimized outputs in all four representation modes are
 tested against it at ``rtol=atol=1e-3`` with FP32 output. For comparison with
@@ -329,16 +376,21 @@ quantization contract; the optimized result is instead required to match the
 representation-matched oracle at ``rtol=atol=1e-3``. BF16 output may also
 differ by one BF16 ULP at larger magnitudes.
 
-The wheel includes 484 forward objects and four split-decode reducers for
-``D=Dv=64``. ``use_precompiled=None`` selects an exact measured profile first,
+The wheel includes 532 forward objects, four split-decode reducers, and 256
+backward objects for ``D=Dv=64``. ``use_precompiled=None`` selects an exact
+measured profile first,
 then generic native coverage, and finally JIT; ``True`` requires packaged
 coverage, and ``False`` forces JIT. Native coverage includes all four QK-by-V
 representation modes, no/bool/BF16/FP32 mask pointers, BF16/FP32 output, and
-the measured/default launch configs. The 104 generic objects keep
-batch/head/sequence shapes and semantics runtime. The 380 profile objects
+the measured/default launch configs. The 112 generic forward objects keep
+batch/head/sequence shapes and semantics runtime. The 420 forward profile objects
 specialize heads, lengths, and full/causal/local control flow for measured
-512-prefill, 2048-training, and 1-by-2048 decode shapes. Only regeneration and
-uncovered fallbacks require the custom Strix Halo Triton fork.
+512-prefill, 2048-training, and 1-by-2048 decode shapes. Backward has 128 dQ
+and 128 dK/dV objects: half generic and half specialized for the 2048-token
+GQA training profile. Both phases cover BF16/FP32 saved output crossed with
+BF16/FP32 ``grad_output`` so the native pointer ABI is dtype-exact. Only
+regeneration and uncovered fallbacks require the custom Strix Halo Triton
+fork.
 
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -437,7 +489,11 @@ Surface APIs
 
 .. autofunction:: amd_strix_halo_kernels.int4_scaled_dot_product_attention
 
+.. autofunction:: amd_strix_halo_kernels.int4_scaled_dot_product_attention_backward
+
 .. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention
+
+.. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention_backward
 
 .. autofunction:: amd_strix_halo_kernels.quantize_attention_qk_int4
 
@@ -451,6 +507,9 @@ Surface APIs
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.Int4AttentionConfig
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.Int4AttentionBackwardConfig
    :members:
 
 .. autofunction:: amd_strix_halo_kernels.explicit_mm
@@ -490,9 +549,13 @@ Autotuning and Benchmarks
 
 .. autofunction:: amd_strix_halo_kernels.autotune_attention
 
+.. autofunction:: amd_strix_halo_kernels.autotune_attention_backward
+
 .. autofunction:: amd_strix_halo_kernels.autotune_ragged_dot
 
 .. autofunction:: amd_strix_halo_kernels.default_attention_candidates
+
+.. autofunction:: amd_strix_halo_kernels.default_attention_backward_candidates
 
 .. autofunction:: amd_strix_halo_kernels.default_ragged_dot_candidates
 
@@ -502,6 +565,9 @@ Autotuning and Benchmarks
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.AttentionAutotuneResult
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.AttentionBackwardAutotuneResult
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.AttentionShape

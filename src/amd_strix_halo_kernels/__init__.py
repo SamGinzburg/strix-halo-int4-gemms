@@ -28,6 +28,16 @@ from .autotune import (
     generated_shape_for_kernel,
 )
 from .benchmarking import BenchmarkDatabase, BenchmarkRecord, BenchmarkShape
+from .kda import (
+    KimiDeltaAttentionConfig,
+    kimi_delta_attention,
+    quantize_kda_int4,
+    reference_kimi_delta_attention,
+)
+from .kda_backward import (
+    kimi_delta_attention_backward,
+    reference_kimi_delta_attention_backward,
+)
 from .metadata import (
     ACC_DTYPE,
     ARCH,
@@ -103,6 +113,7 @@ __all__ = [
     "KernelStatus",
     "Int4AttentionConfig",
     "Int4AttentionBackwardConfig",
+    "KimiDeltaAttentionConfig",
     "NativeRuntimeStatus",
     "OperandDType",
     "OutputDType",
@@ -141,6 +152,8 @@ __all__ = [
     "hsaco_path_for_kernel_id",
     "int4_scaled_dot_product_attention",
     "int4_scaled_dot_product_attention_backward",
+    "kimi_delta_attention",
+    "kimi_delta_attention_backward",
     "launch_generated_kernel",
     "launch_hsaco",
     "mm",
@@ -151,12 +164,15 @@ __all__ = [
     "quantize_attention_qk_int4",
     "quantize_attention_value_int4",
     "quantize_int4_output",
+    "quantize_kda_int4",
     "ragged_group_info_capacity",
     "ragged_dot_int4_bwd",
     "ragged_dot_int4_bwd_accum",
     "ragged_dot_int4",
     "reference_scaled_dot_product_attention",
     "reference_scaled_dot_product_attention_backward",
+    "reference_kimi_delta_attention",
+    "reference_kimi_delta_attention_backward",
     "register_torch_ops",
     "torch_gemm",
 ]

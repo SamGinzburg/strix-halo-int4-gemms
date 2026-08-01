@@ -17,6 +17,10 @@ families:
   attention forward/backward APIs with packaged ``D=Dv=64`` HSACO and JIT
   fallback. Q/K can be BF16 or packed INT4, and V independently can be BF16
   or packed INT4. These APIs do not register implicit autograd.
+* ``kimi_delta_attention(...)`` and ``kimi_delta_attention_backward(...)``
+  provide explicit recurrent Kimi Delta Attention forward/backward over
+  ``[B,T,H,D]``. Q/K and V independently accept BF16 or row-scaled packed
+  INT4 input storage.
 * ``explicit_mm(..., kernel=...)`` launches the exact dense
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
@@ -392,6 +396,100 @@ BF16/FP32 ``grad_output`` so the native pointer ABI is dtype-exact. Only
 regeneration and uncovered fallbacks require the custom Strix Halo Triton
 fork.
 
+Kimi Delta Attention Contract
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``kimi_delta_attention(query, key, value, log_decay, beta)`` consumes Q/K in
+``[B,T,H,D]`` order, V in ``[B,T,H,Dv]``, log decay in ``[B,T,H,D]``, and beta
+in ``[B,T,H]``. Log decay and beta are already activated: callers pass
+non-positive log decay and the post-sigmoid update coefficient. Q/K are
+L2-normalized inside the operation by default. The recurrence is evaluated
+with an FP32 state and returns ``[B,T,H,Dv]``; output defaults to BF16 and may
+be FP32. Requested final state is always FP32 with shape ``[B,H,D,Dv]``.
+
+Q/K must both be contiguous BF16 or both use the packed ``uint8`` result of
+``quantize_kda_int4(...)``. V is selected independently and may use either
+representation. Packed width is ``ceil(logical_dim / 16) * 8`` and each
+operand has one contiguous BF16 scale per ``[B,T,H]`` row. ``head_dim`` is
+required for packed Q/K and ``value_dim`` for packed V. Logical dimensions are
+limited to 256.
+
+``kimi_delta_attention_backward(...)`` is explicit and returns
+``(dQ, dK, dV, dLogDecay, dBeta, dInitialState)``. Optimized gradients are
+FP32. For packed operands, dQ/dK/dV refer to the logical dequantized values;
+integer codes and scales are fixed representation metadata. An optional
+``grad_final_state`` participates in the reverse recurrence.
+The optimized APIs reject tensors with ``requires_grad=True`` so an omitted
+explicit backward call cannot silently produce an incomplete autograd graph.
+
+Backward reconstructs token states from an FP32 checkpoint cache. Smaller
+``checkpoint_interval`` values trade memory for less replay work. At the
+measured ``B=4,T=2048,H=32,D=Dv=128`` training shape,
+``checkpoint_interval=4,value_block=16`` is the faster backward setting;
+``value_block=32`` is the faster forward setting. A state cache uses shape
+``[B,H,ceil(T/checkpoint_interval)+1,D,Dv]``. If it is omitted outside graph
+capture, backward allocates and populates it automatically.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import (
+       KimiDeltaAttentionConfig,
+       kimi_delta_attention,
+       kimi_delta_attention_backward,
+       quantize_kda_int4,
+   )
+
+   q4, q_scale, head_dim = quantize_kda_int4(query)
+   k4, k_scale, _ = quantize_kda_int4(key)
+   output, final_state = kimi_delta_attention(
+       q4,
+       k4,
+       value,
+       log_decay,
+       beta,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+       output_final_state=True,
+       config=KimiDeltaAttentionConfig(value_block=32),
+   )
+   grads = kimi_delta_attention_backward(
+       q4,
+       k4,
+       value,
+       log_decay,
+       beta,
+       grad_output,
+       query_scale=q_scale,
+       key_scale=k_scale,
+       head_dim=head_dim,
+       config=KimiDeltaAttentionConfig(
+           value_block=16,
+           checkpoint_interval=4,
+       ),
+   )
+
+For CUDAGraph capture, preallocate ``out`` and any requested ``final_state``
+or ``state_cache``. Backward additionally requires the cache, every applicable
+gradient output, and FP32 ``grad_query_normalized`` and
+``grad_key_normalized`` scratch tensors. Captured tests cover all four
+BF16/INT4 QK-by-V modes. Output and scratch buffers may not alias inputs or one
+another.
+
+``use_reference=True`` and the two ``reference_kimi_delta_attention*``
+functions provide the independent FP32 oracle. Tests cover dense/tail
+sequences, zero-norm Q/K, initial/final state, all representation modes, and
+graph replay. Optimized forward, final state, and all gradient tensors are
+required to match the representation-matched oracle at
+``rtol=atol=1e-3``. The measured worst absolute errors are ``4.48e-8``
+forward, ``2.39e-7`` final state, and ``1.91e-6`` backward.
+
+``KimiDeltaAttentionConfig.chunked=True`` exposes a compact-WY research path
+for compiler experiments. It currently requires BF16 V, BF16 output, and a
+checkpoint interval of 16, plus FP32 ``w_workspace`` and ``u_workspace`` for
+allocation-free capture. It measured slower than the recurrent kernel on
+gfx1151 and is therefore not the default.
+
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -491,6 +589,16 @@ Surface APIs
 
 .. autofunction:: amd_strix_halo_kernels.int4_scaled_dot_product_attention_backward
 
+.. autofunction:: amd_strix_halo_kernels.kimi_delta_attention
+
+.. autofunction:: amd_strix_halo_kernels.kimi_delta_attention_backward
+
+.. autofunction:: amd_strix_halo_kernels.reference_kimi_delta_attention
+
+.. autofunction:: amd_strix_halo_kernels.reference_kimi_delta_attention_backward
+
+.. autofunction:: amd_strix_halo_kernels.quantize_kda_int4
+
 .. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention
 
 .. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention_backward
@@ -510,6 +618,9 @@ Surface APIs
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.Int4AttentionBackwardConfig
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.KimiDeltaAttentionConfig
    :members:
 
 .. autofunction:: amd_strix_halo_kernels.explicit_mm

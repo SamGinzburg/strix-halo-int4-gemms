@@ -780,6 +780,85 @@ separately reported because four-bit quantization is lossy: dense cosine was
 separately quantized baseline had cosine 0.999019 and relative L2 0.044298.
 These quality figures are not kernel-fidelity tolerances.
 
+Kimi Delta Attention Results
+----------------------------
+
+``benchmarks/gfx1151_kda.json`` records the exact Kimi-Linear-sized
+``B=4,T=2048,H=32,D=Dv=128`` workload. Timings use 25 ms warmup and 100 ms
+repetition windows, prepacked inputs, preallocated timed outputs, and the
+Triton 3.7.0 Strix Halo fork at
+``0da3c5a751b2d03461e961b62dc3598f85884617``. PyTorch SDPA was run with
+``TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1``; its output allocation is
+included. Package SDPA and KDA timings use preallocated outputs.
+
+.. list-table:: KDA B4/T2048/H32/D128 results
+   :header-rows: 1
+
+   * - Storage / phase
+     - Config
+     - Runtime
+     - Effective TOPS
+     - Comparison
+   * - BF16 forward
+     - ``VB32_CI4_W4``
+     - 10.803319 ms
+     - 2.7829
+     - 1.46x faster than PyTorch BF16 SDPA; 2.54x slower than package BF16 SDPA
+   * - INT4 Q/K + BF16 V forward
+     - ``VB32_CI4_W4``
+     - 10.174259 ms
+     - 2.9550
+     - 1.55x faster than PyTorch BF16 SDPA; 2.79x slower than package INT4-QK SDPA
+   * - INT4 Q/K/V forward
+     - ``VB32_CI4_W4``
+     - 10.310715 ms
+     - 2.9159
+     - 1.53x faster than PyTorch BF16 SDPA; 1.78x slower than package INT4 SDPA
+   * - BF16 backward
+     - ``VB16_CI4_W4``
+     - 166.683044 ms
+     - --
+     - 2.45x slower than package BF16 SDPA backward
+   * - INT4 Q/K + BF16 V backward
+     - ``VB16_CI4_W4``
+     - 165.398239 ms
+     - --
+     - logical FP32 gradients
+   * - INT4 Q/K/V backward
+     - ``VB16_CI4_W4``
+     - 166.891037 ms
+     - --
+     - logical FP32 gradients
+
+The BF16 PyTorch, package-BF16, package-INT4-QK, and package-all-INT4 forward
+baselines were 15.788517, 4.260037, 3.653018, and 5.777085 ms. Package BF16
+SDPA backward was 67.941978 ms with forward excluded. The recurrent algorithm
+is linear in sequence length, but at 2K its per-head ``D*Dv`` state update is
+not yet faster than this repository's tuned quadratic SDPA. Ratios across
+different algorithms are latency comparisons, not equivalent-operation TOPS
+comparisons. KDA effective TOPS counts seven state-sized operations per token.
+
+Every mode first runs a reduced representation-matched numerical gate. The
+largest observed absolute differences were ``4.48e-8`` for output,
+``2.39e-7`` for final state, and ``1.91e-6`` over dQ/dK/dV/dLogDecay/dBeta,
+all passing ``rtol=atol=1e-3``. Separate tests cover initial-state gradients,
+nonmultiple-of-16 tails, zero-norm Q/K, and CUDAGraph replay in all four
+BF16/INT4 QK-by-V combinations.
+
+Checkpoint interval 4 improves backward from 252.916 ms at interval 16 to
+about 165--167 ms, at the cost of a four-times-larger FP32 state cache (about
+4 GiB for this shape). The compact-WY chunk experiment is opt-in: its
+per-dimension exponential preparation measured slower on gfx1151 and is not
+used by default.
+
+The dumped target recurrent AMDGCN uses per-lane ``buffer_load_u16`` for BF16
+Q/K/V and ``buffer_store_b16`` for BF16 output, with scalar ``b32`` state/gate
+traffic; it contains no ``b64`` or ``b128`` memory operation. Thus the current
+compiler's wider unaligned byte-store optimization benefits packed GEMM
+epilogues but does not widen this recurrent KDA mapping. The remaining KDA
+gap is dominated by repeated state arithmetic and backward replay rather than
+an obvious missed wide-store transformation.
+
 Correctness Notes
 -----------------
 
@@ -824,6 +903,17 @@ Run direct Triton tuners:
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_gemm.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_relu2.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
    uv run --project "$TRITON_CHECKOUT" python scripts/tune_swiglu.py --shape 4096,4096,4096 --dtype int4 --save-best-artifacts
+
+Run the KDA numerical gate, target-shape forward/backward sweep, and SDPA
+comparison (the command defaults to ``B=4,T=2048,H=32,D=Dv=128``):
+
+.. code-block:: bash
+
+   TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
+     uv run --extra rocm-triton-fork python scripts/benchmark_kda.py \
+       --value-block 32 \
+       --backward-value-block 16 \
+       --checkpoint-interval 4
 
 Use ``--dtype bf16`` with any of those commands to tune the development-only
 BF16×INT4 path with on-the-fly activation quantization. All three tuners check

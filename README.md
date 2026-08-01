@@ -121,6 +121,9 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `reference_scaled_dot_product_attention_backward(...)` | Quantization-matched FP32 gradient oracle for fused attention backward. |
 | `quantize_attention_qk_int4(...)` | Per-token signed-INT4 quantization and head-dimension packing for Q/K. |
 | `quantize_attention_value_int4(...)` | Per-16-token signed-INT4 quantization and sequence-dimension packing for V. |
+| `kimi_delta_attention(...)` | Causal Kimi Delta Attention forward over `[B,T,H,D]`, with BF16 or packed-INT4 Q/K and independently BF16/INT4 V. |
+| `kimi_delta_attention_backward(...)` | Explicit FP32 logical dQ/dK/dV/dLogDecay/dBeta/dInitialState for KDA. |
+| `quantize_kda_int4(...)` | Per-token signed-INT4 quantization of the last KDA dimension. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot with automatic tuned JIT/exact-native BF16 dispatch and explicit backend control. |
@@ -822,6 +825,92 @@ On the packaged `(B,Hq,Hkv,Lq,Lk,D,Dv)=(1,8,8,512,512,64,64)` BF16 profile,
 0.039234 ms / 13.684 TOPS for matched JIT (7.7% lower native latency). The
 native record passed `rtol=atol=1e-3` FP32 validation with maximum absolute
 error `6.07e-5`; timed BF16 maximum absolute error was `2.45e-4`.
+
+## Kimi Delta Attention
+
+`kimi_delta_attention(...)` implements the activated Kimi Delta Attention
+recurrence in logical `[B,T,H,D]` order. Q and K are L2-normalized by default;
+`log_decay[B,T,H,D]` must already be non-positive log decay and
+`beta[B,T,H]` must already contain the post-sigmoid update coefficient. The
+output is `[B,T,H,Dv]`, and an optional recurrent state is
+`[B,H,D,Dv]`. This API is separate from softmax SDPA and does not register
+implicit autograd.
+
+```python
+from amd_strix_halo_kernels import (
+    KimiDeltaAttentionConfig,
+    kimi_delta_attention,
+    kimi_delta_attention_backward,
+    quantize_kda_int4,
+)
+
+q4, q_scale, head_dim = quantize_kda_int4(query)
+k4, k_scale, _ = quantize_kda_int4(key)
+
+config = KimiDeltaAttentionConfig(value_block=32, checkpoint_interval=4)
+out, final_state = kimi_delta_attention(
+    q4,
+    k4,
+    value,  # BF16 V; V may also use quantize_kda_int4(...)
+    log_decay,
+    beta,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    head_dim=head_dim,
+    output_final_state=True,
+    config=config,
+)
+
+grads = kimi_delta_attention_backward(
+    q4,
+    k4,
+    value,
+    log_decay,
+    beta,
+    grad_output,
+    query_scale=q_scale,
+    key_scale=k_scale,
+    head_dim=head_dim,
+    config=KimiDeltaAttentionConfig(value_block=16, checkpoint_interval=4),
+)
+```
+
+Packed inputs use one BF16 scale per `[B,T,H]` row. Q/K and V are selected
+independently, so BF16, INT4-QK/BF16-V, BF16-QK/INT4-V, and fully INT4 storage
+are supported. Backward treats packed codes and scales as fixed metadata and
+returns gradients for the logical FP32 dequantized operands. The optimized
+forward may return BF16 or FP32 output; final state, checkpoint state, and all
+optimized gradients are FP32.
+
+For graph capture, preallocate forward `out` and any requested `final_state`
+or `state_cache`. Backward additionally requires the cache, all six applicable
+gradient outputs, and the `grad_query_normalized`/`grad_key_normalized` FP32
+scratch tensors. Tests capture and replay all four BF16/INT4 representation
+combinations and compare forward plus all logical gradients at
+`rtol=atol=1e-3`.
+
+At `B=4,T=2048,H=32,D=Dv=128` on the Radeon 8060S, with prepacked operands,
+preallocated outputs, ROCm AOTriton enabled for PyTorch, 25 ms warmup, and
+100 ms repetition windows:
+
+| KDA storage / phase | Runtime | Effective TOPS | Comparison |
+| --- | ---: | ---: | --- |
+| BF16 forward | 10.803 ms | 2.783 | 1.46x faster than PyTorch BF16 SDPA; 2.54x slower than package BF16 SDPA |
+| INT4 Q/K + BF16 V forward | 10.174 ms | 2.955 | 1.55x faster than PyTorch BF16 SDPA; 2.79x slower than package INT4-QK SDPA |
+| INT4 Q/K/V forward | 10.311 ms | 2.916 | 1.53x faster than PyTorch BF16 SDPA; 1.78x slower than package all-INT4 SDPA |
+| BF16 backward | 166.683 ms | n/a | 2.45x slower than package BF16 SDPA backward |
+| INT4 Q/K + BF16 V backward | 165.398 ms | n/a | logical FP32 gradients |
+| INT4 Q/K/V backward | 166.891 ms | n/a | logical FP32 gradients |
+
+The matched-quantization numerical gate observed maximum absolute errors of
+`4.48e-8` forward, `2.39e-7` final state, and `1.91e-6` across backward
+gradients, all below `rtol=atol=1e-3`. Effective KDA TOPS counts seven
+state-sized operations per token and is not directly comparable to SDPA TOPS.
+The opt-in compact-WY prototype (`chunked=True`) is retained for compiler
+experiments but is slower on gfx1151; recurrent execution is the default.
+Reproduce the complete table with
+`uv run --extra rocm-triton-fork python scripts/benchmark_kda.py`;
+machine-readable results are in `benchmarks/gfx1151_kda.json`.
 
 ## Kernel Coverage
 

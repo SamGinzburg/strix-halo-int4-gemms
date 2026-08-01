@@ -113,8 +113,8 @@ Primary imports are available from `amd_strix_halo_kernels`:
 
 | API | Purpose |
 | --- | --- |
-| `mm(...)` | Surface API for regular single-output GEMMs. Supports plain GEMM and ReLU^2. |
-| `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`. |
+| `mm(...)` | Dense plain or ReLU^2 GEMM with BF16, FP32 split-K, or packed-INT4 output. |
+| `fused_swiglu_up_gate(...)` | Fused up/gate GEMM plus `up * silu(gate)`, optionally emitted as packed INT4. |
 | `int4_scaled_dot_product_attention(...)` | Forward fused attention with BF16 or packed INT4 Q/K and V operands; packaged D64 HSACO with JIT fallback. |
 | `reference_scaled_dot_product_attention(...)` | Quantization-matched FP32 arithmetic oracle for fused attention. |
 | `quantize_attention_qk_int4(...)` | Per-token signed-INT4 quantization and head-dimension packing for Q/K. |
@@ -205,6 +205,42 @@ out = fused_swiglu_up_gate(
 )
 ```
 
+For an INT4 down projection, fuse activation quantization into the producer.
+The returned `QuantizedInt4Tensor` owns packed signed-INT4 data and its BF16
+subchannel-256 scales, so it can be passed directly to the next INT4 GEMM:
+
+```python
+from amd_strix_halo_kernels import OutputDType
+
+activation = fused_swiglu_up_gate(
+    a,
+    b_up_gate,
+    a_scale=a_scale,
+    b_scale=b_scale,
+    dtype=OperandDType.INT4,
+    scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+    output_dtype=OutputDType.INT4,
+)
+down = mm(
+    activation.packed,
+    down_weight,
+    a_scale=activation.scale,
+    b_scale=down_scale,
+    dtype=OperandDType.INT4,
+    scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+)
+```
+
+Packed output uses one BF16 scale per row and 256 output values. It requires
+`N % 256 == 0`, a `BN256` output tile, and `split_k=1`; callers may supply
+stable `out` (`uint8[M,N/2]`) and `out_scale` (`bfloat16[M,N/256]`) buffers on
+the same device as the operands for CUDA/HIP graph replay. Packaged plain
+GEMM, ReLU^2, and fused SwiGLU variants
+cover INT4/INT8 inputs. The development-only mixed BF16-by-INT4 registry also
+implements and numerically tests the contract but is not shipped as HSACO.
+Quantized split-K output is rejected because independently reduced partial
+tiles cannot safely choose one shared output scale.
+
 To choose a kernel yourself, read the tile metadata and pass it to
 `explicit_mm(...)`:
 
@@ -241,11 +277,10 @@ For example, a kernel with `BM64_BN512_BK32_SK1` accepts `M=128`,
 `N=1024`, `K=64`, but rejects `M=96` and `N=768`. A `SK4` kernel with
 `BK32` requires `K % 128 == 0`.
 
-`Epilogue.RELU2` and `fused_swiglu_up_gate(...)` support
-only `SPLIT_K=1`; plain GEMM supports `SPLIT_K=1,2,4,8`. Non split-K kernels
-write BF16 outputs, while split-K kernels write FP32 outputs because partial
-tiles are reduced with FP32 atomics. Decompose-K is not used because we aren't
-fusing anything into epilogues here.
+`Epilogue.RELU2`, `fused_swiglu_up_gate(...)`, and packed-INT4 output support
+only `SPLIT_K=1`; plain GEMM supports `SPLIT_K=1,2,4,8`. BF16 output requires
+`split_k=1`. FP32 output is the plain-GEMM split-K contract because partial
+tiles are reduced with FP32 atomics.
 
 Reference mode (`use_reference=True`) is available for arbitrary-shape
 correctness checks and does not require native HSACO launchability.
@@ -253,12 +288,15 @@ correctness checks and does not require native HSACO launchability.
 ## Dense Autotuning
 
 `autotune(...)` benchmarks all packaged kernels that match the requested dtype,
-layout, scale mode, epilogue, schedule, and tile-multiple shape. It uses
+layout, scale mode, epilogue, output contract, schedule, and tile-multiple shape. It uses
 `triton.testing.do_bench` device timing with prepacked operands and does not
 include dynamic quantization or reference fallback work.
 
 ```python
-from amd_strix_halo_kernels import Epilogue, GemmLayout, OperandDType, ScaleMode, ScaleSpec, autotune, explicit_mm
+from amd_strix_halo_kernels import (
+    Epilogue, GemmLayout, OperandDType, OutputDType,
+    ScaleMode, ScaleSpec, autotune, explicit_mm,
+)
 
 result = autotune(
     m=M,
@@ -268,6 +306,7 @@ result = autotune(
     layout=GemmLayout.NN,
     scale=ScaleSpec(ScaleMode.PER_CHANNEL),
     epilogue=Epilogue.NONE,
+    output_dtype=OutputDType.INT4,  # omit to search every output contract
     warmup_ms=25,
     rep_ms=100,
     validate=True,
@@ -313,7 +352,7 @@ generation work; `scripts/generate_amdgcn.py --kernel-id ...` resolves exact
 IDs from that registry. Mixed generation is standard-schedule only; unsupported
 persistent BF16-by-int4 entries are not registered. The default registry
 continues to describe exactly the kernels shipped by the package; none of the
-1080 development-only mixed entries is currently packaged.
+1,170 development-only mixed entries is currently packaged.
 
 The direct Triton tuner scripts accept `--dtype bf16` to evaluate BF16×INT4
 with dynamic activation scales and validate candidates at `rtol=atol=1e-3`.
@@ -349,13 +388,45 @@ out = ragged_dot_int4(
 )
 ```
 
+The grouped SwiGLU producer can emit the down-projection activation without a
+separate BF16 materialization or quantization launch:
+
+```python
+from amd_strix_halo_kernels import Epilogue, OperandDType, OutputDType, mm
+
+activation = ragged_dot_int4(
+    lhs_packed,
+    up_gate_rhs_packed,  # logical [G,K,2*D]
+    group_sizes,
+    a_scale=a_scale,
+    b_scale=up_gate_scale,
+    scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+    config=RaggedDotConfig(),
+    epilogue=Epilogue.SWIGLU,
+    output_dtype=OutputDType.INT4,
+)
+down = mm(
+    activation.packed,
+    down_weight,
+    a_scale=activation.scale,
+    b_scale=down_scale,
+    dtype=OperandDType.INT4,
+    scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+)
+```
+
+Ragged packed output has the same `uint8[M,D/2]` plus BF16
+`[M,D/256]` contract as dense output. Plain, ReLU^2, and SwiGLU epilogues are
+precompiled for every ragged layout, input scale mode, and even/masked-K
+variant. `D` must be divisible by 256 and `config.block_n` must be 256.
+
 Rows of `lhs_packed` are partitioned contiguously by `group_sizes`; rows in
 group `g` multiply `rhs_packed[g]`. Subchannel scales use
 `a_scale[M, ceil(K / S)]` and weight-matched
 `b_scale[G, ceil(K / S), N]`. The kernel uses
 `tl.dot_scaled(..., "int4", ..., "int4", out_dtype=tl.int32)`, applies BF16
-scales in FP32, and stores BF16 for the packaged forward artifacts. Autograd is
-not registered.
+scales in FP32, and stores BF16 or fused packed INT4 plus BF16 scales. Autograd
+is not registered.
 
 The launch uses `calculate_group_info(group_sizes, tile, align_tile=8)` to
 build compact task ids instead of a rectangular `max_group_size x G` grid.
@@ -430,9 +501,11 @@ When `RaggedDotConfig.enable_even_k_fast_path=True`, the library automatically
 uses an even-K artifact when `K % BLOCK_K == 0`. Subchannel fast-path dispatch
 also requires `K % SUBCHANNEL == 0` and a scale chunk size compatible with
 `BLOCK_K`. This fast path still receives `N` and packed `K` as runtime
-arguments. It keeps row and column predicates for irregular `group_sizes` and
-edge `N` tiles; only K predicates are removed inside the kernel. Shapes with
-ragged K use the fully masked artifact.
+arguments. BF16 output keeps row and column predicates; INT4 output removes
+column predicates because its contract requires complete 256-column tiles.
+Both retain row predicates for irregular `group_sizes`, and only the even-K
+variant removes K predicates. Shapes with ragged K use the fully masked
+artifact.
 
 `ragged_dot_int4(...)` supports `NN`, `NT`, `TN`, and `TT` packed operand
 layouts. The transposed layouts follow the same packed-K conventions as dense
@@ -451,7 +524,9 @@ With no `out` or `output_dtype`, `SPLIT_K=1` defaults to BF16; a supplied `out`
 infers its dtype, and callers that require FP32 master gradients can request
 `output_dtype=torch.float32` explicitly. `SPLIT_K>1` defaults to and requires
 FP32 because reduction uses FP32 atomics. BF16 rounds the FP32 accumulator once
-at the epilogue.
+at the epilogue. Packed-INT4 backward output is not supported: split-K partials
+cannot independently select a shared output scale, and the current backward
+API intentionally exposes only BF16 or FP32.
 
 Automatic BF16 dispatch uses shape-specialized JIT for generic shapes and
 capacities. It selects packaged wide-store native code only for eligible
@@ -493,7 +568,10 @@ Use `autotune_ragged_dot(...)` to benchmark candidate ragged configurations
 for either mode:
 
 ```python
-from amd_strix_halo_kernels import GemmLayout, RaggedDotMode, ScaleMode, ScaleSpec, autotune_ragged_dot
+from amd_strix_halo_kernels import (
+    Epilogue, GemmLayout, OutputDType, RaggedDotMode,
+    ScaleMode, ScaleSpec, autotune_ragged_dot,
+)
 
 result = autotune_ragged_dot(
     mode=RaggedDotMode.FWD,       # or RaggedDotMode.BWD
@@ -502,7 +580,9 @@ result = autotune_ragged_dot(
     k=4096,
     group_sizes=[512] * 8,        # fwd: sum == M; bwd: sum == K
     layout=GemmLayout.NN,
-    scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+    scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+    epilogue=Epilogue.SWIGLU,
+    output_dtype=OutputDType.INT4,
     warmup_ms=25,
     rep_ms=100,
 )
@@ -515,7 +595,10 @@ operands are padded to a per-group `k_capacity`, which defaults to
 `max(group_sizes)` rounded up to an even packed-int4 capacity and can be
 overridden explicitly; odd overrides are rounded up too. Ragged autotuning
 always passes `use_native=False`: its results describe shape-specialized JIT
-rather than packaged HSACO dispatch.
+rather than packaged HSACO dispatch. Forward tuning accepts BF16, FP32, or
+packed-INT4 output and includes the output contract in each candidate ID;
+prepared routing and output buffers are outside the timed loop. Backward tuning
+rejects INT4 and restricts BF16 candidates to `split_k=1`.
 
 ## Fused BF16/INT4 Attention
 
@@ -691,8 +774,8 @@ error `6.07e-5`; timed BF16 maximum absolute error was `2.45e-4`.
 
 ## Kernel Coverage
 
-The checked-in matrix currently contains 3,552 native artifacts: 2,882 dense
-generated kernels, 182 ragged generated artifacts, and 488 fused-attention
+The checked-in matrix currently contains 3,852 native artifacts: 3,062 dense
+generated kernels, 302 ragged generated artifacts, and 488 fused-attention
 artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
@@ -702,6 +785,8 @@ artifacts:
 - epilogues: plain scaled GEMM, ReLU^2, fused SwiGLU up/gate,
 - schedules: standard plus opt-in persistent schedule for plain int4 GEMM,
 - split-K: `1`, `2`, `4`, and `8` for plain GEMM,
+- 180 split-K-1 packed-INT4 output variants across INT4/INT8/mixed inputs,
+  all generated dense layouts and input scale modes, and plain/ReLU^2/SwiGLU,
 - two exact subchannel-256 TN projection-gradient specializations at the
   `M=14336` training microbatch.
 
@@ -709,11 +794,12 @@ Ragged artifacts cover forward and backward modes, `NN`/`NT`/`TN`/`TT`
 layouts, per-channel plus subchannel `32`/`64`/`128`/`256` scales, and both
 `evenk` and `maskk` variants. The dataclass defaults are the packaged tile
 source of truth. The default packaged forward config is
-`BM64_BN256_BK64_GST1_W8_S3` and stores BF16. The default packaged backward
+`BM64_BN256_BK64_GST1_W8_S3`; 40 variants store BF16 and 120 variants emit
+packed INT4 for plain/ReLU^2/SwiGLU. The default packaged backward
 matrix contains 40 generic FP32 artifacts, 80 generic BF16 paired/scalar-store
 artifacts, and 20 exact 4096-capacity BF16 wide-store NN/TN artifacts. Together
-with 40 forward BF16 artifacts and two specialized `bwd_accum` FP32/BF16
-artifacts, this forms the 182-artifact ragged matrix.
+with 160 forward artifacts and two specialized `bwd_accum` FP32/BF16
+artifacts, this forms the 302-artifact ragged matrix.
 
 Attention contributes 484 forward artifacts plus four decode reducers at
 `D=Dv=64`. Its physical input combinations are BF16/BF16, INT4/BF16,
@@ -722,8 +808,9 @@ bool/BF16/FP32 mask pointers with BF16 or FP32 output. Generic variants retain
 runtime shapes and semantics, while measured workload profiles specialize
 heads, lengths, and full/causal/local control flow.
 
-Non-split dense kernels write BF16 outputs. Split-K dense kernels write FP32
-because their partial tiles are reduced with FP32 atomics.
+Non-split dense kernels can write BF16 or fused packed INT4 plus BF16 sc256
+scales. Split-K dense kernels write FP32 because their partial tiles are
+reduced with FP32 atomics.
 
 `GemmLayout.TT` is present as a metadata value, but dense packaged native
 dispatch is generated only for `NN`, `NT`, and `TN`. Ragged packaged HSACO and
@@ -771,6 +858,26 @@ and relative difference. Each 256-value subchannel uses INT32 MMA accumulation;
 the independently scaled subchannel results accumulate in FP32 before one BF16
 store. Gradient accumulation repeats `M=14336`, not
 `M=57344`; see `docs/benchmarks.rst` for operand/scale layout details.
+
+For the model-like `M=14336, D=K=1024, G=8` SwiGLU-to-down-projection chain,
+both producer inputs and down weights are packed signed INT4 with independent
+BF16 sc256 scales. The fused path writes packed INT4 plus BF16 sc256 scales;
+the baseline writes BF16, applies the same standalone output quantizer, and
+then launches the same down GEMM.
+
+| Path | BF16 producer + quant + down | Fused INT4 producer + down | Speedup |
+| --- | ---: | ---: | ---: |
+| dense SwiGLU | 7.651 ms | 1.637 ms | 4.67× |
+| 8-group ragged SwiGLU | 9.488 ms | 2.935 ms | 3.39× |
+
+The fused producer alone measured 1.083 ms dense and 2.326 ms ragged; removing
+the redundant complete-N-tile masks reduced packaged ragged producer latency
+from 2.856 ms by 18.5%. Every native output artifact is checked against the
+representation-matched quantizer: packed codes and BF16 scales are exact, and
+dequantized results pass `rtol=atol=1e-3`. Relative to the unquantized BF16
+activation, ordinary INT4 quantization has the expected lossy quality envelope
+(dense cosine 0.9806); `1e-3` is the kernel-fidelity gate, not a claim that
+four-bit quantization reproduces arbitrary BF16 values elementwise.
 
 For fused SwiGLU, TOPS counts both up and gate GEMMs.
 BF16-store correctness may differ by one ULP from the BF16 reference on values

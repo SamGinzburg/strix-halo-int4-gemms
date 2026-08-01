@@ -7,6 +7,7 @@ from typing import Callable, Iterable
 from .metadata import (
     ACC_DTYPE,
     ARCH,
+    OUTPUT_DTYPE_INT4,
     Epilogue,
     GemmLayout,
     KernelMetadata,
@@ -33,6 +34,7 @@ TRAINING_PROJECTION_TN_SC256_TILES = (
     TileConfig(16, 512, 32, 4, 16, 2, 2, even_k=True),
     TileConfig(64, 512, 32, 4, 16, 2, 2, even_k=True),
 )
+INT4_OUTPUT_SCALE = ScaleSpec(ScaleMode.SUBCHANNEL, 256)
 _TRAINING_PROJECTION_SC256_GM1_TILE = TileConfig(64, 128, 128, 1, 16, 2, 2, even_k=True)
 _TRAINING_PROJECTION_SC256_GM4_TILE = replace(_TRAINING_PROJECTION_SC256_GM1_TILE, group_size_m=4)
 _TRAINING_PROJECTION_SC256_PREFERRED = {
@@ -204,6 +206,34 @@ def seed_tile_configs(
     raise ValueError(f"unsupported dtype: {dtype}")
 
 
+def quantized_output_tile_configs(
+    dtype: OperandDType,
+    *,
+    epilogue: Epilogue,
+    scale: ScaleSpec,
+) -> tuple[TileConfig, ...]:
+    """Return initial fused INT4-output tiles with one CTA per sc256 group."""
+
+    if dtype in {OperandDType.INT4, OperandDType.BF16}:
+        block_m = 32 if epilogue is Epilogue.SWIGLU else 64
+        return (
+            TileConfig(block_m, 256, 128, 1, 16, 2, 2, even_k=True),
+            TileConfig(block_m, 256, 128, 1, 16, 2, 2, even_k=False),
+        )
+    if dtype is OperandDType.INT8:
+        block_m = 32 if epilogue is Epilogue.SWIGLU else 64
+        num_stages = (
+            2
+            if epilogue is Epilogue.SWIGLU and scale != ScaleSpec(ScaleMode.SUBCHANNEL, 32)
+            else 3
+        )
+        return (
+            TileConfig(block_m, 256, 64, 4, 8, num_stages, 2, even_k=True),
+            TileConfig(block_m, 256, 64, 4, 8, num_stages, 2, even_k=False),
+        )
+    raise ValueError(f"unsupported dtype: {dtype}")
+
+
 def _kernel_metadata(
     *,
     a_dtype: OperandDType,
@@ -214,15 +244,28 @@ def _kernel_metadata(
     layout: GemmLayout = GemmLayout.NN,
     schedule: KernelSchedule,
     assembly_root: Path,
+    output_dtype: str | None = None,
+    output_scale: ScaleSpec | None = None,
 ) -> KernelMetadata:
-    kernel_id = make_mixed_kernel_id(a_dtype, b_dtype, scale, epilogue, tile, layout=layout, schedule=schedule)
+    selected_output_dtype = output_dtype or output_dtype_for_split_k(tile.split_k)
+    kernel_id = make_mixed_kernel_id(
+        a_dtype,
+        b_dtype,
+        scale,
+        epilogue,
+        tile,
+        layout=layout,
+        schedule=schedule,
+        output_dtype=selected_output_dtype,
+        output_scale=output_scale,
+    )
     return KernelMetadata(
         kernel_id=kernel_id,
         arch=ARCH,
         a_dtype=a_dtype,
         b_dtype=b_dtype,
         acc_dtype=ACC_DTYPE,
-        output_dtype=output_dtype_for_split_k(tile.split_k),
+        output_dtype=selected_output_dtype,
         scale_dtype=SCALE_DTYPE_BF16,
         scale=scale,
         epilogue=epilogue,
@@ -232,6 +275,7 @@ def _kernel_metadata(
         schedule=schedule,
         assembly_path=assembly_root / f"{kernel_id}.s",
         status=KernelStatus.PLANNED,
+        output_scale=output_scale,
     )
 
 
@@ -278,6 +322,31 @@ def iter_supported_kernel_metadata(
                             layout=layout,
                             schedule=KernelSchedule.STANDARD,
                             assembly_root=assembly_root,
+                        )
+    for a_dtype, b_dtype in dtype_pairs:
+        seed_dtype = OperandDType.INT4 if b_dtype is OperandDType.INT4 else b_dtype
+        for scale in supported_scale_specs():
+            for epilogue in (Epilogue.NONE, Epilogue.RELU2, Epilogue.SWIGLU):
+                tile_list = (
+                    tile_override
+                    if tile_override is not None
+                    else quantized_output_tile_configs(seed_dtype, epilogue=epilogue, scale=scale)
+                )
+                for layout in SUPPORTED_GEMM_LAYOUTS:
+                    for tile in tile_list:
+                        if tile.split_k != 1 or tile.block_n != 256:
+                            continue
+                        yield _kernel_metadata(
+                            a_dtype=a_dtype,
+                            b_dtype=b_dtype,
+                            scale=scale,
+                            epilogue=epilogue,
+                            tile=tile,
+                            layout=layout,
+                            schedule=KernelSchedule.STANDARD,
+                            assembly_root=assembly_root,
+                            output_dtype=OUTPUT_DTYPE_INT4,
+                            output_scale=INT4_OUTPUT_SCALE,
                         )
     for a_dtype, b_dtype in ((OperandDType.INT4, OperandDType.INT4),):
         for scale in supported_scale_specs():
@@ -333,6 +402,8 @@ class KernelRegistry:
         split_k: int | None = None,
         schedule: KernelSchedule = KernelSchedule.STANDARD,
         require_compiled: bool = False,
+        output_dtype: str | None = None,
+        output_scale: ScaleSpec | None = None,
     ) -> KernelMetadata:
         selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(
             dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype
@@ -346,6 +417,8 @@ class KernelRegistry:
             and kernel.epilogue is epilogue
             and kernel.layout is layout
             and kernel.schedule is schedule
+            and (output_dtype is None and kernel.output_dtype != OUTPUT_DTYPE_INT4 or kernel.output_dtype == output_dtype)
+            and (output_scale is None or kernel.output_scale == output_scale)
             and not (kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} and kernel.tile.split_k != 1)
             and (split_k is None or kernel.tile.split_k == split_k)
             and kernel.tile.even_k
@@ -357,7 +430,7 @@ class KernelRegistry:
             raise LookupError(
                 f"no kernel for dtype_pair={selected_a_dtype.value}x{selected_b_dtype.value}, scale={scale.label}, epilogue={epilogue.value}, "
                 f"layout={layout.value}, schedule={schedule.value}, "
-                f"shape=({m}, {n}, {k})"
+                f"output_dtype={output_dtype or 'default'}, shape=({m}, {n}, {k})"
             )
         preferred_tile = None
         if (
@@ -391,6 +464,8 @@ class KernelRegistry:
         layout: GemmLayout = GemmLayout.NN,
         split_k: int | None = 1,
         schedule: KernelSchedule = KernelSchedule.STANDARD,
+        output_dtype: str | None = None,
+        output_scale: ScaleSpec | None = None,
     ) -> KernelMetadata:
         selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(
             dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype
@@ -404,6 +479,8 @@ class KernelRegistry:
             and kernel.epilogue is epilogue
             and kernel.layout is layout
             and kernel.schedule is schedule
+            and (output_dtype is None and kernel.output_dtype != OUTPUT_DTYPE_INT4 or kernel.output_dtype == output_dtype)
+            and (output_scale is None or kernel.output_scale == output_scale)
             and not (kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} and kernel.tile.split_k != 1)
             and (split_k is None or kernel.tile.split_k == split_k)
             and kernel.tile.even_k
@@ -411,7 +488,8 @@ class KernelRegistry:
         if not candidates:
             raise LookupError(
                 f"no reference kernel metadata for dtype_pair={selected_a_dtype.value}x{selected_b_dtype.value}, scale={scale.label}, "
-                f"epilogue={epilogue.value}, layout={layout.value}, schedule={schedule.value}"
+                f"epilogue={epilogue.value}, layout={layout.value}, schedule={schedule.value}, "
+                f"output_dtype={output_dtype or 'default'}"
             )
 
         def selection_key(kernel: KernelMetadata) -> tuple[float, int]:

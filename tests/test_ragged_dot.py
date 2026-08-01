@@ -7,10 +7,12 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels import (
+    Epilogue,
     GemmLayout,
     RaggedBwdGroupInfo,
     RaggedBwdDotConfig,
     RaggedDotConfig,
+    OutputDType,
     SUPPORTED_SUBCHANNELS,
     ScaleMode,
     ScaleSpec,
@@ -24,7 +26,13 @@ from amd_strix_halo_kernels import (
     ragged_dot_int4,
 )
 from amd_strix_halo_kernels.native import NATIVE_LIBRARY_NAME, dispatch_runtime_status
-from amd_strix_halo_kernels.quant import fake_quant_int, pack_int4_k_major, pack_ragged_rhs_subchannel_scales
+from amd_strix_halo_kernels.quant import (
+    QuantizedInt4Tensor,
+    fake_quant_int,
+    pack_int4_k_major,
+    pack_ragged_rhs_subchannel_scales,
+    quantize_int4_output,
+)
 from amd_strix_halo_kernels.ragged import (
     RAGGED_BWD_ACCUM_CONFIG,
     _can_use_bwd_even_k_fast_path,
@@ -187,6 +195,156 @@ def _manual_grouped_subchannel_reference(a_q, b_q, group_sizes, a_scale, b_scale
         out[row:next_row] = partial
         row = next_row
     return out
+
+
+def _apply_epilogue(value, epilogue):
+    if epilogue is Epilogue.SWIGLU:
+        up, gate = value.chunk(2, dim=-1)
+        return up * torch.nn.functional.silu(gate)
+    if epilogue is Epilogue.RELU2:
+        return torch.relu(value).square()
+    return value
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged INT4 output requires CUDA/HIP")
+@pytest.mark.parametrize("epilogue", list(Epilogue), ids=lambda epilogue: epilogue.value)
+@pytest.mark.parametrize("variant", ["evenk", "maskk"])
+@pytest.mark.parametrize(
+    ("layout", "scale"),
+    [
+        pytest.param(GemmLayout.NN, ScaleSpec(ScaleMode.PER_CHANNEL), id="nn-pc"),
+        pytest.param(GemmLayout.TT, ScaleSpec(ScaleMode.SUBCHANNEL, 256), id="tt-sc256"),
+    ],
+)
+def test_ragged_int4_output_matches_representation_oracle(layout, scale, variant, epilogue) -> None:
+    pytest.importorskip("triton")
+    torch.manual_seed(811 + list(Epilogue).index(epilogue) * 37)
+    rows, cols, groups = 67, 256, 3
+    contraction = 512 if variant == "evenk" else 510
+    rhs_cols = cols * 2 if epilogue is Epilogue.SWIGLU else cols
+    group_sizes = torch.tensor([13, 0, rows - 13], device="cuda", dtype=torch.int32)
+    a_q = torch.randint(-4, 5, (rows, contraction), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (groups, contraction, rhs_cols), device="cuda", dtype=torch.int8)
+    lhs, rhs = _pack_forward_args(a_q, b_q, layout)
+    if scale.mode is ScaleMode.PER_CHANNEL:
+        a_scale = torch.linspace(0.01, 0.03, rows, device="cuda", dtype=torch.bfloat16)
+        b_scale = torch.linspace(
+            0.03,
+            0.01,
+            groups * rhs_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, rhs_cols)
+        expected = _manual_grouped_reference(a_q, b_q, group_sizes, a_scale, b_scale)
+    else:
+        scale_cols = (contraction + 255) // 256
+        a_scale = torch.linspace(
+            0.01,
+            0.03,
+            rows * scale_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(rows, scale_cols)
+        b_scale = torch.linspace(
+            0.03,
+            0.01,
+            groups * scale_cols * rhs_cols,
+            device="cuda",
+            dtype=torch.bfloat16,
+        ).reshape(groups, scale_cols, rhs_cols)
+        expected = _manual_grouped_subchannel_reference(
+            a_q,
+            b_q,
+            group_sizes,
+            a_scale,
+            b_scale,
+            256,
+        )
+    expected = _apply_epilogue(expected, epilogue)
+    expected_quantized = quantize_int4_output(expected)
+
+    actual = ragged_dot_int4(
+        lhs,
+        rhs,
+        group_sizes,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        scale=scale,
+        layout=layout,
+        epilogue=epilogue,
+        output_dtype=OutputDType.INT4,
+        use_native=False,
+    )
+
+    assert isinstance(actual, QuantizedInt4Tensor)
+    torch.testing.assert_close(actual.packed, expected_quantized.packed, rtol=0, atol=0)
+    torch.testing.assert_close(actual.scale, expected_quantized.scale, rtol=1.0e-3, atol=1.0e-3)
+    torch.testing.assert_close(
+        actual.dequantize(),
+        expected_quantized.dequantize(),
+        rtol=1.0e-3,
+        atol=1.0e-3,
+    )
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="ragged INT4 output requires CUDA/HIP")
+def test_ragged_int4_output_rejects_incompatible_contracts() -> None:
+    rows, cols, contraction, groups = 8, 256, 64, 2
+    lhs = torch.zeros((rows, contraction // 2), device="cuda", dtype=torch.uint8)
+    rhs = torch.zeros((groups, contraction // 2, cols), device="cuda", dtype=torch.uint8)
+    group_sizes = torch.tensor([3, 5], device="cuda", dtype=torch.int32)
+    a_scale = torch.ones((rows,), device="cuda", dtype=torch.bfloat16)
+    b_scale = torch.ones((groups, cols), device="cuda", dtype=torch.bfloat16)
+    common = dict(
+        a_scale=a_scale,
+        b_scale=b_scale,
+        output_dtype=OutputDType.INT4,
+        use_native=False,
+    )
+
+    with pytest.raises(ValueError, match="subchannel-256"):
+        ragged_dot_int4(
+            lhs,
+            rhs,
+            group_sizes,
+            output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 128),
+            **common,
+        )
+    with pytest.raises(ValueError, match="block_n == 256"):
+        ragged_dot_int4(
+            lhs,
+            rhs,
+            group_sizes,
+            config=RaggedDotConfig(block_n=128),
+            **common,
+        )
+    with pytest.raises(ValueError, match="width to be divisible by 256"):
+        ragged_dot_int4(
+            lhs,
+            rhs[..., :128].contiguous(),
+            group_sizes,
+            b_scale=b_scale[..., :128].contiguous(),
+            **{key: value for key, value in common.items() if key != "b_scale"},
+        )
+    with pytest.raises(ValueError, match="requires OutputDType.INT4"):
+        ragged_dot_int4(
+            lhs,
+            rhs,
+            group_sizes,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            epilogue=Epilogue.RELU2,
+            output_dtype=OutputDType.BF16,
+            use_native=False,
+        )
+    with pytest.raises(ValueError, match="out_scale must have dtype"):
+        ragged_dot_int4(
+            lhs,
+            rhs,
+            group_sizes,
+            out_scale=torch.empty((rows, 1), device="cuda", dtype=torch.float32),
+            **common,
+        )
 
 
 def _pack_forward_args(a_q, b_q, layout):
@@ -1247,6 +1405,8 @@ def test_ragged_dot_int4_bwd_output_dtype_contract_and_single_rounding(cols) -> 
 
     with pytest.raises(ValueError, match="output_dtype must be"):
         ragged_dot_int4_bwd(lhs, rhs, group_sizes, output_dtype=torch.float16, **common)
+    with pytest.raises(ValueError, match="output_dtype must be"):
+        ragged_dot_int4_bwd(lhs, rhs, group_sizes, output_dtype=OutputDType.INT4, **common)
     with pytest.raises(ValueError, match="does not match output_dtype"):
         ragged_dot_int4_bwd(
             lhs,

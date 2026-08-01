@@ -24,6 +24,7 @@
     "split_k": 1
   },
   "config_label": "BM32_BN128_BK64_W4_S2_SK1",
+  "epilogue": "none",
   "family": "ragged_dot_int4",
   "kernel_arg_layout": {
     "by_value_arg_count": 4,
@@ -57,6 +58,7 @@
   "layout": "tn",
   "mode": "bwd_accum",
   "output_dtype": "float32",
+  "output_scale": null,
   "rhs_subchannel_scale_layout": null,
   "runtime_constraints": {
     "out_alignment_bytes": 1,

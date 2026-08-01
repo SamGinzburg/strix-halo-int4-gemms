@@ -5,6 +5,7 @@ from amd_strix_halo_kernels.metadata import (
     GemmLayout,
     KernelSchedule,
     OperandDType,
+    OUTPUT_DTYPE_INT4,
     SUPPORTED_GEMM_LAYOUTS,
     SCALE_DTYPE_BF16,
     SUPPORTED_SPLIT_K,
@@ -24,12 +25,18 @@ from amd_strix_halo_kernels.registry import (
 def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
     kernels = default_registry.all()
     standard_kernels = [kernel for kernel in kernels if kernel.schedule is KernelSchedule.STANDARD]
+    conventional_output_kernels = [
+        kernel for kernel in standard_kernels if kernel.output_dtype != OUTPUT_DTYPE_INT4
+    ]
+    quantized_output_kernels = [kernel for kernel in standard_kernels if kernel.output_dtype == OUTPUT_DTYPE_INT4]
     expected_block_m_variants = 3
     expected_block_n_variants = 2
     expected_tile_variants = expected_block_m_variants * expected_block_n_variants
     expected_layouts = len(SUPPORTED_GEMM_LAYOUTS)
-    assert len(standard_kernels) == expected_layouts * 120 * expected_tile_variants + 2
-    assert len(kernels) == expected_layouts * (120 + 40) * expected_tile_variants + 2
+    expected_quantized_outputs = expected_layouts * 2 * len(Epilogue) * 5 * 2
+    assert len(conventional_output_kernels) == expected_layouts * 120 * expected_tile_variants + 2
+    assert len(quantized_output_kernels) == expected_quantized_outputs
+    assert len(kernels) == expected_layouts * (120 + 40) * expected_tile_variants + 2 + expected_quantized_outputs
     ids = {kernel.kernel_id for kernel in kernels}
     assert len(ids) == len(kernels)
     assert {kernel.layout for kernel in kernels} == set(SUPPORTED_GEMM_LAYOUTS)
@@ -49,7 +56,7 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
                     for layout in SUPPORTED_GEMM_LAYOUTS:
                         even = [
                             kernel
-                            for kernel in standard_kernels
+                            for kernel in conventional_output_kernels
                             if kernel.a_dtype is dtype
                             and kernel.b_dtype is dtype
                             and kernel.epilogue is epilogue
@@ -60,7 +67,7 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
                         ]
                         masked = [
                             kernel
-                            for kernel in standard_kernels
+                            for kernel in conventional_output_kernels
                             if kernel.a_dtype is dtype
                             and kernel.b_dtype is dtype
                             and kernel.epilogue is epilogue
@@ -92,13 +99,36 @@ def test_registry_covers_scale_dtype_epilogue_and_even_k_matrix() -> None:
                 if epilogue in {Epilogue.RELU2, Epilogue.SWIGLU}:
                     assert not [
                         kernel
-                        for kernel in standard_kernels
+                        for kernel in conventional_output_kernels
                         if kernel.a_dtype is dtype
                         and kernel.b_dtype is dtype
                         and kernel.epilogue is epilogue
                         and kernel.scale == scale
                         and kernel.tile.split_k != 1
                     ]
+
+    assert {kernel.a_dtype for kernel in quantized_output_kernels} == {
+        OperandDType.INT4,
+        OperandDType.INT8,
+    }
+    assert {kernel.b_dtype for kernel in quantized_output_kernels} == {
+        OperandDType.INT4,
+        OperandDType.INT8,
+    }
+    assert {kernel.epilogue for kernel in quantized_output_kernels} == set(Epilogue)
+    assert {kernel.layout for kernel in quantized_output_kernels} == set(SUPPORTED_GEMM_LAYOUTS)
+    assert {kernel.scale for kernel in quantized_output_kernels} == {
+        ScaleSpec(ScaleMode.SUBCHANNEL, 32),
+        ScaleSpec(ScaleMode.SUBCHANNEL, 64),
+        ScaleSpec(ScaleMode.SUBCHANNEL, 128),
+        ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+        ScaleSpec(ScaleMode.PER_CHANNEL),
+    }
+    assert {kernel.output_scale for kernel in quantized_output_kernels} == {
+        ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    }
+    assert all(kernel.tile.split_k == 1 for kernel in quantized_output_kernels)
+    assert all(kernel.tile.block_n == 256 for kernel in quantized_output_kernels)
 
 
 def test_mixed_dtype_registry_is_opt_in() -> None:

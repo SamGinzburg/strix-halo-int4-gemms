@@ -8,8 +8,18 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
-from .quant import dynamic_lhs_int4_scales
+from .metadata import (
+    OUTPUT_DTYPE_INT4,
+    Epilogue,
+    GemmLayout,
+    KernelMetadata,
+    KernelSchedule,
+    OperandDType,
+    OutputDType,
+    ScaleMode,
+    ScaleSpec,
+)
+from .quant import QuantizedInt4Tensor, dynamic_lhs_int4_scales
 from .ragged_artifacts import (
     RAGGED_BWD,
     RAGGED_BWD_ACCUM,
@@ -133,6 +143,35 @@ def _load_dispatch_library_cached(library_path_value: str) -> ctypes.CDLL:
         ctypes.c_int32,
     ]
     library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+        ctypes.c_int32,
+    ]
+    library.amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco.restype = ctypes.c_int
     library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.argtypes = [
         ctypes.c_char_p,
         ctypes.c_char_p,
@@ -245,6 +284,12 @@ def _require_contiguous(name: str, tensor: Any) -> Any:
     return tensor
 
 
+def _require_device(name: str, tensor: Any, device: Any) -> Any:
+    if tensor.device != device:
+        raise ValueError(f"{name} must be on device {device} for native dispatch; got {tensor.device}")
+    return tensor
+
+
 def _require_bfloat16_scale(torch: Any, name: str, tensor: Any) -> Any:
     if tensor.dtype != torch.bfloat16:
         raise ValueError(f"{name} must have dtype torch.bfloat16 for native dispatch; got {tensor.dtype}")
@@ -299,13 +344,16 @@ def _output_torch_dtype(torch: Any, kernel: KernelMetadata) -> Any:
         return torch.bfloat16
     if kernel.output_dtype == "float32":
         return torch.float32
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        return torch.uint8
     raise ValueError(f"unsupported kernel output dtype: {kernel.output_dtype}")
 
 
 def _validate_launch_shape(kernel: KernelMetadata, artifact: dict[str, Any], a: Any, b: Any, c: Any) -> tuple[int, int, int]:
     m, n, k = _logical_problem_shape(kernel, a, b)
-    if tuple(c.shape[-2:]) != (m, n):
-        raise ValueError(f"output shape must be {(m, n)}; got {tuple(c.shape[-2:])}")
+    expected_c_shape = (m, n // 2) if kernel.output_dtype == OUTPUT_DTYPE_INT4 else (m, n)
+    if tuple(c.shape[-2:]) != expected_c_shape:
+        raise ValueError(f"output shape must be {expected_c_shape}; got {tuple(c.shape[-2:])}")
     LaunchShape(m, n, k).validate_for(kernel)
     specialization = str(artifact.get("shape_specialization", "exact"))
     if specialization == "runtime":
@@ -374,7 +422,7 @@ def _block_size(kernel: KernelMetadata, artifact: dict[str, Any]) -> int:
     return num_warps * THREADS_PER_WARP
 
 
-def _launch_grid(kernel: KernelMetadata, artifact: dict[str, Any], c: Any) -> tuple[int, int, int]:
+def _launch_grid(kernel: KernelMetadata, artifact: dict[str, Any], *, m: int, n: int) -> tuple[int, int, int]:
     launch_metadata = artifact.get("launch_metadata")
     if not isinstance(launch_metadata, dict):
         raise RuntimeError(f"{kernel.kernel_id} metadata is missing launch_metadata")
@@ -384,8 +432,8 @@ def _launch_grid(kernel: KernelMetadata, artifact: dict[str, Any], c: Any) -> tu
             if not isinstance(num_sms, int) or num_sms <= 0:
                 raise RuntimeError(f"{kernel.kernel_id} metadata has invalid persistent num_sms")
             tile_count = (
-                int(c.shape[-2]) // kernel.tile.block_m
-                * (int(c.shape[-1]) // kernel.tile.block_n)
+                m // kernel.tile.block_m
+                * (n // kernel.tile.block_n)
             )
             return (min(num_sms, tile_count), kernel.tile.split_k, 1)
         grid_x = launch_metadata.get("grid_x")
@@ -396,8 +444,8 @@ def _launch_grid(kernel: KernelMetadata, artifact: dict[str, Any], c: Any) -> tu
             raise RuntimeError(f"{kernel.kernel_id} metadata has invalid persistent grid_y")
         return (grid_x, grid_y, 1)
     return (
-        int(c.shape[-2]) // kernel.tile.block_m
-        * (int(c.shape[-1]) // kernel.tile.block_n),
+        m // kernel.tile.block_m
+        * (n // kernel.tile.block_n),
         kernel.tile.split_k,
         1,
     )
@@ -545,6 +593,65 @@ def launch_ragged_fwd_hsaco(
         int(scale_cols),
         int(num_tasks),
         int(has_scale_cols_arg),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+def launch_ragged_fwd_quant_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    lhs_ptr: int,
+    rhs_ptr: int,
+    lhs_scale_ptr: int,
+    rhs_scale_ptr: int,
+    task_group_ids_ptr: int,
+    task_block_starts_ptr: int,
+    task_actual_starts_ptr: int,
+    task_actual_ends_ptr: int,
+    out_ptr: int,
+    out_scale_ptr: int,
+    m: int,
+    n: int,
+    k_packed: int,
+    scale_cols: int,
+    num_tasks: int,
+    library_path: str | Path | None = None,
+) -> None:
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        ctypes.c_void_p(int(lhs_ptr)),
+        ctypes.c_void_p(int(rhs_ptr)),
+        ctypes.c_void_p(int(lhs_scale_ptr)),
+        ctypes.c_void_p(int(rhs_scale_ptr)),
+        ctypes.c_void_p(int(task_group_ids_ptr)),
+        ctypes.c_void_p(int(task_block_starts_ptr)),
+        ctypes.c_void_p(int(task_actual_starts_ptr)),
+        ctypes.c_void_p(int(task_actual_ends_ptr)),
+        ctypes.c_void_p(int(out_ptr)),
+        ctypes.c_void_p(int(out_scale_ptr)),
+        int(m),
+        int(n),
+        int(k_packed),
+        int(scale_cols),
+        int(num_tasks),
     )
     if rc != 0:
         raise RuntimeError(_library_last_error(library))
@@ -727,10 +834,14 @@ def launch_ragged_fwd_kernel(
     a_scale: Any,
     b_scale: Any,
     out: Any,
+    out_scale: Any | None,
     scale: Any,
     config: Any,
     layout: GemmLayout,
     variant: str,
+    epilogue: Epilogue,
+    output_dtype: OutputDType,
+    output_scale: ScaleSpec | None,
     rows: int,
     cols: int,
     k_packed: int,
@@ -745,23 +856,43 @@ def launch_ragged_fwd_kernel(
     a_scale = _require_bfloat16_scale(torch, "a_scale", _require_contiguous("a_scale", a_scale))
     b_scale = _require_bfloat16_scale(torch, "b_scale", _require_contiguous("b_scale", b_scale))
     out = _require_contiguous("out", out)
+    if output_dtype is OutputDType.INT4:
+        if out.dtype != torch.uint8 or tuple(out.shape) != (rows, cols // 2):
+            raise ValueError("native ragged INT4 out must be contiguous uint8 with shape (M, N/2)")
+        if output_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("native ragged INT4 output requires subchannel-256 output scales")
+        out_scale = _require_bfloat16_scale(
+            torch,
+            "out_scale",
+            _require_contiguous("out_scale", out_scale),
+        )
+        if tuple(out_scale.shape) != (rows, cols // 256):
+            raise ValueError("native ragged INT4 out_scale must have shape (M, N/256)")
+    elif output_dtype is OutputDType.BF16:
+        if out.dtype != torch.bfloat16 or tuple(out.shape) != (rows, cols):
+            raise ValueError("native ragged BF16 out must be contiguous bfloat16 with shape (M, N)")
+        if epilogue is not Epilogue.NONE or output_scale is not None or out_scale is not None:
+            raise ValueError("native ragged BF16 output does not accept an epilogue or output scales")
+    else:
+        raise ValueError("native ragged forward supports BF16 or INT4 output")
     kernel_id = ragged_kernel_id(
         mode=RAGGED_FWD,
         layout=layout,
         scale=scale,
         config=config,
         variant=variant,
-        output_dtype="bfloat16",
+        output_dtype=output_dtype.value,
+        epilogue=epilogue,
+        output_scale=output_scale,
     )
     hsaco_path, artifact, symbol = _ragged_artifact_symbol(kernel_id, root=root)
     block_size = _block_size_for_artifact(kernel_id, artifact)
     shared_memory_bytes = _shared_memory_bytes_for_artifact(kernel_id, artifact)
     runtime_scalar_args = _ragged_runtime_scalar_args(kernel_id, artifact)
-    has_scale_cols_arg = "SCALE_COLS" in runtime_scalar_args
     grid = (group_info.num_tasks * _cdiv(cols, config.block_n), 1, 1)
     if grid[0] == 0:
         return out
-    launch_ragged_fwd_hsaco(
+    common_args = dict(
         hsaco_path=hsaco_path,
         symbol=symbol,
         device_index=_device_index(lhs),
@@ -783,8 +914,19 @@ def launch_ragged_fwd_kernel(
         k_packed=k_packed,
         scale_cols=scale_cols,
         num_tasks=group_info.num_tasks,
-        has_scale_cols_arg=has_scale_cols_arg,
         library_path=library_path,
+    )
+    if output_dtype is OutputDType.INT4:
+        if runtime_scalar_args != ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS"):
+            raise RuntimeError(f"{kernel_id} has unsupported quantized forward scalar ABI {runtime_scalar_args}")
+        launch_ragged_fwd_quant_hsaco(
+            **common_args,
+            out_scale_ptr=out_scale.data_ptr(),
+        )
+        return QuantizedInt4Tensor(out, out_scale, (rows, cols), output_scale)
+    launch_ragged_fwd_hsaco(
+        **common_args,
+        has_scale_cols_arg="SCALE_COLS" in runtime_scalar_args,
     )
     return out
 
@@ -936,6 +1078,7 @@ def launch_generated_kernel(
     b_scale: Any,
     c: Any | None = None,
     gate: Any | None = None,
+    output_scale: Any | None = None,
     root: str | Path | None = None,
     library_path: str | Path | None = None,
     stream: Any | None = None,
@@ -962,36 +1105,67 @@ def launch_generated_kernel(
         raise ValueError("SwiGLU native dispatch uses fused up/gate columns; external gate is not supported")
     if kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} and kernel.tile.split_k != 1:
         raise ValueError(f"{kernel.epilogue.value} native dispatch currently supports SPLIT_K=1 only")
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        if kernel.tile.split_k != 1:
+            raise ValueError("int4 native output requires split_k=1")
+        if kernel.output_scale is None or kernel.output_scale.subchannel_size != 256:
+            raise ValueError("int4 native output requires subchannel-256 output scales")
+        if kernel.tile.block_n != 256:
+            raise ValueError("int4 native output requires BLOCK_N=256")
+        if gate is not None:
+            raise ValueError("int4 native output uses the auxiliary pointer for output scales")
+    elif output_scale is not None:
+        raise ValueError("output_scale is valid only for int4 output kernels")
 
-    a = _require_contiguous("a", a)
-    b = _require_contiguous("b", b)
+    device = a.device
+    a = _require_device("a", _require_contiguous("a", a), device)
+    b = _require_device("b", _require_contiguous("b", b), device)
     if _is_bf16xint4_kernel(kernel):
         a_scale = dynamic_lhs_int4_scales(_logical_a_tensor(a, kernel.layout), kernel.scale)
     else:
-        a_scale = _require_contiguous("a_scale", a_scale)
-    b_scale = _require_contiguous("b_scale", b_scale)
+        a_scale = _require_device("a_scale", _require_contiguous("a_scale", a_scale), device)
+    b_scale = _require_device("b_scale", _require_contiguous("b_scale", b_scale), device)
     a_scale = _require_bfloat16_scale(torch, "a_scale", a_scale)
     b_scale = _require_bfloat16_scale(torch, "b_scale", b_scale)
+    m, n, _ = _logical_problem_shape(kernel, a, b)
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4 and n % 256 != 0:
+        raise ValueError("int4 native output requires the logical output width to be divisible by 256")
     if c is None:
-        m, n, _ = _logical_problem_shape(kernel, a, b)
         c = torch.empty(
-            (m, n),
+            (m, n // 2) if kernel.output_dtype == OUTPUT_DTYPE_INT4 else (m, n),
             device=a.device,
             dtype=_output_torch_dtype(torch, kernel),
         )
-    c = _require_contiguous("c", c)
+    c = _require_device("c", _require_contiguous("c", c), device)
     expected_c_dtype = _output_torch_dtype(torch, kernel)
     if c.dtype != expected_c_dtype:
         raise ValueError(f"output dtype must be {expected_c_dtype}; got {c.dtype}")
     if kernel.tile.split_k > 1:
         c.zero_()
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        expected_scale_shape = (m, n // 256)
+        if output_scale is None:
+            output_scale = torch.empty(expected_scale_shape, device=a.device, dtype=torch.bfloat16)
+        output_scale = _require_bfloat16_scale(
+            torch,
+            "output_scale",
+            _require_device(
+                "output_scale",
+                _require_contiguous("output_scale", output_scale),
+                device,
+            ),
+        )
+        if tuple(output_scale.shape) != expected_scale_shape:
+            raise ValueError(
+                f"output_scale shape must be {expected_scale_shape}; got {tuple(output_scale.shape)}"
+            )
     if gate is not None:
-        gate = _require_contiguous("gate", gate)
+        gate = _require_device("gate", _require_contiguous("gate", gate), device)
     m, n, k = _validate_launch_shape(kernel, artifact, a, b, c)
     _validate_scale_shapes(kernel, m=m, n=n, k=k, a_scale=a_scale, b_scale=b_scale)
     shared_memory_bytes = _shared_memory_bytes(kernel, artifact)
     block_size = _block_size(kernel, artifact)
-    grid = _launch_grid(kernel, artifact, c)
+    grid = _launch_grid(kernel, artifact, m=m, n=n)
     launch_hsaco(
         hsaco_path=hsaco_path,
         symbol=symbol,
@@ -1005,12 +1179,23 @@ def launch_generated_kernel(
         a_scale_ptr=a_scale.data_ptr(),
         b_scale_ptr=b_scale.data_ptr(),
         c_ptr=c.data_ptr(),
-        gate_ptr=0 if gate is None else gate.data_ptr(),
+        gate_ptr=(
+            output_scale.data_ptr()
+            if kernel.output_dtype == OUTPUT_DTYPE_INT4
+            else 0 if gate is None else gate.data_ptr()
+        ),
         m=m,
         n=n,
         k=k,
         library_path=library_path,
     )
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        return QuantizedInt4Tensor(
+            packed=c,
+            scale=output_scale,
+            logical_shape=(m, n),
+            scale_spec=kernel.output_scale,
+        )
     return c
 
 

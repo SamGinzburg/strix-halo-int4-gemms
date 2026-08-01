@@ -29,7 +29,15 @@ from amd_strix_halo_kernels.artifacts import (
     uniquify_amdgcn_symbols,
     write_triton_text_artifacts,
 )
-from amd_strix_halo_kernels.metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode
+from amd_strix_halo_kernels.metadata import (
+    OUTPUT_DTYPE_INT4,
+    Epilogue,
+    GemmLayout,
+    KernelMetadata,
+    KernelSchedule,
+    OperandDType,
+    ScaleMode,
+)
 from amd_strix_halo_kernels.quant import dynamic_lhs_int4_scales, fake_quant_int, pack_int4_k_major
 from amd_strix_halo_kernels.registry import mixed_dtype_registry
 from amd_strix_halo_kernels.template_config import LaunchShape, plan_template
@@ -61,6 +69,24 @@ def launch_metadata(program: object, kernel: KernelMetadata, shape: LaunchShape)
     }
 
 
+@triton.jit
+def _store_int4_output(c, c_scale, acc, offs_m, pid_n,
+                       N, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):
+    row_amax = tl.max(tl.abs(acc), axis=1)
+    scale = (tl.maximum(row_amax, 1.0e-12) / 7.0).to(tl.bfloat16)
+    q = tl.clamp(
+        libdevice.nearbyint(acc / scale.to(tl.float32)[:, None]),
+        -8.0,
+        7.0,
+    ).to(tl.int32) & 0xF
+    q_pairs = tl.reshape(q, (BLOCK_M, BLOCK_N // 2, 2))
+    q_lo, q_hi = tl.split(q_pairs)
+    packed = (q_lo | (q_hi << 4)).to(tl.uint8)
+    offs_n_packed = pid_n * (BLOCK_N // 2) + tl.arange(0, BLOCK_N // 2)
+    tl.store(c + offs_m[:, None] * (N // 2) + offs_n_packed[None, :], packed)
+    tl.store(c_scale + offs_m * (N // BLOCK_N) + pid_n, scale)
+
+
 def triton_checkout_root() -> Path | None:
     module_file = getattr(triton, "__file__", None)
     if module_file is None:
@@ -81,7 +107,8 @@ def _int4_scaled_gemm(a, b, a_scale, b_scale, c, gate, M, N, K,
                       BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr, BLOCK_K: tl.constexpr,
                       GROUP_SIZE_M: tl.constexpr, SUBCHANNEL: tl.constexpr, PER_CHANNEL: tl.constexpr,
                       SWIGLU: tl.constexpr, RELU2: tl.constexpr, EVEN_K: tl.constexpr, SPLIT_K: tl.constexpr,
-                      A_TRANS: tl.constexpr, B_TRANS: tl.constexpr, A_BF16: tl.constexpr):
+                      A_TRANS: tl.constexpr, B_TRANS: tl.constexpr, A_BF16: tl.constexpr,
+                      OUTPUT_INT4: tl.constexpr):
     pid = tl.program_id(0)
     pid_k = tl.program_id(1)
     num_pid_m = tl.cdiv(M, BLOCK_M)
@@ -212,7 +239,9 @@ def _int4_scaled_gemm(a, b, a_scale, b_scale, c, gate, M, N, K,
         if RELU2:
             acc = tl.maximum(acc, 0.0)
             acc = acc * acc
-    if SPLIT_K == 1:
+    if OUTPUT_INT4:
+        _store_int4_output(c, gate, acc, offs_m, pid_n, N, BLOCK_M, BLOCK_N)
+    elif SPLIT_K == 1:
         tl.store(c + offs_m[:, None] * N + offs_n[None, :], acc)
     else:
         tl.atomic_add(c + offs_m[:, None] * N + offs_n[None, :], acc, sem="relaxed")
@@ -310,7 +339,8 @@ def _int8_scaled_gemm(a, b, a_scale, b_scale, c, gate, M, N, K,
                       BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr, BLOCK_K: tl.constexpr,
                       GROUP_SIZE_M: tl.constexpr, SUBCHANNEL: tl.constexpr, PER_CHANNEL: tl.constexpr,
                       SWIGLU: tl.constexpr, RELU2: tl.constexpr, EVEN_K: tl.constexpr, SPLIT_K: tl.constexpr,
-                      A_TRANS: tl.constexpr, B_TRANS: tl.constexpr, A_BF16: tl.constexpr):
+                      A_TRANS: tl.constexpr, B_TRANS: tl.constexpr, A_BF16: tl.constexpr,
+                      OUTPUT_INT4: tl.constexpr):
     pid = tl.program_id(0)
     pid_k = tl.program_id(1)
     num_pid_m = tl.cdiv(M, BLOCK_M)
@@ -412,7 +442,9 @@ def _int8_scaled_gemm(a, b, a_scale, b_scale, c, gate, M, N, K,
     if RELU2:
         acc = tl.maximum(acc, 0.0)
         acc = acc * acc
-    if SPLIT_K == 1:
+    if OUTPUT_INT4:
+        _store_int4_output(c, gate, acc, offs_m, pid_n, N, BLOCK_M, BLOCK_N)
+    elif SPLIT_K == 1:
         tl.store(c + offs_m[:, None] * N + offs_n[None, :], acc)
     else:
         tl.atomic_add(c + offs_m[:, None] * N + offs_n[None, :], acc, sem="relaxed")
@@ -463,9 +495,17 @@ def _make_inputs(kernel: KernelMetadata, shape: LaunchShape) -> tuple[object, ..
         b_scale = torch.ones((scale_cols, b_cols), device="cuda", dtype=torch.bfloat16)
     else:
         b_scale = torch.ones((b_cols,), device="cuda", dtype=torch.bfloat16)
-    output_dtype = torch.bfloat16 if kernel.output_dtype == "bfloat16" else torch.float32
-    c = torch.empty((shape.m, shape.n), device="cuda", dtype=output_dtype)
-    gate = torch.empty((0,), device="cuda", dtype=torch.float32)
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        c = torch.empty((shape.m, shape.n // 2), device="cuda", dtype=torch.uint8)
+        gate = torch.empty(
+            (shape.m, shape.n // 256),
+            device="cuda",
+            dtype=torch.bfloat16,
+        )
+    else:
+        output_dtype = torch.bfloat16 if kernel.output_dtype == "bfloat16" else torch.float32
+        c = torch.empty((shape.m, shape.n), device="cuda", dtype=output_dtype)
+        gate = torch.empty((0,), device="cuda", dtype=torch.float32)
     return a_arg, b_arg, a_scale, b_scale, c, gate
 
 
@@ -486,6 +526,13 @@ def compile_program(
         raise ValueError("fused SwiGLU generation currently supports SPLIT_K=1 only")
     if kernel.epilogue is Epilogue.RELU2 and kernel.tile.split_k != 1:
         raise ValueError("ReLU^2 generation currently supports SPLIT_K=1 only")
+    if kernel.output_dtype == OUTPUT_DTYPE_INT4:
+        if kernel.tile.split_k != 1:
+            raise ValueError("INT4 output generation requires SPLIT_K=1")
+        if kernel.output_scale is None or kernel.output_scale.subchannel_size != 256:
+            raise ValueError("INT4 output generation requires subchannel-256 output scales")
+        if kernel.tile.block_n != 256 or shape.n % 256 != 0:
+            raise ValueError("INT4 output generation requires BLOCK_N=256 and N divisible by 256")
     plan = plan_template(kernel, shape)
     args = _make_inputs(kernel, shape) if inputs is None else inputs
     num_sms = _device_num_sms() if kernel.schedule is KernelSchedule.PERSISTENT else 0
@@ -504,6 +551,7 @@ def compile_program(
         A_TRANS=kernel.layout in {GemmLayout.TN, GemmLayout.TT},
         B_TRANS=kernel.layout in {GemmLayout.NT, GemmLayout.TT},
         A_BF16=kernel.a_dtype is OperandDType.BF16,
+        OUTPUT_INT4=kernel.output_dtype == OUTPUT_DTYPE_INT4,
         num_warps=kernel.tile.num_warps,
         num_stages=kernel.tile.num_stages,
         waves_per_eu=kernel.tile.waves_per_eu,

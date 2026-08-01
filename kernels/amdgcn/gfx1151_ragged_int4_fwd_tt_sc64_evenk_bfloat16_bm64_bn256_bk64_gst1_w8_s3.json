@@ -25,6 +25,7 @@
     "num_warps": 8
   },
   "config_label": "BM64_BN256_BK64_GST1_W8_S3",
+  "epilogue": "none",
   "family": "ragged_dot_int4",
   "kernel_arg_layout": {
     "by_value_arg_count": 5,
@@ -60,6 +61,7 @@
   "layout": "tt",
   "mode": "fwd",
   "output_dtype": "bfloat16",
+  "output_scale": null,
   "rhs_subchannel_scale_layout": "kgroup_output",
   "runtime_constraints": {
     "out_alignment_bytes": 1,

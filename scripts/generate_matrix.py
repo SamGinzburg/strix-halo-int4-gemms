@@ -98,6 +98,29 @@ def write_artifacts(
     }
 
 
+def existing_summary_entry(kernel: KernelMetadata, out_dir: Path) -> dict[str, object] | None:
+    """Reconstruct a summary entry from a checked-in per-kernel metadata file."""
+
+    metadata_path = out_dir / f"{kernel.kernel_id}.json"
+    asm_path = out_dir / f"{kernel.kernel_id}.s"
+    if not metadata_path.exists() or not asm_path.exists():
+        return None
+    metadata = json.loads(metadata_path.read_text())
+    required = ("generation_shape", "amdgcn_symbol", "launch_metadata", "amdgcn_stats")
+    if any(name not in metadata for name in required):
+        return None
+    return {
+        "kernel_id": kernel.kernel_id,
+        "shape": metadata["generation_shape"],
+        "asm": display_path(asm_path, root=REPO_ROOT),
+        "metadata": display_path(metadata_path, root=REPO_ROOT),
+        "triton_artifacts": metadata.get("triton_artifacts", {}),
+        "amdgcn_symbol": metadata["amdgcn_symbol"],
+        "launch_metadata": metadata["launch_metadata"],
+        "amdgcn_stats": metadata["amdgcn_stats"],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Regenerate the checked-in AMDGCN assembly matrix from the local Triton compiler."
@@ -109,6 +132,13 @@ def main(argv: list[str] | None = None) -> int:
         help=f"directory for .s and per-kernel .json outputs (default: {DEFAULT_AMDGCN_DIR})",
     )
     parser.add_argument("--kernel-id", action="append", default=[])
+    parser.add_argument(
+        "--output-dtype",
+        action="append",
+        choices=("bfloat16", "float32", "int4"),
+        default=[],
+        help="limit generation to one or more kernel output dtypes",
+    )
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument(
         "--summary",
@@ -130,15 +160,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    if args.clean and (args.kernel_id or args.limit):
-        parser.error("--clean regenerates the full matrix; do not combine it with --kernel-id or --limit")
+    if args.clean and (args.kernel_id or args.output_dtype or args.limit):
+        parser.error(
+            "--clean regenerates the full matrix; do not combine it with --kernel-id, --output-dtype, or --limit"
+        )
 
     from generate_amdgcn import compile_kernel_with_metadata, triton_checkout_root, triton_commit
 
-    kernels = list(default_registry.all())
+    registry_kernels = list(default_registry.all())
+    kernels = registry_kernels
     if args.kernel_id:
         selected = set(args.kernel_id)
         kernels = [kernel for kernel in kernels if kernel.kernel_id in selected]
+    if args.output_dtype:
+        selected_output_dtypes = set(args.output_dtype)
+        kernels = [kernel for kernel in kernels if kernel.output_dtype in selected_output_dtypes]
     if args.limit:
         kernels = kernels[: args.limit]
 
@@ -178,6 +214,24 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(f"FAILED {kernel.kernel_id}: {exc!r}", flush=True)
 
+    if args.kernel_id or args.output_dtype or args.limit:
+        regenerated = {entry["kernel_id"]: entry for entry in results}
+        failed_ids = {entry["kernel_id"] for entry in failures}
+        merged_results = []
+        for kernel in registry_kernels:
+            if kernel.kernel_id in failed_ids:
+                continue
+            entry = regenerated.get(kernel.kernel_id) or existing_summary_entry(kernel, out_dir)
+            if entry is None:
+                failures.append(
+                    {
+                        "kernel_id": kernel.kernel_id,
+                        "error": "missing existing generated artifacts while rebuilding partial summary",
+                    }
+                )
+                continue
+            merged_results.append(entry)
+        results = merged_results
     summary = {
         "repo_root": "<repo>",
         "source_triton_commit": source_triton_commit,

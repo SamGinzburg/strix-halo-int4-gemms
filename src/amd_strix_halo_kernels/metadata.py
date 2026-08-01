@@ -12,6 +12,7 @@ SUPPORTED_SUBCHANNELS = (32, 64, 128, 256)
 SUPPORTED_SPLIT_K = (1, 2, 4, 8)
 OUTPUT_DTYPE_BF16 = "bfloat16"
 OUTPUT_DTYPE_FLOAT32 = "float32"
+OUTPUT_DTYPE_INT4 = "int4"
 SCALE_DTYPE_BF16 = "bfloat16"
 RHS_SUBCHANNEL_SCALE_LAYOUT = "kgroup_output"
 
@@ -20,6 +21,12 @@ class OperandDType(str, Enum):
     BF16 = "bf16"
     INT4 = "int4"
     INT8 = "int8"
+
+
+class OutputDType(str, Enum):
+    BF16 = OUTPUT_DTYPE_BF16
+    FLOAT32 = OUTPUT_DTYPE_FLOAT32
+    INT4 = OUTPUT_DTYPE_INT4
 
 
 class ScaleMode(str, Enum):
@@ -128,6 +135,7 @@ class KernelMetadata:
     measured_tops: float | None = None
     source_triton_commit: str | None = None
     notes: str = ""
+    output_scale: ScaleSpec | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -137,6 +145,14 @@ class KernelMetadata:
             "mode": self.scale.mode.value,
             "subchannel_size": self.scale.subchannel_size,
         }
+        data["output_scale"] = (
+            {
+                "mode": self.output_scale.mode.value,
+                "subchannel_size": self.output_scale.subchannel_size,
+            }
+            if self.output_scale is not None
+            else None
+        )
         data["rhs_subchannel_scale_layout"] = (
             RHS_SUBCHANNEL_SCALE_LAYOUT if self.scale.mode is ScaleMode.SUBCHANNEL else None
         )
@@ -196,6 +212,8 @@ def make_kernel_id(
     arch: str = ARCH,
     layout: GemmLayout = GemmLayout.NN,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
+    output_dtype: str | None = None,
+    output_scale: ScaleSpec | None = None,
 ) -> str:
     return make_mixed_kernel_id(
         dtype,
@@ -206,6 +224,8 @@ def make_kernel_id(
         arch=arch,
         layout=layout,
         schedule=schedule,
+        output_dtype=output_dtype,
+        output_scale=output_scale,
     )
 
 
@@ -219,11 +239,23 @@ def make_mixed_kernel_id(
     arch: str = ARCH,
     layout: GemmLayout = GemmLayout.NN,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
+    output_dtype: str | None = None,
+    output_scale: ScaleSpec | None = None,
 ) -> str:
     schedule_label = "" if schedule is KernelSchedule.STANDARD else f"_{schedule.value}"
+    if output_dtype == OUTPUT_DTYPE_INT4:
+        if output_scale is None:
+            raise ValueError("int4 output kernel IDs require an output scale")
+        output_label = f"_outint4{output_scale.label}"
+    elif output_dtype in {None, output_dtype_for_split_k(tile.split_k)}:
+        if output_scale is not None:
+            raise ValueError("non-int4 output kernel IDs do not accept an output scale")
+        output_label = ""
+    else:
+        raise ValueError(f"unsupported output dtype {output_dtype!r} for split_k={tile.split_k}")
     return (
         f"{arch}_{a_dtype.value}x{b_dtype.value}_{layout.value}_{scale.label}_"
-        f"{epilogue.value}{schedule_label}_{tile.label}"
+        f"{epilogue.value}{output_label}{schedule_label}_{tile.label}"
     )
 
 

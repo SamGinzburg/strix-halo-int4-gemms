@@ -7,11 +7,13 @@ torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels.metadata import Epilogue, GemmLayout, OperandDType, ScaleMode, ScaleSpec
 from amd_strix_halo_kernels.quant import (
+    QuantizedInt4Tensor,
     dynamic_lhs_int4_scales,
     fake_quant_int4_with_scales,
     fake_quant_int,
     pack_int4_k_major,
     pack_rhs_subchannel_scales,
+    quantize_int4_output,
     unpack_int4_k_major,
 )
 from amd_strix_halo_kernels.registry import default_registry, mixed_dtype_registry
@@ -213,7 +215,13 @@ def test_reference_mm_matches_fake_quant_bf16_for_all_registered_kernels(kernel)
     )
     expected = manual_scaled_reference(a_q, b_q, kernel, a_scale, b_scale)
 
-    torch.testing.assert_close(out, expected.to(out.dtype))
+    if isinstance(out, QuantizedInt4Tensor):
+        expected_quantized = quantize_int4_output(expected, kernel.output_scale)
+        torch.testing.assert_close(out.packed, expected_quantized.packed, rtol=0, atol=0)
+        torch.testing.assert_close(out.scale, expected_quantized.scale, rtol=0, atol=0)
+        torch.testing.assert_close(out.dequantize(), expected_quantized.dequantize(), rtol=1.0e-3, atol=1.0e-3)
+    else:
+        torch.testing.assert_close(out, expected.to(out.dtype))
 
 
 def test_swiglu_reference_rejects_external_gate() -> None:

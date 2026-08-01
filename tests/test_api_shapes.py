@@ -5,8 +5,17 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from amd_strix_halo_kernels.api import fused_swiglu_up_gate, mm
-from amd_strix_halo_kernels.metadata import Epilogue, OperandDType, ScaleMode, ScaleSpec
-from amd_strix_halo_kernels.quant import fake_quant_int, pack_int4_k_major, pack_rhs_subchannel_scales
+from amd_strix_halo_kernels.metadata import Epilogue, OperandDType, OutputDType, ScaleMode, ScaleSpec
+from amd_strix_halo_kernels.quant import (
+    QuantizedInt4Tensor,
+    dynamic_lhs_int4_scales,
+    fake_quant_int4_with_scales,
+    fake_quant_int,
+    pack_int4_k_major,
+    pack_rhs_subchannel_scales,
+    quantize_int4_output,
+)
+from amd_strix_halo_kernels.registry import mixed_dtype_registry
 
 
 def stable_seed(value: str) -> int:
@@ -42,6 +51,121 @@ def manual_scaled_reference(a_q, b_q, scale: ScaleSpec, a_scale, b_scale, epilog
     if epilogue is Epilogue.RELU2:
         expected = torch.relu(expected).square()
     return expected
+
+
+@pytest.mark.parametrize("epilogue", [Epilogue.NONE, Epilogue.RELU2])
+def test_dense_int4_output_reference_matches_representation_oracle(epilogue) -> None:
+    m, n, k = 32, 256, 64
+    scale = ScaleSpec(ScaleMode.SUBCHANNEL, 32)
+    torch.manual_seed(stable_seed(f"dense-int4-output-{epilogue.value}"))
+    a_q = torch.randint(-4, 5, (m, k), dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (k, n), dtype=torch.int8)
+    a_scale, b_scale = scale_tensors(scale, m=m, n=n, k=k)
+    expected = manual_scaled_reference(a_q, b_q, scale, a_scale, b_scale, epilogue)
+    expected_quantized = quantize_int4_output(expected)
+    packed_out = torch.empty((m, n // 2), dtype=torch.uint8)
+    scale_out = torch.empty((m, n // 256), dtype=torch.bfloat16)
+
+    actual = mm(
+        pack_int4_k_major(a_q),
+        pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous(),
+        a_scale=a_scale,
+        b_scale=b_scale,
+        dtype=OperandDType.INT4,
+        scale=scale,
+        epilogue=epilogue,
+        output_dtype=OutputDType.INT4,
+        out=packed_out,
+        out_scale=scale_out,
+        use_reference=True,
+    )
+
+    assert isinstance(actual, QuantizedInt4Tensor)
+    assert actual.packed is packed_out
+    assert actual.scale is scale_out
+    torch.testing.assert_close(actual.packed, expected_quantized.packed, rtol=0, atol=0)
+    torch.testing.assert_close(actual.scale, expected_quantized.scale, rtol=0, atol=0)
+    torch.testing.assert_close(actual.dequantize(), expected_quantized.dequantize(), rtol=1.0e-3, atol=1.0e-3)
+
+
+def test_fused_swiglu_int4_output_reference_matches_representation_oracle() -> None:
+    m, n, k = 32, 256, 64
+    scale = ScaleSpec(ScaleMode.PER_CHANNEL)
+    torch.manual_seed(stable_seed("dense-swiglu-int4-output"))
+    a_q = torch.randint(-4, 5, (m, k), dtype=torch.int8)
+    b_q = torch.randint(-4, 5, (k, n * 2), dtype=torch.int8)
+    a_scale, b_scale = scale_tensors(scale, m=m, n=n * 2, k=k)
+    gemm = manual_scaled_reference(a_q, b_q, scale, a_scale, b_scale)
+    up, gate = gemm.chunk(2, dim=-1)
+    expected = quantize_int4_output(up * torch.nn.functional.silu(gate))
+
+    actual = fused_swiglu_up_gate(
+        pack_int4_k_major(a_q),
+        pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous(),
+        a_scale=a_scale,
+        b_scale=b_scale,
+        dtype=OperandDType.INT4,
+        scale=scale,
+        output_dtype=OutputDType.INT4,
+        use_reference=True,
+    )
+
+    torch.testing.assert_close(actual.packed, expected.packed, rtol=0, atol=0)
+    torch.testing.assert_close(actual.scale, expected.scale, rtol=0, atol=0)
+
+
+def test_mixed_bf16_int4_output_reference_uses_dynamic_lhs_quantization() -> None:
+    m, n, k = 32, 256, 64
+    scale = ScaleSpec(ScaleMode.SUBCHANNEL, 32)
+    torch.manual_seed(stable_seed("mixed-bf16-int4-output"))
+    a = torch.randn((m, k), dtype=torch.bfloat16) * 0.1
+    b_q = torch.randint(-4, 5, (k, n), dtype=torch.int8)
+    _, b_scale = scale_tensors(scale, m=m, n=n, k=k)
+
+    actual = mm(
+        a,
+        pack_int4_k_major(b_q.transpose(0, 1)).transpose(0, 1).contiguous(),
+        b_scale=b_scale,
+        a_dtype=OperandDType.BF16,
+        b_dtype=OperandDType.INT4,
+        scale=scale,
+        output_dtype=OutputDType.INT4,
+        registry=mixed_dtype_registry,
+        use_reference=True,
+    )
+    a_scale = dynamic_lhs_int4_scales(a, scale)
+    a_q = fake_quant_int4_with_scales(a, a_scale, scale)
+    expected = quantize_int4_output(
+        manual_scaled_reference(a_q, b_q, scale, a_scale, b_scale)
+    )
+
+    torch.testing.assert_close(actual.packed, expected.packed, rtol=0, atol=0)
+    torch.testing.assert_close(actual.scale, expected.scale, rtol=0, atol=0)
+
+
+def test_dense_output_dtype_rejects_split_k_and_shape_incompatibilities() -> None:
+    a = torch.zeros((32, 32), dtype=torch.uint8)
+    b = torch.zeros((32, 256), dtype=torch.uint8)
+    a_scale = torch.ones((32,), dtype=torch.bfloat16)
+    b_scale = torch.ones((256,), dtype=torch.bfloat16)
+    kwargs = dict(a_scale=a_scale, b_scale=b_scale, dtype=OperandDType.INT4, use_reference=True)
+
+    with pytest.raises(ValueError, match="requires split_k=1"):
+        mm(a, b, output_dtype=OutputDType.INT4, split_k=2, **kwargs)
+    with pytest.raises(ValueError, match="BF16 output requires split_k=1"):
+        mm(a, b, output_dtype=OutputDType.BF16, split_k=2, **kwargs)
+    with pytest.raises(ValueError, match="FP32 dense output requires split_k>1"):
+        mm(a, b, output_dtype=OutputDType.FLOAT32, split_k=1, **kwargs)
+    with pytest.raises(ValueError, match="subchannel-256"):
+        mm(
+            a,
+            b,
+            output_dtype=OutputDType.INT4,
+            output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 128),
+            **kwargs,
+        )
+    with pytest.raises(ValueError, match="width to be divisible by 256"):
+        mm(a, b[:, :128], output_dtype=OutputDType.INT4, **kwargs)
 
 
 @pytest.mark.parametrize(

@@ -13,11 +13,17 @@ from amd_strix_halo_kernels.metadata import (
     GemmLayout,
     KernelSchedule,
     OperandDType,
+    OutputDType,
     ScaleMode,
     ScaleSpec,
 )
 from amd_strix_halo_kernels.native import dispatch_runtime_status, hsaco_dir, native_library_path
-from amd_strix_halo_kernels.quant import fake_quant_int, pack_int4_k_major, pack_rhs_subchannel_scales
+from amd_strix_halo_kernels.quant import (
+    QuantizedInt4Tensor,
+    fake_quant_int,
+    pack_int4_k_major,
+    pack_rhs_subchannel_scales,
+)
 from amd_strix_halo_kernels.registry import default_registry
 from amd_strix_halo_kernels.template_config import LaunchShape, representative_generation_shape
 from amd_strix_halo_kernels.torch_ops import register_torch_ops, torch_gemm
@@ -140,7 +146,7 @@ def test_native_generated_kernel_matches_fake_quant_reference(kernel) -> None:
         b_scale=b_scale,
         use_reference=True,
     )
-    assert_reference_has_signal(expected)
+    assert_reference_has_signal(expected.dequantize() if isinstance(expected, QuantizedInt4Tensor) else expected)
     actual = explicit_mm(
         a_arg.to("cuda"),
         b_arg.to("cuda"),
@@ -150,10 +156,91 @@ def test_native_generated_kernel_matches_fake_quant_reference(kernel) -> None:
     )
     torch.cuda.synchronize()
 
-    expected_dtype = torch.float32 if kernel.tile.split_k > 1 else torch.bfloat16
-    assert actual.dtype == expected_dtype
     rtol, atol = validation_tolerances(kernel)
-    torch.testing.assert_close(actual.cpu(), expected, rtol=rtol, atol=atol)
+    if isinstance(expected, QuantizedInt4Tensor):
+        assert isinstance(actual, QuantizedInt4Tensor)
+        torch.testing.assert_close(actual.packed.cpu(), expected.packed, rtol=0, atol=0)
+        torch.testing.assert_close(actual.scale.cpu(), expected.scale, rtol=rtol, atol=atol)
+        torch.testing.assert_close(
+            actual.dequantize().cpu(),
+            expected.dequantize(),
+            rtol=rtol,
+            atol=atol,
+        )
+    else:
+        expected_dtype = torch.float32 if kernel.tile.split_k > 1 else torch.bfloat16
+        assert actual.dtype == expected_dtype
+        torch.testing.assert_close(actual.cpu(), expected, rtol=rtol, atol=atol)
+
+
+def test_native_dense_int4_output_cudagraph_replays_into_stable_buffers() -> None:
+    require_native_generated_kernels(root=_native_test_root())
+    rows, cols, contraction = 64, 256, 256
+    scale = ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    kernel = default_registry.select(
+        dtype=OperandDType.INT4,
+        scale=scale,
+        epilogue=Epilogue.RELU2,
+        m=rows,
+        n=cols,
+        k=contraction,
+        output_dtype=OutputDType.INT4.value,
+        output_scale=scale,
+    )
+    generator = torch.Generator().manual_seed(stable_seed("dense-int4-output-cudagraph"))
+    states = []
+    for scale_multiplier in (1.0, 1.25):
+        a_q = torch.randint(-4, 5, (rows, contraction), generator=generator, dtype=torch.int8)
+        b_q = torch.randint(-4, 5, (contraction, cols), generator=generator, dtype=torch.int8)
+        a_arg, b_arg = kernel_args_from_logical(a_q, b_q, kernel)
+        a_scale, b_scale = scale_tensors(kernel, LaunchShape(rows, cols, contraction))
+        states.append((a_arg, b_arg, a_scale * scale_multiplier, b_scale))
+    a, b, a_scale, b_scale = (tensor.to("cuda") for tensor in states[0])
+    packed_out = torch.empty((rows, cols // 2), device="cuda", dtype=torch.uint8)
+    output_scales = torch.empty((rows, cols // 256), device="cuda", dtype=torch.bfloat16)
+
+    explicit_mm(
+        a,
+        b,
+        kernel=kernel,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        out=packed_out,
+        out_scale=output_scales,
+    )
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = explicit_mm(
+            a,
+            b,
+            kernel=kernel,
+            a_scale=a_scale,
+            b_scale=b_scale,
+            out=packed_out,
+            out_scale=output_scales,
+        )
+
+    observed = []
+    for state in states:
+        for destination, source in zip((a, b, a_scale, b_scale), state, strict=True):
+            destination.copy_(source)
+        graph.replay()
+        torch.cuda.synchronize()
+        expected = explicit_mm(
+            state[0],
+            state[1],
+            kernel=kernel,
+            a_scale=state[2],
+            b_scale=state[3],
+            use_reference=True,
+        )
+        assert captured.packed is packed_out
+        assert captured.scale is output_scales
+        torch.testing.assert_close(captured.packed.cpu(), expected.packed, rtol=0, atol=0)
+        torch.testing.assert_close(captured.scale.cpu(), expected.scale, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+        observed.append(captured.packed.cpu().clone())
+    assert not torch.equal(observed[0], observed[1])
 
 
 def test_torch_custom_op_dispatches_packaged_generated_kernel() -> None:

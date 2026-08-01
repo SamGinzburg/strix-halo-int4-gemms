@@ -35,6 +35,7 @@ from .metadata import (
     KernelSchedule,
     KernelStatus,
     OperandDType,
+    OutputDType,
     ScaleMode,
     ScaleSpec,
     TileConfig,
@@ -64,7 +65,13 @@ from .ragged import (
     ragged_dot_int4_bwd_accum,
     ragged_dot_int4,
 )
-from .quant import quantize_attention_qk_int4, quantize_attention_value_int4
+from .quant import (
+    QuantizedInt4Tensor,
+    dequantize_int4_output,
+    quantize_attention_qk_int4,
+    quantize_attention_value_int4,
+    quantize_int4_output,
+)
 from .registry import KernelRegistry, default_registry, mixed_dtype_registry
 from .torch_ops import TORCH_GEMM_OP, TORCH_OP_NAMESPACE, register_torch_ops, torch_gemm
 
@@ -90,6 +97,8 @@ __all__ = [
     "Int4AttentionConfig",
     "NativeRuntimeStatus",
     "OperandDType",
+    "OutputDType",
+    "QuantizedInt4Tensor",
     "RaggedAutotuneCandidate",
     "RaggedAutotuneResult",
     "RaggedBwdGroupInfo",
@@ -113,6 +122,7 @@ __all__ = [
     "default_attention_candidates",
     "default_ragged_dot_candidates",
     "dispatch_runtime_status",
+    "dequantize_int4_output",
     "explicit_mm",
     "find_autotune_candidates",
     "fused_swiglu_up_gate",
@@ -129,6 +139,7 @@ __all__ = [
     "prepare_ragged_group_info",
     "quantize_attention_qk_int4",
     "quantize_attention_value_int4",
+    "quantize_int4_output",
     "ragged_group_info_capacity",
     "ragged_dot_int4_bwd",
     "ragged_dot_int4_bwd_accum",

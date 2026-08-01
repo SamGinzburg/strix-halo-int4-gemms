@@ -102,8 +102,8 @@ requires ``K`` to be a multiple of ``128``.
 The native selector and dense autotuner currently choose only ``even_k``
 artifacts that satisfy this contract. ``Epilogue.RELU2`` and fused SwiGLU are
 available only with ``SPLIT_K=1``. Plain GEMM supports
-``SPLIT_K=1,2,4,8``. Non-split kernels store BF16 outputs; split-K kernels
-store FP32 outputs because partial tiles are combined with FP32 atomics.
+``SPLIT_K=1,2,4,8``. BF16 and packed-INT4 stores require split-K 1; split-K
+kernels store FP32 because partial tiles are combined with FP32 atomics.
 
 Use this check when selecting kernels explicitly:
 
@@ -117,6 +117,52 @@ Use this check when selecting kernels explicitly:
 
 ``use_reference=True`` is the arbitrary-shape numerical path. It is useful for
 tests and debugging, but it is not a performance path.
+
+Packed INT4 Activation Output
+-----------------------------
+
+Dense plain/ReLU2/SwiGLU producers and ragged plain/ReLU2/SwiGLU producers can
+fuse the final activation quantizer. Select ``OutputDType.INT4`` to receive a
+``QuantizedInt4Tensor`` whose ``packed`` member is ``uint8[M,N/2]`` and whose
+``scale`` member is BF16 ``[M,N/256]``.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import OutputDType, fused_swiglu_up_gate
+
+   activation = fused_swiglu_up_gate(
+       a,
+       b_up_gate,
+       a_scale=a_scale,
+       b_scale=b_scale,
+       dtype=OperandDType.INT4,
+       scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+       output_dtype=OutputDType.INT4,
+       out=packed_out,          # optional; reuse for CUDAGraph replay
+       out_scale=scale_out,     # optional; reuse for CUDAGraph replay
+   )
+   down = mm(
+       activation.packed,
+       down_weight,
+       a_scale=activation.scale,
+       b_scale=down_scale,
+       dtype=OperandDType.INT4,
+       scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+   )
+
+The logical output width must be divisible by 256, output scaling is fixed to
+BF16 sc256, and the selected tile must use ``BN256`` and ``split_k=1``.
+Packaged dense INT4/INT8 inputs are supported; the mixed BF16-by-INT4 registry
+implements the same contract for development/regeneration but is not shipped.
+Passing INT4 with
+``split_k>1``, BF16 with ``split_k>1``, or FP32 with ``split_k=1`` raises
+before dispatch. Stable ``out`` and ``out_scale`` buffers are returned by
+identity and avoid allocation during graph capture/replay.
+
+Representation-matched tests require exact packed codes and BF16 scales, then
+check dequantized output at ``rtol=atol=1e-3``. The inherent difference between
+an INT4 activation and the original unquantized BF16 activation is a separate,
+lossy quantization-quality measurement.
 
 Fused SwiGLU
 ------------
@@ -514,8 +560,12 @@ Per-channel scales use ``a_scale[M]`` and ``b_scale[G, N]``. Subchannel scales
 use ``a_scale[M, ceil(K / S)]`` and weight-matched
 ``b_scale[G, ceil(K / S), N]``. The kernel uses Triton ``tl.dot_scaled`` with
 int32 accumulation, then applies BF16 scales in FP32. Packaged forward artifacts
-store BF16 output; the JIT fallback can also store FP32 when requested.
-Autograd is not registered.
+store BF16 or fused packed INT4 plus BF16 sc256 scales; the JIT fallback can
+also store FP32 for a plain epilogue. Packed output supports plain, ReLU2, and
+SwiGLU, requires ``N % 256 == 0`` and ``config.block_n == 256``, and returns
+``QuantizedInt4Tensor``. For SwiGLU, physical RHS/scales contain concatenated
+``[up | gate]`` columns while logical output ``N`` is half that width. Autograd
+is not registered.
 
 Internally, ``calculate_group_info(group_sizes, tile, align_tile=8)`` builds
 a compact task list with ``group_id``, ``block_start``,
@@ -533,9 +583,11 @@ With ``RaggedDotConfig.enable_even_k_fast_path=True``, the library
 automatically uses an even-K fast path when ``K % BLOCK_K == 0``. Subchannel
 scales also require ``K % SUBCHANNEL == 0`` and a scale chunk size compatible
 with ``BLOCK_K``. The fast path still passes ``N`` and packed ``K`` as runtime
-arguments. It keeps row and column predicates for irregular ``group_sizes`` and
-edge ``N`` tiles; only K predicates are removed inside the kernel. Shapes with
-ragged K use the fully masked ragged artifact or JIT kernel.
+arguments. BF16 output keeps row and column predicates. Packed output removes
+the N predicate because its contract guarantees complete 256-column tiles.
+Both keep row predicates for irregular ``group_sizes``; only the even-K path
+removes K predicates. Shapes with ragged K use the fully masked ragged artifact
+or JIT kernel.
 
 ``ragged_dot_int4(...)`` supports ``NN``, ``NT``, ``TN``, and ``TT`` packed
 operand layouts. Transposed operands use the same packed-K conventions as the
@@ -554,6 +606,10 @@ callers that maintain FP32 master gradients should explicitly request
 ``output_dtype=torch.float32`` or supply an FP32 output. BF16 is rejected for
 ``split_k>1`` because partial tiles require FP32 atomic accumulation. BF16
 rounds the FP32 accumulator once at the final store.
+Packed-INT4 backward output is unsupported even at ``split_k=1``; callers that
+need a quantized gradient must run a separate final quantization pass. This
+keeps the split-K contract unambiguous because partial reductions cannot choose
+independent output scales.
 
 Automatic BF16 dispatch uses shape-specialized JIT for generic shapes. It uses
 wide packaged native stores only for eligible 16-byte-aligned
@@ -589,6 +645,12 @@ best candidate plus all timing records. Forward group sizes must sum to
 per-group ``k_capacity``, which defaults to ``max(group_sizes)`` rounded up to
 even and can be overridden explicitly; odd overrides are also rounded up for
 packed int4 storage.
+
+Forward tuning accepts ``epilogue``, ``OutputDType``, and ``output_scale``;
+candidate IDs include that contract and INT4 candidates are limited to
+``BN256``. Prepared routing and output buffers are excluded from timing.
+Backward tuning rejects INT4 and removes ``split_k>1`` candidates when BF16 is
+requested.
 
 .. code-block:: python
 

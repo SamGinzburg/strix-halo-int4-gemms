@@ -28,6 +28,7 @@ from amd_strix_halo_kernels.metadata import (
     GemmLayout,
     KernelMetadata,
     OperandDType,
+    OutputDType,
     SCALE_DTYPE_BF16,
     ScaleMode,
     ScaleSpec,
@@ -151,6 +152,65 @@ def test_runtime_shape_artifacts_reject_non_tile_multiple_shapes(tmp_path) -> No
         )
         == ()
     )
+
+
+def test_find_autotune_candidates_filters_output_contract(tmp_path) -> None:
+    shape = BenchmarkShape(64, 256, 256)
+    tile = TileConfig(64, 256, 64, 1, 8, 3, 1, True)
+    bf16 = replace(make_kernel("bf16", tile), output_dtype="bfloat16")
+    int4 = replace(
+        make_kernel("int4", tile),
+        output_dtype="int4",
+        output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+    )
+    registry = KernelRegistry([bf16, int4])
+    write_metadata(tmp_path, bf16, shape, runtime_shape=True)
+    write_metadata(tmp_path, int4, shape, runtime_shape=True)
+
+    assert find_autotune_candidates(
+        m=shape.m,
+        n=shape.n,
+        k=shape.k,
+        dtype=OperandDType.INT4,
+        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+        epilogue=Epilogue.NONE,
+        output_dtype=OutputDType.INT4,
+        registry=registry,
+        root=tmp_path,
+    ) == (int4,)
+    assert find_autotune_candidates(
+        m=shape.m,
+        n=shape.n,
+        k=shape.k,
+        dtype=OperandDType.INT4,
+        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+        epilogue=Epilogue.NONE,
+        output_dtype=OutputDType.BF16,
+        registry=registry,
+        root=tmp_path,
+    ) == (bf16,)
+
+
+def test_dense_autotune_output_contract_rejects_invalid_scale() -> None:
+    common = {
+        "m": 64,
+        "n": 256,
+        "k": 256,
+        "dtype": OperandDType.INT4,
+        "scale": ScaleSpec(ScaleMode.PER_CHANNEL),
+        "epilogue": Epilogue.NONE,
+    }
+    with pytest.raises(ValueError, match="explicit output_dtype"):
+        find_autotune_candidates(
+            **common,
+            output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+        )
+    with pytest.raises(ValueError, match="subchannel-256"):
+        find_autotune_candidates(
+            **common,
+            output_dtype=OutputDType.INT4,
+            output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 128),
+        )
 
 
 def _cpu_attention_inputs(*, query_heads: int = 4, kv_heads: int = 2):
@@ -424,6 +484,74 @@ def test_default_ragged_dot_candidates_include_forward_and_backward_modes() -> N
     assert all(candidate.mode is RaggedDotMode.FWD for candidate in fwd)
     assert all(candidate.layout is GemmLayout.TT for candidate in fwd)
     assert {candidate.config.split_k for candidate in bwd if isinstance(candidate.config, RaggedBwdDotConfig)} == {1, 4}
+
+
+def test_default_ragged_int4_output_candidates_encode_contract() -> None:
+    candidates = default_ragged_dot_candidates(
+        RaggedDotMode.FWD,
+        scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+        epilogue=Epilogue.SWIGLU,
+        output_dtype=OutputDType.INT4,
+    )
+
+    assert candidates
+    assert all(candidate.config.block_n == 256 for candidate in candidates)
+    assert all(candidate.output_dtype is OutputDType.INT4 for candidate in candidates)
+    assert all(candidate.output_scale == ScaleSpec(ScaleMode.SUBCHANNEL, 256) for candidate in candidates)
+    assert all("swiglu_outint4sc256" in candidate.kernel_id for candidate in candidates)
+
+
+def test_ragged_autotune_rejects_quantized_backward_and_split_bf16() -> None:
+    with pytest.raises(ValueError, match="split-K reductions"):
+        default_ragged_dot_candidates(
+            RaggedDotMode.BWD,
+            output_dtype=OutputDType.INT4,
+        )
+
+    candidates = default_ragged_dot_candidates(
+        RaggedDotMode.BWD,
+        split_ks=(1, 2, 4),
+        output_dtype=OutputDType.BF16,
+    )
+    assert candidates
+    assert {candidate.config.split_k for candidate in candidates} == {1}
+
+    with pytest.raises(ValueError, match="N to be divisible by 256"):
+        autotune_ragged_dot(
+            mode=RaggedDotMode.FWD,
+            m=64,
+            n=128,
+            k=256,
+            group_sizes=(64,),
+            output_dtype=OutputDType.INT4,
+            benchmark_runner=lambda candidate, shape: BenchmarkRecord(
+                candidate.kernel_id,
+                shape,
+                1.0,
+                1.0,
+                1,
+                1,
+            ),
+        )
+
+    with pytest.raises(ValueError, match="block_n=256"):
+        autotune_ragged_dot(
+            mode=RaggedDotMode.FWD,
+            m=64,
+            n=256,
+            k=256,
+            group_sizes=(64,),
+            output_dtype=OutputDType.INT4,
+            candidates=(RaggedDotConfig(block_n=128),),
+            benchmark_runner=lambda candidate, shape: BenchmarkRecord(
+                candidate.kernel_id,
+                shape,
+                1.0,
+                1.0,
+                1,
+                1,
+            ),
+        )
 
 
 def test_autotune_ragged_dot_records_best_forward_candidate(tmp_path) -> None:

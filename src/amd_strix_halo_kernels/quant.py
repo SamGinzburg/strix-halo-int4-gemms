@@ -1,8 +1,24 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from .metadata import ScaleMode, ScaleSpec
+
+
+@dataclass(frozen=True, slots=True)
+class QuantizedInt4Tensor:
+    """Packed signed-INT4 values and BF16 scales for a logical tensor."""
+
+    packed: Any
+    scale: Any
+    logical_shape: tuple[int, ...]
+    scale_spec: ScaleSpec
+
+    def dequantize(self) -> Any:
+        """Return the logical tensor dequantized to FP32."""
+
+        return dequantize_int4_output(self)
 
 
 def _torch() -> Any:
@@ -79,6 +95,58 @@ def fake_quant_int4_with_scales(a: Any, a_scale: Any, scale: ScaleSpec) -> Any:
         denom = scale_f32[..., group_index, None]
         out[..., k0:k1] = torch.clamp(torch.round(a_f32[..., k0:k1] / denom), -8, 7).to(torch.int8)
     return out
+
+
+def quantize_int4_output(
+    x: Any,
+    scale: ScaleSpec = ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+) -> QuantizedInt4Tensor:
+    """Quantize the last dimension and return packed codes plus BF16 scales.
+
+    Scale values are rounded to BF16 before codes are computed, matching the
+    fused kernel and the scale precision consumed by downstream GEMMs.
+    """
+
+    torch = _torch()
+    if not torch.is_tensor(x) or not x.dtype.is_floating_point:
+        raise ValueError("int4 output quantization requires a floating tensor")
+    if x.ndim < 1 or int(x.shape[-1]) <= 0:
+        raise ValueError("int4 output quantization requires a non-empty last dimension")
+    scales = dynamic_lhs_int4_scales(x, scale)
+    codes = fake_quant_int4_with_scales(x, scales, scale)
+    return QuantizedInt4Tensor(
+        packed=pack_int4_k_major(codes),
+        scale=scales,
+        logical_shape=tuple(int(size) for size in x.shape),
+        scale_spec=scale,
+    )
+
+
+def dequantize_int4_output(x: QuantizedInt4Tensor) -> Any:
+    """Dequantize a :class:`QuantizedInt4Tensor` to FP32."""
+
+    torch = _torch()
+    if not isinstance(x, QuantizedInt4Tensor):
+        raise TypeError("x must be a QuantizedInt4Tensor")
+    if not x.logical_shape or min(x.logical_shape) <= 0:
+        raise ValueError("logical_shape must contain positive dimensions")
+    logical_cols = x.logical_shape[-1]
+    codes = unpack_int4_k_major(x.packed)[..., :logical_cols].to(torch.float32)
+    scale_f32 = x.scale.to(torch.float32)
+    if x.scale_spec.mode is ScaleMode.PER_CHANNEL:
+        expected = x.logical_shape[:-1]
+        if tuple(x.scale.shape) != expected:
+            raise ValueError(f"per-channel scale must have shape {expected}; got {tuple(x.scale.shape)}")
+        return codes * scale_f32[..., None]
+    subchannel = x.scale_spec.subchannel_size
+    if subchannel is None:
+        raise ValueError("subchannel scale mode requires subchannel_size")
+    scale_cols = (logical_cols + subchannel - 1) // subchannel
+    expected = (*x.logical_shape[:-1], scale_cols)
+    if tuple(x.scale.shape) != expected:
+        raise ValueError(f"subchannel scale must have shape {expected}; got {tuple(x.scale.shape)}")
+    group_index = torch.arange(logical_cols, device=codes.device) // subchannel
+    return codes * scale_f32[..., group_index]
 
 
 def pack_int4_k_major(x: Any) -> Any:

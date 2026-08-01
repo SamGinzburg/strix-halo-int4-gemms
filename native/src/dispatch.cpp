@@ -203,7 +203,7 @@ int load_kernel_function(HipRuntime *runtime, const char *hsaco_path, const char
 
 } // namespace
 
-extern "C" int amd_strix_halo_kernels_dispatch_version() { return 3; }
+extern "C" int amd_strix_halo_kernels_dispatch_version() { return 4; }
 
 extern "C" int amd_strix_halo_kernels_has_compiled_code_objects() {
   return AMD_STRIX_HALO_HAS_HSACO;
@@ -380,6 +380,99 @@ extern "C" int amd_strix_halo_kernels_launch_ragged_fwd_hsaco(
                                        &reserved1};
   auto stream = reinterpret_cast<hipStream_t>(stream_handle);
   void **params = has_scale_cols_arg != 0 ? params_with_scale_cols : params_without_scale_cols;
+  error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
+                                         shared_memory_bytes, stream, params, nullptr);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipModuleLaunchKernel", error);
+  }
+  return 0;
+}
+
+extern "C" int amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco(
+    const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x, uint32_t grid_y,
+    uint32_t grid_z, uint32_t block_x, uint32_t block_y, uint32_t block_z,
+    uint32_t shared_memory_bytes, uintptr_t stream_handle, void *lhs, void *rhs, void *lhs_scale,
+    void *rhs_scale, void *task_group_ids, void *task_block_starts, void *task_actual_starts,
+    void *task_actual_ends, void *out, void *out_scale, int32_t m, int32_t n,
+    int32_t k_packed, int32_t scale_cols, int32_t num_tasks) {
+  last_error.clear();
+  if (hsaco_path == nullptr || symbol == nullptr) {
+    return fail("hsaco_path and symbol must be non-null");
+  }
+  if (grid_x == 0 || grid_y == 0 || grid_z == 0 || block_x == 0 || block_y == 0 || block_z == 0) {
+    return fail("grid and block dimensions must be non-zero");
+  }
+  if (lhs == nullptr || rhs == nullptr || lhs_scale == nullptr || rhs_scale == nullptr ||
+      task_group_ids == nullptr || task_block_starts == nullptr || task_actual_starts == nullptr ||
+      task_actual_ends == nullptr || out == nullptr || out_scale == nullptr) {
+    return fail("ragged quantized forward kernel pointers must be non-null");
+  }
+
+  if (!load_hip_runtime(true)) {
+    return 1;
+  }
+  HipRuntime *runtime = &hip_runtime;
+  hipError_t error = runtime->hipSetDevice(device_index);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipSetDevice", error);
+  }
+
+  if (int rc = canonicalize_device_pointer(runtime, &lhs, "lhs"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &rhs, "rhs"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &lhs_scale, "lhs_scale"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &rhs_scale, "rhs_scale"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &task_group_ids, "task_group_ids"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &task_block_starts, "task_block_starts"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &task_actual_starts, "task_actual_starts"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &task_actual_ends, "task_actual_ends"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &out, "out"); rc != 0) {
+    return rc;
+  }
+  if (int rc = canonicalize_device_pointer(runtime, &out_scale, "out_scale"); rc != 0) {
+    return rc;
+  }
+
+  hipFunction_t function = nullptr;
+  if (int rc = load_kernel_function(runtime, hsaco_path, symbol, &function); rc != 0) {
+    return rc;
+  }
+
+  void *reserved0 = nullptr;
+  void *reserved1 = nullptr;
+  void *params[] = {&lhs,
+                    &rhs,
+                    &lhs_scale,
+                    &rhs_scale,
+                    &task_group_ids,
+                    &task_block_starts,
+                    &task_actual_starts,
+                    &task_actual_ends,
+                    &out,
+                    &out_scale,
+                    &m,
+                    &n,
+                    &k_packed,
+                    &scale_cols,
+                    &num_tasks,
+                    &reserved0,
+                    &reserved1};
+  auto stream = reinterpret_cast<hipStream_t>(stream_handle);
   error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
                                          shared_memory_bytes, stream, params, nullptr);
   if (error != hipSuccess) {

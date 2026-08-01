@@ -4,8 +4,8 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 3,552 artifacts: 2,882 dense generated
-kernels, 182 ragged generated artifacts, and 488 fused-attention artifacts:
+The checked-in native matrix contains 3,852 artifacts: 3,062 dense generated
+kernels, 302 ragged generated artifacts, and 488 fused-attention artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
@@ -14,6 +14,11 @@ kernels, 182 ragged generated artifacts, and 488 fused-attention artifacts:
 * epilogues: plain scaled GEMM, ReLU^2, and fused SwiGLU up/gate;
 * schedules: standard plus an opt-in persistent schedule for plain int4 GEMM;
 * split-K: ``1``, ``2``, ``4``, and ``8`` for plain GEMM.
+
+The dense total adds 180 split-K-1 packed-INT4 output variants to the prior
+2,882 objects. They cover INT4 and INT8 inputs, all three generated layouts,
+all five input scale modes, even/masked K, and plain/ReLU2/SwiGLU epilogues.
+The output is packed uint8 with BF16 subchannel-256 scales and uses BN256.
 
 The two entries beyond the 2,880 combinatorial dense matrix are exact
 subchannel-256 TN/BF16-output projection-gradient artifacts tuned for the
@@ -29,16 +34,17 @@ The ragged matrix covers forward and backward modes, ``NN``/``NT``/``TN``/
 ``128``, and ``256``, and both ``evenk`` and ``maskk`` variants.
 ``RaggedDotConfig()`` and ``RaggedBwdDotConfig()`` are the packaged tile
 source of truth. The packaged forward config is
-``BM64_BN256_BK64_GST1_W8_S3`` and stores BF16. The packaged backward config
+``BM64_BN256_BK64_GST1_W8_S3``. It has 40 BF16 variants and 120 packed-INT4
+variants covering plain/ReLU2/SwiGLU output. The packaged backward config
 is selected per layout, scale, K variant, and output dtype. The matrix contains
 40 forward BF16 artifacts and 140 standard backward artifacts: 40 generic
 FP32, 80 generic BF16 paired/scalar-store, and 20 exact 4096-capacity BF16
 wide-store NN/TN artifacts. Two additional specialized
 ``bwd_accum`` artifacts cover TN, per-channel scaling, and even K with
 ``BM32_BN128_BK64_W4_S2_SK1``. Both accumulate in FP32 registers; one stores
-FP32 and the other stores BF16.
+FP32 and the other stores BF16. The full ragged total is therefore 302.
 
-BF16×INT4 metadata is development-only. None of its 1080 registry entries is
+BF16×INT4 metadata is development-only. None of its 1,170 registry entries is
 included in the checked-in native matrix or packaged wheel.
 
 The native registry includes both ``evenk`` and ``maskk`` artifact labels for
@@ -366,8 +372,8 @@ scale vector for an RHS tile contiguously. Logical producer layouts such as
 ``(N, K / S)`` must be converted with
 ``pack_rhs_subchannel_scales(...)`` before native dispatch or benchmarking.
 
-Non-split kernels store BF16 outputs. Split-K kernels store FP32 outputs because
-partial tiles are reduced with FP32 atomics.
+Non-split kernels store BF16 or packed INT4 plus BF16 sc256 scales. Split-K
+kernels store FP32 because partial tiles are reduced with FP32 atomics.
 
 Int4 subchannel kernels use ``tl.dot_scaled`` for packed int4 MMA into i32,
 then apply the BF16 LHS/RHS subchannel scales once per completed subchannel

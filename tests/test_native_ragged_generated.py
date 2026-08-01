@@ -10,18 +10,27 @@ torch = pytest.importorskip("torch")
 from amd_strix_halo_kernels.metadata import (
     OUTPUT_DTYPE_BF16,
     OUTPUT_DTYPE_FLOAT32,
+    OUTPUT_DTYPE_INT4,
     SUPPORTED_SUBCHANNELS,
+    Epilogue,
     GemmLayout,
+    OutputDType,
     ScaleMode,
     ScaleSpec,
 )
 from amd_strix_halo_kernels.native import NATIVE_LIBRARY_NAME, dispatch_runtime_status
-from amd_strix_halo_kernels.quant import pack_int4_k_major, pack_ragged_rhs_subchannel_scales
+from amd_strix_halo_kernels.quant import (
+    QuantizedInt4Tensor,
+    pack_int4_k_major,
+    pack_ragged_rhs_subchannel_scales,
+    quantize_int4_output,
+)
 from amd_strix_halo_kernels.ragged import (
     RAGGED_BWD_ACCUM_CONFIG,
     RaggedBwdDotConfig,
     RaggedDotConfig,
     default_ragged_bwd_config,
+    prepare_ragged_group_info,
     prepare_ragged_bwd_group_info,
     ragged_dot_int4,
     ragged_dot_int4_bwd,
@@ -53,10 +62,16 @@ RAGGED_FWD_CASES = tuple(
     for variant in RAGGED_VARIANTS
 )
 RAGGED_BWD_CASES = RAGGED_FWD_CASES
+RAGGED_FWD_QUANT_CASES = tuple(
+    (layout, scale, variant, epilogue)
+    for layout, scale, variant in RAGGED_FWD_CASES
+    for epilogue in Epilogue
+)
 RUNTIME_SHAPE_OFFSETS = (-1, 0, 1)
 
 assert len(RAGGED_FWD_CASES) == 40
 assert len(RAGGED_BWD_CASES) == 40
+assert len(RAGGED_FWD_QUANT_CASES) == 120
 
 
 def _stable_seed(value: str) -> int:
@@ -193,7 +208,16 @@ def _backward_scales(scale: ScaleSpec, *, groups: int, rows: int, cols: int, con
     return a_scale, b_scale
 
 
-def _forward_reference(a_q, b_q, group_sizes, a_scale, b_scale, scale: ScaleSpec):
+def _forward_reference(
+    a_q,
+    b_q,
+    group_sizes,
+    a_scale,
+    b_scale,
+    scale: ScaleSpec,
+    *,
+    round_bf16: bool = True,
+):
     rows, contraction = int(a_q.shape[0]), int(a_q.shape[1])
     cols = int(b_q.shape[2])
     out = torch.zeros((rows, cols), dtype=torch.float32)
@@ -218,7 +242,177 @@ def _forward_reference(a_q, b_q, group_sizes, a_scale, b_scale, scale: ScaleSpec
                 partial += chunk
         out[row:next_row] = partial
         row = next_row
-    return out.to(torch.bfloat16)
+    return out.to(torch.bfloat16) if round_bf16 else out
+
+
+def _forward_quant_case_id(case) -> str:
+    layout, scale, variant, epilogue = case
+    return ragged_kernel_id(
+        mode=RAGGED_FWD,
+        layout=layout,
+        scale=scale,
+        config=replace(RaggedDotConfig(), enable_even_k_fast_path=variant == RAGGED_EVEN_K),
+        variant=variant,
+        output_dtype=OUTPUT_DTYPE_INT4,
+        epilogue=epilogue,
+        output_scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+    )
+
+
+@pytest.mark.parametrize("case", RAGGED_FWD_QUANT_CASES, ids=_forward_quant_case_id)
+def test_all_native_ragged_quantized_forward_artifacts_match_representation_oracle(
+    case,
+    native_runtime,
+) -> None:
+    layout, scale, variant, epilogue = case
+    native_root, library = native_runtime
+    config = replace(RaggedDotConfig(), enable_even_k_fast_path=variant == RAGGED_EVEN_K)
+    rows, cols, groups = config.block_m + 1, 256, 3
+    rhs_cols = cols * 2 if epilogue is Epilogue.SWIGLU else cols
+    aligned_contraction = _scale_aligned_contraction(scale)
+    contraction = aligned_contraction if variant == RAGGED_EVEN_K else aligned_contraction - 2
+    group_sizes = torch.tensor([rows // 3, 0, rows - rows // 3], dtype=torch.int32)
+    generator = torch.Generator().manual_seed(_stable_seed(_forward_quant_case_id(case)))
+    a_q = torch.randint(-4, 5, (rows, contraction), generator=generator, dtype=torch.int8)
+    b_q = torch.randint(
+        -4,
+        5,
+        (groups, contraction, rhs_cols),
+        generator=generator,
+        dtype=torch.int8,
+    )
+    lhs, rhs = _pack_forward_args(a_q, b_q, layout)
+    a_scale, b_scale = _forward_scales(
+        scale,
+        rows=rows,
+        groups=groups,
+        cols=rhs_cols,
+        contraction=contraction,
+    )
+    a_scale = (a_scale * 4).to(torch.bfloat16)
+    b_scale = (b_scale * 4).to(torch.bfloat16)
+    expected = _forward_reference(
+        a_q,
+        b_q,
+        group_sizes,
+        a_scale,
+        b_scale,
+        scale,
+        round_bf16=False,
+    )
+    if epilogue is Epilogue.SWIGLU:
+        up, gate = expected.chunk(2, dim=-1)
+        expected = up * torch.nn.functional.silu(gate)
+    elif epilogue is Epilogue.RELU2:
+        expected = torch.relu(expected).square()
+    expected_quantized = quantize_int4_output(expected)
+    _assert_reference_has_signal(expected_quantized.dequantize())
+
+    actual = ragged_dot_int4(
+        lhs.to("cuda"),
+        rhs.to("cuda"),
+        group_sizes.to("cuda"),
+        a_scale=a_scale.to("cuda"),
+        b_scale=b_scale.to("cuda"),
+        scale=scale,
+        config=config,
+        layout=layout,
+        epilogue=epilogue,
+        output_dtype=OutputDType.INT4,
+        use_native=True,
+        native_root=str(native_root),
+        native_library_path=str(library),
+    )
+    torch.cuda.synchronize()
+
+    assert isinstance(actual, QuantizedInt4Tensor)
+    torch.testing.assert_close(actual.packed.cpu(), expected_quantized.packed, rtol=0, atol=0)
+    torch.testing.assert_close(actual.scale.cpu(), expected_quantized.scale, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    torch.testing.assert_close(
+        actual.dequantize().cpu(),
+        expected_quantized.dequantize(),
+        rtol=STRICT_RTOL,
+        atol=STRICT_ATOL,
+    )
+
+
+def test_native_ragged_int4_output_cudagraph_replays_stable_output_buffers(native_runtime) -> None:
+    native_root, library = native_runtime
+    rows, cols, contraction, groups = 65, 256, 64, 3
+    config = RaggedDotConfig()
+    scale = ScaleSpec(ScaleMode.PER_CHANNEL)
+    group_sizes = torch.tensor([21, 0, 44], dtype=torch.int32)
+    group_info = prepare_ragged_group_info(
+        group_sizes.to("cuda"),
+        tile=config.block_m,
+        rows=rows,
+        align_tile=config.align_tile,
+    )
+    generator = torch.Generator().manual_seed(_stable_seed("ragged-int4-output-cudagraph"))
+    states = []
+    for multiplier in (1.0, 1.5):
+        a_q = torch.randint(-4, 5, (rows, contraction), generator=generator, dtype=torch.int8)
+        b_q = torch.randint(-4, 5, (groups, contraction, cols), generator=generator, dtype=torch.int8)
+        lhs, rhs = _pack_forward_args(a_q, b_q, GemmLayout.NN)
+        a_scale, b_scale = _forward_scales(
+            scale,
+            rows=rows,
+            groups=groups,
+            cols=cols,
+            contraction=contraction,
+        )
+        states.append((a_q, b_q, lhs, rhs, a_scale * multiplier, b_scale))
+    lhs = states[0][2].to("cuda")
+    rhs = states[0][3].to("cuda")
+    a_scale = states[0][4].to("cuda")
+    b_scale = states[0][5].to("cuda")
+    packed_out = torch.empty((rows, cols // 2), device="cuda", dtype=torch.uint8)
+    output_scales = torch.empty((rows, cols // 256), device="cuda", dtype=torch.bfloat16)
+    call_kwargs = dict(
+        group_info=group_info,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        scale=scale,
+        config=config,
+        layout=GemmLayout.NN,
+        epilogue=Epilogue.RELU2,
+        output_dtype=OutputDType.INT4,
+        out=packed_out,
+        out_scale=output_scales,
+        use_native=True,
+        native_root=str(native_root),
+        native_library_path=str(library),
+    )
+    ragged_dot_int4(lhs, rhs, None, **call_kwargs)
+    torch.cuda.synchronize()
+    graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        captured = ragged_dot_int4(lhs, rhs, None, **call_kwargs)
+
+    observed = []
+    for a_q, b_q, next_lhs, next_rhs, next_a_scale, next_b_scale in states:
+        lhs.copy_(next_lhs)
+        rhs.copy_(next_rhs)
+        a_scale.copy_(next_a_scale)
+        b_scale.copy_(next_b_scale)
+        graph.replay()
+        torch.cuda.synchronize()
+        expected = _forward_reference(
+            a_q,
+            b_q,
+            group_sizes,
+            next_a_scale,
+            next_b_scale,
+            scale,
+            round_bf16=False,
+        )
+        expected = quantize_int4_output(torch.relu(expected).square())
+        assert captured.packed is packed_out
+        assert captured.scale is output_scales
+        torch.testing.assert_close(captured.packed.cpu(), expected.packed, rtol=0, atol=0)
+        torch.testing.assert_close(captured.scale.cpu(), expected.scale, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+        observed.append(captured.packed.cpu().clone())
+    assert not torch.equal(observed[0], observed[1])
 
 
 def _backward_reference(a_q, b_q, group_sizes, a_scale, b_scale, scale: ScaleSpec):

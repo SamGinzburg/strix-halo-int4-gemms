@@ -8,7 +8,7 @@ Dense generated kernels and ragged grouped kernels are separate API
 families:
 
 * ``mm(...)`` selects a native dense kernel for plain GEMM or
-  ``Epilogue.RELU2``.
+  ``Epilogue.RELU2`` and can return BF16, FP32 split-K, or packed INT4.
 * ``fused_swiglu_up_gate(...)`` selects a native dense fused SwiGLU kernel.
   The RHS logical output columns must be ``[up | gate]`` and the returned
   tensor has half as many columns.
@@ -19,8 +19,9 @@ families:
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
   lazy ``torch.library.custom_op``. It does not register autograd.
-* ``ragged_dot_int4(...)`` uses packaged ragged HSACO for generated configs and
-  falls back to Triton JIT. ``ragged_dot_int4_bwd(...)`` automatically uses
+* ``ragged_dot_int4(...)`` uses packaged ragged HSACO for generated configs,
+  including packed-INT4 plain/ReLU2/SwiGLU output, and falls back to Triton JIT.
+  ``ragged_dot_int4_bwd(...)`` automatically uses
   shape-specialized JIT for generic BF16 shapes and eligible exact wide-store
   native artifacts at 4096 capacity; ``use_native`` can pin the backend.
 * ``ragged_dot_int4_bwd_accum(...)`` sums 64-row task-packed products into one
@@ -36,7 +37,8 @@ Generic packaged ragged artifacts keep M, N, packed K, and scale-column
 dimensions as runtime scalars without value- or alignment-based
 specialization. Forward artifacts also keep task count runtime. Those HSACOs
 handle dimensions around block boundaries with edge masking, subject to the
-selected even-K/masked-K and per-mode contracts. Exact 4096-capacity backward
+selected even-K/masked-K and per-mode contracts. Packed-INT4 output has no N
+tail because it requires complete 256-column tiles. Exact 4096-capacity backward
 wide-store artifacts are the documented exception.
 The public forward Triton-JIT/fallback path intentionally restores normal
 value/alignment specialization for aligned-shape performance, so new shapes
@@ -66,6 +68,7 @@ Dense autotuning uses the same contract:
        Epilogue,
        GemmLayout,
        OperandDType,
+       OutputDType,
        ScaleMode,
        ScaleSpec,
        autotune,
@@ -80,6 +83,7 @@ Dense autotuning uses the same contract:
        layout=GemmLayout.NN,
        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
        epilogue=Epilogue.NONE,
+       output_dtype=OutputDType.INT4,
        warmup_ms=25,
        rep_ms=100,
        validate=True,
@@ -95,7 +99,9 @@ dispatch; forward timing includes runtime-shape specialization:
 .. code-block:: python
 
    from amd_strix_halo_kernels import (
+       Epilogue,
        GemmLayout,
+       OutputDType,
        RaggedDotMode,
        ScaleMode,
        ScaleSpec,
@@ -110,7 +116,63 @@ dispatch; forward timing includes runtime-shape specialization:
        group_sizes=[M],
        layout=GemmLayout.NN,
        scale=ScaleSpec(ScaleMode.PER_CHANNEL),
+       epilogue=Epilogue.SWIGLU,
+       output_dtype=OutputDType.INT4,
    )
+
+Dense and Ragged Output Contracts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mm(...)``, ``fused_swiglu_up_gate(...)``, and ``ragged_dot_int4(...)`` use
+the shared ``OutputDType`` enum. BF16 is the default split-K-1 store. Dense
+plain GEMM uses FP32 for ``split_k>1`` because partial tiles are accumulated
+with FP32 atomics. Packed INT4 is a fused final-output contract: it returns a
+``QuantizedInt4Tensor`` containing ``packed`` uint8 data, BF16 ``scale``, the
+logical shape, and the sc256 scale specification.
+
+.. code-block:: python
+
+   from amd_strix_halo_kernels import OutputDType
+
+   activation = fused_swiglu_up_gate(
+       lhs,
+       up_gate_weight,
+       a_scale=a_scale,
+       b_scale=up_gate_scale,
+       dtype=OperandDType.INT4,
+       scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+       output_dtype=OutputDType.INT4,
+       out=packed_out,          # optional uint8[M,D/2]
+       out_scale=scale_out,     # optional bfloat16[M,D/256]
+   )
+   down = mm(
+       activation.packed,
+       down_weight,
+       a_scale=activation.scale,
+       b_scale=down_scale,
+       dtype=OperandDType.INT4,
+       scale=ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+   )
+
+INT4 output requires logical ``N % 256 == 0``, a ``BN256`` output tile, BF16
+subchannel-256 output scales, and ``split_k=1``. Preallocated output and scale
+buffers must be contiguous and on the same device as the operands. It supports
+plain, ReLU2, and SwiGLU epilogues for packaged dense INT4/INT8 inputs and
+ragged INT4 inputs.
+The development-only mixed BF16-by-INT4 registry implements the same contract
+but is not wheel-packaged. Passing stable ``out`` and ``out_scale`` buffers makes the producer
+graph-replay safe after warmup. Output buffers are returned by identity.
+
+``ragged_dot_int4_bwd(...)`` intentionally supports BF16 and FP32 only. BF16
+requires ``split_k=1``; FP32 is required when ``split_k>1``. Packed INT4 is
+rejected because reduction partitions cannot independently derive one shared
+quantization scale. Dense APIs apply the same split-K guard.
+
+Kernel fidelity is tested against the representation-matched output quantizer:
+packed codes and BF16 scales must match exactly and dequantized values must pass
+``rtol=atol=1e-3``. This is distinct from comparing lossy four-bit values to an
+unquantized BF16 activation, which is not generally an elementwise-1e-3
+contract.
 
 For backward autotuning, ``k`` is total reduction work across groups, while
 ``k_capacity`` is the physical per-group packed storage capacity. Capacity
@@ -381,6 +443,13 @@ Surface APIs
 
 .. autofunction:: amd_strix_halo_kernels.quantize_attention_value_int4
 
+.. autofunction:: amd_strix_halo_kernels.quantize_int4_output
+
+.. autofunction:: amd_strix_halo_kernels.dequantize_int4_output
+
+.. autoclass:: amd_strix_halo_kernels.QuantizedInt4Tensor
+   :members:
+
 .. autoclass:: amd_strix_halo_kernels.Int4AttentionConfig
    :members:
 
@@ -457,6 +526,9 @@ Metadata
 --------
 
 .. autoclass:: amd_strix_halo_kernels.OperandDType
+   :members:
+
+.. autoclass:: amd_strix_halo_kernels.OutputDType
    :members:
 
 .. autoclass:: amd_strix_halo_kernels.ScaleMode

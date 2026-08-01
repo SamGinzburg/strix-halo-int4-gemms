@@ -3,7 +3,16 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
-from .metadata import ARCH, OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32, GemmLayout, ScaleMode, ScaleSpec
+from .metadata import (
+    ARCH,
+    OUTPUT_DTYPE_BF16,
+    OUTPUT_DTYPE_FLOAT32,
+    OUTPUT_DTYPE_INT4,
+    Epilogue,
+    GemmLayout,
+    ScaleMode,
+    ScaleSpec,
+)
 
 
 RAGGED_FAMILY = "ragged_dot_int4"
@@ -44,6 +53,8 @@ def ragged_kernel_id(
     config: Any,
     variant: str,
     output_dtype: str | None = None,
+    epilogue: Epilogue = Epilogue.NONE,
+    output_scale: ScaleSpec | None = None,
     store_strategy: str = RAGGED_STORE_DEFAULT,
     shape_specialization: tuple[int, int, int] | None = None,
     arch: str = ARCH,
@@ -57,6 +68,17 @@ def ragged_kernel_id(
             f"ragged store strategy must be one of {RAGGED_STORE_STRATEGIES}; got {store_strategy!r}"
         )
     dtype = output_dtype or (OUTPUT_DTYPE_BF16 if mode == RAGGED_FWD else OUTPUT_DTYPE_FLOAT32)
+    if dtype == OUTPUT_DTYPE_INT4:
+        selected_output_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if mode != RAGGED_FWD:
+            raise ValueError("ragged INT4 output is supported for forward only")
+        if selected_output_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("ragged INT4 output requires subchannel-256 output scales")
+        dtype = f"{dtype}_{epilogue.value}_out{selected_output_scale.label.lower()}"
+    elif output_scale is not None:
+        raise ValueError("output_scale is valid only for ragged INT4 output")
+    elif epilogue is not Epilogue.NONE:
+        raise ValueError("ragged fused epilogues are supported for INT4 output only")
     store_suffix = "" if store_strategy == RAGGED_STORE_DEFAULT else f"_{store_strategy}"
     shape_suffix = ""
     if shape_specialization is not None:
@@ -86,6 +108,8 @@ def ragged_metadata_dict(
     config: Any,
     variant: str,
     output_dtype: str,
+    epilogue: Epilogue = Epilogue.NONE,
+    output_scale: ScaleSpec | None = None,
     store_strategy: str,
     amdgcn_symbol: str,
     launch_metadata: dict[str, int],
@@ -130,10 +154,21 @@ def ragged_metadata_dict(
         "config_label": ragged_config_label(config),
         "variant": variant,
         "output_dtype": output_dtype,
+        "output_scale": (
+            {
+                "mode": output_scale.mode.value,
+                "subchannel_size": output_scale.subchannel_size,
+            }
+            if output_scale is not None
+            else None
+        ),
+        "epilogue": epilogue.value,
         "store_strategy": store_strategy,
         "runtime_constraints": {
             "required_n_multiple": (
-                8
+                256
+                if output_dtype == OUTPUT_DTYPE_INT4
+                else 8
                 if store_strategy == RAGGED_STORE_WIDE
                 else 2 if store_strategy == RAGGED_STORE_PAIRED else 1
             ),

@@ -97,6 +97,10 @@ def _independent_mixed_reference(torch, a_arg, b_arg, a_scale, b_scale, kernel):
     elif kernel.epilogue is Epilogue.SWIGLU:
         up, gate = out.chunk(2, dim=1)
         out = up * gate * torch.sigmoid(gate)
+    if kernel.output_dtype == "int4":
+        from amd_strix_halo_kernels.quant import quantize_int4_output
+
+        return quantize_int4_output(out, kernel.output_scale)
     output_dtype = torch.bfloat16 if kernel.output_dtype == "bfloat16" else torch.float32
     return out.to(output_dtype)
 
@@ -113,7 +117,7 @@ def _mixed_kernel_ids() -> tuple[str, ...]:
             if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4
         )
     )
-    assert len(kernel_ids) == 1080
+    assert len(kernel_ids) == 1170
     return kernel_ids
 
 
@@ -352,26 +356,35 @@ def test_ragged_generator_default_jobs_include_specialized_bwd_accum() -> None:
         layouts=tuple(GemmLayout),
         scales=scales,
         variants=RAGGED_VARIANTS,
+        epilogues=tuple(module.Epilogue),
     )
     bwd_jobs = [job for job in jobs if job[0] == RAGGED_BWD]
     accum_jobs = [job for job in jobs if job[0] == RAGGED_BWD_ACCUM]
-    assert len(jobs) == 182
+    quantized_fwd_jobs = [
+        job for job in jobs if job[0] == module.RAGGED_FWD and job[5] == module.OUTPUT_DTYPE_INT4
+    ]
+    assert len(jobs) == 302
     assert len(bwd_jobs) == 140
+    assert len(quantized_fwd_jobs) == 120
+    assert {job[6] for job in quantized_fwd_jobs} == set(module.Epilogue)
+    assert {job[7] for job in quantized_fwd_jobs} == {
+        ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    }
     assert {job[5] for job in bwd_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
     assert all(job[4].split_k == 1 for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_BF16)
     assert {
-        job[6] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_BF16
+        job[8] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_BF16
     } == {RAGGED_STORE_PAIRED, RAGGED_STORE_SCALAR, RAGGED_STORE_WIDE}
     assert {
-        job[6] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_FLOAT32
+        job[8] for job in bwd_jobs if job[5] == module.OUTPUT_DTYPE_FLOAT32
     } == {RAGGED_STORE_DEFAULT}
-    specialized_jobs = [job for job in bwd_jobs if job[7] is not None]
+    specialized_jobs = [job for job in bwd_jobs if job[9] is not None]
     assert len(specialized_jobs) == 20
-    assert {job[7] for job in specialized_jobs} == set(
+    assert {job[9] for job in specialized_jobs} == set(
         module.RAGGED_BWD_PREBUILT_SPECIALIZED_SHAPES
     )
     assert all(job[5] == module.OUTPUT_DTYPE_BF16 for job in specialized_jobs)
-    assert all(job[6] == RAGGED_STORE_WIDE for job in specialized_jobs)
+    assert all(job[8] == RAGGED_STORE_WIDE for job in specialized_jobs)
     assert {job[1] for job in specialized_jobs} == set(
         RAGGED_BWD_PREBUILT_SPECIALIZED_LAYOUTS
     )
@@ -388,8 +401,8 @@ def test_ragged_generator_default_jobs_include_specialized_bwd_accum() -> None:
     }
     assert len(accum_jobs) == 2
     assert {job[5] for job in accum_jobs} == {module.OUTPUT_DTYPE_FLOAT32, module.OUTPUT_DTYPE_BF16}
-    assert {job[6] for job in accum_jobs} == {RAGGED_STORE_DEFAULT}
-    assert {job[7] for job in accum_jobs} == {None}
+    assert {job[8] for job in accum_jobs} == {RAGGED_STORE_DEFAULT}
+    assert {job[9] for job in accum_jobs} == {None}
     for job in accum_jobs:
         assert job[1:5] == (
             GemmLayout.TN,
@@ -556,7 +569,7 @@ def test_all_mixed_generated_kernels_match_reference(kernel_id, generate_amdgcn_
     kernel = mixed_dtype_registry.get(kernel_id)
     shape = representative_generation_shape(kernel)
     inputs = generate_amdgcn_module._make_inputs(kernel, shape)
-    a_arg, b_arg, a_scale, b_scale, out, _ = inputs
+    a_arg, b_arg, a_scale, b_scale, out, out_scale = inputs
     _fill_mixed_rhs_scales(b_scale)
     out.zero_()
     generate_amdgcn_module.compile_program(kernel, shape, inputs=inputs)
@@ -569,8 +582,13 @@ def test_all_mixed_generated_kernels_match_reference(kernel_id, generate_amdgcn_
         b_scale,
         kernel,
     )
-    _assert_reference_has_signal(expected)
-    torch.testing.assert_close(out, expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    if kernel.output_dtype == "int4":
+        _assert_reference_has_signal(expected.dequantize())
+        torch.testing.assert_close(out, expected.packed, rtol=0, atol=0)
+        torch.testing.assert_close(out_scale, expected.scale, rtol=STRICT_RTOL, atol=STRICT_ATOL)
+    else:
+        _assert_reference_has_signal(expected)
+        torch.testing.assert_close(out, expected, rtol=STRICT_RTOL, atol=STRICT_ATOL)
 
 
 def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> None:
@@ -578,7 +596,9 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
     from amd_strix_halo_kernels.metadata import (
         OUTPUT_DTYPE_BF16,
         OUTPUT_DTYPE_FLOAT32,
+        OUTPUT_DTYPE_INT4,
         SUPPORTED_SUBCHANNELS,
+        Epilogue,
         GemmLayout,
         ScaleMode,
         ScaleSpec,
@@ -712,6 +732,46 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
                                 assert arg_layout["by_value_arg_count"] == len(expected_scalar_args)
                                 assert len(arg_layout["hidden_global_buffer_offsets"]) == 2
 
+    output_scale = ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+    for layout in GemmLayout:
+        for scale in scales:
+            for variant in RAGGED_VARIANTS:
+                config = replace(
+                    RaggedDotConfig(),
+                    enable_even_k_fast_path=(variant == RAGGED_EVEN_K),
+                )
+                for epilogue in Epilogue:
+                    kernel_id = ragged_kernel_id(
+                        mode=RAGGED_FWD,
+                        layout=layout,
+                        scale=scale,
+                        config=config,
+                        variant=variant,
+                        output_dtype=OUTPUT_DTYPE_INT4,
+                        epilogue=epilogue,
+                        output_scale=output_scale,
+                    )
+                    expected_ids.add(kernel_id)
+                    asm_path = amdgcn_dir / f"{kernel_id}.s"
+                    metadata_path = amdgcn_dir / f"{kernel_id}.json"
+                    assert asm_path.exists(), kernel_id
+                    assert metadata_path.exists(), kernel_id
+                    metadata = json.loads(metadata_path.read_text())
+                    assert metadata["output_dtype"] == OUTPUT_DTYPE_INT4
+                    assert metadata["epilogue"] == epilogue.value
+                    assert metadata["output_scale"] == {
+                        "mode": ScaleMode.SUBCHANNEL.value,
+                        "subchannel_size": 256,
+                    }
+                    assert metadata["runtime_constraints"]["required_n_multiple"] == 256
+                    assert metadata["kernel_arg_layout"]["runtime_scalar_args"] == [
+                        "M",
+                        "N",
+                        "K_PACKED",
+                        "SCALE_COLS",
+                        "NUM_TASKS",
+                    ]
+
     from amd_strix_halo_kernels.ragged import RAGGED_BWD_ACCUM_CONFIG
 
     accum_config = RAGGED_BWD_ACCUM_CONFIG
@@ -751,7 +811,7 @@ def test_default_ragged_configs_cover_checked_in_prebuilt_artifact_matrix() -> N
 
     checked_in_ids = {path.stem for path in amdgcn_dir.glob("gfx1151_ragged_int4_*.json")}
     assert checked_in_ids == expected_ids
-    assert len(expected_ids) == 182
+    assert len(expected_ids) == 302
     summary = json.loads((amdgcn_dir / "ragged_generation_summary.json").read_text())
     assert summary["failures"] == []
     assert {entry["kernel_id"] for entry in summary["generated"]} == expected_ids

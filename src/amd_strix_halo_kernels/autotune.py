@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
@@ -25,7 +25,16 @@ from .benchmarking import (
     triton_do_bench_samples,
 )
 from .heuristics import kernel_supports_shape
-from .metadata import Epilogue, GemmLayout, KernelMetadata, KernelSchedule, OperandDType, ScaleMode, ScaleSpec
+from .metadata import (
+    Epilogue,
+    GemmLayout,
+    KernelMetadata,
+    KernelSchedule,
+    OperandDType,
+    OutputDType,
+    ScaleMode,
+    ScaleSpec,
+)
 from .ragged_artifacts import ragged_config_label
 from .native import amdgcn_metadata_path_for_kernel_id, launch_generated_kernel
 from .quant import fake_quant_int, pack_int4_k_major
@@ -34,6 +43,7 @@ from .ragged import (
     RaggedDotConfig,
     _can_use_bwd_even_k_fast_path,
     _can_use_even_k_fast_path,
+    calculate_group_info,
     prepare_ragged_bwd_group_info,
     ragged_dot_int4,
     ragged_dot_int4_bwd,
@@ -118,6 +128,9 @@ class RaggedAutotuneCandidate:
     layout: GemmLayout
     scale: ScaleSpec
     config: RaggedDotConfig | RaggedBwdDotConfig
+    epilogue: Epilogue = Epilogue.NONE
+    output_dtype: OutputDType | None = None
+    output_scale: ScaleSpec | None = None
 
     @property
     def config_label(self) -> str:
@@ -125,10 +138,17 @@ class RaggedAutotuneCandidate:
 
     @property
     def kernel_id(self) -> str:
-        return (
+        kernel_id = (
             f"ragged_dot_int4_{self.mode.value}_{self.layout.value}_"
             f"{self.scale.label.lower()}_{self.config_label.lower()}"
         )
+        if self.epilogue is not Epilogue.NONE:
+            kernel_id += f"_{self.epilogue.value}"
+        if self.output_dtype is not None:
+            kernel_id += f"_out{self.output_dtype.value}"
+        if self.output_scale is not None:
+            kernel_id += f"{self.output_scale.label.lower()}"
+        return kernel_id
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +159,9 @@ class RaggedAutotuneResult:
     mode: RaggedDotMode
     layout: GemmLayout
     scale: ScaleSpec
+    epilogue: Epilogue
+    output_dtype: OutputDType | None
+    output_scale: ScaleSpec | None
     group_sizes: tuple[int, ...]
     candidates: tuple[RaggedAutotuneCandidate, ...]
     records: tuple[BenchmarkRecord, ...]
@@ -168,6 +191,26 @@ def artifact_supports_shape(kernel: KernelMetadata, shape: BenchmarkShape, *, ro
     return isinstance(generation_shape, dict) and BenchmarkShape.from_dict(generation_shape) == shape
 
 
+def _normalize_dense_autotune_output(
+    output_dtype: OutputDType | None,
+    output_scale: ScaleSpec | None,
+) -> tuple[OutputDType | None, ScaleSpec | None]:
+    if output_dtype is None:
+        if output_scale is not None:
+            raise ValueError("output_scale requires an explicit output_dtype=OutputDType.INT4")
+        return None, None
+    if not isinstance(output_dtype, OutputDType):
+        raise TypeError(f"output_dtype must be an OutputDType; got {type(output_dtype).__name__}")
+    if output_dtype is OutputDType.INT4:
+        selected_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if selected_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("INT4 output autotuning currently requires subchannel-256 output scales")
+        return output_dtype, selected_scale
+    if output_scale is not None:
+        raise ValueError("output_scale is valid only for output_dtype=OutputDType.INT4")
+    return output_dtype, None
+
+
 def find_autotune_candidates(
     *,
     m: int,
@@ -177,11 +220,24 @@ def find_autotune_candidates(
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec,
     epilogue: Epilogue,
+    output_dtype: OutputDType | None = None,
+    output_scale: ScaleSpec | None = None,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
     registry: KernelRegistry = default_registry,
     root: str | Path | None = None,
     require_exact_generated_shape: bool = True,
 ) -> tuple[KernelMetadata, ...]:
+    """Return packaged dense candidates matching shape and execution contract.
+
+    Leave ``output_dtype`` unset to inspect all output contracts. Selecting
+    ``OutputDType.INT4`` defaults ``output_scale`` to subchannel-256 and never
+    mixes BF16/FP32 records into the candidate set.
+    """
+
+    selected_output_dtype, selected_output_scale = _normalize_dense_autotune_output(
+        output_dtype,
+        output_scale,
+    )
     shape = BenchmarkShape(m, n, k)
     candidates = []
     for kernel in registry.all():
@@ -192,6 +248,8 @@ def find_autotune_candidates(
             or kernel.scale != scale
             or kernel.epilogue is not epilogue
             or kernel.schedule is not schedule
+            or (selected_output_dtype is not None and kernel.output_dtype != selected_output_dtype.value)
+            or (selected_output_dtype is not None and kernel.output_scale != selected_output_scale)
             or not kernel_supports_shape(kernel, m=m, n=n, k=k)
         ):
             continue
@@ -210,6 +268,8 @@ def autotune(
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec,
     epilogue: Epilogue,
+    output_dtype: OutputDType | None = None,
+    output_scale: ScaleSpec | None = None,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
     registry: KernelRegistry = default_registry,
     benchmark_db: BenchmarkDatabase | None = None,
@@ -221,6 +281,13 @@ def autotune(
     validate: bool = False,
     benchmark_runner: BenchmarkRunner | None = None,
 ) -> AutotuneResult:
+    """Benchmark matching packaged dense kernels and return the fastest result.
+
+    ``output_dtype`` and ``output_scale`` use the same split-K-safe contract as
+    :func:`amd_strix_halo_kernels.mm`. With ``validate=True``, packed output is
+    checked for exact codes and BF16 scales against the reference quantizer.
+    """
+
     shape = BenchmarkShape(m, n, k)
     candidates = find_autotune_candidates(
         m=m,
@@ -230,14 +297,22 @@ def autotune(
         layout=layout,
         scale=scale,
         epilogue=epilogue,
+        output_dtype=output_dtype,
+        output_scale=output_scale,
         schedule=schedule,
         registry=registry,
         root=root,
     )
     if not candidates:
+        output_description = (
+            "any"
+            if output_dtype is None
+            else f"{output_dtype.value}/{(output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)).label if output_dtype is OutputDType.INT4 else 'none'}"
+        )
         raise LookupError(
             f"no pregenerated kernels match dtype={dtype.value}, layout={layout.value}, scale={scale.label}, "
-            f"epilogue={epilogue.value}, schedule={schedule.value}, shape=({m}, {n}, {k})"
+            f"epilogue={epilogue.value}, output={output_description}, schedule={schedule.value}, "
+            f"shape=({m}, {n}, {k})"
         )
 
     if benchmark_db is None and benchmark_db_path is not None and Path(benchmark_db_path).exists():
@@ -1012,22 +1087,75 @@ def _benchmark_attention_candidate(
     )
 
 
+def _normalize_ragged_autotune_output(
+    *,
+    mode: RaggedDotMode,
+    epilogue: Epilogue,
+    output_dtype: OutputDType | None,
+    output_scale: ScaleSpec | None,
+) -> tuple[OutputDType | None, ScaleSpec | None]:
+    if not isinstance(epilogue, Epilogue):
+        raise TypeError(f"epilogue must be an Epilogue; got {type(epilogue).__name__}")
+    if output_dtype is not None and not isinstance(output_dtype, OutputDType):
+        raise TypeError(f"output_dtype must be an OutputDType; got {type(output_dtype).__name__}")
+    if mode is RaggedDotMode.BWD:
+        if epilogue is not Epilogue.NONE:
+            raise ValueError("ragged backward autotuning does not support fused epilogues")
+        if output_dtype is OutputDType.INT4:
+            raise ValueError(
+                "ragged backward INT4 output is unsupported; split-K reductions require a final shared quantization pass"
+            )
+        if output_scale is not None:
+            raise ValueError("ragged backward output_scale is unsupported")
+        return output_dtype, None
+
+    selected_dtype = output_dtype or OutputDType.BF16
+    if selected_dtype is OutputDType.INT4:
+        selected_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if selected_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("ragged INT4 output autotuning requires subchannel-256 output scales")
+        return selected_dtype, selected_scale
+    if output_scale is not None:
+        raise ValueError("output_scale is valid only for output_dtype=OutputDType.INT4")
+    if epilogue is not Epilogue.NONE:
+        raise ValueError("ragged fused epilogues require output_dtype=OutputDType.INT4")
+    return selected_dtype, None
+
+
 def default_ragged_dot_candidates(
     mode: RaggedDotMode,
     *,
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
     split_ks: Iterable[int] = (1, 2),
+    epilogue: Epilogue = Epilogue.NONE,
+    output_dtype: OutputDType | None = None,
+    output_scale: ScaleSpec | None = None,
 ) -> tuple[RaggedAutotuneCandidate, ...]:
     """Return the default Triton-JIT ragged-dot autotune candidates."""
 
     mode = _check_ragged_mode(mode)
     layout = _check_layout(layout)
     split_ks = tuple(split_ks)
+    selected_dtype, selected_scale = _normalize_ragged_autotune_output(
+        mode=mode,
+        epilogue=epilogue,
+        output_dtype=output_dtype,
+        output_scale=output_scale,
+    )
     if mode is RaggedDotMode.FWD:
         return tuple(
-            RaggedAutotuneCandidate(mode=mode, layout=layout, scale=scale, config=config)
+            RaggedAutotuneCandidate(
+                mode=mode,
+                layout=layout,
+                scale=scale,
+                config=config,
+                epilogue=epilogue,
+                output_dtype=selected_dtype,
+                output_scale=selected_scale,
+            )
             for config in _default_ragged_fwd_configs()
+            if selected_dtype is not OutputDType.INT4 or config.block_n == 256
         )
     return tuple(
         RaggedAutotuneCandidate(
@@ -1042,9 +1170,15 @@ def default_ragged_dot_candidates(
                 num_warps=config.num_warps,
                 num_stages=config.num_stages,
             ),
+            output_dtype=(
+                selected_dtype
+                if selected_dtype is not None
+                else OutputDType.BF16 if split_k == 1 else OutputDType.FLOAT32
+            ),
         )
         for config in _default_ragged_bwd_base_configs()
         for split_k in split_ks
+        if selected_dtype is not OutputDType.BF16 or split_k == 1
     )
 
 
@@ -1059,13 +1193,15 @@ def autotune_ragged_dot(
     groups: int = 8,
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
+    epilogue: Epilogue = Epilogue.NONE,
     candidates: Iterable[RaggedAutotuneCandidate | RaggedDotConfig | RaggedBwdDotConfig] | None = None,
     split_ks: Iterable[int] = (1, 2),
     benchmark_db: BenchmarkDatabase | None = None,
     benchmark_db_path: str | Path | None = None,
     warmup_ms: int = 25,
     rep_ms: int = 100,
-    output_dtype: Any | None = None,
+    output_dtype: OutputDType | None = None,
+    output_scale: ScaleSpec | None = None,
     continue_on_error: bool = True,
     benchmark_runner: RaggedBenchmarkRunner | None = None,
 ) -> RaggedAutotuneResult:
@@ -1076,9 +1212,11 @@ def autotune_ragged_dot(
     where ``group_sizes`` partitions the logical reduction work ``K`` across
     groups. Backward synthetic operands are padded to ``k_capacity`` per group,
     which defaults to ``max(group_sizes)`` and is rounded up to an even value
-    for packed int4 storage. ``output_dtype`` is forwarded to the backward API;
-    when omitted, each candidate uses BF16 for ``split_k=1`` and FP32 for
-    ``split_k>1``. Forward candidates always use BF16.
+    for packed int4 storage. Forward accepts BF16, FP32, or fused packed-INT4
+    output; packed output uses BF16 subchannel-256 scales and can include
+    ``Epilogue.RELU2`` or ``Epilogue.SWIGLU``. Backward accepts BF16 only at
+    ``split_k=1`` or FP32 at any split. Packed-INT4 backward is rejected because
+    reduction splits cannot independently choose a shared quantization scale.
     """
 
     if m <= 0 or n <= 0 or k <= 0:
@@ -1090,6 +1228,14 @@ def autotune_ragged_dot(
 
     mode = _check_ragged_mode(mode)
     layout = _check_layout(layout)
+    selected_output_dtype, selected_output_scale = _normalize_ragged_autotune_output(
+        mode=mode,
+        epilogue=epilogue,
+        output_dtype=output_dtype,
+        output_scale=output_scale,
+    )
+    if selected_output_dtype is OutputDType.INT4 and n % 256 != 0:
+        raise ValueError("ragged INT4 output autotuning requires N to be divisible by 256")
     normalized_group_sizes = _normalize_ragged_group_sizes(
         mode=mode,
         group_sizes=group_sizes,
@@ -1108,6 +1254,9 @@ def autotune_ragged_dot(
         mode=mode,
         layout=layout,
         scale=scale,
+        epilogue=epilogue,
+        output_dtype=selected_output_dtype,
+        output_scale=selected_output_scale,
         candidates=candidates,
         split_ks=split_ks,
     )
@@ -1128,7 +1277,6 @@ def autotune_ragged_dot(
             group_sizes=normalized_group_sizes,
             warmup_ms=warmup_ms,
             rep_ms=rep_ms,
-            output_dtype=output_dtype,
         )
     )
 
@@ -1174,6 +1322,9 @@ def autotune_ragged_dot(
         mode=mode,
         layout=layout,
         scale=scale,
+        epilogue=epilogue,
+        output_dtype=selected_output_dtype,
+        output_scale=selected_output_scale,
         group_sizes=normalized_group_sizes,
         candidates=candidate_tuple,
         records=tuple(records),
@@ -1293,11 +1444,22 @@ def _normalize_ragged_candidates(
     mode: RaggedDotMode,
     layout: GemmLayout,
     scale: ScaleSpec,
+    epilogue: Epilogue,
+    output_dtype: OutputDType | None,
+    output_scale: ScaleSpec | None,
     candidates: Iterable[RaggedAutotuneCandidate | RaggedDotConfig | RaggedBwdDotConfig] | None,
     split_ks: Iterable[int],
 ) -> tuple[RaggedAutotuneCandidate, ...]:
     if candidates is None:
-        return default_ragged_dot_candidates(mode, layout=layout, scale=scale, split_ks=split_ks)
+        return default_ragged_dot_candidates(
+            mode,
+            layout=layout,
+            scale=scale,
+            split_ks=split_ks,
+            epilogue=epilogue,
+            output_dtype=output_dtype,
+            output_scale=output_scale,
+        )
     normalized = []
     for candidate in candidates:
         if isinstance(candidate, RaggedAutotuneCandidate):
@@ -1311,11 +1473,59 @@ def _normalize_ragged_candidates(
                 raise TypeError("forward ragged-dot candidates must use RaggedDotConfig")
             if mode is RaggedDotMode.BWD and not isinstance(candidate.config, RaggedBwdDotConfig):
                 raise TypeError("backward ragged-dot candidates must use RaggedBwdDotConfig")
-            normalized.append(candidate)
+            if candidate.epilogue not in {Epilogue.NONE, epilogue}:
+                raise ValueError("candidate epilogue does not match requested epilogue")
+            if output_dtype is not None and candidate.output_dtype not in {None, output_dtype}:
+                raise ValueError("candidate output_dtype does not match requested output_dtype")
+            if output_scale is not None and candidate.output_scale not in {None, output_scale}:
+                raise ValueError("candidate output_scale does not match requested output_scale")
+            candidate_output = candidate.output_dtype or output_dtype
+            if candidate_output is None:
+                candidate_output = (
+                    OutputDType.BF16
+                    if isinstance(candidate.config, RaggedBwdDotConfig) and candidate.config.split_k == 1
+                    else OutputDType.FLOAT32
+                )
+            if candidate_output is OutputDType.INT4 and isinstance(candidate.config, RaggedDotConfig):
+                if candidate.config.block_n != 256:
+                    raise ValueError("ragged INT4 output candidates require block_n=256")
+            normalized.append(
+                replace(
+                    candidate,
+                    epilogue=epilogue,
+                    output_dtype=candidate_output,
+                    output_scale=candidate.output_scale or output_scale,
+                )
+            )
         elif mode is RaggedDotMode.FWD and isinstance(candidate, RaggedDotConfig):
-            normalized.append(RaggedAutotuneCandidate(mode=mode, layout=layout, scale=scale, config=candidate))
+            if output_dtype is OutputDType.INT4 and candidate.block_n != 256:
+                raise ValueError("ragged INT4 output candidates require block_n=256")
+            normalized.append(
+                RaggedAutotuneCandidate(
+                    mode=mode,
+                    layout=layout,
+                    scale=scale,
+                    config=candidate,
+                    epilogue=epilogue,
+                    output_dtype=output_dtype,
+                    output_scale=output_scale,
+                )
+            )
         elif mode is RaggedDotMode.BWD and isinstance(candidate, RaggedBwdDotConfig):
-            normalized.append(RaggedAutotuneCandidate(mode=mode, layout=layout, scale=scale, config=candidate))
+            candidate_output = output_dtype or (
+                OutputDType.BF16 if candidate.split_k == 1 else OutputDType.FLOAT32
+            )
+            if candidate.split_k > 1 and candidate_output is OutputDType.BF16:
+                raise ValueError("ragged backward BF16 output requires split_k=1")
+            normalized.append(
+                RaggedAutotuneCandidate(
+                    mode=mode,
+                    layout=layout,
+                    scale=scale,
+                    config=candidate,
+                    output_dtype=candidate_output,
+                )
+            )
         else:
             raise TypeError(f"unsupported ragged autotune candidate {candidate!r}")
     return tuple(normalized)
@@ -1402,22 +1612,41 @@ def _make_ragged_fwd_inputs(
     group_sizes: tuple[int, ...],
     layout: GemmLayout,
     scale: ScaleSpec,
+    epilogue: Epilogue,
+    output_dtype: OutputDType,
 ) -> dict[str, Any]:
     groups = len(group_sizes)
+    rhs_n = n * 2 if epilogue is Epilogue.SWIGLU else n
     a_q = torch.randint(-8, 8, (m, k), device="cuda", dtype=torch.int8)
-    b_q = torch.randint(-8, 8, (groups, k, n), device="cuda", dtype=torch.int8)
+    b_q = torch.randint(-8, 8, (groups, k, rhs_n), device="cuda", dtype=torch.int8)
     lhs = pack_int4_k_major(a_q)
     if layout in {GemmLayout.TN, GemmLayout.TT}:
         lhs = lhs.transpose(0, 1).contiguous()
     rhs = _pack_ragged_fwd_rhs(torch, b_q, layout)
-    a_scale, b_scale = _ragged_scale_tensors(torch, mode=RaggedDotMode.FWD, m=m, n=n, k=k, groups=groups, scale=scale)
+    a_scale, b_scale = _ragged_scale_tensors(
+        torch,
+        mode=RaggedDotMode.FWD,
+        m=m,
+        n=rhs_n,
+        k=k,
+        groups=groups,
+        scale=scale,
+    )
+    if output_dtype is OutputDType.INT4:
+        out = torch.empty((m, n // 2), device="cuda", dtype=torch.uint8)
+        out_scale = torch.empty((m, n // 256), device="cuda", dtype=torch.bfloat16)
+    else:
+        torch_dtype = torch.bfloat16 if output_dtype is OutputDType.BF16 else torch.float32
+        out = torch.empty((m, n), device="cuda", dtype=torch_dtype)
+        out_scale = None
     return {
         "lhs": lhs,
         "rhs": rhs,
         "group_sizes": torch.tensor(group_sizes, device="cuda", dtype=torch.int32),
         "a_scale": a_scale,
         "b_scale": b_scale,
-        "out": torch.empty((m, n), device="cuda", dtype=torch.bfloat16),
+        "out": out,
+        "out_scale": out_scale,
     }
 
 
@@ -1507,7 +1736,6 @@ def _benchmark_ragged_candidate(
     group_sizes: tuple[int, ...],
     warmup_ms: int,
     rep_ms: int,
-    output_dtype: Any | None,
 ) -> BenchmarkRecord:
     try:
         import torch
@@ -1518,20 +1746,18 @@ def _benchmark_ragged_candidate(
 
     torch.manual_seed(_stable_seed(f"{candidate.kernel_id}-{m},{n},{k_capacity}-{group_sizes}"))
     if candidate.mode is RaggedDotMode.FWD:
-        if output_dtype not in {None, torch.bfloat16}:
-            raise ValueError("forward ragged-dot autotuning supports torch.bfloat16 output only")
-        resolved_output_dtype = torch.bfloat16
+        if candidate.output_dtype is None:
+            raise ValueError("forward ragged-dot candidate is missing output_dtype")
+        resolved_output_dtype = candidate.output_dtype
     else:
         if not isinstance(candidate.config, RaggedBwdDotConfig):
             raise TypeError("backward ragged-dot candidate must use RaggedBwdDotConfig")
-        resolved_output_dtype = output_dtype or (
-            torch.bfloat16 if candidate.config.split_k == 1 else torch.float32
+        if candidate.output_dtype not in {OutputDType.BF16, OutputDType.FLOAT32}:
+            raise ValueError("backward ragged-dot candidate output must be BF16 or FP32")
+        resolved_output_dtype = (
+            torch.bfloat16 if candidate.output_dtype is OutputDType.BF16 else torch.float32
         )
-        if resolved_output_dtype not in {torch.bfloat16, torch.float32}:
-            raise ValueError(
-                "backward ragged-dot output_dtype must be torch.bfloat16 or torch.float32"
-            )
-        if candidate.config.split_k > 1 and resolved_output_dtype != torch.float32:
+        if candidate.config.split_k > 1 and candidate.output_dtype is not OutputDType.FLOAT32:
             raise ValueError("backward BF16 output requires split_k=1")
 
     tensors = (
@@ -1543,6 +1769,8 @@ def _benchmark_ragged_candidate(
             group_sizes=group_sizes,
             layout=candidate.layout,
             scale=candidate.scale,
+            epilogue=candidate.epilogue,
+            output_dtype=resolved_output_dtype,
         )
         if candidate.mode is RaggedDotMode.FWD
         else _make_ragged_bwd_inputs(
@@ -1572,6 +1800,15 @@ def _benchmark_ragged_candidate(
         if candidate.mode is RaggedDotMode.BWD
         else None
     )
+    fwd_group_info = (
+        calculate_group_info(
+            tensors["group_sizes"],
+            candidate.config.block_m,
+            align_tile=candidate.config.align_tile,
+        )
+        if candidate.mode is RaggedDotMode.FWD and isinstance(candidate.config, RaggedDotConfig)
+        else None
+    )
 
     def run() -> Any:
         if candidate.mode is RaggedDotMode.FWD:
@@ -1580,13 +1817,18 @@ def _benchmark_ragged_candidate(
             return ragged_dot_int4(
                 tensors["lhs"],
                 tensors["rhs"],
-                tensors["group_sizes"],
+                None,
+                group_info=fwd_group_info,
                 a_scale=tensors["a_scale"],
                 b_scale=tensors["b_scale"],
                 scale=candidate.scale,
                 config=candidate.config,
                 layout=candidate.layout,
+                epilogue=candidate.epilogue,
                 out=tensors["out"],
+                out_scale=tensors["out_scale"],
+                output_dtype=resolved_output_dtype,
+                output_scale=candidate.output_scale,
                 use_native=False,
             )
         if not isinstance(candidate.config, RaggedBwdDotConfig):
@@ -1619,7 +1861,9 @@ def _benchmark_ragged_candidate(
             warmup_ms=warmup_ms,
             rep_ms=rep_ms,
         ),
-        "output_dtype": "bfloat16" if resolved_output_dtype == torch.bfloat16 else "float32",
+        "epilogue": candidate.epilogue.value,
+        "output_dtype": candidate.output_dtype.value if candidate.output_dtype is not None else None,
+        "output_scale": None if candidate.output_scale is None else candidate.output_scale.label,
         "input_distribution": "random_int4_uniform",
         "torch_version": str(torch.__version__),
         "torch_hip": str(torch.version.hip),
@@ -1632,11 +1876,11 @@ def _benchmark_ragged_candidate(
         kernel_id=candidate.kernel_id,
         shape=shape,
         runtime_ms=runtime_ms,
-        tops=tops_for_runtime(shape, runtime_ms),
+        tops=tops_for_runtime(shape, runtime_ms) * (2.0 if candidate.epilogue is Epilogue.SWIGLU else 1.0),
         iterations=int(summary["sample_count"]),
         warmup=warmup_ms,
         metadata=metadata,
-        notes="prepacked operands; BF16 scales; quantization/packing excluded from timing",
+        notes="prepacked operands; BF16 scales; preallocated outputs/routing; input quantization/packing excluded",
     )
 
 
@@ -1717,10 +1961,14 @@ def _output_torch_dtype(torch: Any, kernel: KernelMetadata) -> Any:
         return torch.bfloat16
     if kernel.output_dtype == "float32":
         return torch.float32
+    if kernel.output_dtype == "int4":
+        return torch.uint8
     raise ValueError(f"unsupported kernel output dtype: {kernel.output_dtype}")
 
 
 def _validation_tolerances(kernel: KernelMetadata) -> tuple[float, float]:
+    if kernel.output_dtype == "int4":
+        return 0.0, 0.0
     if kernel.output_dtype == "bfloat16":
         return 8.0e-3, 1.0e-2
     atol = 1.0e-2 if kernel.epilogue in {Epilogue.RELU2, Epilogue.SWIGLU} else 1.0e-3
@@ -1754,7 +2002,13 @@ def _benchmark_native_kernel(
     a_scale_gpu = a_scale.to("cuda")
     b_scale_gpu = b_scale.to("cuda")
     gate_gpu = None if gate is None else gate.to("cuda")
-    c_gpu = torch.empty((shape.m, shape.n), device="cuda", dtype=_output_torch_dtype(torch, kernel))
+    c_shape = (shape.m, shape.n // 2) if kernel.output_dtype == "int4" else (shape.m, shape.n)
+    c_gpu = torch.empty(c_shape, device="cuda", dtype=_output_torch_dtype(torch, kernel))
+    output_scale_gpu = (
+        torch.empty((shape.m, shape.n // 256), device="cuda", dtype=torch.bfloat16)
+        if kernel.output_dtype == "int4"
+        else None
+    )
 
     def run() -> Any:
         return launch_generated_kernel(
@@ -1765,6 +2019,7 @@ def _benchmark_native_kernel(
             b_scale=b_scale_gpu,
             gate=gate_gpu,
             c=c_gpu,
+            output_scale=output_scale_gpu,
             root=root,
             library_path=library_path,
         )
@@ -1774,10 +2029,19 @@ def _benchmark_native_kernel(
     if validate:
         actual = run()
         torch.cuda.synchronize()
-        actual_cpu = actual.cpu()
-        rtol, atol = _validation_tolerances(kernel)
-        torch.testing.assert_close(actual_cpu, expected, rtol=rtol, atol=atol)
-        max_abs, max_rel = _max_diffs(torch, actual_cpu, expected)
+        if kernel.output_dtype == "int4":
+            torch.testing.assert_close(actual.packed.cpu(), expected.packed, rtol=0.0, atol=0.0)
+            torch.testing.assert_close(actual.scale.cpu(), expected.scale, rtol=0.0, atol=0.0)
+            max_abs, max_rel = _max_diffs(
+                torch,
+                actual.dequantize().cpu(),
+                expected.dequantize(),
+            )
+        else:
+            actual_cpu = actual.cpu()
+            rtol, atol = _validation_tolerances(kernel)
+            torch.testing.assert_close(actual_cpu, expected, rtol=rtol, atol=atol)
+            max_abs, max_rel = _max_diffs(torch, actual_cpu, expected)
 
     record = benchmark_triton_callable(
         kernel=kernel,
@@ -1793,6 +2057,7 @@ def _benchmark_native_kernel(
             "scale": kernel.scale.label,
             "epilogue": kernel.epilogue.value,
             "output_dtype": kernel.output_dtype,
+            "output_scale": None if kernel.output_scale is None else kernel.output_scale.label,
             "tile": kernel.tile.label,
             "even_k": kernel.tile.even_k,
             "split_k": kernel.tile.split_k,

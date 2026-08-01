@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
-from .metadata import GemmLayout, ScaleMode, ScaleSpec
+from .metadata import Epilogue, GemmLayout, OutputDType, ScaleMode, ScaleSpec
+from .quant import QuantizedInt4Tensor
 from .ragged_artifacts import (
     RAGGED_BWD,
     RAGGED_BWD_ACCUM,
@@ -980,6 +981,285 @@ def _ragged_dot_int4_kernel(*, specialize_runtime_args: bool = False) -> Any:
 
 
 @lru_cache(maxsize=2)
+def _ragged_dot_int4_quant_kernel(*, specialize_runtime_args: bool = False) -> Any:
+    """Build the fused epilogue + sc256 packed-output forward kernel."""
+
+    triton, tl = _triton()
+    from triton.language.extra import libdevice
+
+    runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS", "NUM_TASKS")
+    jit_options = (
+        {}
+        if specialize_runtime_args
+        else {
+            "do_not_specialize": runtime_args,
+            "do_not_specialize_on_alignment": runtime_args,
+        }
+    )
+
+    @triton.jit(**jit_options)
+    def kernel(
+        lhs,
+        rhs,
+        lhs_scale,
+        rhs_scale,
+        task_group_ids,
+        task_block_starts,
+        task_actual_starts,
+        task_actual_ends,
+        out,
+        out_scale,
+        M,
+        N,
+        K_PACKED,
+        SCALE_COLS,
+        NUM_TASKS,
+        BLOCK_M: tl.constexpr,
+        BLOCK_N: tl.constexpr,
+        BLOCK_K: tl.constexpr,
+        HAS_LHS_SCALE: tl.constexpr,
+        HAS_RHS_SCALE: tl.constexpr,
+        SUBCHANNEL: tl.constexpr,
+        GROUP_SIZE_TASKS: tl.constexpr,
+        A_TRANS: tl.constexpr,
+        B_TRANS: tl.constexpr,
+        EVEN_K_FAST_PATH: tl.constexpr,
+        SWIGLU: tl.constexpr,
+        RELU2: tl.constexpr,
+    ):
+        pid = tl.program_id(0)
+        num_pid_n = tl.cdiv(N, BLOCK_N)
+        num_pid_in_group = GROUP_SIZE_TASKS * num_pid_n
+        swizzle_group = pid // num_pid_in_group
+        first_task = swizzle_group * GROUP_SIZE_TASKS
+        group_size = tl.minimum(NUM_TASKS - first_task, GROUP_SIZE_TASKS)
+        pid_in_group = pid % num_pid_in_group
+        pid_task = first_task + (pid_in_group % group_size)
+        pid_n = pid_in_group // group_size
+
+        group_id = tl.load(task_group_ids + pid_task)
+        block_start = tl.load(task_block_starts + pid_task)
+        actual_start = tl.load(task_actual_starts + pid_task)
+        actual_end = tl.load(task_actual_ends + pid_task)
+        offs_m = block_start + tl.arange(0, BLOCK_M)
+        offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+        row_mask = (offs_m >= actual_start) & (offs_m < actual_end)
+        # The public INT4-output contract requires BLOCK_N == 256 and
+        # N % 256 == 0, so every launched output tile is complete.
+        rhs_n = N * 2 if SWIGLU else N
+
+        block_k_packed: tl.constexpr = BLOCK_K // 2
+        offs_k = tl.arange(0, block_k_packed)
+
+        if SUBCHANNEL == 0:
+            acc_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
+            gate_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
+            k_base = 0
+            while k_base < K_PACKED:
+                kp = k_base + offs_k
+                k_mask = (kp < K_PACKED) | EVEN_K_FAST_PATH
+                if A_TRANS:
+                    lhs_offsets = kp[None, :] * M + offs_m[:, None]
+                else:
+                    lhs_offsets = offs_m[:, None] * K_PACKED + kp[None, :]
+                if B_TRANS:
+                    rhs_offsets = group_id * rhs_n * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                else:
+                    rhs_offsets = group_id * K_PACKED * rhs_n + kp[:, None] * rhs_n + offs_n[None, :]
+                lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None] & k_mask[None, :], other=0)
+                rhs_values = tl.load(rhs + rhs_offsets, mask=k_mask[:, None], other=0)
+                acc_i32 = tl.dot_scaled(
+                    lhs_values,
+                    None,
+                    "int4",
+                    rhs_values,
+                    None,
+                    "int4",
+                    acc_i32,
+                    out_dtype=tl.int32,
+                )
+                if SWIGLU:
+                    if B_TRANS:
+                        gate_offsets = (
+                            group_id * rhs_n * K_PACKED
+                            + (offs_n[None, :] + N) * K_PACKED
+                            + kp[:, None]
+                        )
+                    else:
+                        gate_offsets = (
+                            group_id * K_PACKED * rhs_n
+                            + kp[:, None] * rhs_n
+                            + offs_n[None, :]
+                            + N
+                        )
+                    gate_values = tl.load(
+                        rhs + gate_offsets,
+                        mask=k_mask[:, None],
+                        other=0,
+                    )
+                    gate_i32 = tl.dot_scaled(
+                        lhs_values,
+                        None,
+                        "int4",
+                        gate_values,
+                        None,
+                        "int4",
+                        gate_i32,
+                        out_dtype=tl.int32,
+                    )
+                k_base += block_k_packed
+            acc = acc_i32.to(tl.float32)
+            gate_acc = gate_i32.to(tl.float32)
+            if HAS_LHS_SCALE:
+                lhs_scale_values = tl.load(lhs_scale + offs_m, mask=row_mask, other=0.0).to(tl.float32)
+                acc *= lhs_scale_values[:, None]
+                if SWIGLU:
+                    gate_acc *= lhs_scale_values[:, None]
+            if HAS_RHS_SCALE:
+                rhs_scale_values = tl.load(
+                    rhs_scale + group_id * rhs_n + offs_n,
+                ).to(tl.float32)
+                acc *= rhs_scale_values[None, :]
+                if SWIGLU:
+                    gate_scale_values = tl.load(
+                        rhs_scale + group_id * rhs_n + offs_n + N,
+                    ).to(tl.float32)
+                    gate_acc *= gate_scale_values[None, :]
+        else:
+            packed_per_scale: tl.constexpr = SUBCHANNEL // 2
+            scale_chunk_packed: tl.constexpr = min(block_k_packed, packed_per_scale)
+            offs_k_scale = tl.arange(0, scale_chunk_packed)
+            acc = tl.zeros((BLOCK_M, BLOCK_N), tl.float32)
+            gate_acc = tl.zeros((BLOCK_M, BLOCK_N), tl.float32)
+            scale_idx = 0
+            while scale_idx < SCALE_COLS:
+                acc_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
+                gate_i32 = tl.zeros((BLOCK_M, BLOCK_N), tl.int32)
+                scale_k0 = scale_idx * packed_per_scale
+                sk0 = 0
+                while sk0 < packed_per_scale:
+                    kp = scale_k0 + sk0 + offs_k_scale
+                    k_mask = ((kp < K_PACKED) & ((kp - scale_k0) < packed_per_scale)) | EVEN_K_FAST_PATH
+                    if A_TRANS:
+                        lhs_offsets = kp[None, :] * M + offs_m[:, None]
+                    else:
+                        lhs_offsets = offs_m[:, None] * K_PACKED + kp[None, :]
+                    if B_TRANS:
+                        rhs_offsets = (
+                            group_id * rhs_n * K_PACKED + offs_n[None, :] * K_PACKED + kp[:, None]
+                        )
+                    else:
+                        rhs_offsets = (
+                            group_id * K_PACKED * rhs_n + kp[:, None] * rhs_n + offs_n[None, :]
+                        )
+                    lhs_values = tl.load(lhs + lhs_offsets, mask=row_mask[:, None] & k_mask[None, :], other=0)
+                    rhs_values = tl.load(
+                        rhs + rhs_offsets,
+                        mask=k_mask[:, None],
+                        other=0,
+                    )
+                    acc_i32 = tl.dot_scaled(
+                        lhs_values,
+                        None,
+                        "int4",
+                        rhs_values,
+                        None,
+                        "int4",
+                        acc_i32,
+                        out_dtype=tl.int32,
+                    )
+                    if SWIGLU:
+                        if B_TRANS:
+                            gate_offsets = (
+                                group_id * rhs_n * K_PACKED
+                                + (offs_n[None, :] + N) * K_PACKED
+                                + kp[:, None]
+                            )
+                        else:
+                            gate_offsets = (
+                                group_id * K_PACKED * rhs_n
+                                + kp[:, None] * rhs_n
+                                + offs_n[None, :]
+                                + N
+                            )
+                        gate_values = tl.load(
+                            rhs + gate_offsets,
+                            mask=k_mask[:, None],
+                            other=0,
+                        )
+                        gate_i32 = tl.dot_scaled(
+                            lhs_values,
+                            None,
+                            "int4",
+                            gate_values,
+                            None,
+                            "int4",
+                            gate_i32,
+                            out_dtype=tl.int32,
+                        )
+                    sk0 += scale_chunk_packed
+                partial = acc_i32.to(tl.float32)
+                gate_partial = gate_i32.to(tl.float32)
+                if HAS_LHS_SCALE:
+                    lhs_scale_values = tl.load(
+                        lhs_scale + offs_m[:, None] * SCALE_COLS + scale_idx,
+                        mask=row_mask[:, None],
+                        other=0.0,
+                    ).to(tl.float32)
+                    partial *= lhs_scale_values
+                    if SWIGLU:
+                        gate_partial *= lhs_scale_values
+                if HAS_RHS_SCALE:
+                    rhs_scale_values = tl.load(
+                        rhs_scale + group_id * SCALE_COLS * rhs_n + scale_idx * rhs_n + offs_n,
+                    ).to(tl.float32)
+                    partial *= rhs_scale_values[None, :]
+                    if SWIGLU:
+                        gate_scale_values = tl.load(
+                            rhs_scale
+                            + group_id * SCALE_COLS * rhs_n
+                            + scale_idx * rhs_n
+                            + offs_n
+                            + N,
+                        ).to(tl.float32)
+                        gate_partial *= gate_scale_values[None, :]
+                acc += partial
+                if SWIGLU:
+                    gate_acc += gate_partial
+                scale_idx += 1
+
+        if SWIGLU:
+            acc *= gate_acc / (1.0 + tl.exp(-gate_acc))
+        if RELU2:
+            acc = tl.maximum(acc, 0.0)
+            acc *= acc
+
+        row_amax = tl.max(tl.abs(acc), axis=1)
+        quant_scale = (tl.maximum(row_amax, 1.0e-12) / 7.0).to(tl.bfloat16)
+        q = tl.clamp(
+            libdevice.nearbyint(acc / quant_scale.to(tl.float32)[:, None]),
+            -8.0,
+            7.0,
+        ).to(tl.int32) & 0xF
+        q_pairs = tl.reshape(q, (BLOCK_M, BLOCK_N // 2, 2))
+        q_lo, q_hi = tl.split(q_pairs)
+        packed = (q_lo | (q_hi << 4)).to(tl.uint8)
+        offs_n_packed = pid_n * (BLOCK_N // 2) + tl.arange(0, BLOCK_N // 2)
+        tl.store(
+            out + offs_m[:, None] * (N // 2) + offs_n_packed[None, :],
+            packed,
+            mask=row_mask[:, None],
+        )
+        tl.store(
+            out_scale + offs_m * (N // BLOCK_N) + pid_n,
+            quant_scale,
+            mask=row_mask,
+        )
+
+    return kernel
+
+
+@lru_cache(maxsize=2)
 def _ragged_dot_int4_bwd_kernel(*, specialize_runtime_args: bool = False) -> Any:
     triton, tl = _triton()
     runtime_args = ("M", "N", "K_PACKED", "SCALE_COLS")
@@ -1575,7 +1855,12 @@ def _validate_scale_shapes(
         )
 
 
-def _forward_logical_shape(lhs: Any, rhs: Any, layout: GemmLayout) -> tuple[int, int, int, int]:
+def _forward_logical_shape(
+    lhs: Any,
+    rhs: Any,
+    layout: GemmLayout,
+    epilogue: Epilogue,
+) -> tuple[int, int, int, int]:
     if layout is GemmLayout.NN:
         rows = int(lhs.shape[0])
         k_packed = int(lhs.shape[1])
@@ -1604,7 +1889,23 @@ def _forward_logical_shape(lhs: Any, rhs: Any, layout: GemmLayout) -> tuple[int,
         raise ValueError(f"unsupported GEMM layout {layout.value}")
     if rhs_k_packed != k_packed:
         raise ValueError(f"lhs and rhs packed K mismatch for layout={layout.value}: {k_packed} vs {rhs_k_packed}")
+    if epilogue is Epilogue.SWIGLU:
+        if cols % 2 != 0:
+            raise ValueError("ragged SwiGLU requires the logical RHS output dimension to be even")
+        cols //= 2
     return rows, cols, k_packed, groups
+
+
+def _resolve_ragged_forward_output_dtype(torch: Any, output_dtype: Any | None) -> OutputDType:
+    if output_dtype is None or output_dtype is torch.bfloat16:
+        return OutputDType.BF16
+    if output_dtype is torch.float32:
+        return OutputDType.FLOAT32
+    if isinstance(output_dtype, OutputDType):
+        return output_dtype
+    raise ValueError(
+        "output_dtype must be OutputDType.BF16, OutputDType.FLOAT32, or OutputDType.INT4"
+    )
 
 
 def _bwd_logical_shape(lhs: Any, rhs: Any, layout: GemmLayout) -> tuple[int, int, int, int]:
@@ -1684,8 +1985,11 @@ def ragged_dot_int4(
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
     config: RaggedDotConfig = RaggedDotConfig(),
     layout: GemmLayout = GemmLayout.NN,
+    epilogue: Epilogue = Epilogue.NONE,
     out: Any | None = None,
+    out_scale: Any | None = None,
     output_dtype: Any | None = None,
+    output_scale: ScaleSpec | None = None,
     use_native: bool | None = None,
     native_root: str | None = None,
     native_library_path: str | None = None,
@@ -1709,6 +2013,14 @@ def ragged_dot_int4(
     * subchannel ``S``: ``a_scale[M, ceil(K / S)]`` and weight-matched
       ``b_scale[G, ceil(K / S), N]``.
 
+    Set ``output_dtype=OutputDType.INT4`` to fuse the requested epilogue with
+    signed-INT4 quantization. This returns :class:`QuantizedInt4Tensor` with
+    packed ``uint8[M, N/2]`` data and BF16 subchannel-256 scales
+    ``[M, N/256]``. INT4 output requires ``config.block_n == 256`` and a
+    logical output width divisible by 256. For ``Epilogue.SWIGLU``, RHS stores
+    concatenated ``[up | gate]`` columns and the returned width is half the RHS
+    width.
+
     By default the function uses a packaged HSACO artifact when available and
     falls back to Triton JIT otherwise. Set ``use_native=True`` to require the
     packaged path. It does not register autograd.
@@ -1719,6 +2031,8 @@ def ragged_dot_int4(
 
     _require_cuda_tensor(torch, "lhs", lhs)
     _require_cuda_tensor(torch, "rhs", rhs)
+    if rhs.device != lhs.device:
+        raise ValueError(f"rhs must be on device {lhs.device}; got {rhs.device}")
     if lhs.dtype != torch.uint8:
         raise ValueError(f"lhs must be packed int4 torch.uint8; got {lhs.dtype}")
     if rhs.dtype != torch.uint8:
@@ -1732,7 +2046,10 @@ def ragged_dot_int4(
     if not rhs.is_contiguous():
         raise ValueError("rhs must be contiguous")
 
-    rows, cols, k_packed, groups = _forward_logical_shape(lhs, rhs, layout)
+    if not isinstance(epilogue, Epilogue):
+        raise TypeError(f"epilogue must be an Epilogue; got {type(epilogue).__name__}")
+    rows, cols, k_packed, groups = _forward_logical_shape(lhs, rhs, layout, epilogue)
+    rhs_cols = cols * 2 if epilogue is Epilogue.SWIGLU else cols
 
     try_native = use_native is not False and a_scale is not None and b_scale is not None
     if group_info is None:
@@ -1763,8 +2080,12 @@ def ragged_dot_int4(
     _require_bfloat16_scale(torch, "b_scale", b_scale)
     if a_scale is not None:
         _require_cuda_tensor(torch, "a_scale", a_scale)
+        if a_scale.device != lhs.device:
+            raise ValueError(f"a_scale must be on device {lhs.device}; got {a_scale.device}")
     if b_scale is not None:
         _require_cuda_tensor(torch, "b_scale", b_scale)
+        if b_scale.device != lhs.device:
+            raise ValueError(f"b_scale must be on device {lhs.device}; got {b_scale.device}")
 
     if scale.mode is ScaleMode.SUBCHANNEL:
         subchannel = scale.subchannel_size or 0
@@ -1782,7 +2103,7 @@ def ragged_dot_int4(
         scale=scale,
         groups=groups,
         rows=rows,
-        cols=cols,
+        cols=rhs_cols,
         scale_cols=scale_cols,
     )
     if a_scale is not None and not a_scale.is_contiguous():
@@ -1790,22 +2111,58 @@ def ragged_dot_int4(
     if b_scale is not None and not b_scale.is_contiguous():
         raise ValueError("b_scale must be contiguous")
 
-    if output_dtype is None:
-        output_dtype = torch.bfloat16
-    if output_dtype not in (torch.bfloat16, torch.float32):
-        raise ValueError(f"output_dtype must be torch.bfloat16 or torch.float32; got {output_dtype}")
+    selected_output_dtype = _resolve_ragged_forward_output_dtype(torch, output_dtype)
+    if selected_output_dtype is OutputDType.INT4:
+        selected_output_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if selected_output_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("ragged INT4 output currently requires subchannel-256 output scales")
+        if config.block_n != 256:
+            raise ValueError("ragged INT4 output requires config.block_n == 256")
+        if cols % 256 != 0:
+            raise ValueError("ragged INT4 output requires the logical output width to be divisible by 256")
+        output_shape = (rows, cols // 2)
+        torch_output_dtype = torch.uint8
+    else:
+        selected_output_scale = None
+        if output_scale is not None or out_scale is not None:
+            raise ValueError("output_scale and out_scale are valid only for INT4 output")
+        if epilogue is not Epilogue.NONE:
+            raise ValueError("ragged fused ReLU2/SwiGLU currently requires OutputDType.INT4")
+        output_shape = (rows, cols)
+        torch_output_dtype = (
+            torch.bfloat16 if selected_output_dtype is OutputDType.BF16 else torch.float32
+        )
     if out is None:
-        out = torch.empty((rows, cols), device=lhs.device, dtype=output_dtype)
+        out = torch.empty(output_shape, device=lhs.device, dtype=torch_output_dtype)
     else:
         _require_cuda_tensor(torch, "out", out)
-        if tuple(out.shape) != (rows, cols):
-            raise ValueError(f"out must have shape ({rows}, {cols}); got {tuple(out.shape)}")
-        if out.dtype != output_dtype:
-            raise ValueError(f"out dtype {out.dtype} does not match output_dtype {output_dtype}")
+        if out.device != lhs.device:
+            raise ValueError(f"out must be on device {lhs.device}; got {out.device}")
+        if tuple(out.shape) != output_shape:
+            raise ValueError(f"out must have shape {output_shape}; got {tuple(out.shape)}")
+        if out.dtype != torch_output_dtype:
+            raise ValueError(f"out dtype {out.dtype} does not match output_dtype {selected_output_dtype.value}")
         if not out.is_contiguous():
             raise ValueError("out must be contiguous")
 
+    if selected_output_dtype is OutputDType.INT4:
+        scale_shape = (rows, cols // 256)
+        if out_scale is None:
+            out_scale = torch.empty(scale_shape, device=lhs.device, dtype=torch.bfloat16)
+        else:
+            _require_cuda_tensor(torch, "out_scale", out_scale)
+            if out_scale.device != lhs.device:
+                raise ValueError(f"out_scale must be on device {lhs.device}; got {out_scale.device}")
+            if tuple(out_scale.shape) != scale_shape:
+                raise ValueError(f"out_scale must have shape {scale_shape}; got {tuple(out_scale.shape)}")
+            if out_scale.dtype != torch.bfloat16:
+                raise ValueError(f"out_scale must have dtype torch.bfloat16; got {out_scale.dtype}")
+            if not out_scale.is_contiguous():
+                raise ValueError("out_scale must be contiguous")
+
     if group_info.num_tasks == 0:
+        if selected_output_dtype is OutputDType.INT4:
+            return QuantizedInt4Tensor(out, out_scale, (rows, cols), selected_output_scale)
         return out
 
     use_even_k_fast_path = _can_use_even_k_fast_path(
@@ -1815,9 +2172,9 @@ def ragged_dot_int4(
     )
     variant = RAGGED_EVEN_K if use_even_k_fast_path else RAGGED_MASK_K
     if try_native:
-        if output_dtype is not torch.bfloat16:
+        if selected_output_dtype is OutputDType.FLOAT32:
             if use_native is True:
-                raise ValueError("native ragged forward dispatch currently supports torch.bfloat16 output only")
+                raise ValueError("native ragged forward dispatch does not support FP32 output")
         else:
             try:
                 from .native import launch_ragged_fwd_kernel
@@ -1829,10 +2186,14 @@ def ragged_dot_int4(
                     a_scale=a_scale,
                     b_scale=b_scale,
                     out=out,
+                    out_scale=out_scale,
                     scale=scale,
                     config=config,
                     layout=layout,
                     variant=variant,
+                    epilogue=epilogue,
+                    output_dtype=selected_output_dtype,
+                    output_scale=selected_output_scale,
                     rows=rows,
                     cols=cols,
                     k_packed=k_packed,
@@ -1849,6 +2210,42 @@ def ragged_dot_int4(
     grid = (
         group_info.num_tasks * _cdiv(cols, config.block_n),
     )
+    if selected_output_dtype is OutputDType.INT4:
+        kernel = _ragged_dot_int4_quant_kernel(specialize_runtime_args=True)
+        kernel[grid](
+            lhs,
+            rhs,
+            a_scale if a_scale is not None else lhs,
+            b_scale if b_scale is not None else lhs,
+            group_info.group_id,
+            group_info.block_start,
+            group_info.actual_start,
+            group_info.actual_end,
+            out,
+            out_scale,
+            rows,
+            cols,
+            k_packed,
+            scale_cols,
+            group_info.num_tasks,
+            BLOCK_M=config.block_m,
+            BLOCK_N=config.block_n,
+            BLOCK_K=config.block_k,
+            HAS_LHS_SCALE=a_scale is not None,
+            HAS_RHS_SCALE=b_scale is not None,
+            SUBCHANNEL=subchannel,
+            GROUP_SIZE_TASKS=config.group_size_tasks,
+            A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
+            B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
+            EVEN_K_FAST_PATH=use_even_k_fast_path,
+            SWIGLU=epilogue is Epilogue.SWIGLU,
+            RELU2=epilogue is Epilogue.RELU2,
+            num_warps=config.num_warps,
+            num_stages=config.num_stages,
+            matrix_instr_nonkdim=16,
+            kpack=1,
+        )
+        return QuantizedInt4Tensor(out, out_scale, (rows, cols), selected_output_scale)
     if use_even_k_fast_path:
         kernel = _ragged_dot_int4_even_k_kernel(specialize_runtime_args=True)
         kernel[grid](
@@ -1951,7 +2348,9 @@ def ragged_dot_int4_bwd(
     The output has shape ``(G, M, N)``. ``split_k=1`` defaults to BF16 and
     rounds the FP32 register accumulation once at the final store; callers may
     request FP32 explicitly. For ``split_k > 1``, the output must be FP32
-    because partial tiles are accumulated with FP32 atomics.
+    because partial tiles are accumulated with FP32 atomics. Packed INT4
+    backward output is unsupported; a separate final quantizer is required
+    after all reduction partitions have produced one shared result.
 
     With ``config=None``, the API selects a measured layout-, scale-, output-,
     and K-variant-specific tile. Pass an explicit config to force a tile.

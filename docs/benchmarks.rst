@@ -659,7 +659,8 @@ Every selected winner was separately validated on gfx1151 using model-like
 random BF16 input fake-quantized to signed INT4 with scale 0.1. At
 ``rtol=atol=1e-3``, both maximum absolute and relative differences were zero.
 The two TN dW winners are packaged as additional native artifacts, increasing
-the dense count from 2,880 to 2,882; the other rows select existing artifacts.
+the original dense count from 2,880 to 2,882. The 180 packed-output variants
+described below bring the current dense total to 3,062.
 
 Forward NT uses packed ``A[M,K/2]`` and ``B[N,K/2]``; dX NN uses
 ``A[M,K/2]`` and ``B[K/2,N]``; dW TN uses ``A[K/2,M]`` and ``B[K/2,N]``.
@@ -668,6 +669,49 @@ Their subchannel scales remain ``a_scale[M,K/256]`` and weight-matched
 subchannel-256 groups partition tokens. Training accumulates repeated
 ``M=14336`` microbatch gradients in FP32 while each kernel stores BF16; it
 does not replace four accumulation steps with an ``M=57344`` launch.
+
+Packed-INT4 Activation Output
+-----------------------------
+
+``scripts/benchmark_quantized_outputs.py`` measures the model-like
+SwiGLU-to-down-projection chain at ``M=14336, D=K=1024, G=8``. Producer inputs,
+up/gate weights, and down weights are packed signed INT4 with independent BF16
+subchannel-256 scales. The baseline writes BF16, invokes the same standalone
+sc256 output quantizer used by the reference tests, and then launches the down
+GEMM. The fused path writes packed INT4 plus BF16 sc256 scales directly into
+preallocated buffers.
+
+.. list-table:: INT4 activation producer and down-projection chain
+   :header-rows: 1
+
+   * - Path
+     - Producer only
+     - BF16 producer + quant + down
+     - Fused INT4 producer + down
+     - Chain speedup
+   * - dense SwiGLU
+     - 1.083098 ms
+     - 7.651269 ms
+     - 1.636956 ms
+     - 4.674x
+   * - ragged SwiGLU, 8 balanced groups
+     - 2.326497 ms
+     - 9.487750 ms
+     - 2.934893 ms
+     - 3.387x
+
+The ragged complete-N-tile optimization reduced the preceding packaged fused
+producer measurement from 2.856235 ms to 2.326497 ms (18.5%) and the fused
+chain from 3.565771 ms to 2.934893 ms (17.7%). Clocks were not pinned, so the
+same snapshot qualification as the README tables applies.
+
+Native dense and ragged tests compare against a representation-matched
+quantizer. Packed codes and BF16 scales are exact; dequantized results pass
+``rtol=atol=1e-3``. The quality comparison to the unquantized BF16 producer is
+separately reported because four-bit quantization is lossy: dense cosine was
+0.980569 and relative L2 was 0.199470. The ragged fused result versus the
+separately quantized baseline had cosine 0.999019 and relative L2 0.044298.
+These quality figures are not kernel-fidelity tolerances.
 
 Correctness Notes
 -----------------

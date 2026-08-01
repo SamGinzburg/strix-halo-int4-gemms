@@ -11,12 +11,19 @@ from .metadata import (
     KernelSchedule,
     KernelStatus,
     OperandDType,
+    OutputDType,
     ScaleMode,
     ScaleSpec,
     resolve_operand_dtypes,
 )
 from .native import launch_generated_kernel
-from .quant import dynamic_lhs_int4_scales, fake_quant_int4_with_scales, unpack_int4_k_major
+from .quant import (
+    QuantizedInt4Tensor,
+    dynamic_lhs_int4_scales,
+    fake_quant_int4_with_scales,
+    quantize_int4_output,
+    unpack_int4_k_major,
+)
 from .registry import KernelRegistry, default_registry
 
 
@@ -32,6 +39,74 @@ def _require_supported_layout(layout: GemmLayout) -> None:
     if layout not in SUPPORTED_GEMM_LAYOUTS:
         supported = ", ".join(layout.value for layout in SUPPORTED_GEMM_LAYOUTS)
         raise ValueError(f"unsupported GEMM layout {layout.value}; generated layouts are {supported}")
+
+
+def _resolve_output_request(
+    output_dtype: OutputDType,
+    output_scale: ScaleSpec | None,
+    *,
+    epilogue: Epilogue,
+    split_k: int | None,
+) -> tuple[str, ScaleSpec | None, int | None]:
+    if not isinstance(output_dtype, OutputDType):
+        raise TypeError(f"output_dtype must be an OutputDType; got {type(output_dtype).__name__}")
+    if output_dtype is OutputDType.INT4:
+        selected_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if selected_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("int4 output currently requires subchannel-256 output scales")
+        if split_k not in {None, 1}:
+            raise ValueError("int4 output requires split_k=1; partial INT4 outputs cannot be atomically reduced")
+        return output_dtype.value, selected_scale, 1
+    if output_scale is not None:
+        raise ValueError("output_scale is valid only when output_dtype=OutputDType.INT4")
+    if output_dtype is OutputDType.BF16:
+        if split_k not in {None, 1}:
+            raise ValueError("BF16 output requires split_k=1; split-K partials require FP32 atomics")
+        return output_dtype.value, None, 1
+    if epilogue is not Epilogue.NONE:
+        raise ValueError(f"{epilogue.value} supports BF16 or INT4 output, not FP32 split-K output")
+    if split_k == 1:
+        raise ValueError("FP32 dense output requires split_k>1")
+    return output_dtype.value, None, split_k
+
+
+def _copy_reference_output(result: Any, *, out: Any | None, out_scale: Any | None) -> Any:
+    if isinstance(result, QuantizedInt4Tensor):
+        packed = result.packed
+        scales = result.scale
+        if out is not None:
+            if out.dtype != packed.dtype or tuple(out.shape) != tuple(packed.shape):
+                raise ValueError(
+                    f"out must have dtype/shape {packed.dtype}/{tuple(packed.shape)}; "
+                    f"got {out.dtype}/{tuple(out.shape)}"
+                )
+            out.copy_(packed)
+            packed = out
+        if out_scale is not None:
+            if out_scale.dtype != scales.dtype or tuple(out_scale.shape) != tuple(scales.shape):
+                raise ValueError(
+                    f"out_scale must have dtype/shape {scales.dtype}/{tuple(scales.shape)}; "
+                    f"got {out_scale.dtype}/{tuple(out_scale.shape)}"
+                )
+            out_scale.copy_(scales)
+            scales = out_scale
+        return QuantizedInt4Tensor(packed, scales, result.logical_shape, result.scale_spec)
+    if out_scale is not None:
+        raise ValueError("out_scale is valid only for int4 output")
+    if out is None:
+        return result
+    if out.dtype != result.dtype or tuple(out.shape) != tuple(result.shape):
+        raise ValueError(
+            f"out must have dtype/shape {result.dtype}/{tuple(result.shape)}; "
+            f"got {out.dtype}/{tuple(out.shape)}"
+        )
+    out.copy_(result)
+    return out
+
+
+def _validate_output_shape(*, output_dtype: str, n: int) -> None:
+    if output_dtype == OutputDType.INT4.value and n % 256 != 0:
+        raise ValueError("INT4 output requires the logical output width to be divisible by 256")
 
 
 def _is_packed_int4_arg(dtype: OperandDType, tensor: Any) -> bool:
@@ -146,6 +221,11 @@ def mm(
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
     epilogue: Epilogue = Epilogue.NONE,
     schedule: KernelSchedule = KernelSchedule.STANDARD,
+    split_k: int | None = None,
+    output_dtype: OutputDType = OutputDType.BF16,
+    output_scale: ScaleSpec | None = None,
+    out: Any | None = None,
+    out_scale: Any | None = None,
     registry: KernelRegistry = default_registry,
     use_reference: bool = False,
 ) -> Any:
@@ -153,16 +233,28 @@ def mm(
 
     Native dispatch is intentionally strict: incompatible shapes or unavailable
     generated artifacts raise instead of falling back to a slower path. Set
-    ``use_reference=True`` only for numerical checks.
+    ``use_reference=True`` only for numerical checks. ``output_dtype`` selects
+    BF16, FP32 split-K accumulation, or packed signed INT4. INT4 returns a
+    :class:`QuantizedInt4Tensor` with BF16 subchannel-256 scales and requires
+    ``split_k=1``, a logical output width divisible by 256, and a BN256 tile.
+    Supply contiguous ``out`` and ``out_scale`` buffers to avoid allocation
+    during CUDA/HIP graph capture and replay.
     """
 
     if epilogue is Epilogue.SWIGLU:
         raise ValueError("SwiGLU is exposed through fused_swiglu_up_gate(...), not mm(...)")
+    selected_output_dtype, selected_output_scale, selected_split_k = _resolve_output_request(
+        output_dtype,
+        output_scale,
+        epilogue=epilogue,
+        split_k=split_k,
+    )
     _require_supported_layout(layout)
     selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype)
     m, n, k = _logical_problem_shape(
         a, b, a_dtype=selected_a_dtype, b_dtype=selected_b_dtype, layout=layout, swiglu=False
     )
+    _validate_output_shape(output_dtype=selected_output_dtype, n=n)
     if use_reference:
         kernel = registry.select_reference(
             a_dtype=selected_a_dtype,
@@ -171,6 +263,9 @@ def mm(
             scale=scale,
             epilogue=epilogue,
             schedule=schedule,
+            split_k=selected_split_k,
+            output_dtype=selected_output_dtype,
+            output_scale=selected_output_scale,
         )
     else:
         kernel = registry.select(
@@ -183,8 +278,23 @@ def mm(
             n=n,
             k=k,
             schedule=schedule,
+            split_k=selected_split_k,
+            output_dtype=selected_output_dtype,
+            output_scale=selected_output_scale,
         )
-    return explicit_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate, use_reference=use_reference)
+    return explicit_mm(
+        a,
+        b,
+        kernel=kernel,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        gate=gate,
+        output_dtype=output_dtype,
+        output_scale=selected_output_scale,
+        out=out,
+        out_scale=out_scale,
+        use_reference=use_reference,
+    )
 
 
 def fused_swiglu_up_gate(
@@ -198,6 +308,11 @@ def fused_swiglu_up_gate(
     b_dtype: OperandDType | None = None,
     layout: GemmLayout = GemmLayout.NN,
     scale: ScaleSpec = ScaleSpec(ScaleMode.PER_CHANNEL),
+    split_k: int = 1,
+    output_dtype: OutputDType = OutputDType.BF16,
+    output_scale: ScaleSpec | None = None,
+    out: Any | None = None,
+    out_scale: Any | None = None,
     registry: KernelRegistry = default_registry,
     use_reference: bool = False,
 ) -> Any:
@@ -205,14 +320,25 @@ def fused_swiglu_up_gate(
 
     ``b_up_gate`` is laid out as ``[up | gate]`` along the output dimension.
     The logical GEMM output has shape ``(M, 2D)``; this API returns
-    ``up * silu(gate)`` with shape ``(M, D)``.
+    ``up * silu(gate)`` with shape ``(M, D)``. With
+    ``output_dtype=OutputDType.INT4``, the epilogue is quantized in the same
+    kernel and returned with BF16 subchannel-256 output scales. Packed output
+    requires ``D % 256 == 0`` and ``split_k=1``; reusable ``out`` and
+    ``out_scale`` buffers make the launch allocation-free for graph replay.
     """
 
     _require_supported_layout(layout)
+    selected_output_dtype, selected_output_scale, selected_split_k = _resolve_output_request(
+        output_dtype,
+        output_scale,
+        epilogue=Epilogue.SWIGLU,
+        split_k=split_k,
+    )
     selected_a_dtype, selected_b_dtype = resolve_operand_dtypes(dtype=dtype, a_dtype=a_dtype, b_dtype=b_dtype)
     m, n, k = _logical_problem_shape(
         a, b_up_gate, a_dtype=selected_a_dtype, b_dtype=selected_b_dtype, layout=layout, swiglu=True
     )
+    _validate_output_shape(output_dtype=selected_output_dtype, n=n)
     if use_reference:
         kernel = registry.select_reference(
             a_dtype=selected_a_dtype,
@@ -220,7 +346,9 @@ def fused_swiglu_up_gate(
             layout=layout,
             scale=scale,
             epilogue=Epilogue.SWIGLU,
-            split_k=1,
+            split_k=selected_split_k,
+            output_dtype=selected_output_dtype,
+            output_scale=selected_output_scale,
         )
     else:
         kernel = registry.select(
@@ -232,7 +360,9 @@ def fused_swiglu_up_gate(
             m=m,
             n=n,
             k=k,
-            split_k=1,
+            split_k=selected_split_k,
+            output_dtype=selected_output_dtype,
+            output_scale=selected_output_scale,
         )
     return explicit_mm(
         a,
@@ -240,6 +370,10 @@ def fused_swiglu_up_gate(
         kernel=kernel,
         a_scale=a_scale,
         b_scale=b_scale,
+        output_dtype=output_dtype,
+        output_scale=selected_output_scale,
+        out=out,
+        out_scale=out_scale,
         use_reference=use_reference,
     )
 
@@ -252,6 +386,10 @@ def explicit_mm(
     a_scale: Any | None = None,
     b_scale: Any | None = None,
     gate: Any | None = None,
+    output_dtype: OutputDType | None = None,
+    output_scale: ScaleSpec | None = None,
+    out: Any | None = None,
+    out_scale: Any | None = None,
     use_reference: bool = False,
 ) -> Any:
     """Launch a caller-selected dense GEMM kernel.
@@ -262,6 +400,20 @@ def explicit_mm(
     """
 
     _require_supported_layout(kernel.layout)
+    selected_output_dtype = OutputDType(kernel.output_dtype) if output_dtype is None else output_dtype
+    requested_dtype, requested_scale, requested_split_k = _resolve_output_request(
+        selected_output_dtype,
+        output_scale,
+        epilogue=kernel.epilogue,
+        split_k=kernel.tile.split_k,
+    )
+    if requested_dtype != kernel.output_dtype or requested_scale != kernel.output_scale:
+        raise ValueError(
+            f"requested output {requested_dtype}/{requested_scale} does not match kernel metadata "
+            f"{kernel.output_dtype}/{kernel.output_scale}"
+        )
+    if requested_split_k != kernel.tile.split_k:
+        raise ValueError("requested split-K/output combination does not match kernel metadata")
     if kernel.epilogue is Epilogue.SWIGLU and gate is not None:
         raise ValueError("SwiGLU kernels use fused up/gate columns; pass gate through b_up_gate")
     m, n, k = _logical_problem_shape(
@@ -272,10 +424,12 @@ def explicit_mm(
         layout=kernel.layout,
         swiglu=kernel.epilogue is Epilogue.SWIGLU,
     )
+    _validate_output_shape(output_dtype=requested_dtype, n=n)
     if use_reference:
         a_scale = _prepare_a_scale(a, kernel=kernel, a_scale=a_scale)
         _validate_scale_shapes(kernel=kernel, m=m, n=n, k=k, a_scale=a_scale, b_scale=b_scale)
-        return reference_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
+        result = reference_mm(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
+        return _copy_reference_output(result, out=out, out_scale=out_scale)
     if kernel.a_dtype is OperandDType.BF16 and kernel.b_dtype is OperandDType.INT4:
         if a_scale is not None:
             raise ValueError("a_scale is computed by bf16xint4 GEMMs; caller-provided a_scale is not supported")
@@ -285,12 +439,30 @@ def explicit_mm(
     _validate_scale_shapes(kernel=kernel, m=m, n=n, k=k, a_scale=validation_a_scale, b_scale=b_scale)
     if kernel.status not in {KernelStatus.COMPILED, KernelStatus.BENCHMARKED}:
         try:
-            return launch_generated_kernel(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
+            return launch_generated_kernel(
+                a,
+                b,
+                kernel=kernel,
+                a_scale=a_scale,
+                b_scale=b_scale,
+                c=out,
+                gate=gate,
+                output_scale=out_scale,
+            )
         except Exception as exc:
             raise KernelNotAvailableError(
                 f"{kernel.kernel_id} is {kernel.status.value}; native generated dispatch is unavailable: {exc}"
             ) from exc
-    return launch_generated_kernel(a, b, kernel=kernel, a_scale=a_scale, b_scale=b_scale, gate=gate)
+    return launch_generated_kernel(
+        a,
+        b,
+        kernel=kernel,
+        a_scale=a_scale,
+        b_scale=b_scale,
+        c=out,
+        gate=gate,
+        output_scale=out_scale,
+    )
 
 
 def reference_mm(
@@ -335,6 +507,10 @@ def reference_mm(
         return out.to(torch.bfloat16)
     if kernel.output_dtype == "float32":
         return out
+    if kernel.output_dtype == "int4":
+        if kernel.output_scale is None:
+            raise ValueError("int4 output kernel metadata is missing output_scale")
+        return quantize_int4_output(out, kernel.output_scale)
     raise ValueError(f"unsupported kernel output dtype: {kernel.output_dtype}")
 
 

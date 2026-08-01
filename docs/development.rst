@@ -54,7 +54,8 @@ Regenerate the packaged ragged artifact set separately:
 The ragged generator emits ``kernels/amdgcn/gfx1151_ragged_int4_*.s`` plus
 matching ``.json`` metadata. CMake automatically assembles those ``.s`` files
 into wheel-packaged ``.hsaco`` objects alongside the dense matrix. Its default
-job set and ``--clean`` lifecycle cover 40 forward BF16, 40 generic backward
+job set and ``--clean`` lifecycle cover 40 forward BF16, 120 forward packed
+INT4 plain/ReLU2/SwiGLU, 40 generic backward
 FP32, 80 generic backward BF16 paired/scalar-store, and 20 exact
 4096-capacity backward BF16 wide-store artifacts, plus two specialized
 TN/per-channel/even-K ``bwd_accum`` artifacts using
@@ -67,9 +68,10 @@ Triton source and IR are part of the provenance update.
 ``uv.lock`` pins the custom Triton dependency to
 ``ec4a2c64315f3d4485e963a8391a7444a232801f``, and both dense and ragged
 generation summaries record that source commit. The 2,880-entry combinatorial
-dense base and 182 ragged artifacts were regenerated at this revision. Two
-exact subchannel-256 TN projection-gradient artifacts bring the current
-checked-in dense total to 2,882; the ragged total remains 182.
+dense base, two exact subchannel-256 TN projection-gradient artifacts, and 180
+packed-INT4 output artifacts bring the checked-in dense total to 3,062. The
+ragged matrix contains 302 artifacts after adding its 120 packed-output
+variants.
 
 Attention Generation and Tuning
 -------------------------------
@@ -91,8 +93,8 @@ attention source/assembly contract. The generation summary records the exact
 custom-Triton commit and the parser verifies pointer/scalar offsets, including
 the two hidden Triton ABI pointers, before accepting an artifact.
 
-The current totals are 2,882 dense, 182 ragged, and 488 attention artifacts
-(3,552 packaged HSACOs).
+The current totals are 3,062 dense, 302 ragged, and 488 attention artifacts
+(3,852 packaged HSACOs).
 
 Regenerate the complete attention timing database on gfx1151 with prepacked
 inputs and the experimental ROCm PyTorch SDPA baseline enabled:
@@ -158,7 +160,7 @@ development-only BF16×INT4 path:
 
 All three validate candidates with ``rtol=atol=1e-3``. This mode dynamically
 quantizes BF16 activation tiles inside the kernel and repeats that work for
-each N tile. It does not imply that mixed artifacts are packaged; the 1080
+each N tile. It does not imply that mixed artifacts are packaged; the 1,170
 mixed registry entries remain development-only. Prefer prequantizing A once
 and reusing the standard INT4 path when throughput or projection reuse matters.
 

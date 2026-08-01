@@ -31,7 +31,9 @@ from amd_strix_halo_kernels.artifacts import (  # noqa: E402
 from amd_strix_halo_kernels.metadata import (  # noqa: E402
     OUTPUT_DTYPE_BF16,
     OUTPUT_DTYPE_FLOAT32,
+    OUTPUT_DTYPE_INT4,
     SUPPORTED_SUBCHANNELS,
+    Epilogue,
     GemmLayout,
     ScaleMode,
     ScaleSpec,
@@ -175,7 +177,16 @@ def _kernel_arg_layout(amdgcn: str, runtime_scalar_args: list[str]) -> dict[str,
     }
 
 
-def _fwd_args(torch: Any, *, config: RaggedDotConfig, layout: GemmLayout, scale: ScaleSpec, variant: str) -> tuple[Any, ...]:
+def _fwd_args(
+    torch: Any,
+    *,
+    config: RaggedDotConfig,
+    layout: GemmLayout,
+    scale: ScaleSpec,
+    variant: str,
+    output_dtype: str,
+    epilogue: Epilogue,
+) -> tuple[Any, ...]:
     groups = 2
     m = max(config.block_m * 2, 64)
     n = max(config.block_n, 64)
@@ -183,7 +194,12 @@ def _fwd_args(torch: Any, *, config: RaggedDotConfig, layout: GemmLayout, scale:
     k_packed = k // 2
     scale_cols = _cdiv(k, scale.subchannel_size or k)
     lhs_shape = (k_packed, m) if layout in {GemmLayout.TN, GemmLayout.TT} else (m, k_packed)
-    rhs_shape = (groups, n, k_packed) if layout in {GemmLayout.NT, GemmLayout.TT} else (groups, k_packed, n)
+    rhs_n = n * 2 if epilogue is Epilogue.SWIGLU else n
+    rhs_shape = (
+        (groups, rhs_n, k_packed)
+        if layout in {GemmLayout.NT, GemmLayout.TT}
+        else (groups, k_packed, rhs_n)
+    )
     lhs = torch.empty(lhs_shape, device="cuda", dtype=torch.uint8)
     rhs = torch.empty(rhs_shape, device="cuda", dtype=torch.uint8)
     a_scale = (
@@ -192,11 +208,16 @@ def _fwd_args(torch: Any, *, config: RaggedDotConfig, layout: GemmLayout, scale:
         else torch.empty((m,), device="cuda", dtype=torch.bfloat16)
     )
     b_scale = (
-        torch.empty((groups, scale_cols, n), device="cuda", dtype=torch.bfloat16)
+        torch.empty((groups, scale_cols, rhs_n), device="cuda", dtype=torch.bfloat16)
         if scale.mode is ScaleMode.SUBCHANNEL
-        else torch.empty((groups, n), device="cuda", dtype=torch.bfloat16)
+        else torch.empty((groups, rhs_n), device="cuda", dtype=torch.bfloat16)
     )
-    out = torch.empty((m, n), device="cuda", dtype=torch.bfloat16)
+    out = torch.empty(
+        (m, n // 2) if output_dtype == OUTPUT_DTYPE_INT4 else (m, n),
+        device="cuda",
+        dtype=torch.uint8 if output_dtype == OUTPUT_DTYPE_INT4 else torch.bfloat16,
+    )
+    out_scale = torch.empty((m, n // 256), device="cuda", dtype=torch.bfloat16)
     group_sizes = torch.tensor([m // groups, m - (m // groups)], device="cuda", dtype=torch.int32)
 
     from amd_strix_halo_kernels.ragged import calculate_group_info
@@ -212,6 +233,7 @@ def _fwd_args(torch: Any, *, config: RaggedDotConfig, layout: GemmLayout, scale:
         group_info.actual_start,
         group_info.actual_end,
         out,
+        out_scale,
         m,
         n,
         k_packed,
@@ -290,6 +312,8 @@ def compile_ragged_program(
     variant: str,
     config: RaggedDotConfig | RaggedBwdDotConfig,
     output_dtype: str,
+    epilogue: Epilogue = Epilogue.NONE,
+    output_scale: ScaleSpec | None = None,
     store_strategy: str = RAGGED_STORE_DEFAULT,
     shape_specialization: tuple[int, int, int] | None = None,
 ) -> Any:
@@ -305,7 +329,7 @@ def compile_ragged_program(
             "shape specialization requires standard split-K=1 BF16 backward with wide stores"
         )
     if mode == RAGGED_FWD:
-        allowed_output_dtypes = {OUTPUT_DTYPE_BF16}
+        allowed_output_dtypes = {OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_INT4}
     elif mode == RAGGED_BWD:
         allowed_output_dtypes = {OUTPUT_DTYPE_FLOAT32}
         if config.split_k == 1:
@@ -314,6 +338,14 @@ def compile_ragged_program(
         allowed_output_dtypes = {OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_BF16}
     if output_dtype not in allowed_output_dtypes:
         raise ValueError(f"unsupported {mode} output dtype {output_dtype!r}")
+    if output_dtype == OUTPUT_DTYPE_INT4:
+        output_scale = output_scale or ScaleSpec(ScaleMode.SUBCHANNEL, 256)
+        if mode != RAGGED_FWD or output_scale != ScaleSpec(ScaleMode.SUBCHANNEL, 256):
+            raise ValueError("ragged INT4 output requires forward mode and subchannel-256 output scales")
+        if config.block_n != 256:
+            raise ValueError("ragged INT4 output requires BLOCK_N=256")
+    elif output_scale is not None or epilogue is not Epilogue.NONE:
+        raise ValueError("ragged output_scale and fused epilogues require INT4 output")
     valid_bf16_store = (
         mode == RAGGED_BWD
         and output_dtype == OUTPUT_DTYPE_BF16
@@ -329,12 +361,74 @@ def compile_ragged_program(
         )
 
     if mode == RAGGED_FWD:
-        from amd_strix_halo_kernels.ragged import _ragged_dot_int4_even_k_kernel, _ragged_dot_int4_kernel
+        from amd_strix_halo_kernels.ragged import (
+            _ragged_dot_int4_even_k_kernel,
+            _ragged_dot_int4_kernel,
+            _ragged_dot_int4_quant_kernel,
+        )
 
         assert isinstance(config, RaggedDotConfig)
-        args = _fwd_args(torch, config=config, layout=layout, scale=scale, variant=variant)
-        lhs, rhs, a_scale, b_scale, group_id, block_start, actual_start, actual_end, out, m, n, k_packed, scale_cols, num_tasks = args
+        args = _fwd_args(
+            torch,
+            config=config,
+            layout=layout,
+            scale=scale,
+            variant=variant,
+            output_dtype=output_dtype,
+            epilogue=epilogue,
+        )
+        (
+            lhs,
+            rhs,
+            a_scale,
+            b_scale,
+            group_id,
+            block_start,
+            actual_start,
+            actual_end,
+            out,
+            out_scale,
+            m,
+            n,
+            k_packed,
+            scale_cols,
+            num_tasks,
+        ) = args
         grid = (num_tasks * _cdiv(n, config.block_n),)
+        if output_dtype == OUTPUT_DTYPE_INT4:
+            return _ragged_dot_int4_quant_kernel(specialize_runtime_args=False)[grid](
+                lhs,
+                rhs,
+                a_scale,
+                b_scale,
+                group_id,
+                block_start,
+                actual_start,
+                actual_end,
+                out,
+                out_scale,
+                m,
+                n,
+                k_packed,
+                scale_cols,
+                num_tasks,
+                BLOCK_M=config.block_m,
+                BLOCK_N=config.block_n,
+                BLOCK_K=config.block_k,
+                HAS_LHS_SCALE=True,
+                HAS_RHS_SCALE=True,
+                SUBCHANNEL=scale.subchannel_size or 0,
+                GROUP_SIZE_TASKS=config.group_size_tasks,
+                A_TRANS=layout in {GemmLayout.TN, GemmLayout.TT},
+                B_TRANS=layout in {GemmLayout.NT, GemmLayout.TT},
+                EVEN_K_FAST_PATH=variant == RAGGED_EVEN_K,
+                SWIGLU=epilogue is Epilogue.SWIGLU,
+                RELU2=epilogue is Epilogue.RELU2,
+                num_warps=config.num_warps,
+                num_stages=config.num_stages,
+                matrix_instr_nonkdim=16,
+                kpack=1,
+            )
         kernel = (
             _ragged_dot_int4_even_k_kernel(specialize_runtime_args=False)
             if variant == RAGGED_EVEN_K
@@ -482,6 +576,8 @@ def _write_artifacts(
     triton_out_dir: Path | None,
     triton: Any,
     output_dtype: str,
+    epilogue: Epilogue,
+    output_scale: ScaleSpec | None,
     store_strategy: str,
     shape_specialization: tuple[int, int, int] | None = None,
 ) -> dict[str, object]:
@@ -492,6 +588,8 @@ def _write_artifacts(
         config=config,
         variant=variant,
         output_dtype=output_dtype,
+        epilogue=epilogue,
+        output_scale=output_scale,
         store_strategy=store_strategy,
         shape_specialization=shape_specialization,
     )
@@ -523,6 +621,8 @@ def _write_artifacts(
         config=config,
         variant=variant,
         output_dtype=output_dtype,
+        epilogue=epilogue,
+        output_scale=output_scale,
         store_strategy=store_strategy,
         amdgcn_symbol=amdgcn_symbol,
         launch_metadata=launch_metadata,
@@ -542,6 +642,8 @@ def _write_artifacts(
         "layout": layout.value,
         "scale": scale.label,
         "variant": variant,
+        "epilogue": epilogue.value,
+        "output_dtype": output_dtype,
         "store_strategy": store_strategy,
         "shape_specialization": shape_specialization or "runtime",
         "config_label": ragged_config_label(config),
@@ -576,6 +678,7 @@ def _build_jobs(
     layouts: Iterable[GemmLayout],
     scales: Iterable[ScaleSpec],
     variants: Iterable[str],
+    epilogues: Iterable[Epilogue],
 ) -> list[
     tuple[
         str,
@@ -584,6 +687,8 @@ def _build_jobs(
         str,
         RaggedDotConfig | RaggedBwdDotConfig,
         str,
+        Epilogue,
+        ScaleSpec | None,
         str,
         tuple[int, int, int] | None,
     ]
@@ -596,6 +701,8 @@ def _build_jobs(
             str,
             RaggedDotConfig | RaggedBwdDotConfig,
             str,
+            Epilogue,
+            ScaleSpec | None,
             str,
             tuple[int, int, int] | None,
         ]
@@ -611,6 +718,8 @@ def _build_jobs(
                         RAGGED_EVEN_K,
                         DEFAULT_BWD_ACCUM_CONFIG,
                         output_dtype,
+                        Epilogue.NONE,
+                        None,
                         RAGGED_STORE_DEFAULT,
                         None,
                     )
@@ -632,10 +741,27 @@ def _build_jobs(
                                 variant,
                                 config,
                                 OUTPUT_DTYPE_BF16,
+                                Epilogue.NONE,
+                                None,
                                 RAGGED_STORE_DEFAULT,
                                 None,
                             )
                         )
+                        for epilogue in epilogues:
+                            jobs.append(
+                                (
+                                    mode,
+                                    layout,
+                                    scale,
+                                    variant,
+                                    config,
+                                    OUTPUT_DTYPE_INT4,
+                                    epilogue,
+                                    ScaleSpec(ScaleMode.SUBCHANNEL, 256),
+                                    RAGGED_STORE_DEFAULT,
+                                    None,
+                                )
+                            )
                         continue
                     for output_dtype in (OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32):
                         config = default_ragged_bwd_config(
@@ -672,6 +798,8 @@ def _build_jobs(
                                         variant,
                                         config,
                                         output_dtype,
+                                        Epilogue.NONE,
+                                        None,
                                         store_strategy,
                                         shape_specialization,
                                     )
@@ -685,6 +813,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--layout", action="append", type=GemmLayout, choices=list(GemmLayout), default=[])
     parser.add_argument("--scale", action="append", type=_parse_scale, default=[])
     parser.add_argument("--variant", action="append", choices=list(RAGGED_VARIANTS), default=[])
+    parser.add_argument("--epilogue", action="append", type=Epilogue, choices=list(Epilogue), default=[])
+    parser.add_argument(
+        "--output-dtype",
+        action="append",
+        choices=[OUTPUT_DTYPE_BF16, OUTPUT_DTYPE_FLOAT32, OUTPUT_DTYPE_INT4],
+        default=[],
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_AMDGCN_DIR)
     parser.add_argument("--triton-out-dir", type=Path, default=DEFAULT_TRITON_DIR)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
@@ -704,12 +839,22 @@ def main(argv: list[str] | None = None) -> int:
     layouts = _selected(args.layout, tuple(GemmLayout))
     scales = _selected(args.scale, (*(ScaleSpec(ScaleMode.SUBCHANNEL, size) for size in SUPPORTED_SUBCHANNELS), ScaleSpec(ScaleMode.PER_CHANNEL)))
     variants = _selected(args.variant, RAGGED_VARIANTS)
+    epilogues = _selected(args.epilogue, tuple(Epilogue))
     triton_out_dir = None if args.no_triton_artifacts else args.triton_out_dir
     if args.clean:
         removed = _clean_ragged_outputs(args.out_dir, args.triton_out_dir)
         print(f"removed {removed} stale ragged artifact files", flush=True)
 
-    jobs = _build_jobs(modes=modes, layouts=layouts, scales=scales, variants=variants)
+    jobs = _build_jobs(
+        modes=modes,
+        layouts=layouts,
+        scales=scales,
+        variants=variants,
+        epilogues=epilogues,
+    )
+    if args.output_dtype:
+        selected_output_dtypes = set(args.output_dtype)
+        jobs = [job for job in jobs if job[5] in selected_output_dtypes]
     if args.limit:
         jobs = jobs[: args.limit]
 
@@ -722,6 +867,8 @@ def main(argv: list[str] | None = None) -> int:
         variant,
         config,
         output_dtype,
+        epilogue,
+        output_scale,
         store_strategy,
         shape_specialization,
     ) in enumerate(
@@ -735,6 +882,8 @@ def main(argv: list[str] | None = None) -> int:
             config=config,
             variant=variant,
             output_dtype=output_dtype,
+            epilogue=epilogue,
+            output_scale=output_scale,
             store_strategy=store_strategy,
             shape_specialization=shape_specialization,
         )
@@ -747,6 +896,8 @@ def main(argv: list[str] | None = None) -> int:
                 variant=variant,
                 config=config,
                 output_dtype=output_dtype,
+                epilogue=epilogue,
+                output_scale=output_scale,
                 store_strategy=store_strategy,
                 shape_specialization=shape_specialization,
             )
@@ -764,6 +915,8 @@ def main(argv: list[str] | None = None) -> int:
                     triton_out_dir=triton_out_dir,
                     triton=triton,
                     output_dtype=output_dtype,
+                    epilogue=epilogue,
+                    output_scale=output_scale,
                     store_strategy=store_strategy,
                     shape_specialization=shape_specialization,
                 )

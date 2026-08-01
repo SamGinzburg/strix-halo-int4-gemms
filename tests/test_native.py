@@ -8,6 +8,7 @@ from amd_strix_halo_kernels.native import (
     _block_size,
     _launch_grid,
     _require_bfloat16_scale,
+    _require_device,
     _validate_launch_shape,
     amdgcn_metadata_dir,
     amdgcn_metadata_path_for_kernel_id,
@@ -40,6 +41,14 @@ def test_native_resource_paths_can_be_rooted_explicitly(tmp_path) -> None:
     )
 
 
+def test_native_device_validation_rejects_cross_device_tensors() -> None:
+    tensor = SimpleNamespace(device="cuda:1")
+
+    assert _require_device("out", tensor, "cuda:1") is tensor
+    with pytest.raises(ValueError, match="out must be on device cuda:0.*cuda:1"):
+        _require_device("out", tensor, "cuda:0")
+
+
 def test_block_size_uses_generated_num_warps_metadata() -> None:
     kernel = default_registry.select(
         dtype=OperandDType.INT4,
@@ -63,7 +72,7 @@ def test_persistent_launch_grid_uses_generated_grid_metadata() -> None:
         k=32,
         schedule=KernelSchedule.PERSISTENT,
     )
-    assert _launch_grid(kernel, {"launch_metadata": {"grid_x": 17, "grid_y": 4}}, object()) == (17, 4, 1)
+    assert _launch_grid(kernel, {"launch_metadata": {"grid_x": 17, "grid_y": 4}}, m=64, n=512) == (17, 4, 1)
 
 
 def test_runtime_shape_metadata_accepts_non_generation_shape() -> None:
@@ -161,7 +170,7 @@ def test_dispatch_runtime_status_loads_built_library_when_available() -> None:
     status = dispatch_runtime_status(library)
 
     assert status.library_path == Path(library)
-    assert status.dispatch_version == 3
+    assert status.dispatch_version == 4
     assert status.has_hip_runtime in {False, True}
     assert status.has_linked_kernels == (status.has_compiled_code_objects and status.has_hip_runtime)
 

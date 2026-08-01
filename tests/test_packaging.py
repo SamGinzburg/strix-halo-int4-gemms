@@ -90,8 +90,10 @@ def test_native_dispatcher_exports_ragged_hsaco_entrypoints() -> None:
     dispatch = (REPO_ROOT / "native" / "src" / "dispatch.cpp").read_text()
 
     assert "amd_strix_halo_kernels_launch_ragged_fwd_hsaco" in dispatch
+    assert "amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco" in dispatch
     assert "amd_strix_halo_kernels_launch_ragged_bwd_hsaco" in dispatch
     assert "library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.argtypes" in native_py
+    assert "library.amd_strix_halo_kernels_launch_ragged_fwd_quant_hsaco.argtypes" in native_py
     assert "library.amd_strix_halo_kernels_launch_ragged_bwd_hsaco.argtypes" in native_py
     assert "runtime_scalar_args" in native_py
     assert "has_scale_cols_arg" in native_py

@@ -184,6 +184,39 @@ def test_generate_attention_amdgcn_help_does_not_compile_kernels() -> None:
     assert "--output-dtype" in result.stdout
 
 
+def test_generate_kda_amdgcn_help_does_not_compile_kernels() -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / "generate_kda_amdgcn.py"), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Generate precompiled gfx1151 KDA artifacts" in result.stdout
+    assert "--phase" in result.stdout
+    assert "--clean" in result.stdout
+
+
+def test_kda_generator_catalog_is_complete_and_unique() -> None:
+    from amd_strix_halo_kernels.kda_artifacts import (
+        KDA_BACKWARD_NORMALIZE,
+        KDA_BACKWARD_PREPROCESS,
+        KDA_BACKWARD_RECURRENT,
+        KDA_FORWARD,
+        kda_kernel_id,
+        kda_precompiled_jobs,
+    )
+
+    jobs = kda_precompiled_jobs()
+    kernel_ids = tuple(kda_kernel_id(job) for job in jobs)
+
+    assert len(jobs) == len(set(kernel_ids)) == 14
+    assert sum(job.phase == KDA_FORWARD for job in jobs) == 8
+    assert sum(job.phase == KDA_BACKWARD_PREPROCESS for job in jobs) == 2
+    assert sum(job.phase == KDA_BACKWARD_RECURRENT for job in jobs) == 2
+    assert sum(job.phase == KDA_BACKWARD_NORMALIZE for job in jobs) == 2
+
+
 def test_attention_generator_catalog_is_complete_and_unique() -> None:
     sys.path.insert(0, str(REPO_ROOT / "src"))
     from amd_strix_halo_kernels.attention_artifacts import (
@@ -316,6 +349,83 @@ def test_checked_in_attention_artifact_matrix_has_valid_runtime_abi() -> None:
     assert summary["selected_jobs"] == summary["generated_count"] == 792
     assert summary["failure_count"] == 0
     assert summary["failures"] == []
+
+
+def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
+    from amd_strix_halo_kernels.artifacts import installed_triton_commit
+    from amd_strix_halo_kernels.kda_artifacts import (
+        KDA_ARGUMENT_NAMES,
+        kda_kernel_id,
+        kda_precompiled_jobs,
+    )
+
+    amdgcn_dir = REPO_ROOT / "kernels" / "amdgcn"
+    jobs = kda_precompiled_jobs()
+    expected_ids = {kda_kernel_id(job) for job in jobs}
+    metadata_paths = sorted(amdgcn_dir.glob("gfx1151_kda_*.json"))
+    assembly_paths = sorted(amdgcn_dir.glob("gfx1151_kda_*.s"))
+
+    assert len(expected_ids) == len(metadata_paths) == len(assembly_paths) == 14
+    assert {path.stem for path in metadata_paths} == expected_ids
+    assert {path.stem for path in assembly_paths} == expected_ids
+
+    source_commit = installed_triton_commit()
+    assert source_commit is not None and len(source_commit) == 40
+    for metadata_path in metadata_paths:
+        metadata = json.loads(metadata_path.read_text())
+        layout = metadata["kernel_arg_layout"]
+        arguments = layout["arguments"]
+        assert tuple(argument["name"] for argument in arguments) == KDA_ARGUMENT_NAMES[
+            metadata["phase"]
+        ]
+        assert len(layout["hidden_global_buffer_offsets"]) == 2
+        assert metadata["source_triton_commit"] == source_commit
+        assert metadata["launch_metadata"]["grid_x"] >= 1
+        assert metadata["launch_metadata"]["grid_y"] >= 1
+        assert metadata["launch_metadata"]["dynamic_grid"] == 1
+        assert metadata["shape_specialization"] == {
+            "batch": "runtime",
+            "sequence": "runtime",
+            "heads": "runtime",
+            "head_dim": 128,
+            "value_dim": 128,
+        }
+        assert metadata["generation_shape"] == {
+            "batch": 4,
+            "sequence": 2048,
+            "heads": 32,
+            "head_dim": 128,
+            "value_dim": 128,
+        }
+        assert metadata["runtime_constraints"] == {
+            "batch_min": 1,
+            "sequence_min": 1,
+            "sequence_max": 2048,
+            "heads_min": 1,
+            "max_buffer_descriptor_bytes": 2**32,
+        }
+
+    summary = json.loads((amdgcn_dir / "kda_generation_summary.json").read_text())
+    assert summary["source_triton_commit"] == source_commit
+    assert summary["selected_jobs"] == summary["generated_count"] == 14
+    assert summary["failure_count"] == 0
+    assert summary["failures"] == []
+
+
+def test_checked_in_benchmarks_record_exact_triton_revision() -> None:
+    from amd_strix_halo_kernels.artifacts import installed_triton_commit
+
+    source_commit = installed_triton_commit()
+    assert source_commit is not None and len(source_commit) == 40
+    for name in (
+        "gfx1151_generated.json",
+        "ragged_dot_int4.json",
+        "gfx1151_attention.json",
+        "gfx1151_projection_training.json",
+        "gfx1151_kda.json",
+    ):
+        payload = json.loads((REPO_ROOT / "benchmarks" / name).read_text())
+        assert payload["triton_git_revision"] == source_commit
 
 
 def test_ragged_generator_uses_dataclass_defaults_for_packaged_tiles() -> None:

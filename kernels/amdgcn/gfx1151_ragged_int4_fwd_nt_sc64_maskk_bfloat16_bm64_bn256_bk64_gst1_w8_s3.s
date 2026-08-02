@@ -30,7 +30,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nt_sc64_maskk_bfloat16_bm64_bn256_bk64_gs
 	v_dual_mov_b32 v13, 0 :: v_dual_mov_b32 v14, 0
 	v_dual_mov_b32 v15, 0 :: v_dual_mov_b32 v16, 0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13 is_stmt 1               ; standard.py:43:13 @[ ragged.py:863:21 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s3, s98, 0xff

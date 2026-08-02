@@ -394,7 +394,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xint4_bf16_runtime_bfloat16_d64_dv64_sh
 	s_cbranch_scc1 .LBB0_6
 ; %bb.5:                                ; %.._crit_edge_crit_edge
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
 	v_lshrrev_b32_e32 v9, 3, v1
 	s_mov_b32 s8, 0

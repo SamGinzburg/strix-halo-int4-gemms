@@ -1258,7 +1258,7 @@ amd_strix_halo_gfx1151_attention_fwd_bf16xint4_bf16_runtime_float32_d64_dv64_sha
 	.loc	1 1019 30                       ; attention.py:1019:30
 	v_mov_b16_e64 v213.h, v88.l
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:968:29 ] ]
 	v_max3_f32 v68, v91, v209, v210
 .Ltmp2:

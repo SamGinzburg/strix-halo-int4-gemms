@@ -3,6 +3,16 @@
   "torch": "2.9.1+rocm7.2.0.git7e1940d4",
   "hip": "7.2.26015-fc0010cf6a",
   "triton": "3.7.0",
+  "triton_git_revision": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
+  "record_schema": 3,
+  "measurement": {
+    "warmup_ms": 100,
+    "rep_ms": 400,
+    "prepacked_inputs": true,
+    "preallocated_outputs": true
+  },
+  "kda_backend": "gluon",
+  "kda_precompiled": "require",
   "shape": {
     "batch": 4,
     "sequence": 2048,
@@ -14,6 +24,8 @@
     {
       "mode": "bf16",
       "phase": "forward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -29,12 +41,12 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 8.798916816711426,
-      "effective_tops": 3.4168718375538227,
+      "runtime_ms": 5.057694911956787,
+      "effective_tops": 5.944362322235872,
       "numerical_gate": {
         "forward_max_abs": 3.725290298461914e-08,
         "final_state_max_abs": 1.7881393432617188e-07,
-        "backward_max_abs": 9.5367431640625e-07,
+        "backward_max_abs": 1.1920928955078125e-06,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -42,6 +54,8 @@
     {
       "mode": "bf16",
       "phase": "backward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -57,11 +71,11 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 143.88108825683594,
+      "runtime_ms": 70.98839569091797,
       "numerical_gate": {
         "forward_max_abs": 3.725290298461914e-08,
         "final_state_max_abs": 1.7881393432617188e-07,
-        "backward_max_abs": 9.5367431640625e-07,
+        "backward_max_abs": 1.1920928955078125e-06,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -70,6 +84,8 @@
     {
       "mode": "int4-qk",
       "phase": "forward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -85,12 +101,12 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 8.770862579345703,
-      "effective_tops": 3.42780094888259,
+      "runtime_ms": 4.743103981018066,
+      "effective_tops": 6.3386278673879834,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.3113021850585938e-06,
+        "backward_max_abs": 1.0728836059570312e-06,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -98,6 +114,8 @@
     {
       "mode": "int4-qk",
       "phase": "backward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -113,11 +131,11 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 141.70582580566406,
+      "runtime_ms": 70.32642364501953,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.3113021850585938e-06,
+        "backward_max_abs": 1.0728836059570312e-06,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -126,6 +144,8 @@
     {
       "mode": "int4-v",
       "phase": "forward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -141,8 +161,8 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 8.919061660766602,
-      "effective_tops": 3.3708446264307925,
+      "runtime_ms": 4.965041160583496,
+      "effective_tops": 6.0552914063791485,
       "numerical_gate": {
         "forward_max_abs": 8.940696716308594e-08,
         "final_state_max_abs": 2.384185791015625e-07,
@@ -154,6 +174,8 @@
     {
       "mode": "int4-v",
       "phase": "backward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -169,7 +191,7 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 142.5959014892578,
+      "runtime_ms": 73.4363021850586,
       "numerical_gate": {
         "forward_max_abs": 8.940696716308594e-08,
         "final_state_max_abs": 2.384185791015625e-07,
@@ -182,6 +204,8 @@
     {
       "mode": "int4-all",
       "phase": "forward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -197,12 +221,12 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 8.771865844726562,
-      "effective_tops": 3.4274089007043154,
+      "runtime_ms": 5.2703351974487305,
+      "effective_tops": 5.704527311005529,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.1920928955078125e-06,
+        "backward_max_abs": 1.430511474609375e-06,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -210,6 +234,8 @@
     {
       "mode": "int4-all",
       "phase": "backward",
+      "backend": "gluon",
+      "precompiled": "require",
       "shape": {
         "batch": 4,
         "sequence": 2048,
@@ -225,11 +251,11 @@
         "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 141.74795532226562,
+      "runtime_ms": 74.15737915039062,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.1920928955078125e-06,
+        "backward_max_abs": 1.430511474609375e-06,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -246,7 +272,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 15.787433624267578,
+      "runtime_ms": 15.7373046875,
       "notes": "output allocation included"
     },
     {
@@ -258,7 +284,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 4.267651081085205,
+      "runtime_ms": 5.688960075378418,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -270,7 +296,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 3.67325496673584,
+      "runtime_ms": 3.3673219680786133,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -282,7 +308,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 6.643950939178467,
+      "runtime_ms": 6.583078861236572,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -294,7 +320,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 5.800487995147705,
+      "runtime_ms": 5.839562892913818,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -306,7 +332,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 67.92874145507812,
+      "runtime_ms": 50.063907623291016,
       "notes": "FP32 Q/K/V gradients; forward excluded"
     }
   ],

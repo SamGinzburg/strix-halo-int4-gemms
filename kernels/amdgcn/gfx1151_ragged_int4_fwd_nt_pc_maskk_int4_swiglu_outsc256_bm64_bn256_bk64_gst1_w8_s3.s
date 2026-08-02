@@ -21,7 +21,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nt_pc_maskk_int4_swiglu_outsc256_bm64_bn2
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_1)
 	v_lshlrev_b32_e32 v0, 1, v165
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ ragged.py:1031:21 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s28, 0xff

@@ -2,8 +2,8 @@
   "amdgcn_stats": {
     "bf16_wmma": 24,
     "iu4_wmma": 0,
-    "lines": 4393,
-    "waitcnt": 149
+    "lines": 4616,
+    "waitcnt": 188
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_attention_bwd_dkv_bf16xbf16_bf16_runtime_outfloat32_doutbfloat16_float32_d64_dv64_shaperuntime_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1",
   "arch": "gfx1151",
@@ -149,13 +149,8 @@
   "saved_output_dtype": "float32",
   "semantics": "runtime",
   "shape_specialization": "runtime",
-  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "status": "generated",
-  "triton_artifacts": {
-    "llir": "kernels/triton/gfx1151_attention_bwd_dkv_bf16xbf16_bf16_runtime_outfloat32_doutbfloat16_float32_d64_dv64_shaperuntime_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.llir",
-    "source": "kernels/triton/gfx1151_attention_bwd_dkv_bf16xbf16_bf16_runtime_outfloat32_doutbfloat16_float32_d64_dv64_shaperuntime_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.py",
-    "ttgir": "kernels/triton/gfx1151_attention_bwd_dkv_bf16xbf16_bf16_runtime_outfloat32_doutbfloat16_float32_d64_dv64_shaperuntime_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.ttgir",
-    "ttir": "kernels/triton/gfx1151_attention_bwd_dkv_bf16xbf16_bf16_runtime_outfloat32_doutbfloat16_float32_d64_dv64_shaperuntime_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.ttir"
-  },
+  "triton_artifacts": {},
   "value_dim": 64
 }

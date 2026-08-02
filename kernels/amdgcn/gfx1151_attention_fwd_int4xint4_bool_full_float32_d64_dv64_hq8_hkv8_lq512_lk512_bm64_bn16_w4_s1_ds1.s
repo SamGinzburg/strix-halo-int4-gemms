@@ -437,7 +437,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xint4_bool_full_float32_d64_dv64_hq8_hk
 	v_cndmask_b32_e64 v92, v86, v81, s4
 	v_cndmask_b32_e64 v94, v81, v86, s4
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:968:29 ] ]
 	v_max_f32_e32 v95, v84, v85
 	v_max3_f32 v96, v93, v81, v87

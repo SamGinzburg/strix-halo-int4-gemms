@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import re
+from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 from typing import Mapping
 
@@ -18,6 +20,32 @@ GENERIC_AMDGCN_SYMBOLS = (
     "_int8_scaled_gemm",
     "kernel",
 )
+
+
+def installed_triton_commit() -> str | None:
+    """Return the exact VCS commit recorded for the installed Triton build.
+
+    A source-built wheel is installed under this repository's ``.venv``.  A
+    plain ``git rev-parse`` from that path therefore finds this repository,
+    not the Triton checkout.  PEP 610's ``direct_url.json`` is the authoritative
+    provenance for a VCS-installed distribution.
+    """
+
+    try:
+        direct_url = distribution("triton").read_text("direct_url.json")
+    except PackageNotFoundError:
+        return None
+    if not direct_url:
+        return None
+    try:
+        payload = json.loads(direct_url)
+    except json.JSONDecodeError:
+        return None
+    vcs_info = payload.get("vcs_info")
+    if not isinstance(vcs_info, dict):
+        return None
+    commit = vcs_info.get("commit_id")
+    return commit if isinstance(commit, str) and commit else None
 
 
 def display_path(path: Path, *, root: Path | None = None) -> str:

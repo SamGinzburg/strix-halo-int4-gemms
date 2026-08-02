@@ -13,8 +13,11 @@ class KimiDeltaAttentionConfig:
     ``value_block`` and ``backward_value_block`` independently partition the
     value dimension for forward and backward. ``checkpoint_interval`` controls
     the optional FP32 state cache consumed by the explicit backward API.
+    The Triton backend consumes every launch field. The Gluon backend consumes
+    ``value_block`` and ``checkpoint_interval`` but selects its measured
+    backward value tile, wave count, and explicit layouts automatically.
     ``chunked`` opts into the experimental compact-WY implementation;
-    recurrent execution is the measured default.
+    chunked execution is Triton-only and recurrent execution is the default.
     """
 
     value_block: int = 64
@@ -991,7 +994,9 @@ def kimi_delta_attention(
     w_workspace: Any | None = None,
     u_workspace: Any | None = None,
     config: KimiDeltaAttentionConfig | None = None,
+    backend: str = "triton",
     use_reference: bool = False,
+    use_precompiled: bool | None = None,
 ) -> tuple[Any, Any | None]:
     """Run causal Kimi Delta Attention over dense ``[B, T, H, D]`` inputs.
 
@@ -1001,7 +1006,12 @@ def kimi_delta_attention(
     :func:`quantize_kda_int4`. The final state is always FP32 in the optimized
     path. Pass ``out``, ``final_state``, ``state_cache``,
     ``w_workspace``, and ``u_workspace`` to make the launch allocation-free
-    for CUDA graph capture.
+    for CUDA graph capture. ``backend="gluon"`` selects the tuned
+    explicit-layout RDNA 3.5 implementation; the default remains ``"triton"``.
+    With ``backend="gluon"``, ``use_precompiled=None`` automatically uses an
+    installed native gfx1151 HSACO for positive runtime B/H and T through
+    2048 when D=Dv=128 and the other packaged constraints match. Set it to
+    ``False`` to force Gluon JIT or ``True`` to require native code.
     """
 
     torch = _torch()
@@ -1012,6 +1022,16 @@ def kimi_delta_attention(
     ):
         if not isinstance(flag, bool):
             raise TypeError(f"{name} must be a Python bool")
+    if not isinstance(backend, str):
+        raise TypeError("backend must be a Python str")
+    if backend not in {"triton", "gluon"}:
+        raise ValueError("backend must be 'triton' or 'gluon'")
+    if use_precompiled is not None and not isinstance(use_precompiled, bool):
+        raise TypeError("use_precompiled must be a Python bool or None")
+    if use_reference and use_precompiled is True:
+        raise ValueError("use_reference=True cannot be combined with use_precompiled=True")
+    if backend != "gluon" and use_precompiled is True:
+        raise ValueError("use_precompiled=True requires backend='gluon'")
     (
         qk_int4,
         value_int4,
@@ -1087,6 +1107,8 @@ def kimi_delta_attention(
     elif not isinstance(config, KimiDeltaAttentionConfig):
         raise TypeError("config must be a KimiDeltaAttentionConfig or None")
     if config.chunked:
+        if backend != "triton":
+            raise ValueError("chunked KDA currently requires backend='triton'")
         if config.checkpoint_interval != 16:
             raise ValueError("chunked KDA requires checkpoint_interval=16")
         if dtype != torch.bfloat16:
@@ -1312,40 +1334,164 @@ def kimi_delta_attention(
                 num_stages=config.num_stages,
             )
         return out, final_state if output_final_state else None
-    _kda_forward_kernel()[grid](
-        query,
-        key,
-        value,
-        log_decay,
-        beta,
-        query_scale_arg,
-        key_scale_arg,
-        value_scale_arg,
-        initial_arg,
-        out,
-        final_arg,
-        cache_arg,
-        sequence,
-        heads,
-        logical_head_dim,
-        int(query.shape[-1]),
-        logical_value_dim,
-        int(value.shape[-1]),
-        num_checkpoints,
-        resolved_scale,
-        BLOCK_D=block_d,
-        BLOCK_V=config.value_block,
-        CHECKPOINT_INTERVAL=config.checkpoint_interval,
-        LOOP_STAGES=config.num_stages,
-        QK_INT4=qk_int4,
-        VALUE_INT4=value_int4,
-        HAS_INITIAL_STATE=initial_state is not None,
-        STORE_FINAL_STATE=output_final_state,
-        STORE_STATE_CACHE=state_cache is not None,
-        NORMALIZE_QK=normalize_qk,
-        OUTPUT_BF16=dtype == torch.bfloat16,
-        STORE_OUTPUT=True,
-        num_warps=config.num_warps,
-        num_stages=config.num_stages,
-    )
+    use_native = False
+    native_job = None
+    if backend == "gluon" and use_precompiled is not False:
+        from .kda_artifacts import KDA_FORWARD, KdaArtifactJob
+        from .kda_native import (
+            is_precompiled_kda_workload,
+            precompiled_kda_available,
+        )
+
+        native_job = KdaArtifactJob(
+            KDA_FORWARD,
+            qk_int4=qk_int4,
+            value_int4=value_int4,
+            store_state_cache=state_cache is not None,
+        )
+        native_supported = (
+            is_precompiled_kda_workload(
+                batch=batch,
+                sequence=sequence,
+                heads=heads,
+                head_dim=logical_head_dim,
+                value_dim=logical_value_dim,
+                value_block=config.value_block,
+                checkpoint_interval=config.checkpoint_interval,
+                needs_state_cache=state_cache is not None,
+            )
+            and not config.chunked
+            and initial_state is None
+            and not output_final_state
+            and normalize_qk
+            and dtype == torch.bfloat16
+            and log_decay.dtype == torch.float32
+            and beta.dtype == torch.float32
+        )
+        artifact_available = native_supported and precompiled_kda_available(native_job)
+        if use_precompiled is True and not native_supported:
+            raise ValueError(
+                "precompiled KDA requires positive B/H, 1 <= T <= 2048, "
+                "D=Dv=128, value_block=64, checkpoint_interval=4, normalized "
+                "Q/K, FP32 gates, BF16 output, no initial/final state, and "
+                "RDNA 3.5-addressable runtime buffers"
+            )
+        if use_precompiled is True and not artifact_available:
+            raise RuntimeError("the required precompiled KDA forward artifact is not installed")
+        use_native = artifact_available
+    if use_native:
+        from .kda_native import (
+            kda_precompiled_cache_tail,
+            launch_precompiled_kda,
+        )
+
+        fp32_dummy = log_decay
+        native_cache = state_cache if state_cache is not None else fp32_dummy
+        cache_tail = (
+            kda_precompiled_cache_tail(state_cache)
+            if state_cache is not None
+            else fp32_dummy
+        )
+        launch_precompiled_kda(
+            native_job,
+            values={
+                "query": query,
+                "key": key,
+                "value": value,
+                "log_decay": log_decay,
+                "beta": beta,
+                "query_scale": query_scale_arg,
+                "key_scale": key_scale_arg,
+                "value_scale": value_scale_arg,
+                "initial_state": fp32_dummy,
+                "output": out,
+                "final_state": fp32_dummy,
+                "state_cache": native_cache,
+                "state_cache_tail": cache_tail,
+                "sequence": sequence,
+                "heads": heads,
+                "head_dim": logical_head_dim,
+                "packed_head_dim": int(query.shape[-1]),
+                "value_dim": logical_value_dim,
+                "packed_value_dim": int(value.shape[-1]),
+                "num_checkpoints": num_checkpoints,
+                "output_scale": resolved_scale,
+            },
+            reference_tensor=query,
+            grid=grid,
+        )
+    elif backend == "gluon":
+        from .kda_gluon import launch_kda_gluon_forward
+
+        launch_kda_gluon_forward(
+            grid=grid,
+            query=query,
+            key=key,
+            value=value,
+            log_decay=log_decay,
+            beta=beta,
+            query_scale=query_scale_arg,
+            key_scale=key_scale_arg,
+            value_scale=value_scale_arg,
+            initial_state=initial_arg,
+            output=out,
+            final_state=final_arg,
+            state_cache=cache_arg,
+            sequence=sequence,
+            heads=heads,
+            head_dim=logical_head_dim,
+            packed_head_dim=int(query.shape[-1]),
+            value_dim=logical_value_dim,
+            packed_value_dim=int(value.shape[-1]),
+            num_checkpoints=num_checkpoints,
+            output_scale=resolved_scale,
+            block_d=block_d,
+            block_v=config.value_block,
+            checkpoint_interval=config.checkpoint_interval,
+            qk_int4=qk_int4,
+            value_int4=value_int4,
+            has_initial_state=initial_state is not None,
+            store_final_state=output_final_state,
+            store_state_cache=state_cache is not None,
+            normalize_qk=normalize_qk,
+            output_bf16=dtype == torch.bfloat16,
+            store_output=True,
+        )
+    else:
+        _kda_forward_kernel()[grid](
+            query,
+            key,
+            value,
+            log_decay,
+            beta,
+            query_scale_arg,
+            key_scale_arg,
+            value_scale_arg,
+            initial_arg,
+            out,
+            final_arg,
+            cache_arg,
+            sequence,
+            heads,
+            logical_head_dim,
+            int(query.shape[-1]),
+            logical_value_dim,
+            int(value.shape[-1]),
+            num_checkpoints,
+            resolved_scale,
+            BLOCK_D=block_d,
+            BLOCK_V=config.value_block,
+            CHECKPOINT_INTERVAL=config.checkpoint_interval,
+            LOOP_STAGES=config.num_stages,
+            QK_INT4=qk_int4,
+            VALUE_INT4=value_int4,
+            HAS_INITIAL_STATE=initial_state is not None,
+            STORE_FINAL_STATE=output_final_state,
+            STORE_STATE_CACHE=state_cache is not None,
+            NORMALIZE_QK=normalize_qk,
+            OUTPUT_BF16=dtype == torch.bfloat16,
+            STORE_OUTPUT=True,
+            num_warps=config.num_warps,
+            num_stages=config.num_stages,
+        )
     return out, final_state if output_final_state else None

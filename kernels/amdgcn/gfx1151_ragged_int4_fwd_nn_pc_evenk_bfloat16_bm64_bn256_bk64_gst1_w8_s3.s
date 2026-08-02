@@ -12,17 +12,17 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	.cfi_startproc
 ; %bb.0:
 	s_clause 0x1
-	s_load_b64 s[24:25], s[0:1], 0x4c
+	s_load_b64 s[18:19], s[0:1], 0x4c
 	s_load_b32 s3, s[0:1], 0x58
 .Ltmp0:
 	.loc	1 707 25 prologue_end           ; ragged.py:707:25
 	s_abs_i32 s8, s2
-	v_lshlrev_b32_e32 v120, 1, v0
+	v_lshlrev_b32_e32 v95, 1, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ ragged.py:705:21 ]
 	s_waitcnt lgkmcnt(0)
-	s_add_i32 s4, s24, 0xff
+	s_add_i32 s4, s18, 0xff
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
 	.loc	2 43 12 is_stmt 0               ; standard.py:43:12 @[ ragged.py:705:21 ]
 	s_ashr_i32 s5, s4, 31
@@ -94,10 +94,10 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	s_add_i32 s17, s14, 1
 	s_sub_i32 s16, s6, s5
 	s_load_b256 s[4:11], s[0:1], 0x20
-	s_sub_i32 s18, s16, s13
+	s_sub_i32 s20, s16, s13
 	s_cmp_ge_u32 s16, s13
 	s_cselect_b32 s14, s17, s14
-	s_cselect_b32 s16, s18, s16
+	s_cselect_b32 s16, s20, s16
 	s_add_i32 s17, s14, 1
 	s_cmp_ge_u32 s16, s13
 	s_cselect_b32 s13, s17, s14
@@ -122,9 +122,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	s_add_u32 s6, s6, s2
 	s_addc_u32 s7, s7, s3
 	.loc	1 714 20                        ; ragged.py:714:20
-	s_load_b64 s[26:27], s[4:5], 0x0
+	s_load_b64 s[16:17], s[4:5], 0x0
 	.loc	1 715 23                        ; ragged.py:715:23
-	s_load_b64 s[28:29], s[6:7], 0x0
+	s_load_b64 s[20:21], s[6:7], 0x0
 	.loc	1 716 24                        ; ragged.py:716:24
 	s_add_u32 s4, s8, s2
 	s_addc_u32 s5, s9, s3
@@ -133,20 +133,20 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	s_addc_u32 s7, s11, s3
 	.loc	1 719 18                        ; ragged.py:719:18
 	s_waitcnt lgkmcnt(0)
-	s_lshl_b32 s27, s13, 8
+	s_lshl_b32 s17, s13, 8
 	.loc	1 729 19                        ; ragged.py:729:19
-	s_cmp_gt_i32 s25, 0
+	s_cmp_gt_i32 s19, 0
 	.loc	1 719 18                        ; ragged.py:719:18
-	v_or_b32_e32 v89, s27, v0
+	v_or_b32_e32 v65, s17, v0
 	s_mov_b32 s3, 0
 	s_delay_alu instid0(VALU_DEP_1)
 	.loc	1 721 20                        ; ragged.py:721:20
-	v_cmp_gt_i32_e64 s2, s24, v89
+	v_cmp_gt_i32_e64 s2, s18, v65
 	.loc	1 729 19                        ; ragged.py:729:19
 	s_cbranch_scc1 .LBB0_2
 ; %bb.1:                                ; %.._crit_edge_crit_edge
 	.loc	1 0 19 is_stmt 0                ; ragged.py:0:19
-	v_dual_mov_b32 v1, s28 :: v_dual_lshlrev_b32 v2, 1, v0
+	v_dual_mov_b32 v1, s20 :: v_dual_lshlrev_b32 v2, 1, v0
 	s_branch .LBB0_3
 .LBB0_2:
 	s_mov_b32 s3, -1
@@ -155,207 +155,150 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 .LBB0_3:                                ; %Flow
 	s_clause 0x1
 	s_load_b64 s[56:57], s[0:1], 0x40
-	s_load_b128 s[16:19], s[0:1], 0x10
-	s_load_b64 s[30:31], s[4:5], 0x0
-	s_load_b64 s[34:35], s[6:7], 0x0
-	v_dual_mov_b32 v22, 0 :: v_dual_and_b32 v119, 15, v0
-	v_dual_mov_b32 v23, 0 :: v_dual_mov_b32 v24, 0
-	v_dual_mov_b32 v25, 0 :: v_dual_mov_b32 v26, 0
-	v_dual_mov_b32 v27, 0 :: v_dual_mov_b32 v28, 0
-	v_dual_mov_b32 v29, 0 :: v_dual_mov_b32 v30, 0
-	v_dual_mov_b32 v31, 0 :: v_dual_mov_b32 v32, 0
-	v_dual_mov_b32 v33, 0 :: v_dual_mov_b32 v34, 0
-	v_dual_mov_b32 v35, 0 :: v_dual_mov_b32 v36, 0
-	v_dual_mov_b32 v37, 0 :: v_dual_mov_b32 v38, 0
-	v_dual_mov_b32 v39, 0 :: v_dual_mov_b32 v40, 0
-	v_dual_mov_b32 v41, 0 :: v_dual_mov_b32 v42, 0
-	v_dual_mov_b32 v43, 0 :: v_dual_mov_b32 v66, 0
-	v_dual_mov_b32 v65, 0 :: v_dual_mov_b32 v68, 0
-	v_dual_mov_b32 v67, 0 :: v_dual_mov_b32 v70, 0
-	v_dual_mov_b32 v69, 0 :: v_dual_mov_b32 v72, 0
-	v_dual_mov_b32 v71, 0 :: v_dual_mov_b32 v74, 0
-	v_dual_mov_b32 v73, 0 :: v_dual_mov_b32 v76, 0
-	v_dual_mov_b32 v75, 0 :: v_dual_mov_b32 v78, 0
-	v_dual_mov_b32 v77, 0 :: v_dual_mov_b32 v80, 0
-	v_dual_mov_b32 v79, 0 :: v_dual_mov_b32 v82, 0
-	v_dual_mov_b32 v81, 0 :: v_dual_mov_b32 v84, 0
-	v_dual_mov_b32 v83, 0 :: v_dual_mov_b32 v86, 0
-	v_dual_mov_b32 v85, 0 :: v_dual_mov_b32 v88, 0
-	v_dual_mov_b32 v87, 0 :: v_dual_mov_b32 v90, 0
-	v_dual_mov_b32 v91, 0 :: v_dual_mov_b32 v92, 0
-	v_dual_mov_b32 v93, 0 :: v_dual_mov_b32 v94, 0
-	v_dual_mov_b32 v95, 0 :: v_dual_mov_b32 v96, 0
-	v_dual_mov_b32 v97, 0 :: v_dual_mov_b32 v98, 0
-	v_dual_mov_b32 v99, 0 :: v_dual_mov_b32 v100, 0
-	v_dual_mov_b32 v101, 0 :: v_dual_mov_b32 v102, 0
-	v_dual_mov_b32 v103, 0 :: v_dual_mov_b32 v104, 0
-	v_dual_mov_b32 v105, 0 :: v_dual_mov_b32 v106, 0
-	v_mov_b32_e32 v107, 0
+	s_load_b128 s[8:11], s[0:1], 0x10
+	s_load_b64 s[22:23], s[4:5], 0x0
+	s_load_b64 s[24:25], s[6:7], 0x0
+	v_dual_mov_b32 v23, 0 :: v_dual_and_b32 v94, 15, v0
+	v_dual_mov_b32 v22, 0 :: v_dual_mov_b32 v25, 0
+	v_dual_mov_b32 v24, 0 :: v_dual_mov_b32 v27, 0
+	v_dual_mov_b32 v26, 0 :: v_dual_mov_b32 v29, 0
+	v_dual_mov_b32 v28, 0 :: v_dual_mov_b32 v31, 0
+	v_dual_mov_b32 v30, 0 :: v_dual_mov_b32 v33, 0
+	v_dual_mov_b32 v32, 0 :: v_dual_mov_b32 v35, 0
+	v_dual_mov_b32 v34, 0 :: v_dual_mov_b32 v37, 0
+	v_dual_mov_b32 v36, 0 :: v_dual_mov_b32 v39, 0
+	v_dual_mov_b32 v38, 0 :: v_dual_mov_b32 v41, 0
+	v_dual_mov_b32 v40, 0 :: v_dual_mov_b32 v43, 0
+	v_dual_mov_b32 v42, 0 :: v_dual_mov_b32 v67, 0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v71, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v73, 0
+	v_dual_mov_b32 v72, 0 :: v_dual_mov_b32 v75, 0
+	v_dual_mov_b32 v74, 0 :: v_dual_mov_b32 v77, 0
+	v_dual_mov_b32 v76, 0 :: v_dual_mov_b32 v79, 0
+	v_dual_mov_b32 v78, 0 :: v_dual_mov_b32 v81, 0
+	v_dual_mov_b32 v80, 0 :: v_dual_mov_b32 v83, 0
+	v_dual_mov_b32 v82, 0 :: v_dual_mov_b32 v85, 0
+	v_dual_mov_b32 v84, 0 :: v_dual_mov_b32 v87, 0
+	v_dual_mov_b32 v86, 0 :: v_dual_mov_b32 v89, 0
+	v_dual_mov_b32 v88, 0 :: v_dual_mov_b32 v91, 0
+	v_dual_mov_b32 v90, 0 :: v_dual_mov_b32 v93, 0
+	v_dual_mov_b32 v92, 0 :: v_dual_mov_b32 v97, 0
+	v_dual_mov_b32 v96, 0 :: v_dual_mov_b32 v99, 0
+	v_dual_mov_b32 v98, 0 :: v_dual_mov_b32 v101, 0
+	v_dual_mov_b32 v100, 0 :: v_dual_mov_b32 v103, 0
+	v_dual_mov_b32 v102, 0 :: v_dual_mov_b32 v105, 0
+	v_dual_mov_b32 v104, 0 :: v_dual_mov_b32 v107, 0
+	v_dual_mov_b32 v106, 0 :: v_dual_mov_b32 v109, 0
+	v_mov_b32_e32 v108, 0
 	s_and_not1_b32 vcc_lo, exec_lo, s3
 	s_cbranch_vccnz .LBB0_7
 ; %bb.4:                                ; %.lr.ph
-	.loc	1 718 32 is_stmt 1              ; ragged.py:718:32
-	v_lshrrev_b32_e32 v18, 5, v0
-	s_load_b128 s[20:23], s[0:1], 0x0
-	.loc	1 729 13                        ; ragged.py:729:13
-	s_mov_b32 s33, 0
-	.loc	1 724 18                        ; ragged.py:724:18
-	v_and_b32_e32 v144, 31, v0
-	v_add_nc_u32_e32 v148, 0, v0
-	.loc	1 718 18                        ; ragged.py:718:18
-	v_add_co_u32 v2, s0, s28, v18
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_add_co_ci_u32_e64 v3, null, s29, 0, s0
-	v_add_co_u32 v4, vcc_lo, v2, 8
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v5, null, 0, v3, vcc_lo
-	v_add_co_u32 v6, vcc_lo, v2, 16
-	v_add_co_ci_u32_e64 v7, null, 0, v3, vcc_lo
-	v_add_co_u32 v8, vcc_lo, v2, 24
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v9, null, 0, v3, vcc_lo
-	v_add_co_u32 v10, vcc_lo, v2, 32
-	v_add_co_ci_u32_e64 v11, null, 0, v3, vcc_lo
-	v_add_co_u32 v12, vcc_lo, v2, 40
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v13, null, 0, v3, vcc_lo
-	v_add_co_u32 v14, vcc_lo, v2, 48
-	v_add_co_ci_u32_e64 v15, null, 0, v3, vcc_lo
-	v_add_co_u32 v16, vcc_lo, v2, 56
+	s_load_b128 s[12:15], s[0:1], 0x0
+	.loc	1 738 35 is_stmt 1              ; ragged.py:738:35
+	s_mul_i32 s1, s19, s18
+	.loc	1 718 32                        ; ragged.py:718:32
+	v_lshrrev_b32_e32 v4, 2, v0
+	v_mad_u64_u32 v[66:67], null, s1, s16, v[65:66]
+	v_lshrrev_b32_e32 v6, 1, v0
+	.loc	1 718 18 is_stmt 0              ; ragged.py:718:18
+	v_mov_b32_e32 v1, 0
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_add_co_u32 v2, s0, s20, v4
+	v_add_co_ci_u32_e64 v3, null, s21, 0, s0
+	.loc	1 729 19 is_stmt 1              ; ragged.py:729:19
+	v_mad_u64_u32 v[67:68], null, s18, 3, v[66:67]
+	v_xor_b32_e32 v9, v95, v4
 	.loc	1 720 21                        ; ragged.py:720:21
 	s_waitcnt lgkmcnt(0)
-	v_cmp_le_i64_e64 s5, s[30:31], v[12:13]
-	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s13, s[34:35], v[12:13]
-	.loc	1 718 18 is_stmt 1              ; ragged.py:718:18
-	v_add_co_ci_u32_e64 v17, null, 0, v3, vcc_lo
-	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e32 vcc_lo, s[30:31], v[2:3]
-	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s8, s[34:35], v[2:3]
-	v_bfe_i32 v2, v0, 7, 1
-	.loc	1 718 18 is_stmt 1              ; ragged.py:718:18
-	v_mov_b32_e32 v1, 0
-	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s0, s[30:31], v[4:5]
-	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s9, s[34:35], v[4:5]
-	.loc	1 720 20                        ; ragged.py:720:20
-	s_and_b32 s5, s5, s13
-	v_and_b32_e32 v2, 0x88, v2
-	v_and_b32_e32 v4, 24, v120
-	.loc	1 738 35 is_stmt 1              ; ragged.py:738:35
-	s_mul_i32 s13, s25, s24
-	v_and_b32_e32 v3, 0x7f, v0
-	v_mad_u64_u32 v[90:91], null, s13, s26, v[89:90]
 	s_delay_alu instid0(VALU_DEP_3)
-	v_lshl_or_b32 v122, v119, 5, v4
-	.loc	1 718 32                        ; ragged.py:718:32
-	v_and_b32_e32 v19, 0xe0, v0
-	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s4, s[30:31], v[10:11]
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[2:3]
 	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s12, s[34:35], v[10:11]
-	v_add_nc_u32_e32 v10, s28, v18
-	v_xor_b32_e32 v4, 16, v122
+	v_cmp_gt_i64_e64 s0, s[24:25], v[2:3]
+	v_lshlrev_b32_e32 v2, 5, v94
+	v_and_b32_e32 v3, 24, v95
+	v_and_b32_e32 v6, 24, v6
 	.loc	1 729 19 is_stmt 1              ; ragged.py:729:19
-	v_mad_u64_u32 v[92:93], null, s24, 3, v[90:91]
-	v_mad_u64_u32 v[93:94], null, s24, 5, v[90:91]
-	v_mad_u64_u32 v[94:95], null, s24, 6, v[90:91]
-	v_mad_u64_u32 v[95:96], null, s24, 7, v[90:91]
-	v_mad_u64_u32 v[96:97], null, s24, 9, v[90:91]
-	v_add_nc_u32_e32 v134, 0, v4
+	v_mad_u64_u32 v[68:69], null, s18, 5, v[66:67]
+	v_mad_u64_u32 v[69:70], null, s18, 6, v[66:67]
+	v_add_nc_u32_e32 v4, s20, v4
+	v_mad_u64_u32 v[70:71], null, s18, 7, v[66:67]
+	v_mad_u64_u32 v[71:72], null, s18, 9, v[66:67]
+	v_mad_u64_u32 v[72:73], null, s18, 10, v[66:67]
+	v_mad_u64_u32 v[73:74], null, s18, 11, v[66:67]
+	v_mad_u64_u32 v[74:75], null, s18, 12, v[66:67]
+	.loc	1 724 18                        ; ragged.py:724:18
+	v_lshlrev_b32_e32 v5, 3, v0
+	v_lshlrev_b32_e32 v8, 4, v0
+	v_mul_lo_u32 v99, v4, s19
 	v_mov_b32_e32 v4, v1
-	v_xor_b32_e32 v121, v2, v3
-	v_mad_u64_u32 v[97:98], null, s24, 10, v[90:91]
-	v_mad_u64_u32 v[98:99], null, s24, 11, v[90:91]
-	v_mad_u64_u32 v[99:100], null, s24, 12, v[90:91]
-	v_mad_u64_u32 v[100:101], null, s24, 13, v[90:91]
-	v_mad_u64_u32 v[101:102], null, s24, 14, v[90:91]
-	v_xor_b32_e32 v2, 0x110, v121
-	v_xor_b32_e32 v5, 24, v122
-	v_mad_u64_u32 v[102:103], null, s24, 15, v[90:91]
-	v_mad_u64_u32 v[103:104], null, s24, 17, v[90:91]
-	v_mad_u64_u32 v[104:105], null, s24, 18, v[90:91]
-	v_mad_u64_u32 v[105:106], null, s24, 19, v[90:91]
-	v_mad_u64_u32 v[106:107], null, s24, 20, v[90:91]
-	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s1, s[30:31], v[6:7]
-	v_cmp_le_i64_e64 s6, s[30:31], v[14:15]
-	v_cmp_le_i64_e64 s7, s[30:31], v[16:17]
-	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s10, s[34:35], v[6:7]
-	v_cmp_gt_i64_e64 s14, s[34:35], v[14:15]
-	v_cmp_gt_i64_e64 s15, s[34:35], v[16:17]
-	v_or_b32_e32 v6, 0x300, v0
-	v_or_b32_e32 v7, 0x700, v0
-	v_add_nc_u32_e32 v132, 0, v2
-	v_dual_mov_b32 v2, v1 :: v_dual_add_nc_u32 v135, 0, v5
-	v_lshrrev_b32_e32 v13, 1, v19
-	v_mov_b32_e32 v5, v1
-	v_add_nc_u32_e32 v15, 8, v10
-	v_add_nc_u32_e32 v16, 16, v10
-	.loc	1 729 19 is_stmt 1              ; ragged.py:729:19
-	v_mad_u64_u32 v[107:108], null, s24, 21, v[90:91]
-	v_mad_u64_u32 v[108:109], null, s24, 22, v[90:91]
-	v_mad_u64_u32 v[109:110], null, s24, 23, v[90:91]
-	v_mad_u64_u32 v[110:111], null, s24, 24, v[90:91]
-	v_mad_u64_u32 v[111:112], null, s24, 25, v[90:91]
-	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s3, s[30:31], v[8:9]
-	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s11, s[34:35], v[8:9]
-	v_or_b32_e32 v8, 0xb00, v0
-	v_or_b32_e32 v9, 0xf00, v0
-	v_or_b32_e32 v11, 0x1300, v0
-	v_add3_u32 v123, 0, v119, v13
-	v_mul_lo_u32 v124, v10, s25
-	v_add_nc_u32_e32 v13, 24, v10
-	v_add_nc_u32_e32 v18, 48, v10
-	v_dual_mov_b32 v19, v1 :: v_dual_add_nc_u32 v136, 0, v6
-	v_dual_mov_b32 v6, v1 :: v_dual_add_nc_u32 v137, 0, v7
-	v_mul_lo_u32 v125, v15, s25
-	v_add_nc_u32_e32 v15, 32, v10
-	v_mov_b32_e32 v7, v1
-	v_mul_lo_u32 v126, v16, s25
-	v_add_nc_u32_e32 v16, 40, v10
-	v_add_nc_u32_e32 v10, 56, v10
-	.loc	1 729 19 is_stmt 1              ; ragged.py:729:19
-	v_mad_u64_u32 v[112:113], null, s24, 26, v[90:91]
-	v_mad_u64_u32 v[113:114], null, s24, 27, v[90:91]
-	v_mad_u64_u32 v[114:115], null, s24, 28, v[90:91]
-	v_xor_b32_e32 v3, 8, v122
-	v_or_b32_e32 v12, 0x1700, v0
-	v_or_b32_e32 v14, 0x1b00, v0
-	v_or_b32_e32 v17, 0x1f00, v0
-	v_mad_u64_u32 v[115:116], null, s24, 29, v[90:91]
-	v_mad_u64_u32 v[116:117], null, s24, 30, v[90:91]
-	v_dual_mov_b32 v21, v1 :: v_dual_add_nc_u32 v138, 0, v8
-	v_add_nc_u32_e32 v139, 0, v9
-	v_dual_mov_b32 v23, v1 :: v_dual_add_nc_u32 v140, 0, v11
-	v_mov_b32_e32 v8, v1
-	v_mul_lo_u32 v127, v13, s25
+	v_xor_b32_e32 v7, v3, v6
+	v_or_b32_e32 v3, v2, v3
+	.loc	1 729 19                        ; ragged.py:729:19
+	v_mad_u64_u32 v[75:76], null, s18, 13, v[66:67]
+	v_mad_u64_u32 v[76:77], null, s18, 14, v[66:67]
+	v_mad_u64_u32 v[77:78], null, s18, 15, v[66:67]
+	v_mad_u64_u32 v[78:79], null, s18, 17, v[66:67]
+	v_mad_u64_u32 v[79:80], null, s18, 18, v[66:67]
+	.loc	1 724 18                        ; ragged.py:724:18
+	v_and_b32_e32 v96, 24, v5
+	v_xor_b32_e32 v5, v5, v6
+	v_lshl_or_b32 v97, v0, 5, v7
+	v_and_b32_e32 v6, 0xe00, v8
+	v_and_b32_e32 v7, 24, v9
+	v_xor_b32_e32 v9, 16, v3
+	.loc	1 729 19                        ; ragged.py:729:19
+	v_mad_u64_u32 v[80:81], null, s18, 19, v[66:67]
+	v_mad_u64_u32 v[81:82], null, s18, 20, v[66:67]
+	v_mad_u64_u32 v[82:83], null, s18, 21, v[66:67]
+	v_mad_u64_u32 v[83:84], null, s18, 22, v[66:67]
+	v_mad_u64_u32 v[84:85], null, s18, 23, v[66:67]
+	v_dual_mov_b32 v17, v1 :: v_dual_add_nc_u32 v106, 0, v9
 	v_mov_b32_e32 v9, v1
-	v_mul_lo_u32 v129, v16, s25
-	v_mov_b32_e32 v11, v1
-	v_mul_lo_u32 v130, v18, s25
-	v_mov_b32_e32 v13, v1
-	v_mul_lo_u32 v131, v10, s25
+	v_or3_b32 v98, v6, v7, v2
+	v_mad_u64_u32 v[85:86], null, s18, 24, v[66:67]
+	v_mad_u64_u32 v[86:87], null, s18, 25, v[66:67]
+	v_mad_u64_u32 v[87:88], null, s18, 26, v[66:67]
+	v_mad_u64_u32 v[88:89], null, s18, 27, v[66:67]
+	v_mad_u64_u32 v[89:90], null, s18, 28, v[66:67]
+	v_xor_b32_e32 v8, 8, v3
+	v_xor_b32_e32 v10, 24, v3
+	v_xor_b32_e32 v11, 8, v97
+	v_xor_b32_e32 v2, 16, v97
+	v_xor_b32_e32 v6, 24, v97
+	v_xor_b32_e32 v7, 8, v98
+	v_xor_b32_e32 v12, 16, v98
+	v_xor_b32_e32 v13, 24, v98
+	v_mad_u64_u32 v[90:91], null, s18, 29, v[66:67]
+	v_mad_u64_u32 v[91:92], null, s18, 30, v[66:67]
+	v_mad_u64_u32 v[92:93], null, s18, 31, v[66:67]
+	v_add_nc_u32_e32 v100, s18, v66
+	v_lshl_add_u32 v101, s18, 1, v66
+	v_lshl_add_u32 v102, s18, 2, v66
+	v_lshl_add_u32 v103, s18, 3, v66
+	v_dual_mov_b32 v15, v1 :: v_dual_add_nc_u32 v104, 0, v5
+	v_add_nc_u32_e32 v105, 0, v8
+	v_dual_mov_b32 v8, v1 :: v_dual_add_nc_u32 v107, 0, v10
 	v_mov_b32_e32 v10, v1
-	v_mul_lo_u32 v128, v15, s25
-	v_mad_u64_u32 v[117:118], null, s24, 31, v[90:91]
-	v_add_nc_u32_e32 v133, 0, v3
-	v_dual_mov_b32 v20, v1 :: v_dual_add_nc_u32 v141, 0, v12
-	v_dual_mov_b32 v25, v1 :: v_dual_add_nc_u32 v142, 0, v14
-	v_dual_mov_b32 v22, v1 :: v_dual_add_nc_u32 v143, 0, v17
+	v_dual_mov_b32 v19, v1 :: v_dual_add_nc_u32 v108, 0, v11
+	v_add_nc_u32_e32 v109, 0, v2
+	v_dual_mov_b32 v21, v1 :: v_dual_add_nc_u32 v110, 0, v6
+	v_dual_mov_b32 v14, v1 :: v_dual_add_nc_u32 v111, 0, v7
+	v_dual_mov_b32 v23, v1 :: v_dual_add_nc_u32 v112, 0, v12
+	v_dual_mov_b32 v16, v1 :: v_dual_add_nc_u32 v113, 0, v13
+	v_dual_mov_b32 v25, v1 :: v_dual_add_nc_u32 v114, 0, v3
+	v_mov_b32_e32 v2, v1
 	v_mov_b32_e32 v3, v1
+	v_mov_b32_e32 v5, v1
+	v_mov_b32_e32 v6, v1
+	v_mov_b32_e32 v7, v1
+	v_mov_b32_e32 v11, v1
 	v_mov_b32_e32 v12, v1
-	v_mov_b32_e32 v14, v1
-	v_mov_b32_e32 v15, v1
-	v_mov_b32_e32 v16, v1
-	v_mov_b32_e32 v17, v1
+	v_mov_b32_e32 v13, v1
 	v_mov_b32_e32 v18, v1
-	v_dual_mov_b32 v24, v1 :: v_dual_add_nc_u32 v145, s24, v90
+	v_mov_b32_e32 v20, v1
+	v_mov_b32_e32 v22, v1
+	v_mov_b32_e32 v24, v1
 	v_mov_b32_e32 v26, v1
 	v_mov_b32_e32 v27, v1
 	v_mov_b32_e32 v28, v1
@@ -395,450 +338,300 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_mov_b32_e32 v62, v1
 	v_mov_b32_e32 v63, v1
 	v_mov_b32_e32 v64, v1
-	v_lshl_add_u32 v146, s24, 1, v90
-	v_lshl_add_u32 v147, s24, 2, v90
-	v_lshl_add_u32 v91, s24, 3, v90
-	v_lshl_add_u32 v118, s24, 4, v90
+	v_lshl_add_u32 v93, s18, 4, v66
+	s_mov_b32 s7, 0x31027000
+	s_mov_b32 s6, 0x7ffffffe
+	s_and_b32 s13, s13, 0xffff
+	s_and_b32 s15, s15, 0xffff
 	.loc	1 720 20                        ; ragged.py:720:20
-	s_and_b32 s1, s1, s10
-	s_and_b32 s3, s3, s11
-	s_and_b32 s21, s21, 0xffff
-	s_mov_b32 s11, 0x31027000
-	s_mov_b32 s10, 0x7ffffffe
-	s_and_b32 s23, s23, 0xffff
-	s_and_b32 vcc_lo, vcc_lo, s8
-	s_and_b32 s0, s0, s9
-	s_and_b32 s4, s4, s12
-	s_and_b32 s6, s6, s14
-	s_and_b32 s7, s7, s15
-	s_mov_b32 s8, s20
-	s_mov_b32 s9, s21
-	s_mov_b32 s12, s22
-	s_mov_b32 s13, s23
-	s_mov_b32 s14, s10
-	s_mov_b32 s15, s11
+	s_and_b32 vcc_lo, vcc_lo, s0
+	s_mov_b32 s0, 0
+	s_mov_b32 s4, s12
+	s_mov_b32 s5, s13
+	s_mov_b32 s12, s14
+	s_mov_b32 s13, s15
+	s_mov_b32 s14, s6
+	s_mov_b32 s15, s7
 .LBB0_5:                                ; =>This Inner Loop Header: Depth=1
 	.loc	1 738 61                        ; ragged.py:738:61
-	s_mul_i32 s20, s33, s24
+	s_mul_i32 s1, s0, s18
 	.loc	1 730 22                        ; ragged.py:730:22
-	v_or_b32_e32 v65, s33, v144
+	v_or_b32_e32 v115, s0, v96
 	.loc	1 740 38                        ; ragged.py:740:38
-	v_add_nc_u32_e32 v66, s20, v90
-	v_add_nc_u32_e32 v67, s20, v145
-	v_add_nc_u32_e32 v68, s20, v146
-	v_add_nc_u32_e32 v69, s20, v92
-	v_add_nc_u32_e32 v70, s20, v147
-	v_add_nc_u32_e32 v71, s20, v93
-	v_add_nc_u32_e32 v72, s20, v94
-	v_add_nc_u32_e32 v157, s20, v117
+	v_add_nc_u32_e32 v116, s1, v66
+	v_add_nc_u32_e32 v117, s1, v100
+	v_add_nc_u32_e32 v118, s1, v101
+	v_add_nc_u32_e32 v119, s1, v67
+	v_add_nc_u32_e32 v120, s1, v102
+	v_add_nc_u32_e32 v121, s1, v68
+	v_add_nc_u32_e32 v122, s1, v69
+	v_add_nc_u32_e32 v123, s1, v70
+	v_add_nc_u32_e32 v124, s1, v103
+	v_add_nc_u32_e32 v125, s1, v71
+	v_add_nc_u32_e32 v126, s1, v72
+	v_add_nc_u32_e32 v127, s1, v73
+	v_add_nc_u32_e32 v128, s1, v74
+	v_add_nc_u32_e32 v129, s1, v75
+	v_add_nc_u32_e32 v130, s1, v76
+	v_add_nc_u32_e32 v133, s1, v78
+	v_add_nc_u32_e32 v134, s1, v79
 	.loc	1 739 38                        ; ragged.py:739:38
-	v_add_nc_u32_e32 v158, v124, v65
-	v_add_nc_u32_e32 v159, v125, v65
-	v_add_nc_u32_e32 v160, v126, v65
-	v_add_nc_u32_e32 v161, v127, v65
-	v_add_nc_u32_e32 v162, v128, v65
-	v_add_nc_u32_e32 v163, v129, v65
-	v_add_nc_u32_e32 v164, v130, v65
-	v_add_nc_u32_e32 v65, v131, v65
-	v_add_nc_u32_e32 v73, s20, v95
-	v_add_nc_u32_e32 v74, s20, v91
-	v_add_nc_u32_e32 v75, s20, v96
-	v_add_nc_u32_e32 v76, s20, v97
-	v_add_nc_u32_e32 v77, s20, v98
-	v_add_nc_u32_e32 v78, s20, v99
-	v_add_nc_u32_e32 v79, s20, v100
-	v_add_nc_u32_e32 v80, s20, v101
-	v_add_nc_u32_e32 v81, s20, v102
-	v_add_nc_u32_e32 v82, s20, v118
-	v_add_nc_u32_e32 v83, s20, v103
-	v_add_nc_u32_e32 v84, s20, v104
-	v_add_nc_u32_e32 v85, s20, v105
-	v_add_nc_u32_e32 v86, s20, v106
-	v_add_nc_u32_e32 v87, s20, v107
-	v_add_nc_u32_e32 v88, s20, v108
-	v_add_nc_u32_e32 v149, s20, v109
-	v_add_nc_u32_e32 v150, s20, v110
-	v_add_nc_u32_e32 v151, s20, v111
-	v_add_nc_u32_e32 v152, s20, v112
-	v_add_nc_u32_e32 v153, s20, v113
-	v_add_nc_u32_e32 v154, s20, v114
-	v_add_nc_u32_e32 v155, s20, v115
-	v_add_nc_u32_e32 v156, s20, v116
+	v_add_nc_u32_e32 v115, v99, v115
+	v_add_nc_u32_e32 v131, s1, v77
+	v_add_nc_u32_e32 v132, s1, v93
+	v_add_nc_u32_e32 v135, s1, v80
+	v_add_nc_u32_e32 v136, s1, v81
+	v_add_nc_u32_e32 v137, s1, v82
+	v_add_nc_u32_e32 v138, s1, v83
+	v_add_nc_u32_e32 v139, s1, v84
+	v_add_nc_u32_e32 v140, s1, v85
+	v_add_nc_u32_e32 v141, s1, v86
+	v_add_nc_u32_e32 v142, s1, v87
+	v_add_nc_u32_e32 v143, s1, v88
+	v_add_nc_u32_e32 v144, s1, v89
+	v_add_nc_u32_e32 v145, s1, v90
+	v_add_nc_u32_e32 v146, s1, v91
+	v_add_nc_u32_e32 v147, s1, v92
 	.loc	1 740 30                        ; ragged.py:740:30
-	v_cndmask_b32_e64 v66, 0x80000000, v66, s2
-	v_cndmask_b32_e64 v67, 0x80000000, v67, s2
-	v_cndmask_b32_e64 v68, 0x80000000, v68, s2
-	v_cndmask_b32_e64 v69, 0x80000000, v69, s2
-	v_cndmask_b32_e64 v70, 0x80000000, v70, s2
-	v_cndmask_b32_e64 v71, 0x80000000, v71, s2
-	v_cndmask_b32_e64 v72, 0x80000000, v72, s2
-	v_cndmask_b32_e64 v157, 0x80000000, v157, s2
+	v_cndmask_b32_e64 v116, 0x80000000, v116, s2
+	v_cndmask_b32_e64 v117, 0x80000000, v117, s2
+	v_cndmask_b32_e64 v118, 0x80000000, v118, s2
+	v_cndmask_b32_e64 v119, 0x80000000, v119, s2
+	v_cndmask_b32_e64 v120, 0x80000000, v120, s2
+	v_cndmask_b32_e64 v121, 0x80000000, v121, s2
+	v_cndmask_b32_e64 v122, 0x80000000, v122, s2
+	v_cndmask_b32_e64 v123, 0x80000000, v123, s2
+	v_cndmask_b32_e64 v124, 0x80000000, v124, s2
+	v_cndmask_b32_e64 v125, 0x80000000, v125, s2
+	v_cndmask_b32_e64 v126, 0x80000000, v126, s2
+	v_cndmask_b32_e64 v127, 0x80000000, v127, s2
+	v_cndmask_b32_e64 v128, 0x80000000, v128, s2
+	v_cndmask_b32_e64 v129, 0x80000000, v129, s2
+	v_cndmask_b32_e64 v130, 0x80000000, v130, s2
+	v_cndmask_b32_e64 v133, 0x80000000, v133, s2
+	v_cndmask_b32_e64 v134, 0x80000000, v134, s2
 	.loc	1 739 30                        ; ragged.py:739:30
-	v_cndmask_b32_e64 v65, 0x80000000, v65, s7
+	v_dual_cndmask_b32 v115, 0x80000000, v115 :: v_dual_add_nc_u32 v166, 0, v97
 	.loc	1 740 30                        ; ragged.py:740:30
-	v_cndmask_b32_e64 v73, 0x80000000, v73, s2
-	v_cndmask_b32_e64 v74, 0x80000000, v74, s2
-	v_cndmask_b32_e64 v75, 0x80000000, v75, s2
-	v_cndmask_b32_e64 v76, 0x80000000, v76, s2
-	v_cndmask_b32_e64 v77, 0x80000000, v77, s2
-	v_cndmask_b32_e64 v78, 0x80000000, v78, s2
-	v_cndmask_b32_e64 v79, 0x80000000, v79, s2
-	v_cndmask_b32_e64 v80, 0x80000000, v80, s2
-	v_cndmask_b32_e64 v81, 0x80000000, v81, s2
-	v_cndmask_b32_e64 v82, 0x80000000, v82, s2
-	v_cndmask_b32_e64 v83, 0x80000000, v83, s2
-	v_cndmask_b32_e64 v84, 0x80000000, v84, s2
-	v_cndmask_b32_e64 v85, 0x80000000, v85, s2
-	v_cndmask_b32_e64 v86, 0x80000000, v86, s2
-	v_cndmask_b32_e64 v87, 0x80000000, v87, s2
-	v_cndmask_b32_e64 v88, 0x80000000, v88, s2
-	v_cndmask_b32_e64 v149, 0x80000000, v149, s2
-	v_cndmask_b32_e64 v150, 0x80000000, v150, s2
-	v_cndmask_b32_e64 v151, 0x80000000, v151, s2
-	v_cndmask_b32_e64 v152, 0x80000000, v152, s2
-	v_cndmask_b32_e64 v153, 0x80000000, v153, s2
-	v_cndmask_b32_e64 v154, 0x80000000, v154, s2
-	v_cndmask_b32_e64 v155, 0x80000000, v155, s2
-	v_cndmask_b32_e64 v156, 0x80000000, v156, s2
-	.loc	1 739 30                        ; ragged.py:739:30
-	v_cndmask_b32_e32 v158, 0x80000000, v158, vcc_lo
-	v_cndmask_b32_e64 v159, 0x80000000, v159, s0
-	v_cndmask_b32_e64 v160, 0x80000000, v160, s1
-	v_cndmask_b32_e64 v161, 0x80000000, v161, s3
-	v_cndmask_b32_e64 v162, 0x80000000, v162, s4
-	v_cndmask_b32_e64 v163, 0x80000000, v163, s5
-	v_cndmask_b32_e64 v164, 0x80000000, v164, s6
-	.loc	1 740 30                        ; ragged.py:740:30
+	v_cndmask_b32_e64 v131, 0x80000000, v131, s2
+	v_cndmask_b32_e64 v132, 0x80000000, v132, s2
+	v_cndmask_b32_e64 v135, 0x80000000, v135, s2
+	v_cndmask_b32_e64 v136, 0x80000000, v136, s2
+	v_cndmask_b32_e64 v137, 0x80000000, v137, s2
+	v_cndmask_b32_e64 v138, 0x80000000, v138, s2
+	v_cndmask_b32_e64 v139, 0x80000000, v139, s2
+	v_cndmask_b32_e64 v140, 0x80000000, v140, s2
+	v_cndmask_b32_e64 v141, 0x80000000, v141, s2
+	v_cndmask_b32_e64 v142, 0x80000000, v142, s2
+	v_cndmask_b32_e64 v143, 0x80000000, v143, s2
+	v_cndmask_b32_e64 v144, 0x80000000, v144, s2
+	v_cndmask_b32_e64 v145, 0x80000000, v145, s2
+	v_cndmask_b32_e64 v146, 0x80000000, v146, s2
+	v_cndmask_b32_e64 v147, 0x80000000, v147, s2
 	s_clause 0x1f
-	buffer_load_u8 v165, v66, s[12:15], 0 offen
-	buffer_load_u8 v166, v67, s[12:15], 0 offen
-	buffer_load_u8 v167, v68, s[12:15], 0 offen
-	buffer_load_u8 v168, v69, s[12:15], 0 offen
-	buffer_load_u8 v169, v70, s[12:15], 0 offen
-	buffer_load_u8 v170, v71, s[12:15], 0 offen
-	buffer_load_u8 v171, v72, s[12:15], 0 offen
-	buffer_load_u8 v172, v73, s[12:15], 0 offen
-	buffer_load_u8 v173, v74, s[12:15], 0 offen
-	buffer_load_u8 v174, v75, s[12:15], 0 offen
-	buffer_load_u8 v175, v76, s[12:15], 0 offen
-	buffer_load_u8 v176, v77, s[12:15], 0 offen
-	buffer_load_u8 v177, v78, s[12:15], 0 offen
-	buffer_load_u8 v178, v79, s[12:15], 0 offen
-	buffer_load_u8 v179, v80, s[12:15], 0 offen
-	buffer_load_u8 v180, v81, s[12:15], 0 offen
-	buffer_load_u8 v181, v82, s[12:15], 0 offen
-	buffer_load_u8 v182, v83, s[12:15], 0 offen
-	buffer_load_u8 v183, v84, s[12:15], 0 offen
-	buffer_load_u8 v184, v85, s[12:15], 0 offen
-	buffer_load_u8 v185, v86, s[12:15], 0 offen
-	buffer_load_u8 v186, v87, s[12:15], 0 offen
-	buffer_load_u8 v187, v88, s[12:15], 0 offen
-	buffer_load_u8 v188, v149, s[12:15], 0 offen
-	buffer_load_u8 v189, v150, s[12:15], 0 offen
-	buffer_load_u8 v190, v151, s[12:15], 0 offen
-	buffer_load_u8 v191, v152, s[12:15], 0 offen
-	buffer_load_u8 v192, v153, s[12:15], 0 offen
-	buffer_load_u8 v193, v154, s[12:15], 0 offen
-	buffer_load_u8 v194, v155, s[12:15], 0 offen
-	buffer_load_u8 v195, v156, s[12:15], 0 offen
-	buffer_load_u8 v157, v157, s[12:15], 0 offen
+	buffer_load_u8 v150, v116, s[12:15], 0 offen
+	buffer_load_u8 v117, v117, s[12:15], 0 offen
+	buffer_load_u8 v152, v118, s[12:15], 0 offen
+	buffer_load_u8 v118, v119, s[12:15], 0 offen
+	buffer_load_u8 v151, v120, s[12:15], 0 offen
+	buffer_load_u8 v119, v121, s[12:15], 0 offen
+	buffer_load_u8 v153, v122, s[12:15], 0 offen
+	buffer_load_u8 v120, v123, s[12:15], 0 offen
+	buffer_load_u8 v154, v124, s[12:15], 0 offen
+	buffer_load_u8 v121, v125, s[12:15], 0 offen
+	buffer_load_u8 v155, v126, s[12:15], 0 offen
+	buffer_load_u8 v122, v127, s[12:15], 0 offen
+	buffer_load_u8 v156, v128, s[12:15], 0 offen
+	buffer_load_u8 v123, v129, s[12:15], 0 offen
+	buffer_load_u8 v157, v130, s[12:15], 0 offen
+	buffer_load_u8 v124, v131, s[12:15], 0 offen
+	buffer_load_u8 v158, v132, s[12:15], 0 offen
+	buffer_load_u8 v125, v133, s[12:15], 0 offen
+	buffer_load_u8 v159, v134, s[12:15], 0 offen
+	buffer_load_u8 v126, v135, s[12:15], 0 offen
+	buffer_load_u8 v160, v136, s[12:15], 0 offen
+	buffer_load_u8 v127, v137, s[12:15], 0 offen
+	buffer_load_u8 v161, v138, s[12:15], 0 offen
+	buffer_load_u8 v128, v139, s[12:15], 0 offen
+	buffer_load_u8 v162, v140, s[12:15], 0 offen
+	buffer_load_u8 v129, v141, s[12:15], 0 offen
+	buffer_load_u8 v163, v142, s[12:15], 0 offen
+	buffer_load_u8 v130, v143, s[12:15], 0 offen
+	buffer_load_u8 v133, v147, s[12:15], 0 offen
+	buffer_load_u8 v134, v145, s[12:15], 0 offen
+	buffer_load_u8 v164, v144, s[12:15], 0 offen
+	buffer_load_u8 v165, v146, s[12:15], 0 offen
 	.loc	1 739 30                        ; ragged.py:739:30
-	s_clause 0x7
-	buffer_load_u8 v66, v158, s[8:11], 0 offen
-	buffer_load_u8 v67, v160, s[8:11], 0 offen
-	buffer_load_u8 v68, v162, s[8:11], 0 offen
-	buffer_load_u8 v69, v164, s[8:11], 0 offen
-	buffer_load_u8 v65, v65, s[8:11], 0 offen
-	buffer_load_u8 v70, v163, s[8:11], 0 offen
-	buffer_load_u8 v71, v161, s[8:11], 0 offen
-	buffer_load_u8 v72, v159, s[8:11], 0 offen
-	v_add_nc_u32_e32 v73, 0, v121
+	buffer_load_b64 v[115:116], v115, s[4:7], 0 offen
+	.loc	1 740 30                        ; ragged.py:740:30
+	v_add_nc_u32_e32 v167, 0, v98
+	.loc	1 739 30                        ; ragged.py:739:30
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 751 17                        ; ragged.py:751:17
-	s_add_i32 s33, s33, 32
-	.loc	1 739 30                        ; ragged.py:739:30
+	s_add_i32 s0, s0, 32
+	s_delay_alu instid0(SALU_CYCLE_1)
+	.loc	1 729 19                        ; ragged.py:729:19
+	s_cmp_lt_i32 s0, s19
+	.loc	1 740 30                        ; ragged.py:740:30
+	s_waitcnt vmcnt(31)
+	v_lshlrev_b16 v135.l, 8, v117.l
+	s_waitcnt vmcnt(29)
+	v_lshlrev_b16 v132.l, 8, v118.l
+	s_waitcnt vmcnt(27)
+	v_lshlrev_b16 v131.h, 8, v119.l
+	v_or_b16 v150.l, v150.l, v135.l
+	s_waitcnt vmcnt(25)
+	v_lshlrev_b16 v131.l, 8, v120.l
+	v_or_b16 v150.h, v152.l, v132.l
+	s_waitcnt vmcnt(23)
+	v_lshlrev_b16 v139.h, 8, v121.l
+	v_or_b16 v151.l, v151.l, v131.h
+	s_waitcnt vmcnt(21)
+	v_lshlrev_b16 v139.l, 8, v122.l
+	v_or_b16 v151.h, v153.l, v131.l
+	s_waitcnt vmcnt(19)
+	v_lshlrev_b16 v136.l, 8, v123.l
+	v_or_b16 v152.l, v154.l, v139.h
+	s_waitcnt vmcnt(17)
+	v_lshlrev_b16 v135.h, 8, v124.l
+	v_or_b16 v152.h, v155.l, v139.l
+	s_waitcnt vmcnt(15)
+	v_lshlrev_b16 v147.l, 8, v125.l
+	v_or_b16 v153.l, v156.l, v136.l
+	s_waitcnt vmcnt(13)
+	v_lshlrev_b16 v144.l, 8, v126.l
+	v_or_b16 v153.h, v157.l, v135.h
+	s_waitcnt vmcnt(11)
+	v_lshlrev_b16 v143.h, 8, v127.l
+	v_or_b16 v154.l, v158.l, v147.l
+	s_waitcnt vmcnt(9)
+	v_lshlrev_b16 v143.l, 8, v128.l
+	v_or_b16 v154.h, v159.l, v144.l
 	s_waitcnt vmcnt(7)
-	ds_store_b8 v73, v66
-	s_waitcnt vmcnt(6)
-	ds_store_b8 v73, v67 offset:512
-	v_add_nc_u32_e32 v66, 0, v122
+	v_lshlrev_b16 v149.l, 8, v129.l
+	v_or_b16 v155.l, v160.l, v143.h
 	s_waitcnt vmcnt(5)
-	ds_store_b8 v73, v68 offset:1024
+	v_lshlrev_b16 v148.h, 8, v130.l
 	s_waitcnt vmcnt(4)
-	ds_store_b8 v73, v69 offset:1536
+	v_lshlrev_b16 v147.h, 8, v133.l
+	s_waitcnt vmcnt(3)
+	v_lshlrev_b16 v148.l, 8, v134.l
+	v_or_b16 v155.h, v161.l, v143.l
+	v_or_b16 v156.l, v162.l, v149.l
+	v_or_b16 v156.h, v163.l, v148.h
+	s_waitcnt vmcnt(1)
+	v_or_b16 v157.h, v165.l, v147.h
+	v_or_b16 v157.l, v164.l, v148.l
+	.loc	1 739 30                        ; ragged.py:739:30
 	s_waitcnt vmcnt(0)
-	ds_store_b8 v132, v72
-	ds_store_b8 v132, v71 offset:512
-	ds_store_b8 v132, v70 offset:1024
-	ds_store_b8 v132, v65 offset:1536
+	ds_store_b64 v104, v[115:116]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_2addr_stride64_b64 v[149:152], v66 offset1:1
-	ds_load_2addr_stride64_b64 v[153:156], v66 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[85:88], v133 offset1:1
-	ds_load_2addr_stride64_b64 v[81:84], v133 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[77:80], v134 offset1:1
-	ds_load_2addr_stride64_b64 v[73:76], v134 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[69:72], v135 offset1:1
-	ds_load_2addr_stride64_b64 v[65:68], v135 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[115:118], v114 offset1:1
+	ds_load_2addr_stride64_b64 v[119:122], v114 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[123:126], v105 offset1:1
+	ds_load_2addr_stride64_b64 v[127:130], v105 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[131:134], v106 offset1:1
+	ds_load_2addr_stride64_b64 v[135:138], v106 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[139:142], v107 offset1:1
+	ds_load_2addr_stride64_b64 v[143:146], v107 offset0:2 offset1:3
 	.loc	1 740 30                        ; ragged.py:740:30
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_store_b8 v148, v165
-	ds_store_b8 v148, v166 offset:256
-	ds_store_b8 v148, v167 offset:512
-	ds_store_b8 v148, v169 offset:1024
-	ds_store_b8 v148, v170 offset:1280
-	ds_store_b8 v148, v171 offset:1536
-	ds_store_b8 v148, v173 offset:2048
-	ds_store_b8 v148, v174 offset:2304
-	ds_store_b8 v148, v175 offset:2560
-	ds_store_b8 v148, v177 offset:3072
-	ds_store_b8 v148, v178 offset:3328
-	ds_store_b8 v148, v179 offset:3584
-	ds_store_b8 v148, v181 offset:4096
-	ds_store_b8 v148, v182 offset:4352
-	ds_store_b8 v148, v183 offset:4608
-	ds_store_b8 v148, v185 offset:5120
-	ds_store_b8 v148, v186 offset:5376
-	ds_store_b8 v148, v187 offset:5632
-	ds_store_b8 v148, v189 offset:6144
-	ds_store_b8 v148, v190 offset:6400
-	ds_store_b8 v148, v191 offset:6656
-	ds_store_b8 v148, v193 offset:7168
-	ds_store_b8 v148, v194 offset:7424
-	ds_store_b8 v148, v195 offset:7680
-	ds_store_b8 v136, v168
-	ds_store_b8 v137, v172
-	ds_store_b8 v138, v176
-	ds_store_b8 v139, v180
-	ds_store_b8 v140, v184
-	ds_store_b8 v141, v188
-	ds_store_b8 v142, v192
-	ds_store_b8 v143, v157
+	ds_store_b64 v166, v[150:151]
+	ds_store_b64 v108, v[152:153]
+	ds_store_b64 v109, v[154:155]
+	ds_store_b64 v110, v[156:157]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
+	ds_load_2addr_stride64_b64 v[147:150], v167 offset1:8
+	ds_load_2addr_stride64_b64 v[151:154], v111 offset1:8
+	ds_load_2addr_stride64_b64 v[155:158], v112 offset1:8
+	ds_load_2addr_stride64_b64 v[159:162], v113 offset1:8
 	.loc	1 741 27                        ; ragged.py:741:27
-	ds_load_u8 v157, v123 offset:1280
-	ds_load_u8 v158, v123 offset:1024
-	ds_load_u8 v159, v123 offset:1792
-	ds_load_u8 v160, v123 offset:1536
-	ds_load_u8 v161, v123 offset:1920
-	ds_load_u8 v162, v123 offset:1664
-	ds_load_u8 v163, v123 offset:1408
-	ds_load_u8 v164, v123 offset:1152
-	.loc	1 729 19                        ; ragged.py:729:19
-	s_cmp_lt_i32 s33, s25
-	.loc	1 741 27                        ; ragged.py:741:27
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v157, v158, v157, 0xc0c0004
-	ds_load_u8 v158, v123 offset:256
-	s_waitcnt lgkmcnt(5)
-	v_perm_b32 v159, v160, v159, 0xc0c0004
-	ds_load_u8 v160, v123
-	ds_load_u8 v165, v123 offset:896
-	ds_load_u8 v166, v123 offset:640
-	ds_load_u8 v167, v123 offset:384
-	ds_load_u8 v168, v123 offset:128
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v160, v160, v158, 0xc0c0004
-	ds_load_u8 v158, v123 offset:768
-	ds_load_u8 v169, v123 offset:512
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v169, v169, v158, 0xc0c0004
-	v_lshl_or_b32 v158, v159, 16, v157
-	v_perm_b32 v159, v164, v163, 0xc0c0004
-	v_perm_b32 v163, v166, v165, 0xc0c0004
-	ds_load_u8 v165, v123 offset:5888
-	ds_load_u8 v166, v123 offset:5632
-	v_lshl_or_b32 v157, v169, 16, v160
-	v_perm_b32 v160, v162, v161, 0xc0c0004
-	v_perm_b32 v161, v168, v167, 0xc0c0004
-	ds_load_u8 v162, v123 offset:3328
-	ds_load_u8 v167, v123 offset:6016
-	v_wmma_i32_16x16x16_iu4 v[1:8], v[157:158], v[149:150], v[1:8] neg_lo:[1,1,0]
-	v_lshl_or_b32 v160, v160, 16, v159
-	v_lshl_or_b32 v159, v163, 16, v161
-	v_wmma_i32_16x16x16_iu4 v[17:24], v[157:158], v[151:152], v[17:24] neg_lo:[1,1,0]
-	ds_load_u8 v161, v123 offset:3840
-	ds_load_u8 v163, v123 offset:3584
-	v_wmma_i32_16x16x16_iu4 v[33:40], v[157:158], v[153:154], v[33:40] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[49:56], v[157:158], v[155:156], v[49:56] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[9:16], v[159:160], v[149:150], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[25:32], v[159:160], v[151:152], v[25:32] neg_lo:[1,1,0]
-	ds_load_u8 v149, v123 offset:2304
-	ds_load_u8 v150, v123 offset:2048
-	ds_load_u8 v151, v123 offset:2816
-	ds_load_u8 v152, v123 offset:2560
-	ds_load_u8 v157, v123 offset:3968
-	ds_load_u8 v158, v123 offset:3712
-	v_wmma_i32_16x16x16_iu4 v[41:48], v[159:160], v[153:154], v[41:48] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[57:64], v[159:160], v[155:156], v[57:64] neg_lo:[1,1,0]
-	ds_load_u8 v153, v123 offset:3456
-	ds_load_u8 v154, v123 offset:3200
-	ds_load_u8 v155, v123 offset:2944
-	ds_load_u8 v156, v123 offset:2688
-	ds_load_u8 v159, v123 offset:2432
-	ds_load_u8 v160, v123 offset:2176
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v161, v163, v161, 0xc0c0004
-	ds_load_u8 v163, v123 offset:5120
-	s_waitcnt lgkmcnt(11)
-	v_perm_b32 v149, v150, v149, 0xc0c0004
-	s_waitcnt lgkmcnt(9)
-	v_perm_b32 v151, v152, v151, 0xc0c0004
-	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v152, v158, v157, 0xc0c0004
-	ds_load_u8 v157, v123 offset:5760
-	ds_load_u8 v158, v123 offset:5504
-	v_lshl_or_b32 v149, v151, 16, v149
-	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v151, v154, v153, 0xc0c0004
 	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v153, v160, v159, 0xc0c0004
-	ds_load_u8 v160, v123 offset:4480
-	ds_load_u8 v164, v123 offset:3072
-	v_perm_b32 v154, v156, v155, 0xc0c0004
-	ds_load_u8 v155, v123 offset:5248
-	v_lshl_or_b32 v152, v152, 16, v151
-	ds_load_u8 v156, v123 offset:4992
-	ds_load_u8 v159, v123 offset:4736
-	v_lshl_or_b32 v151, v154, 16, v153
-	v_perm_b32 v154, v166, v165, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_2)
-	v_wmma_i32_16x16x16_iu4 v[9:16], v[151:152], v[85:86], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[25:32], v[151:152], v[87:88], v[25:32] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v157, v157, v167, 0xc0c0004
-	v_wmma_i32_16x16x16_iu4 v[41:48], v[151:152], v[81:82], v[41:48] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[57:64], v[151:152], v[83:84], v[57:64] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v162, v164, v162, 0xc0c0004
-	ds_load_u8 v164, v123 offset:5376
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[147:148], v[115:116], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[149:150], v[115:116], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[147:148], v[117:118], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[149:150], v[117:118], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[147:148], v[119:120], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[149:150], v[119:120], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[147:148], v[121:122], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[149:150], v[121:122], v[57:64] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(2)
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[151:152], v[123:124], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[153:154], v[123:124], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[151:152], v[125:126], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[153:154], v[125:126], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[151:152], v[127:128], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[153:154], v[127:128], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[151:152], v[129:130], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[153:154], v[129:130], v[57:64] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v159, v159, v156, 0xc0c0004
-	v_lshl_or_b32 v150, v161, 16, v162
-	ds_load_u8 v161, v123 offset:4352
-	ds_load_u8 v162, v123 offset:4096
-	v_wmma_i32_16x16x16_iu4 v[1:8], v[149:150], v[85:86], v[1:8] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[17:24], v[149:150], v[87:88], v[17:24] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[33:40], v[149:150], v[81:82], v[33:40] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[49:56], v[149:150], v[83:84], v[49:56] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v153, v163, v164, 0xc0c0004
-	ds_load_u8 v163, v123 offset:4224
-	v_perm_b32 v155, v155, v158, 0xc0c0004
-	ds_load_u8 v158, v123 offset:7936
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v161, v162, v161, 0xc0c0004
-	ds_load_u8 v162, v123 offset:4864
-	ds_load_u8 v164, v123 offset:4608
-	v_lshl_or_b32 v154, v154, 16, v153
-	v_lshl_or_b32 v156, v157, 16, v155
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v160, v163, v160, 0xc0c0004
-	ds_load_u8 v163, v123 offset:8064
-	ds_load_u8 v165, v123 offset:7808
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v162, v164, v162, 0xc0c0004
-	ds_load_u8 v164, v123 offset:7680
-	v_lshl_or_b32 v155, v159, 16, v160
-	ds_load_u8 v157, v123 offset:7552
-	ds_load_u8 v159, v123 offset:7296
-	v_lshl_or_b32 v153, v162, 16, v161
-	ds_load_u8 v161, v123 offset:7424
-	ds_load_u8 v162, v123 offset:7168
-	v_wmma_i32_16x16x16_iu4 v[9:16], v[155:156], v[77:78], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[25:32], v[155:156], v[79:80], v[25:32] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[41:48], v[155:156], v[73:74], v[41:48] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[1:8], v[153:154], v[77:78], v[1:8] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[17:24], v[153:154], v[79:80], v[17:24] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[33:40], v[153:154], v[73:74], v[33:40] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[49:56], v[153:154], v[75:76], v[49:56] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[57:64], v[155:156], v[75:76], v[57:64] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(5)
-	v_perm_b32 v163, v165, v163, 0xc0c0004
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v159, v159, v157, 0xc0c0004
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[155:156], v[131:132], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[157:158], v[131:132], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[155:156], v[133:134], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[157:158], v[133:134], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[155:156], v[135:136], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[157:158], v[135:136], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[155:156], v[137:138], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[157:158], v[137:138], v[57:64] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v160, v162, v161, 0xc0c0004
-	ds_load_u8 v161, v123 offset:6400
-	v_perm_b32 v158, v164, v158, 0xc0c0004
-	ds_load_u8 v162, v123 offset:6144
-	ds_load_u8 v164, v123 offset:7040
-	ds_load_u8 v166, v123 offset:6784
-	ds_load_u8 v167, v123 offset:6528
-	ds_load_u8 v168, v123 offset:6272
-	v_lshl_or_b32 v158, v158, 16, v160
-	v_lshl_or_b32 v160, v163, 16, v159
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v161, v162, v161, 0xc0c0004
-	ds_load_u8 v162, v123 offset:6912
-	ds_load_u8 v169, v123 offset:6656
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v165, v168, v167, 0xc0c0004
-	v_perm_b32 v164, v166, v164, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_lshl_or_b32 v159, v164, 16, v165
-	v_wmma_i32_16x16x16_iu4 v[9:16], v[159:160], v[69:70], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[25:32], v[159:160], v[71:72], v[25:32] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[41:48], v[159:160], v[65:66], v[41:48] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[57:64], v[159:160], v[67:68], v[57:64] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v162, v169, v162, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_lshl_or_b32 v157, v162, 16, v161
-	v_wmma_i32_16x16x16_iu4 v[1:8], v[157:158], v[69:70], v[1:8] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[17:24], v[157:158], v[71:72], v[17:24] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[33:40], v[157:158], v[65:66], v[33:40] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[49:56], v[157:158], v[67:68], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[159:160], v[139:140], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[161:162], v[139:140], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[159:160], v[141:142], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[161:162], v[141:142], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[159:160], v[143:144], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[161:162], v[143:144], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[159:160], v[145:146], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[161:162], v[145:146], v[57:64] neg_lo:[1,1,0]
 	.loc	1 729 19                        ; ragged.py:729:19
 	s_cbranch_scc1 .LBB0_5
 ; %bb.6:                                ; %._crit_edge.loopexit
 	.loc	1 752 19                        ; ragged.py:752:19
-	v_cvt_f32_i32_e32 v107, v1
-	v_cvt_f32_i32_e32 v106, v2
-	v_cvt_f32_i32_e32 v105, v3
-	v_cvt_f32_i32_e32 v104, v4
-	v_cvt_f32_i32_e32 v103, v5
-	v_cvt_f32_i32_e32 v102, v6
-	v_cvt_f32_i32_e32 v101, v7
-	v_cvt_f32_i32_e32 v100, v8
-	v_cvt_f32_i32_e32 v99, v9
-	v_cvt_f32_i32_e32 v98, v10
-	v_cvt_f32_i32_e32 v97, v11
-	v_cvt_f32_i32_e32 v96, v12
-	v_cvt_f32_i32_e32 v95, v13
-	v_cvt_f32_i32_e32 v94, v14
+	v_cvt_f32_i32_e32 v109, v1
+	v_cvt_f32_i32_e32 v108, v2
+	v_cvt_f32_i32_e32 v107, v3
+	v_cvt_f32_i32_e32 v106, v4
+	v_cvt_f32_i32_e32 v105, v5
+	v_cvt_f32_i32_e32 v104, v6
+	v_cvt_f32_i32_e32 v103, v7
+	v_cvt_f32_i32_e32 v102, v8
+	v_cvt_f32_i32_e32 v101, v9
+	v_cvt_f32_i32_e32 v100, v10
+	v_cvt_f32_i32_e32 v99, v11
+	v_cvt_f32_i32_e32 v98, v12
+	v_cvt_f32_i32_e32 v97, v13
+	v_cvt_f32_i32_e32 v96, v14
 	v_cvt_f32_i32_e32 v93, v15
 	v_cvt_f32_i32_e32 v92, v16
 	v_cvt_f32_i32_e32 v91, v17
 	v_cvt_f32_i32_e32 v90, v18
-	v_cvt_f32_i32_e32 v88, v19
-	v_cvt_f32_i32_e32 v87, v20
-	v_cvt_f32_i32_e32 v86, v21
-	v_cvt_f32_i32_e32 v85, v22
-	v_cvt_f32_i32_e32 v84, v23
-	v_cvt_f32_i32_e32 v83, v24
-	v_cvt_f32_i32_e32 v82, v25
-	v_cvt_f32_i32_e32 v81, v26
-	v_cvt_f32_i32_e32 v80, v27
-	v_cvt_f32_i32_e32 v79, v28
-	v_cvt_f32_i32_e32 v78, v29
-	v_cvt_f32_i32_e32 v77, v30
-	v_cvt_f32_i32_e32 v76, v31
-	v_cvt_f32_i32_e32 v75, v32
-	v_cvt_f32_i32_e32 v74, v33
-	v_cvt_f32_i32_e32 v73, v34
-	v_cvt_f32_i32_e32 v72, v35
-	v_cvt_f32_i32_e32 v71, v36
-	v_cvt_f32_i32_e32 v70, v37
-	v_cvt_f32_i32_e32 v69, v38
-	v_cvt_f32_i32_e32 v68, v39
-	v_cvt_f32_i32_e32 v67, v40
-	v_cvt_f32_i32_e32 v66, v41
-	v_cvt_f32_i32_e32 v65, v42
+	v_cvt_f32_i32_e32 v89, v19
+	v_cvt_f32_i32_e32 v88, v20
+	v_cvt_f32_i32_e32 v87, v21
+	v_cvt_f32_i32_e32 v86, v22
+	v_cvt_f32_i32_e32 v85, v23
+	v_cvt_f32_i32_e32 v84, v24
+	v_cvt_f32_i32_e32 v83, v25
+	v_cvt_f32_i32_e32 v82, v26
+	v_cvt_f32_i32_e32 v81, v27
+	v_cvt_f32_i32_e32 v80, v28
+	v_cvt_f32_i32_e32 v79, v29
+	v_cvt_f32_i32_e32 v78, v30
+	v_cvt_f32_i32_e32 v77, v31
+	v_cvt_f32_i32_e32 v76, v32
+	v_cvt_f32_i32_e32 v75, v33
+	v_cvt_f32_i32_e32 v74, v34
+	v_cvt_f32_i32_e32 v73, v35
+	v_cvt_f32_i32_e32 v72, v36
+	v_cvt_f32_i32_e32 v71, v37
+	v_cvt_f32_i32_e32 v70, v38
+	v_cvt_f32_i32_e32 v69, v39
+	v_cvt_f32_i32_e32 v68, v40
+	v_cvt_f32_i32_e32 v67, v41
+	v_cvt_f32_i32_e32 v66, v42
 	v_cvt_f32_i32_e32 v43, v43
 	v_cvt_f32_i32_e32 v42, v44
 	v_cvt_f32_i32_e32 v41, v45
@@ -861,49 +654,49 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_cvt_f32_i32_e32 v24, v62
 	v_cvt_f32_i32_e32 v23, v63
 	v_cvt_f32_i32_e32 v22, v64
-	v_dual_mov_b32 v1, s28 :: v_dual_mov_b32 v2, v120
+	v_dual_mov_b32 v1, s20 :: v_dual_mov_b32 v2, v95
 .LBB0_7:                                ; %._crit_edge
 	.loc	1 718 32                        ; ragged.py:718:32
-	v_or_b32_e32 v3, 48, v119
-	v_or_b32_e32 v5, 32, v119
-	v_or_b32_e32 v6, 16, v119
+	v_or_b32_e32 v3, 48, v94
+	v_or_b32_e32 v5, 32, v94
+	v_or_b32_e32 v6, 16, v94
 	.loc	1 754 36                        ; ragged.py:754:36
 	s_waitcnt lgkmcnt(0)
-	s_and_b32 s61, s17, 0xffff
+	s_and_b32 s61, s9, 0xffff
 	s_mov_b32 s63, 0x31027000
 	.loc	1 718 18                        ; ragged.py:718:18
-	v_add_co_u32 v3, s0, s28, v3
+	v_add_co_u32 v3, s0, s20, v3
 	s_delay_alu instid0(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v4, null, s29, 0, s0
+	v_add_co_ci_u32_e64 v4, null, s21, 0, s0
 	s_mov_b32 s62, 0x7ffffffe
 	.loc	1 754 36                        ; ragged.py:754:36
-	s_mov_b32 s60, s16
+	s_mov_b32 s60, s8
 	.loc	1 814 9                         ; ragged.py:814:9
 	v_mov_b16_e32 v21.h, 0
 	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e32 vcc_lo, s[30:31], v[3:4]
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[3:4]
 	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s4, s[34:35], v[3:4]
+	v_cmp_gt_i64_e64 s4, s[24:25], v[3:4]
 	.loc	1 718 18 is_stmt 1              ; ragged.py:718:18
-	v_add_co_u32 v4, s0, s28, v5
+	v_add_co_u32 v4, s0, s20, v5
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v5, null, s29, 0, s0
-	v_add_co_u32 v6, s0, s28, v6
-	v_add_co_ci_u32_e64 v7, null, s29, 0, s0
-	v_add_co_u32 v8, s0, s28, v119
+	v_add_co_ci_u32_e64 v5, null, s21, 0, s0
+	v_add_co_u32 v6, s0, s20, v6
+	v_add_co_ci_u32_e64 v7, null, s21, 0, s0
+	v_add_co_u32 v8, s0, s20, v94
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_add_co_ci_u32_e64 v9, null, s29, 0, s0
+	v_add_co_ci_u32_e64 v9, null, s21, 0, s0
 	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s1, s[30:31], v[6:7]
+	v_cmp_le_i64_e64 s1, s[22:23], v[6:7]
 	.loc	1 720 48 is_stmt 0              ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s6, s[34:35], v[6:7]
+	v_cmp_gt_i64_e64 s6, s[24:25], v[6:7]
 	.loc	1 720 21                        ; ragged.py:720:21
-	v_cmp_le_i64_e64 s0, s[30:31], v[4:5]
+	v_cmp_le_i64_e64 s0, s[22:23], v[4:5]
 	s_delay_alu instid0(VALU_DEP_4)
-	v_cmp_le_i64_e64 s3, s[30:31], v[8:9]
+	v_cmp_le_i64_e64 s3, s[22:23], v[8:9]
 	.loc	1 720 48                        ; ragged.py:720:48
-	v_cmp_gt_i64_e64 s7, s[34:35], v[8:9]
-	v_cmp_gt_i64_e64 s5, s[34:35], v[4:5]
+	v_cmp_gt_i64_e64 s7, s[24:25], v[8:9]
+	v_cmp_gt_i64_e64 s5, s[24:25], v[4:5]
 	.loc	1 754 36 is_stmt 1              ; ragged.py:754:36
 	v_lshlrev_b32_e32 v5, 1, v8
 	v_lshlrev_b32_e32 v3, 1, v3
@@ -929,11 +722,11 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	buffer_load_u16 v46, v4, s[60:63], 0 offen
 	buffer_load_u16 v47, v3, s[60:63], 0 offen
 	.loc	1 758 21                        ; ragged.py:758:21
-	s_mul_i32 s4, s24, s26
+	s_mul_i32 s4, s18, s16
 	.loc	1 757 36                        ; ragged.py:757:36
-	s_and_b32 s61, s19, 0xffff
-	v_add_lshl_u32 v3, v89, s4, 1
-	s_mov_b32 s60, s18
+	s_and_b32 s61, s11, 0xffff
+	v_add_lshl_u32 v3, v65, s4, 1
+	s_mov_b32 s60, s10
 	.loc	1 814 9                         ; ragged.py:814:9
 	s_and_b32 s57, s57, 0xffff
 	s_mov_b32 s58, s62
@@ -949,14 +742,14 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_lshlrev_b32_e32 v45, 16, v45
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 755 17                        ; ragged.py:755:17
-	v_dual_mul_f32 v83, v83, v45 :: v_dual_lshlrev_b32 v44, 16, v44
-	v_mul_f32_e32 v62, v97, v44
+	v_dual_mul_f32 v85, v85, v45 :: v_dual_lshlrev_b32 v44, 16, v44
+	v_mul_f32_e32 v62, v99, v44
 	v_dual_mul_f32 v88, v88, v45 :: v_dual_and_b32 v3, 0xf0, v0
-	v_dual_mul_f32 v87, v87, v45 :: v_dual_lshlrev_b32 v4, 5, v0
-	v_dual_mul_f32 v53, v106, v44 :: v_dual_and_b32 v2, 28, v2
-	v_dual_mul_f32 v54, v105, v44 :: v_dual_add_nc_u32 v1, v119, v1
+	v_dual_mul_f32 v89, v89, v45 :: v_dual_lshlrev_b32 v4, 5, v0
+	v_dual_mul_f32 v53, v108, v44 :: v_dual_and_b32 v2, 28, v2
+	v_dual_mul_f32 v54, v107, v44 :: v_dual_add_nc_u32 v1, v94, v1
 	s_delay_alu instid0(VALU_DEP_3)
-	v_dual_mul_f32 v85, v85, v45 :: v_dual_and_b32 v4, 32, v4
+	v_dual_mul_f32 v87, v87, v45 :: v_dual_and_b32 v4, 32, v4
 	.loc	1 762 17                        ; ragged.py:762:17
 	v_lshl_add_u32 v6, v3, 2, 0
 	.loc	1 719 36                        ; ragged.py:719:36
@@ -964,36 +757,36 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	.loc	1 762 17                        ; ragged.py:762:17
 	v_lshl_add_u32 v49, v3, 1, 0
 	.loc	1 815 13                        ; ragged.py:815:13
-	v_mul_lo_u32 v20, v1, s24
+	v_mul_lo_u32 v20, v1, s18
 	.loc	1 755 17                        ; ragged.py:755:17
-	v_dual_mul_f32 v56, v103, v44 :: v_dual_add_nc_u32 v3, 16, v1
-	v_dual_mul_f32 v58, v101, v44 :: v_dual_add_nc_u32 v7, 32, v1
-	v_dual_mul_f32 v60, v99, v44 :: v_dual_add_nc_u32 v1, 48, v1
+	v_dual_mul_f32 v56, v105, v44 :: v_dual_add_nc_u32 v3, 16, v1
+	v_dual_mul_f32 v58, v103, v44 :: v_dual_add_nc_u32 v7, 32, v1
+	v_dual_mul_f32 v60, v101, v44 :: v_dual_add_nc_u32 v1, 48, v1
 	.loc	1 762 17                        ; ragged.py:762:17
 	v_add3_u32 v50, v6, v4, v2
 	.loc	1 755 17                        ; ragged.py:755:17
 	s_waitcnt vmcnt(2)
-	v_dual_mul_f32 v55, v104, v44 :: v_dual_lshlrev_b32 v46, 16, v46
+	v_dual_mul_f32 v55, v106, v44 :: v_dual_lshlrev_b32 v46, 16, v46
 	s_waitcnt vmcnt(1)
-	v_dual_mul_f32 v64, v95, v44 :: v_dual_lshlrev_b32 v51, 16, v47
-	v_mul_f32_e32 v52, v107, v44
-	v_dual_mul_f32 v57, v102, v44 :: v_dual_mul_f32 v84, v84, v45
-	v_dual_mul_f32 v59, v100, v44 :: v_dual_mul_f32 v86, v86, v45
-	v_dual_mul_f32 v61, v98, v44 :: v_dual_mul_f32 v80, v80, v45
-	v_dual_mul_f32 v63, v96, v44 :: v_dual_mul_f32 v82, v82, v45
-	v_dual_mul_f32 v89, v94, v44 :: v_dual_mul_f32 v76, v76, v45
-	v_dual_mul_f32 v93, v93, v44 :: v_dual_mul_f32 v78, v78, v45
-	v_dual_mul_f32 v92, v92, v44 :: v_dual_mul_f32 v81, v81, v45
+	v_dual_mul_f32 v64, v97, v44 :: v_dual_lshlrev_b32 v51, 16, v47
+	v_mul_f32_e32 v52, v109, v44
+	v_dual_mul_f32 v57, v104, v44 :: v_dual_mul_f32 v86, v86, v45
+	v_dual_mul_f32 v59, v102, v44 :: v_dual_mul_f32 v84, v84, v45
+	v_dual_mul_f32 v61, v100, v44 :: v_dual_mul_f32 v82, v82, v45
+	v_dual_mul_f32 v63, v98, v44 :: v_dual_mul_f32 v80, v80, v45
+	v_dual_mul_f32 v65, v96, v44 :: v_dual_mul_f32 v78, v78, v45
+	v_dual_mul_f32 v93, v93, v44 :: v_dual_mul_f32 v76, v76, v45
+	v_dual_mul_f32 v92, v92, v44 :: v_dual_mul_f32 v83, v83, v45
 	s_waitcnt vmcnt(0)
-	v_dual_mul_f32 v79, v79, v45 :: v_dual_lshlrev_b32 v44, 16, v48
+	v_dual_mul_f32 v81, v81, v45 :: v_dual_lshlrev_b32 v44, 16, v48
 	v_mul_f32_e32 v91, v91, v45
 	v_mul_f32_e32 v90, v90, v45
-	v_dual_mul_f32 v77, v77, v45 :: v_dual_mul_f32 v74, v74, v46
-	v_dual_mul_f32 v75, v75, v45 :: v_dual_mul_f32 v72, v72, v46
+	v_dual_mul_f32 v79, v79, v45 :: v_dual_mul_f32 v74, v74, v46
+	v_dual_mul_f32 v77, v77, v45 :: v_dual_mul_f32 v72, v72, v46
+	v_mul_f32_e32 v73, v73, v46
 	v_dual_mul_f32 v71, v71, v46 :: v_dual_mul_f32 v100, v34, v51
-	v_mul_f32_e32 v69, v69, v46
+	v_dual_mul_f32 v69, v69, v46 :: v_dual_mul_f32 v102, v32, v51
 	v_dual_mul_f32 v68, v68, v46 :: v_dual_mul_f32 v101, v33, v51
-	v_dual_mul_f32 v67, v67, v46 :: v_dual_mul_f32 v102, v32, v51
 	v_dual_mul_f32 v94, v43, v46 :: v_dual_mul_f32 v29, v29, v51
 	v_dual_mul_f32 v95, v42, v46 :: v_dual_mul_f32 v28, v28, v51
 	v_dual_mul_f32 v96, v41, v46 :: v_dual_mul_f32 v27, v27, v51
@@ -1011,47 +804,48 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	.loc	1 762 17                        ; ragged.py:762:17
 	ds_load_b128 v[32:35], v49 offset:512
 	.loc	1 755 17                        ; ragged.py:755:17
-	v_dual_mul_f32 v73, v73, v46 :: v_dual_mul_f32 v36, v36, v51
+	v_dual_mul_f32 v75, v75, v46 :: v_dual_mul_f32 v36, v36, v51
 	v_dual_mul_f32 v70, v70, v46 :: v_dual_mul_f32 v37, v37, v51
+	v_dual_mul_f32 v67, v67, v46 :: v_dual_mul_f32 v30, v30, v51
 	v_dual_mul_f32 v66, v66, v46 :: v_dual_mul_f32 v31, v31, v51
-	v_dual_mul_f32 v65, v65, v46 :: v_dual_mul_f32 v30, v30, v51
 	.loc	1 762 17                        ; ragged.py:762:17
 	ds_load_b128 v[46:49], v49 offset:528
 	.loc	1 755 17                        ; ragged.py:755:17
 	v_mul_f32_e32 v23, v23, v51
 	v_mul_f32_e32 v22, v22, v51
+	.loc	1 814 9                         ; ragged.py:814:9
+	v_and_b32_e32 v0, 16, v0
 	.loc	1 719 18                        ; ragged.py:719:18
-	v_or_b32_e32 v15, s27, v5
+	v_or_b32_e32 v15, s17, v5
 	.loc	1 815 13                        ; ragged.py:815:13
-	v_mul_lo_u32 v19, v3, s24
-	v_mul_lo_u32 v16, v7, s24
-	v_mul_lo_u32 v1, v1, s24
+	v_mul_lo_u32 v19, v3, s18
+	v_mul_lo_u32 v16, v7, s18
+	v_mul_lo_u32 v1, v1, s18
 	.loc	1 762 17                        ; ragged.py:762:17
 	s_waitcnt lgkmcnt(3)
-	v_dual_mul_f32 v51, v52, v38 :: v_dual_and_b32 v0, 16, v0
-	v_dual_mul_f32 v52, v53, v39 :: v_dual_mul_f32 v53, v54, v40
+	v_dual_mul_f32 v51, v52, v38 :: v_dual_mul_f32 v52, v53, v39
+	v_dual_mul_f32 v53, v54, v40 :: v_dual_mul_f32 v54, v55, v41
 	s_waitcnt lgkmcnt(2)
-	v_dual_mul_f32 v54, v55, v41 :: v_dual_mul_f32 v55, v56, v42
-	v_dual_mul_f32 v56, v57, v43 :: v_dual_mul_f32 v57, v58, v44
+	v_dual_mul_f32 v55, v56, v42 :: v_dual_mul_f32 v56, v57, v43
+	v_dual_mul_f32 v57, v58, v44 :: v_dual_mul_f32 v58, v59, v45
 	s_waitcnt lgkmcnt(1)
-	v_dual_mul_f32 v58, v59, v45 :: v_dual_mul_f32 v59, v60, v32
-	v_dual_mul_f32 v60, v61, v33 :: v_dual_mul_f32 v91, v91, v38
-	v_mul_f32_e32 v90, v90, v39
-	v_dual_mul_f32 v88, v88, v40 :: v_dual_mul_f32 v87, v87, v41
+	v_dual_mul_f32 v59, v60, v32 :: v_dual_mul_f32 v60, v61, v33
+	v_dual_mul_f32 v91, v91, v38 :: v_dual_mul_f32 v90, v90, v39
+	v_dual_mul_f32 v89, v89, v40 :: v_dual_mul_f32 v88, v88, v41
 	v_dual_mul_f32 v61, v62, v34 :: v_dual_mul_f32 v62, v63, v35
 	s_waitcnt lgkmcnt(0)
-	v_dual_mul_f32 v63, v64, v46 :: v_dual_mul_f32 v64, v89, v47
-	v_dual_mul_f32 v89, v93, v48 :: v_dual_mul_f32 v92, v92, v49
-	v_dual_mul_f32 v86, v86, v42 :: v_dual_mul_f32 v85, v85, v43
-	v_dual_mul_f32 v84, v84, v44 :: v_dual_mul_f32 v83, v83, v45
-	v_dual_mul_f32 v82, v82, v32 :: v_dual_mul_f32 v81, v81, v33
-	v_dual_mul_f32 v80, v80, v34 :: v_dual_mul_f32 v79, v79, v35
-	v_dual_mul_f32 v78, v78, v46 :: v_dual_mul_f32 v77, v77, v47
-	v_dual_mul_f32 v74, v74, v38 :: v_dual_mul_f32 v73, v73, v39
-	v_dual_mul_f32 v72, v72, v40 :: v_dual_mul_f32 v71, v71, v41
-	v_dual_mul_f32 v70, v70, v42 :: v_dual_mul_f32 v69, v69, v43
-	v_dual_mul_f32 v68, v68, v44 :: v_dual_mul_f32 v67, v67, v45
-	v_dual_mul_f32 v66, v66, v32 :: v_dual_mul_f32 v65, v65, v33
+	v_dual_mul_f32 v63, v64, v46 :: v_dual_mul_f32 v64, v65, v47
+	v_dual_mul_f32 v65, v93, v48 :: v_dual_mul_f32 v92, v92, v49
+	v_dual_mul_f32 v87, v87, v42 :: v_dual_mul_f32 v86, v86, v43
+	v_dual_mul_f32 v85, v85, v44 :: v_dual_mul_f32 v84, v84, v45
+	v_dual_mul_f32 v83, v83, v32 :: v_dual_mul_f32 v82, v82, v33
+	v_dual_mul_f32 v81, v81, v34 :: v_dual_mul_f32 v80, v80, v35
+	v_dual_mul_f32 v79, v79, v46 :: v_dual_mul_f32 v78, v78, v47
+	v_dual_mul_f32 v75, v75, v38 :: v_dual_mul_f32 v74, v74, v39
+	v_dual_mul_f32 v73, v73, v40 :: v_dual_mul_f32 v72, v72, v41
+	v_dual_mul_f32 v71, v71, v42 :: v_dual_mul_f32 v70, v70, v43
+	v_dual_mul_f32 v69, v69, v44 :: v_dual_mul_f32 v68, v68, v45
+	v_dual_mul_f32 v67, v67, v32 :: v_dual_mul_f32 v66, v66, v33
 	v_dual_mul_f32 v93, v94, v34 :: v_dual_mul_f32 v94, v95, v35
 	v_dual_mul_f32 v95, v96, v46 :: v_dual_mul_f32 v96, v97, v47
 	v_dual_mul_f32 v37, v37, v38 :: v_dual_mul_f32 v36, v36, v39
@@ -1067,29 +861,13 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_bfe_u32 v46, v59, 16, 1
 	v_bfe_u32 v47, v60, 16, 1
 	v_bfe_u32 v103, v90, 16, 1
-	v_bfe_u32 v105, v87, 16, 1
+	v_bfe_u32 v105, v88, 16, 1
 	.loc	1 762 17                        ; ragged.py:762:17
 	v_dual_mul_f32 v27, v27, v34 :: v_dual_mul_f32 v26, v26, v35
 	.loc	1 814 9                         ; ragged.py:814:9
 	v_bfe_u32 v34, v53, 16, 1
-	.loc	1 719 18                        ; ragged.py:719:18
-	v_or_b32_e32 v2, 0x87, v15
-	v_or_b32_e32 v3, 0x86, v15
-	v_or_b32_e32 v4, 0x85, v15
-	v_or_b32_e32 v5, 0x84, v15
-	v_or_b32_e32 v6, 0x83, v15
-	v_or_b32_e32 v7, 0x82, v15
-	v_or_b32_e32 v8, 0x81, v15
-	v_or_b32_e32 v9, 0x80, v15
-	v_or_b32_e32 v10, 7, v15
-	v_or_b32_e32 v11, 6, v15
-	v_or_b32_e32 v12, 5, v15
-	v_or_b32_e32 v13, 4, v15
-	v_or_b32_e32 v14, 3, v15
-	v_or_b32_e32 v17, 2, v15
-	v_or_b32_e32 v18, 1, v15
 	.loc	1 762 17                        ; ragged.py:762:17
-	v_dual_mul_f32 v76, v76, v48 :: v_dual_mul_f32 v75, v75, v49
+	v_dual_mul_f32 v77, v77, v48 :: v_dual_mul_f32 v76, v76, v49
 	v_dual_mul_f32 v97, v98, v48 :: v_dual_mul_f32 v98, v99, v49
 	v_dual_mul_f32 v23, v23, v48 :: v_dual_mul_f32 v22, v22, v49
 	.loc	1 814 9                         ; ragged.py:814:9
@@ -1102,120 +880,102 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_cmp_o_f32_e64 s27, v59, v59
 	v_cmp_o_f32_e64 s28, v60, v60
 	v_bfe_u32 v48, v61, 16, 1
-	v_bfe_u32 v99, v64, 16, 1
+	v_bfe_u32 v100, v65, 16, 1
 	v_cmp_o_f32_e64 s37, v90, v90
-	v_bfe_u32 v104, v88, 16, 1
-	v_cmp_o_f32_e64 s39, v87, v87
-	v_bfe_u32 v106, v86, 16, 1
-	v_bfe_u32 v107, v85, 16, 1
-	v_bfe_u32 v112, v80, 16, 1
-	v_bfe_u32 v121, v71, 16, 1
+	v_bfe_u32 v104, v89, 16, 1
+	v_cmp_o_f32_e64 s39, v88, v88
+	v_bfe_u32 v106, v87, 16, 1
+	v_bfe_u32 v107, v86, 16, 1
+	v_bfe_u32 v113, v80, 16, 1
+	v_bfe_u32 v121, v72, 16, 1
 	v_add3_u32 v32, v51, v32, 0x7fff
 	v_add3_u32 v42, v55, v42, 0x7fff
 	v_add3_u32 v44, v57, v44, 0x7fff
 	v_add3_u32 v46, v59, v46, 0x7fff
 	v_add3_u32 v47, v60, v47, 0x7fff
 	v_add3_u32 v55, v90, v103, 0x7fff
-	v_add3_u32 v57, v87, v105, 0x7fff
+	v_add3_u32 v57, v88, v105, 0x7fff
 	v_add3_u32 v34, v53, v34, 0x7fff
-	.loc	1 721 20                        ; ragged.py:721:20
-	v_cmp_gt_i32_e64 s16, s24, v15
-	v_cmp_gt_i32_e64 s2, s24, v2
-	v_cmp_gt_i32_e64 s4, s24, v3
-	v_cmp_gt_i32_e64 s5, s24, v4
-	v_cmp_gt_i32_e64 s6, s24, v5
-	v_cmp_gt_i32_e64 s7, s24, v6
-	v_cmp_gt_i32_e64 s8, s24, v7
-	v_cmp_gt_i32_e64 s9, s24, v8
-	v_cmp_gt_i32_e64 s10, s24, v9
-	v_cmp_gt_i32_e64 s11, s24, v10
-	v_cmp_gt_i32_e64 s12, s24, v11
-	v_cmp_gt_i32_e64 s13, s24, v12
-	v_cmp_gt_i32_e64 s14, s24, v13
-	v_cmp_gt_i32_e64 s15, s24, v14
-	v_cmp_gt_i32_e64 s17, s24, v17
-	v_cmp_gt_i32_e64 s18, s24, v18
-	.loc	1 814 9                         ; ragged.py:814:9
 	v_cmp_o_f32_e64 s20, v52, v52
 	v_cmp_o_f32_e64 s24, v56, v56
 	v_cmp_o_f32_e64 s26, v58, v58
 	v_cmp_o_f32_e64 s29, v61, v61
-	v_cmp_o_f32_e64 s33, v64, v64
-	v_cmp_o_f32_e64 s38, v88, v88
-	v_cmp_o_f32_e64 s40, v86, v86
-	v_cmp_o_f32_e64 s41, v85, v85
-	v_bfe_u32 v108, v84, 16, 1
-	v_cmp_o_f32_e64 s46, v80, v80
+	v_cmp_o_f32_e64 s34, v65, v65
+	v_cmp_o_f32_e64 s38, v89, v89
+	v_cmp_o_f32_e64 s40, v87, v87
+	v_cmp_o_f32_e64 s41, v86, v86
+	v_bfe_u32 v108, v85, 16, 1
+	v_cmp_o_f32_e64 s47, v80, v80
 	v_add3_u32 v33, v52, v33, 0x7fff
 	v_add3_u32 v43, v56, v43, 0x7fff
 	v_add3_u32 v45, v58, v45, 0x7fff
 	v_add3_u32 v48, v61, v48, 0x7fff
-	v_add3_u32 v51, v64, v99, 0x7fff
-	v_add3_u32 v56, v88, v104, 0x7fff
-	v_add3_u32 v58, v86, v106, 0x7fff
-	v_add3_u32 v59, v85, v107, 0x7fff
-	v_add3_u32 v64, v80, v112, 0x7fff
-	v_add3_u32 v80, v71, v121, 0x7fff
+	v_add3_u32 v52, v65, v100, 0x7fff
+	v_add3_u32 v56, v89, v104, 0x7fff
+	v_add3_u32 v58, v87, v106, 0x7fff
+	v_add3_u32 v59, v86, v107, 0x7fff
+	v_add3_u32 v65, v80, v113, 0x7fff
+	v_add3_u32 v80, v72, v121, 0x7fff
 	v_cndmask_b16 v32.l, 0x7fff, v32.h, s19
 	v_cndmask_b16 v34.l, 0x7fff, v42.h, s23
 	v_cndmask_b16 v42.l, 0x7fff, v46.h, s27
 	v_cndmask_b16 v42.h, 0x7fff, v47.h, s28
 	v_cndmask_b16 v46.h, 0x7fff, v55.h, s37
 	v_cndmask_b16 v47.h, 0x7fff, v57.h, s39
-	v_cmp_o_f32_e64 s19, v71, v71
-	v_bfe_u32 v55, v70, 16, 1
-	v_bfe_u32 v57, v69, 16, 1
+	v_cmp_o_f32_e64 s19, v72, v72
+	v_bfe_u32 v55, v71, 16, 1
+	v_bfe_u32 v57, v70, 16, 1
 	v_bfe_u32 v49, v62, 16, 1
 	v_cmp_o_f32_e64 s21, v53, v53
-	v_cmp_o_f32_e64 s42, v84, v84
-	v_bfe_u32 v109, v83, 16, 1
-	v_add3_u32 v60, v84, v108, 0x7fff
+	v_cmp_o_f32_e64 s42, v85, v85
+	v_bfe_u32 v109, v84, 16, 1
+	v_add3_u32 v60, v85, v108, 0x7fff
 	v_cndmask_b16 v32.h, 0x7fff, v33.h, s20
 	v_cndmask_b16 v43.l, 0x7fff, v48.h, s29
 	v_cndmask_b16 v47.l, 0x7fff, v56.h, s38
 	v_cndmask_b16 v48.l, 0x7fff, v58.h, s40
 	v_cndmask_b16 v48.h, 0x7fff, v59.h, s41
 	v_cndmask_b16 v56.h, 0x7fff, v80.h, s19
-	v_bfe_u32 v58, v68, 16, 1
-	v_add3_u32 v55, v70, v55, 0x7fff
-	v_cmp_o_f32_e64 s19, v70, v70
-	v_add3_u32 v57, v69, v57, 0x7fff
-	v_cmp_o_f32_e64 s20, v69, v69
-	v_bfe_u32 v59, v67, 16, 1
+	v_bfe_u32 v58, v69, 16, 1
+	v_add3_u32 v55, v71, v55, 0x7fff
+	v_cmp_o_f32_e64 s19, v71, v71
+	v_add3_u32 v57, v70, v57, 0x7fff
+	v_cmp_o_f32_e64 s20, v70, v70
+	v_bfe_u32 v59, v68, 16, 1
 	v_add3_u32 v49, v62, v49, 0x7fff
 	v_cmp_o_f32_e64 s30, v62, v62
-	v_cmp_o_f32_e64 s43, v83, v83
-	v_add3_u32 v61, v83, v109, 0x7fff
+	v_cmp_o_f32_e64 s43, v84, v84
+	v_add3_u32 v61, v84, v109, 0x7fff
 	v_cndmask_b16 v33.l, 0x7fff, v34.h, s21
 	v_cndmask_b16 v49.l, 0x7fff, v60.h, s42
-	v_add3_u32 v58, v68, v58, 0x7fff
-	v_cmp_o_f32_e64 s21, v68, v68
+	v_add3_u32 v58, v69, v58, 0x7fff
+	v_cmp_o_f32_e64 s21, v69, v69
 	v_cndmask_b16 v55.l, 0x7fff, v55.h, s19
 	v_cndmask_b16 v55.h, 0x7fff, v57.h, s20
-	v_bfe_u32 v57, v66, 16, 1
-	v_bfe_u32 v60, v65, 16, 1
-	v_add3_u32 v59, v67, v59, 0x7fff
-	v_cmp_o_f32_e64 s19, v67, v67
+	v_bfe_u32 v57, v67, 16, 1
+	v_bfe_u32 v60, v66, 16, 1
+	v_add3_u32 v59, v68, v59, 0x7fff
+	v_cmp_o_f32_e64 s19, v68, v68
 	v_bfe_u32 v50, v63, 16, 1
-	v_bfe_u32 v110, v82, 16, 1
-	v_bfe_u32 v111, v81, 16, 1
+	v_bfe_u32 v110, v83, 16, 1
+	v_bfe_u32 v111, v82, 16, 1
 	v_cndmask_b16 v34.h, 0x7fff, v43.h, s24
 	v_cndmask_b16 v43.h, 0x7fff, v49.h, s30
 	v_cndmask_b16 v49.h, 0x7fff, v61.h, s43
 	v_cndmask_b16 v58.l, 0x7fff, v58.h, s21
-	v_add3_u32 v57, v66, v57, 0x7fff
-	v_cmp_o_f32_e64 s20, v66, v66
-	v_add3_u32 v60, v65, v60, 0x7fff
-	v_cmp_o_f32_e64 s21, v65, v65
+	v_add3_u32 v57, v67, v57, 0x7fff
+	v_cmp_o_f32_e64 s20, v67, v67
+	v_add3_u32 v60, v66, v60, 0x7fff
+	v_cmp_o_f32_e64 s21, v66, v66
 	v_cndmask_b16 v58.h, 0x7fff, v59.h, s19
 	v_bfe_u32 v59, v93, 16, 1
 	v_bfe_u32 v61, v94, 16, 1
 	v_cmp_o_f32_e64 s31, v63, v63
-	v_cmp_o_f32_e64 s44, v82, v82
-	v_cmp_o_f32_e64 s45, v81, v81
+	v_cmp_o_f32_e64 s44, v83, v83
+	v_cmp_o_f32_e64 s45, v82, v82
 	v_add3_u32 v50, v63, v50, 0x7fff
-	v_add3_u32 v62, v82, v110, 0x7fff
-	v_add3_u32 v63, v81, v111, 0x7fff
+	v_add3_u32 v62, v83, v110, 0x7fff
+	v_add3_u32 v63, v82, v111, 0x7fff
 	v_cndmask_b16 v57.l, 0x7fff, v57.h, s20
 	v_cndmask_b16 v57.h, 0x7fff, v60.h, s21
 	v_bfe_u32 v60, v95, 16, 1
@@ -1223,6 +983,8 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_cmp_o_f32_e64 s19, v93, v93
 	v_add3_u32 v61, v94, v61, 0x7fff
 	v_cmp_o_f32_e64 s20, v94, v94
+	v_bfe_u32 v99, v64, 16, 1
+	v_bfe_u32 v112, v81, 16, 1
 	v_cndmask_b16 v44.l, 0x7fff, v50.h, s31
 	v_cndmask_b16 v50.l, 0x7fff, v62.h, s44
 	v_cndmask_b16 v50.h, 0x7fff, v63.h, s45
@@ -1233,6 +995,10 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_cndmask_b16 v59.h, 0x7fff, v61.h, s20
 	v_bfe_u32 v61, v97, 16, 1
 	v_bfe_u32 v63, v98, 16, 1
+	v_cmp_o_f32_e64 s33, v64, v64
+	v_cmp_o_f32_e64 s46, v81, v81
+	v_add3_u32 v51, v64, v99, 0x7fff
+	v_add3_u32 v64, v81, v112, 0x7fff
 	v_cndmask_b16 v60.l, 0x7fff, v60.h, s21
 	v_add3_u32 v62, v96, v62, 0x7fff
 	v_cmp_o_f32_e64 s19, v96, v96
@@ -1288,51 +1054,45 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_add3_u32 v28, v27, v31, 0x7fff
 	v_add3_u32 v27, v26, v40, 0x7fff
 	v_bfe_u32 v35, v54, 16, 1
-	v_bfe_u32 v100, v89, 16, 1
 	v_bfe_u32 v101, v92, 16, 1
 	v_bfe_u32 v102, v91, 16, 1
-	v_bfe_u32 v118, v74, 16, 1
-	v_bfe_u32 v119, v73, 16, 1
+	v_bfe_u32 v118, v75, 16, 1
+	v_bfe_u32 v119, v74, 16, 1
 	v_cndmask_b16 v30.l, 0x7fff, v30.h, s21
 	v_cmp_o_f32_e64 s21, v26, v26
 	v_bfe_u32 v26, v25, 16, 1
 	v_cndmask_b16 v27.l, 0x7fff, v28.h, s20
 	v_bfe_u32 v28, v24, 16, 1
 	v_cmp_o_f32_e64 s22, v54, v54
-	v_cmp_o_f32_e64 s34, v89, v89
 	v_cmp_o_f32_e64 s35, v92, v92
 	v_cmp_o_f32_e64 s36, v91, v91
-	v_bfe_u32 v113, v79, 16, 1
-	v_bfe_u32 v116, v76, 16, 1
-	v_bfe_u32 v117, v75, 16, 1
-	v_cmp_o_f32_e64 s52, v74, v74
-	v_cmp_o_f32_e64 s53, v73, v73
+	v_bfe_u32 v116, v77, 16, 1
+	v_bfe_u32 v117, v76, 16, 1
+	v_cmp_o_f32_e64 s52, v75, v75
+	v_cmp_o_f32_e64 s53, v74, v74
 	v_add3_u32 v35, v54, v35, 0x7fff
-	v_add3_u32 v52, v89, v100, 0x7fff
 	v_add3_u32 v53, v92, v101, 0x7fff
 	v_add3_u32 v54, v91, v102, 0x7fff
-	v_add3_u32 v74, v74, v118, 0x7fff
-	v_add3_u32 v73, v73, v119, 0x7fff
+	v_add3_u32 v75, v75, v118, 0x7fff
+	v_add3_u32 v74, v74, v119, 0x7fff
 	v_cndmask_b16 v30.h, 0x7fff, v38.h, s19
 	v_add3_u32 v26, v25, v26, 0x7fff
 	v_bfe_u32 v31, v23, 16, 1
 	v_cmp_o_f32_e64 s19, v25, v25
 	v_add3_u32 v25, v24, v28, 0x7fff
 	v_bfe_u32 v28, v22, 16, 1
-	v_cmp_o_f32_e64 s47, v79, v79
-	v_cmp_o_f32_e64 s50, v76, v76
-	v_cmp_o_f32_e64 s51, v75, v75
-	v_add3_u32 v79, v79, v113, 0x7fff
-	v_add3_u32 v76, v76, v116, 0x7fff
-	v_add3_u32 v75, v75, v117, 0x7fff
+	v_cmp_o_f32_e64 s50, v77, v77
+	v_cmp_o_f32_e64 s51, v76, v76
+	v_add3_u32 v77, v77, v116, 0x7fff
+	v_add3_u32 v76, v76, v117, 0x7fff
 	v_cndmask_b16 v33.h, 0x7fff, v35.h, s22
 	v_cndmask_b16 v35.l, 0x7fff, v44.h, s25
 	v_cndmask_b16 v35.h, 0x7fff, v45.h, s26
 	v_cndmask_b16 v45.l, 0x7fff, v52.h, s34
 	v_cndmask_b16 v45.h, 0x7fff, v53.h, s35
 	v_cndmask_b16 v46.l, 0x7fff, v54.h, s36
-	v_cndmask_b16 v54.l, 0x7fff, v74.h, s52
-	v_cndmask_b16 v54.h, 0x7fff, v73.h, s53
+	v_cndmask_b16 v54.l, 0x7fff, v75.h, s52
+	v_cndmask_b16 v54.h, 0x7fff, v74.h, s53
 	v_cndmask_b16 v27.h, 0x7fff, v27.h, s21
 	v_cmp_o_f32_e64 s20, v24, v24
 	v_add3_u32 v24, v23, v31, 0x7fff
@@ -1342,9 +1102,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_cndmask_b16 v22.l, 0x7fff, v26.h, s19
 	v_cmp_eq_u32_e64 s19, 0, v0
 	v_cndmask_b16 v44.h, 0x7fff, v51.h, s33
-	v_cndmask_b16 v51.h, 0x7fff, v79.h, s47
-	v_cndmask_b16 v53.l, 0x7fff, v76.h, s50
-	v_cndmask_b16 v53.h, 0x7fff, v75.h, s51
+	v_cndmask_b16 v51.h, 0x7fff, v65.h, s47
+	v_cndmask_b16 v53.l, 0x7fff, v77.h, s50
+	v_cndmask_b16 v53.h, 0x7fff, v76.h, s51
 	v_cndmask_b16 v22.h, 0x7fff, v25.h, s20
 	v_cndmask_b16 v0.l, 0x7fff, v24.h, s21
 	v_cndmask_b16 v0.h, 0x7fff, v23.h, s22
@@ -1373,25 +1133,44 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_mov_b32_e32 v55, 0x7632
 	v_cndmask_b32_e64 v0, v27, v0, s19
 	v_cndmask_b32_e64 v27, 0x1054, v54, s19
-	v_bfe_u32 v114, v78, 16, 1
-	v_bfe_u32 v115, v77, 16, 1
-	v_bfe_u32 v120, v72, 16, 1
+	v_bfe_u32 v114, v79, 16, 1
+	v_bfe_u32 v115, v78, 16, 1
+	v_bfe_u32 v120, v73, 16, 1
 	v_cndmask_b32_e64 v54, 0x3276, v55, s19
 	v_lshl_or_b32 v27, v27, 8, v27
-	v_cmp_o_f32_e64 s48, v78, v78
-	v_cmp_o_f32_e64 s49, v77, v77
-	v_cmp_o_f32_e64 s54, v72, v72
-	v_add3_u32 v78, v78, v114, 0x7fff
-	v_add3_u32 v77, v77, v115, 0x7fff
-	v_add3_u32 v72, v72, v120, 0x7fff
+	v_cmp_o_f32_e64 s48, v79, v79
+	v_cmp_o_f32_e64 s49, v78, v78
+	v_cmp_o_f32_e64 s54, v73, v73
+	v_add3_u32 v79, v79, v114, 0x7fff
+	v_add3_u32 v78, v78, v115, 0x7fff
+	v_add3_u32 v73, v73, v120, 0x7fff
 	v_lshl_or_b32 v54, v54, 8, v54
 	v_and_b32_e32 v27, 0x540054, v27
-	v_cndmask_b16 v52.l, 0x7fff, v78.h, s48
-	v_cndmask_b16 v52.h, 0x7fff, v77.h, s49
-	v_cndmask_b16 v56.l, 0x7fff, v72.h, s54
+	v_cndmask_b16 v52.l, 0x7fff, v79.h, s48
+	v_cndmask_b16 v52.h, 0x7fff, v78.h, s49
+	v_cndmask_b16 v56.l, 0x7fff, v73.h, s54
 	v_and_b32_e32 v54, 0x760076, v54
 	v_lshl_or_b32 v27, v27, 4, v27
+	.loc	1 719 18                        ; ragged.py:719:18
+	v_or_b32_e32 v2, 0x87, v15
+	v_or_b32_e32 v3, 0x86, v15
+	v_or_b32_e32 v4, 0x85, v15
+	v_or_b32_e32 v5, 0x84, v15
+	v_or_b32_e32 v6, 0x83, v15
+	v_or_b32_e32 v7, 0x82, v15
+	v_or_b32_e32 v8, 0x81, v15
+	v_or_b32_e32 v9, 0x80, v15
+	v_or_b32_e32 v10, 7, v15
+	v_or_b32_e32 v11, 6, v15
+	v_or_b32_e32 v12, 5, v15
+	v_or_b32_e32 v13, 4, v15
+	v_or_b32_e32 v14, 3, v15
+	v_or_b32_e32 v17, 2, v15
+	v_or_b32_e32 v18, 1, v15
 	s_mov_b32 s20, 0x76543210
+	.loc	1 721 20                        ; ragged.py:721:20
+	v_cmp_gt_i32_e64 s16, s18, v15
+	.loc	1 814 9                         ; ragged.py:814:9
 	v_cndmask_b32_e64 v40, v47, v49, s19
 	v_cndmask_b32_e64 v41, v52, v50, s19
 	v_cndmask_b32_e64 v42, v50, v52, s19
@@ -1401,6 +1180,23 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	v_permlanex16_b32 v24, v24, s20, 0xfedcba98 op_sel:[1,0]
 	v_lshl_or_b32 v54, v54, 4, v54
 	v_and_b32_e32 v27, 0x5040504, v27
+	.loc	1 721 20                        ; ragged.py:721:20
+	v_cmp_gt_i32_e64 s2, s18, v2
+	v_cmp_gt_i32_e64 s4, s18, v3
+	v_cmp_gt_i32_e64 s5, s18, v4
+	v_cmp_gt_i32_e64 s6, s18, v5
+	v_cmp_gt_i32_e64 s7, s18, v6
+	v_cmp_gt_i32_e64 s8, s18, v7
+	v_cmp_gt_i32_e64 s9, s18, v8
+	v_cmp_gt_i32_e64 s10, s18, v9
+	v_cmp_gt_i32_e64 s11, s18, v10
+	v_cmp_gt_i32_e64 s12, s18, v11
+	v_cmp_gt_i32_e64 s13, s18, v12
+	v_cmp_gt_i32_e64 s14, s18, v13
+	v_cmp_gt_i32_e64 s15, s18, v14
+	v_cmp_gt_i32_e64 s17, s18, v17
+	v_cmp_gt_i32_e64 s18, s18, v18
+	.loc	1 814 9                         ; ragged.py:814:9
 	v_add_lshl_u32 v84, v15, v20, 1
 	v_add_lshl_u32 v85, v18, v20, 1
 	v_cndmask_b32_e64 v38, v49, v47, s19
@@ -1945,7 +1741,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 196
+		.amdhsa_next_free_vgpr 168
 		.amdhsa_next_free_sgpr 64
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
@@ -1973,7 +1769,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	.size	amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3, .Lfunc_end0-amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3
 	.cfi_endproc
                                         ; -- End function
-	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.num_vgpr, 196
+	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.num_vgpr, 168
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.num_agpr, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.numbered_sgpr, 64
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.num_named_barrier, 0
@@ -1985,19 +1781,19 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 12140
+; codeLenInByte = 10524
 ; TotalNumSgprs: 66
-; NumVgprs: 196
+; NumVgprs: 168
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
 ; IeeeMode: 1
 ; LDSByteSize: 0 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
-; VGPRBlocks: 24
+; VGPRBlocks: 20
 ; NumSGPRsForWavesPerEU: 66
-; NumVGPRsForWavesPerEU: 196
-; Occupancy: 7
+; NumVGPRsForWavesPerEU: 168
+; Occupancy: 9
 ; WaveLimiterHint : 0
 ; COMPUTE_PGM_RSRC2:SCRATCH_EN: 0
 ; COMPUTE_PGM_RSRC2:USER_SGPR: 2
@@ -2189,7 +1985,7 @@ amdhsa.kernels:
     .symbol:         amd_strix_halo_gfx1151_ragged_int4_fwd_nn_pc_evenk_bfloat16_bm64_bn256_bk64_gst1_w8_s3.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     196
+    .vgpr_count:     168
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1

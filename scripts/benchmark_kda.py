@@ -26,6 +26,7 @@ from amd_strix_halo_kernels import (  # noqa: E402
     reference_kimi_delta_attention,
     reference_kimi_delta_attention_backward,
 )
+from amd_strix_halo_kernels.artifacts import installed_triton_commit  # noqa: E402
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +49,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="operand representation; repeat to select multiple modes",
     )
+    parser.add_argument(
+        "--backend",
+        choices=("triton", "gluon"),
+        default="triton",
+        help="recurrent KDA backend (default: triton)",
+    )
+    parser.add_argument(
+        "--precompiled",
+        choices=("auto", "require", "disable"),
+        default="auto",
+        help="native KDA HSACO policy for --backend gluon (default: auto)",
+    )
     parser.add_argument("--batch", type=int, default=4)
     parser.add_argument("--sequence", type=int, default=2048)
     parser.add_argument("--heads", type=int, default=32)
@@ -60,19 +73,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="candidate forward value tile; repeat to tune (default: 16,32,64)",
     )
-    parser.add_argument("--checkpoint-interval", type=int, default=16)
+    parser.add_argument("--checkpoint-interval", type=int, default=4)
     parser.add_argument(
         "--backward-value-block",
         type=int,
         default=16,
-        help="value tile used for backward (independent of forward tuning)",
+        help="Triton backward value tile; Gluon selects its tile automatically",
     )
     parser.add_argument("--num-warps", type=int, default=4)
     parser.add_argument("--num-stages", type=int, default=2)
     parser.add_argument(
         "--chunked",
         action="store_true",
-        help="benchmark the experimental compact-WY chunk path",
+        help="benchmark the Triton-only experimental compact-WY chunk path",
     )
     parser.add_argument("--warmup-ms", type=int, default=10)
     parser.add_argument("--rep-ms", type=int, default=50)
@@ -95,6 +108,10 @@ def _validate_args(args: argparse.Namespace) -> KdaShape:
             raise ValueError(f"--{name.replace('_', '-')} must be positive")
     if args.warmup_ms < 0 or args.rep_ms <= 0:
         raise ValueError("--warmup-ms must be non-negative and --rep-ms must be positive")
+    if args.chunked and args.backend != "triton":
+        raise ValueError("--chunked requires --backend triton")
+    if args.precompiled == "require" and args.backend != "gluon":
+        raise ValueError("--precompiled require needs --backend gluon")
     return KdaShape(**dimensions)
 
 
@@ -173,7 +190,7 @@ def _median_bench(do_bench: Any, function: Any, *, warmup: int, rep: int) -> flo
     return float(statistics.median_low(float(sample) for sample in samples))
 
 
-def _numerical_gate(torch: Any, mode: str) -> dict[str, float]:
+def _numerical_gate(torch: Any, mode: str, backend: str) -> dict[str, float]:
     shape = KdaShape(batch=1, sequence=17, heads=2, head_dim=16, value_dim=16)
     logical = _logical_operands(torch, shape, seed=20260801)
     operands, kwargs = _representation(logical, mode)
@@ -183,6 +200,7 @@ def _numerical_gate(torch: Any, mode: str) -> dict[str, float]:
         output_final_state=True,
         output_dtype=torch.float32,
         config=config,
+        backend=backend,
         **kwargs,
     )
     expected, expected_final = reference_kimi_delta_attention(
@@ -208,6 +226,7 @@ def _numerical_gate(torch: Any, mode: str) -> dict[str, float]:
         grad_output,
         grad_final_state=grad_final_state,
         config=config,
+        backend=backend,
         **kwargs,
     )
     expected_grads = reference_kimi_delta_attention_backward(
@@ -255,11 +274,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.mode
         else ("bf16", "int4-qk", "int4-v", "int4-all")
     )
+    use_precompiled = {
+        "auto": None,
+        "require": True,
+        "disable": False,
+    }[args.precompiled]
     value_blocks = tuple(args.value_block) if args.value_block else (16, 32, 64)
     logical = _logical_operands(torch, shape, seed=20260801)
     records: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
-    numerical = {mode: _numerical_gate(torch, mode) for mode in modes}
+    numerical = {
+        mode: _numerical_gate(torch, mode, args.backend) for mode in modes
+    }
 
     for mode in modes:
         operands, operand_kwargs = _representation(logical, mode)
@@ -308,6 +334,8 @@ def main(argv: list[str] | None = None) -> int:
                         *operands,
                         out=output,
                         config=config,
+                        backend=args.backend,
+                        use_precompiled=use_precompiled,
                         **launch_kwargs,
                         **operand_kwargs,
                     ),
@@ -328,6 +356,8 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "mode": mode,
                     "phase": "forward",
+                    "backend": args.backend,
+                    "precompiled": args.precompiled,
                     "shape": asdict(shape),
                     "config": asdict(config),
                     "runtime_ms": runtime_ms,
@@ -364,6 +394,8 @@ def main(argv: list[str] | None = None) -> int:
             out=output,
             state_cache=state_cache,
             config=best_config,
+            backend=args.backend,
+            use_precompiled=use_precompiled,
             **launch_kwargs,
             **operand_kwargs,
         )
@@ -409,6 +441,8 @@ def main(argv: list[str] | None = None) -> int:
                     grad_output,
                     state_cache=state_cache,
                     config=backward_config,
+                    backend=args.backend,
+                    use_precompiled=use_precompiled,
                     **grad_buffers,
                     **operand_kwargs,
                 ),
@@ -419,11 +453,15 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "mode": mode,
                     "phase": "backward",
+                    "backend": args.backend,
+                    "precompiled": args.precompiled,
                     "shape": asdict(shape),
                     "config": asdict(backward_config),
                     "runtime_ms": backward_ms,
                     "numerical_gate": numerical[mode],
-                    "notes": "FP32 logical gradients; forward checkpoint construction excluded",
+                    "notes": (
+                        "FP32 logical gradients; forward checkpoint construction excluded"
+                    ),
                 }
             )
         except Exception as exc:
@@ -609,6 +647,16 @@ def main(argv: list[str] | None = None) -> int:
         "torch": torch.__version__,
         "hip": torch.version.hip,
         "triton": __import__("triton").__version__,
+        "triton_git_revision": installed_triton_commit(),
+        "record_schema": 3,
+        "measurement": {
+            "warmup_ms": args.warmup_ms,
+            "rep_ms": args.rep_ms,
+            "prepacked_inputs": True,
+            "preallocated_outputs": True,
+        },
+        "kda_backend": args.backend,
+        "kda_precompiled": args.precompiled,
         "shape": asdict(shape),
         "records": records,
         "baselines": baselines,

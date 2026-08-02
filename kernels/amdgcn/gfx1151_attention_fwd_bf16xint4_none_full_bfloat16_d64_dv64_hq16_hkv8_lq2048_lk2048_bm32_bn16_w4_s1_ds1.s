@@ -333,7 +333,7 @@ amd_strix_halo_gfx1151_attention_fwd_bf16xint4_none_full_bfloat16_d64_dv64_hq16_
 	v_cndmask_b32_e64 v60, 0xff800000, v60, s0
 	v_cndmask_b32_e64 v67, 0xff800000, v67, s0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:968:29 ] ]
 	v_max3_f32 v86, v18, v19, v20
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)

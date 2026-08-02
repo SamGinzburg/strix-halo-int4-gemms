@@ -145,13 +145,8 @@
   ],
   "semantics": "runtime",
   "shape_specialization": "runtime",
-  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "status": "generated",
-  "triton_artifacts": {
-    "llir": "kernels/triton/gfx1151_attention_fwd_int4xint4_bool_runtime_bfloat16_d64_dv64_shaperuntime_bm16_bn16_w4_s1_ds8.llir",
-    "source": "kernels/triton/gfx1151_attention_fwd_int4xint4_bool_runtime_bfloat16_d64_dv64_shaperuntime_bm16_bn16_w4_s1_ds8.py",
-    "ttgir": "kernels/triton/gfx1151_attention_fwd_int4xint4_bool_runtime_bfloat16_d64_dv64_shaperuntime_bm16_bn16_w4_s1_ds8.ttgir",
-    "ttir": "kernels/triton/gfx1151_attention_fwd_int4xint4_bool_runtime_bfloat16_d64_dv64_shaperuntime_bm16_bn16_w4_s1_ds8.ttir"
-  },
+  "triton_artifacts": {},
   "value_dim": 64
 }

@@ -1,5 +1,5 @@
-#blocked = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [1, 32], warpsPerCTA = [8, 1], order = [1, 0]}>
-#blocked1 = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [32, 1], warpsPerCTA = [1, 8], order = [0, 1]}>
+#blocked = #ttg.blocked<{sizePerThread = [1, 16], threadsPerWarp = [16, 2], warpsPerCTA = [8, 1], order = [1, 0]}>
+#blocked1 = #ttg.blocked<{sizePerThread = [8, 1], threadsPerWarp = [4, 8], warpsPerCTA = [1, 8], order = [0, 1]}>
 #linear = #ttg.linear<{register = [[0, 1], [0, 2], [0, 4], [0, 32], [64, 0]], lane = [[1, 0], [2, 0], [4, 0], [8, 0], [0, 8]], warp = [[0, 16], [16, 0], [32, 0]], block = []}>
 #loc = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1276:5)
 #loc40 = loc("acc")
@@ -122,7 +122,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
         %lhs_values_85 = arith.addi %lhs_values_81, %lhs_values_83 : tensor<128x32xi32, #blocked> loc(#loc114)
         %lhs_values_86 = tt.splat %lhs_values_84 : i32 -> tensor<128x32xi32, #blocked> loc(#loc114)
         %lhs_values_87 = arith.addi %lhs_values_86, %lhs_values_85 : tensor<128x32xi32, #blocked> loc(#loc114)
-        %lhs_values_88 = amdg.buffer_load %lhs[%lhs_values_87], %lhs_values_39 : tensor<128x32xi8, #blocked> loc(#loc103)
+        %lhs_values_88 = amdg.buffer_load %lhs[%lhs_values_87], %lhs_values_39 {contiguity = 16 : i32} : tensor<128x32xi8, #blocked> loc(#loc103)
         %rhs_values_89 = tt.expand_dims %offs_n_15 {axis = 0 : i32} : tensor<64xi32, #ttg.slice<{dim = 0, parent = #blocked1}>> -> tensor<1x64xi32, #blocked1> loc(#loc115)
         %rhs_values_90 = arith.muli %offs_n, %K_PACKED : i32 loc(#loc115)
         %rhs_values_91 = tt.splat %K_PACKED : i32 -> tensor<1x64xi32, #blocked1> loc(#loc115)
@@ -135,7 +135,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
         %rhs_values_98 = arith.addi %rhs_values_94, %rhs_values_96 : tensor<32x64xi32, #blocked1> loc(#loc115)
         %rhs_values_99 = tt.splat %rhs_values_97 : i32 -> tensor<32x64xi32, #blocked1> loc(#loc115)
         %rhs_values_100 = arith.addi %rhs_values_99, %rhs_values_98 : tensor<32x64xi32, #blocked1> loc(#loc115)
-        %rhs_values_101 = amdg.buffer_load %rhs[%rhs_values_100], %rhs_values_40 : tensor<32x64xi8, #blocked1> loc(#loc105)
+        %rhs_values_101 = amdg.buffer_load %rhs[%rhs_values_100], %rhs_values_40 {contiguity = 8 : i32} : tensor<32x64xi8, #blocked1> loc(#loc105)
         %lhs_values_102 = ttg.local_alloc %lhs_values_88 : (tensor<128x32xi8, #blocked>) -> !ttg.memdesc<128x32xi8, #shared, #smem> loc(#loc103)
         %lhs_values_103 = ttg.local_load %lhs_values_102 : !ttg.memdesc<128x32xi8, #shared, #smem> -> tensor<128x32xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> loc(#loc103)
         %rhs_values_104 = ttg.local_alloc %rhs_values_101 : (tensor<32x64xi8, #blocked1>) -> !ttg.memdesc<32x64xi8, #shared1, #smem> loc(#loc105)
@@ -195,15 +195,15 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
     tt.return loc(#loc)
   } loc(#loc)
 } loc(#loc)
-#loc1 = loc("<triton>/python/triton/language/standard.py":129:12)
+#loc1 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":129:12)
 #loc2 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1318:15)
 #loc3 = loc(unknown)
 #loc4 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1302:21)
 #loc5 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1301:21)
 #loc6 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1299:15)
 #loc7 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1300:21)
-#loc8 = loc("<triton>/python/triton/language/standard.py":43:13)
-#loc9 = loc("<triton>/python/triton/language/standard.py":43:12)
+#loc8 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:13)
+#loc9 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:12)
 #loc10 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1303:27)
 #loc11 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1304:20)
 #loc12 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1305:22)

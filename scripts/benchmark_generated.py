@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import sys
 import tempfile
 import zipfile
@@ -463,6 +464,7 @@ def main(argv: list[str] | None = None) -> int:
             BenchmarkDatabase,
             BenchmarkShape,
         )
+        from amd_strix_halo_kernels.artifacts import installed_triton_commit
         from amd_strix_halo_kernels import native
         from amd_strix_halo_kernels.registry import default_registry
 
@@ -524,7 +526,10 @@ def main(argv: list[str] | None = None) -> int:
                 raise RuntimeError(
                     f"benchmark failed for [{index}/{len(selected)}] {kernel.kernel_id}"
                 ) from exc
-        BenchmarkDatabase(records).save(args.output)
+        payload = BenchmarkDatabase(records).to_dict()
+        payload["triton_git_revision"] = installed_triton_commit()
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
         print(args.output)
         print_summary(records)
         return 0

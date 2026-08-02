@@ -1,6 +1,6 @@
 [project]
 name = "amd-strix-halo-kernels"
-version = "0.1.0"
+version = "0.2.0"
 description = "Quantized int4/int8 GEMM kernels for AMD Strix Halo (gfx1151), with a kernel registry and generation tooling"
 readme = "README.md"
 authors = [
@@ -41,12 +41,12 @@ rocm = [
     "triton @ https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/triton-3.5.1%2Brocm7.2.0.gita272dfa8-cp312-cp312-linux_x86_64.whl ; platform_system == 'Linux' and python_version >= '3.12' and python_version < '3.13'",
 ]
 # Same ROCm stack as `rocm`, but with the custom Strix Halo Triton fork instead
-# of the stock ROCm Triton. The fork adds int4 dot_scaled WMMA and the constexpr
-# scale-chunk path required by the subchannel-scale ragged kernels (and by
-# artifact regeneration). NOTE: this builds Triton from source (~30 min, needs a
-# full build toolchain); the `rocm` extra above uses the prebuilt stock Triton
-# wheel and the subchannel-ragged tests skip via a capability guard when that
-# fork support is absent. See https://github.com/SamGinzburg/triton/tree/amd-strix-halo
+# of the stock ROCm Triton. The fork adds int4 dot_scaled WMMA, the constexpr
+# scale-chunk path required by the subchannel-scale ragged kernels, and Gluon
+# RDNA3 WMMA/buffer operations for gfx1151 development. NOTE: this builds Triton
+# from source (~30 min, needs a full build toolchain); the `rocm` extra above uses
+# the prebuilt stock Triton wheel and unsupported JIT tests skip via capability
+# guards. See https://github.com/SamGinzburg/triton/tree/amd-strix-halo
 rocm-triton-fork = [
     "numpy>=1.26,<2.0",
     "torch @ https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/torch-2.9.1%2Brocm7.2.0.lw.git7e1940d4-cp312-cp312-linux_x86_64.whl ; platform_system == 'Linux' and python_version >= '3.12' and python_version < '3.13'",

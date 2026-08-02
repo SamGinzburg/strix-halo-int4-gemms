@@ -1,0 +1,226 @@
+{
+  "accumulation_dtype": "float32",
+  "amdgcn_stats": {
+    "buffer_load": 7,
+    "buffer_store": 1,
+    "lines": 1815,
+    "waitcnt": 34
+  },
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+  "arch": "gfx1151",
+  "asm_keys": [
+    "amdgcn",
+    "hsaco",
+    "llir",
+    "source",
+    "ttgir"
+  ],
+  "config": {
+    "cache_split_batch_head": 127,
+    "checkpoint_interval": 4,
+    "num_checkpoints": 513,
+    "value_block": 64
+  },
+  "family": "kimi_delta_attention",
+  "generation_shape": {
+    "batch": 4,
+    "head_dim": 128,
+    "heads": 32,
+    "sequence": 2048,
+    "value_dim": 128
+  },
+  "kernel_arg_layout": {
+    "arguments": [
+      {
+        "kind": "pointer",
+        "name": "query",
+        "offset": 0,
+        "size": 8,
+        "type": "*u8"
+      },
+      {
+        "kind": "pointer",
+        "name": "key",
+        "offset": 8,
+        "size": 8,
+        "type": "*u8"
+      },
+      {
+        "kind": "pointer",
+        "name": "value",
+        "offset": 16,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "log_decay",
+        "offset": 24,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "beta",
+        "offset": 32,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "query_scale",
+        "offset": 40,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "key_scale",
+        "offset": 48,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "value_scale",
+        "offset": 56,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "initial_state",
+        "offset": 64,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "output",
+        "offset": 72,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "final_state",
+        "offset": 80,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "state_cache",
+        "offset": 88,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "state_cache_tail",
+        "offset": 96,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "scalar",
+        "name": "sequence",
+        "offset": 104,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "heads",
+        "offset": 108,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "head_dim",
+        "offset": 112,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "packed_head_dim",
+        "offset": 116,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "value_dim",
+        "offset": 120,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "packed_value_dim",
+        "offset": 124,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "num_checkpoints",
+        "offset": 128,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "output_scale",
+        "offset": 132,
+        "size": 4,
+        "type": "fp32"
+      }
+    ],
+    "hidden_global_buffer_offsets": [
+      136,
+      144
+    ]
+  },
+  "kernel_id": "gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+  "launch_metadata": {
+    "dynamic_grid": 1,
+    "grid_x": 128,
+    "grid_y": 2,
+    "grid_z": 1,
+    "num_ctas": 1,
+    "num_warps": 2,
+    "persistent": 0,
+    "shared_memory_bytes": 512
+  },
+  "mode": "int4-bf16",
+  "normalize_qk": true,
+  "output_dtype": "bfloat16",
+  "phase": "forward",
+  "qk_dtype": "int4",
+  "runtime_constraints": {
+    "batch_min": 1,
+    "heads_min": 1,
+    "max_buffer_descriptor_bytes": 4294967296,
+    "sequence_max": 2048,
+    "sequence_min": 1
+  },
+  "shape_specialization": {
+    "batch": "runtime",
+    "head_dim": 128,
+    "heads": "runtime",
+    "sequence": "runtime",
+    "value_dim": 128
+  },
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
+  "status": "generated",
+  "stores_state_cache": false,
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.llir",
+    "source": "kernels/triton/gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.py",
+    "ttgir": "kernels/triton/gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.ttgir"
+  },
+  "value_dtype": "bfloat16"
+}

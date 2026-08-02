@@ -4,8 +4,9 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 4,156 artifacts: 3,062 dense generated
-kernels, 302 ragged generated artifacts, and 792 fused-attention artifacts:
+The checked-in native matrix contains 4,170 artifacts: 3,062 dense generated
+kernels, 302 ragged generated artifacts, 792 fused-attention artifacts, and 14
+runtime-B/H/T KDA artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
@@ -242,34 +243,58 @@ JIT fallbacks require the custom Strix Halo Triton fork.
 ``use_precompiled=None`` selects native coverage automatically, ``True``
 requires it, and ``False`` forces JIT.
 
-Kimi Delta Attention JIT
-------------------------
+Kimi Delta Attention Native and JIT
+-----------------------------------
 
-KDA is currently a Triton-JIT family rather than part of the packaged HSACO
-matrix. The default forward launch assigns one program to a batch/head/value
-tile and scans tokens while retaining its FP32 ``D x value_block`` state tile.
-The measured default uses a 64-wide value tile and two-stage ``tl.range`` load
-pipelining. Q/K L2 normalization, log-decay application, the delta-rule
-residual, and the output projection are fused into that scan. BF16 and
-row-scaled packed INT4 Q/K are selected at compile time; BF16 and packed INT4
-V are independently selected. Packed operands are unpacked and scaled in
-registers.
+KDA contributes 14 exact-profile Gluon objects to the packaged HSACO matrix.
+The public backend defaults to Triton and additionally offers
+``backend="gluon"``. With that backend, ``use_precompiled=None`` automatically
+selects installed exact coverage, ``True`` requires it, and ``False`` forces
+Gluon JIT. Packaged execution does not require Triton; JIT requires the pinned
+Strix Halo fork. Each forward launch assigns one program to a
+batch/head/value tile and scans tokens while retaining its FP32
+``D x value_block`` state tile. Q/K L2 normalization, log-decay application,
+the delta-rule residual, and the output projection are fused into that scan.
+BF16 and row-scaled packed INT4 Q/K are selected at compile time; BF16 and
+packed INT4 V are independently selected. Packed operands are unpacked and
+scaled in registers.
 
-Backward uses an independent 16-wide value tile, scans tokens in reverse, and
-reconstructs ``S_(t-1)`` from FP32 chunk-boundary checkpoints. A preprocessing
-kernel materializes logical normalized Q/K once into the eventual dQ/dK output
+The measured gfx1151 Gluon forward uses two waves, a 64-wide value tile, RDNA
+buffer operations, and separate explicit distributions for one-dimensional
+operands and the two-dimensional recurrent state. At
+``B=4,T=2048,H=32,D=Dv=128`` this mapping reaches 4.757--5.297 ms across the
+four storage modes, 1.66--1.84x faster than the Triton recurrence.
+
+Backward scans tokens in reverse and reconstructs ``S_(t-1)`` from FP32
+chunk-boundary checkpoints. The tuned Gluon target mapping uses a 64-wide tile
+and four waves; Triton retains its independently tunable 16-wide default. A
+preprocessing kernel materializes logical normalized Q/K once into the
+eventual dQ/dK output
 buffers, avoiding repeated dequantization and normalization across value tiles
 and checkpoint replay. dV and optional dInitialState stores have one owner.
 Partial dQ, dK, dLogDecay, and dBeta use relaxed FP32 atomic reductions across
 value tiles; a final kernel applies the exact L2-normalization derivative and
 overwrites the temporary Q/K buffers with dQ/dK. Checkpoint interval and the
 independent forward/backward value tiles expose the memory/recompute/occupancy
-tradeoff through ``KimiDeltaAttentionConfig``.
+tradeoff through ``KimiDeltaAttentionConfig``. A target ``CI=4`` cache is
+4.008 GiB, so Gluon partitions it over two RDNA descriptors in the same launch
+to keep every byte offset representable. A flat-pointer fallback preserves
+correctness for any single batch/head segment that itself reaches 4 GiB.
+
+The packaged profile is
+``B=4,T=2048,H=32,D=Dv=128,value_block=64,checkpoint_interval=4`` with
+normalized Q/K, BF16 output and upstream gradient, FP32 gates, and no
+initial/final-state path. Eight forward objects cross the four BF16/INT4
+QK-by-V modes with checkpoint-cache writes disabled/enabled. Six backward
+objects cover BF16/INT4 variants of the preprocess, recurrent, and
+normalization phases. CUDAGraph uses the current stream and the same
+preallocated output, cache, gradients, and normalization scratch contract as
+JIT.
 
 The compact-WY research path prepares 16-token W/U factors and evaluates the
 chunk recurrence with IEEE FP32 dot products. It remains opt-in because its
 per-dimension exponential preparation is slower than the recurrent mapping on
-gfx1151. No KDA objects are counted in the packaged native artifact totals.
+gfx1151. It is Triton-only and is not part of the packaged profile.
 
 Shape Contract
 --------------

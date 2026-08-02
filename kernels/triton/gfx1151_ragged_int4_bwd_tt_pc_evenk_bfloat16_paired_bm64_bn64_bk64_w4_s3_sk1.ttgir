@@ -1,13 +1,14 @@
 #blocked = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [1, 32], warpsPerCTA = [4, 1], order = [1, 0]}>
-#blocked1 = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [32, 1], warpsPerCTA = [2, 2], order = [0, 1]}>
-#blocked2 = #ttg.blocked<{sizePerThread = [1, 1], threadsPerWarp = [32, 1], warpsPerCTA = [1, 4], order = [0, 1]}>
+#blocked1 = #ttg.blocked<{sizePerThread = [1, 8], threadsPerWarp = [32, 1], warpsPerCTA = [2, 2], order = [0, 1]}>
+#blocked2 = #ttg.blocked<{sizePerThread = [16, 1], threadsPerWarp = [2, 16], warpsPerCTA = [1, 4], order = [0, 1]}>
 #blocked3 = #ttg.blocked<{sizePerThread = [1, 1, 2], threadsPerWarp = [1, 32, 1], warpsPerCTA = [4, 1, 1], order = [2, 1, 0]}>
-#linear = #ttg.linear<{register = [[0, 1, 0], [0, 2, 0], [0, 4, 0], [0, 16, 0], [32, 0, 0]], lane = [[1, 0, 0], [2, 0, 0], [4, 0, 0], [8, 0, 0], [0, 0, 1]], warp = [[0, 8, 0], [16, 0, 0]], block = []}>
+#linear = #ttg.linear<{register = [[0, 1], [0, 2], [0, 4], [0, 16]], lane = [[1, 0], [2, 0], [4, 0], [8, 0], [16, 0]], warp = [[32, 0], [0, 8]], block = []}>
+#linear1 = #ttg.linear<{register = [[0, 1, 0], [0, 2, 0], [0, 4, 0], [0, 16, 0], [32, 0, 0]], lane = [[1, 0, 0], [2, 0, 0], [4, 0, 0], [8, 0, 0], [0, 0, 1]], warp = [[0, 8, 0], [16, 0, 0]], block = []}>
 #loc = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1276:5)
 #loc36 = loc("acc_i32")
 #loc37 = loc("k_base")
 #mma = #ttg.amd_wmma<{version = 1, isTranspose = true, ctaLayout = {warp = [[0, 1], [1, 0]]}}>
-#shared = #ttg.swizzled_shared<{vec = 1, perPhase = 1, maxPhase = 1, order = [0, 1]}>
+#shared = #ttg.amd_rotating_shared<{vec = 8, perPhase = 4, maxPhase = 4, order = [1, 0]}>
 #shared1 = #ttg.swizzled_shared<{vec = 8, perPhase = 4, maxPhase = 4, order = [0, 1]}>
 #smem = #ttg.shared_memory
 #loc65 = loc("lhs"(#loc))
@@ -115,14 +116,15 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
       %rhs_values_97 = arith.addi %rhs_values_93, %rhs_values_95 : tensor<32x64xi32, #blocked2> loc(#loc106)
       %rhs_values_98 = tt.splat %rhs_values_96 : i32 -> tensor<32x64xi32, #blocked2> loc(#loc106)
       %rhs_values_99 = arith.addi %rhs_values_98, %rhs_values_97 : tensor<32x64xi32, #blocked2> loc(#loc106)
-      %rhs_values_100 = amdg.buffer_load %rhs[%rhs_values_99], %rhs_values_34 : tensor<32x64xi8, #blocked2> loc(#loc103)
-      %lhs_values_101 = ttg.local_alloc %lhs_values_87 : (tensor<64x32xi8, #blocked1>) -> !ttg.memdesc<64x32xi8, #shared, #smem> loc(#loc101)
-      %lhs_values_102 = ttg.local_load %lhs_values_101 : !ttg.memdesc<64x32xi8, #shared, #smem> -> tensor<64x32xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> loc(#loc101)
-      %rhs_values_103 = ttg.local_alloc %rhs_values_100 : (tensor<32x64xi8, #blocked2>) -> !ttg.memdesc<32x64xi8, #shared1, #smem> loc(#loc103)
-      %rhs_values_104 = ttg.local_load %rhs_values_103 : !ttg.memdesc<32x64xi8, #shared1, #smem> -> tensor<32x64xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> loc(#loc103)
-      %acc_i32_105 = tt.dot_scaled %lhs_values_102, %rhs_values_104, %acc_i32_73 lhs = int4 rhs = int4 {fastMath = false} : tensor<64x32xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> * tensor<32x64xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> -> tensor<64x64xi32, #mma> loc(#loc107)
-      %k_base_106 = arith.addi %k_base_74, %c32_i32 : i32 loc(#loc108)
-      scf.yield %acc_i32_105, %k_base_106 : tensor<64x64xi32, #mma>, i32 loc(#loc34)
+      %rhs_values_100 = amdg.buffer_load %rhs[%rhs_values_99], %rhs_values_34 {contiguity = 16 : i32} : tensor<32x64xi8, #blocked2> loc(#loc103)
+      %lhs_values_101 = amdg.in_thread_transpose %lhs_values_87 : tensor<64x32xi8, #blocked1> -> tensor<64x32xi8, #linear> loc(#loc101)
+      %lhs_values_102 = ttg.local_alloc %lhs_values_101 : (tensor<64x32xi8, #linear>) -> !ttg.memdesc<64x32xi8, #shared, #smem> loc(#loc101)
+      %lhs_values_103 = ttg.local_load %lhs_values_102 : !ttg.memdesc<64x32xi8, #shared, #smem> -> tensor<64x32xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> loc(#loc101)
+      %rhs_values_104 = ttg.local_alloc %rhs_values_100 : (tensor<32x64xi8, #blocked2>) -> !ttg.memdesc<32x64xi8, #shared1, #smem> loc(#loc103)
+      %rhs_values_105 = ttg.local_load %rhs_values_104 : !ttg.memdesc<32x64xi8, #shared1, #smem> -> tensor<32x64xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> loc(#loc103)
+      %acc_i32_106 = tt.dot_scaled %lhs_values_103, %rhs_values_105, %acc_i32_73 lhs = int4 rhs = int4 {fastMath = false} : tensor<64x32xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> * tensor<32x64xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> -> tensor<64x64xi32, #mma> loc(#loc107)
+      %k_base_107 = arith.addi %k_base_74, %c32_i32 : i32 loc(#loc108)
+      scf.yield %acc_i32_106, %k_base_107 : tensor<64x64xi32, #mma>, i32 loc(#loc34)
     } loc(#loc134)
     %acc = arith.sitofp %k_base_35#0 : tensor<64x64xi32, #mma> to tensor<64x64xf32, #mma> loc(#loc109)
     %lhs_scale_values = arith.muli %group_id, %M : i32 loc(#loc110)
@@ -144,8 +146,8 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
     %acc_50 = arith.mulf %acc_43, %acc_49 : tensor<64x64xf32, #mma> loc(#loc118)
     %acc_bf16_bits = arith.truncf %acc_50 : tensor<64x64xf32, #mma> to tensor<64x64xbf16, #mma> loc(#loc119)
     %acc_bf16_bits_51 = tt.bitcast %acc_bf16_bits : tensor<64x64xbf16, #mma> -> tensor<64x64xi16, #mma> loc(#loc119)
-    %acc_pairs = tt.reshape %acc_bf16_bits_51 : tensor<64x64xi16, #mma> -> tensor<64x32x2xi16, #linear> loc(#loc120)
-    %0 = ttg.convert_layout %acc_pairs : tensor<64x32x2xi16, #linear> -> tensor<64x32x2xi16, #blocked3> loc(#loc54)
+    %acc_pairs = tt.reshape %acc_bf16_bits_51 : tensor<64x64xi16, #mma> -> tensor<64x32x2xi16, #linear1> loc(#loc120)
+    %0 = ttg.convert_layout %acc_pairs : tensor<64x32x2xi16, #linear1> -> tensor<64x32x2xi16, #blocked3> loc(#loc54)
     %outLHS, %outRHS = tt.split %0 : tensor<64x32x2xi16, #blocked3> -> tensor<64x32xi16, #blocked> loc(#loc54)
     %packed_acc_52 = arith.extui %outLHS : tensor<64x32xi16, #blocked> to tensor<64x32xi32, #blocked> loc(#loc121)
     %packed_acc_53 = arith.extui %outRHS : tensor<64x32xi16, #blocked> to tensor<64x32xi32, #blocked> loc(#loc76)
@@ -177,15 +179,15 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
     tt.return loc(#loc)
   } loc(#loc)
 } loc(#loc)
-#loc1 = loc("<triton>/python/triton/language/standard.py":129:12)
+#loc1 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":129:12)
 #loc2 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1321:23)
 #loc3 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1535:54)
 #loc4 = loc(unknown)
 #loc5 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1299:15)
 #loc6 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1300:21)
-#loc7 = loc("<triton>/python/triton/language/standard.py":43:13)
+#loc7 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:13)
 #loc8 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1301:21)
-#loc9 = loc("<triton>/python/triton/language/standard.py":43:12)
+#loc9 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:12)
 #loc10 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1302:21)
 #loc11 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1303:27)
 #loc12 = loc("<repo>/src/amd_strix_halo_kernels/ragged.py":1304:20)

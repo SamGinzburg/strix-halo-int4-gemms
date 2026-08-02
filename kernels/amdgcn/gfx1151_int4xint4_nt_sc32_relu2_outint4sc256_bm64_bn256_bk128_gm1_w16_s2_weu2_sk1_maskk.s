@@ -43,7 +43,7 @@ amd_strix_halo_gfx1151_int4xint4_nt_sc32_relu2_outint4sc256_bm64_bn256_bk128_gm1
 	.loc	1 218 26                        ; generate_amdgcn.py:218:26
 	v_xor_b32_e32 v7, v10, v7
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:115:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s5, s35, 0xff

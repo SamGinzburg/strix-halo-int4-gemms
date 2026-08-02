@@ -323,11 +323,11 @@ define amdgpu_kernel void @_int8_scaled_gemm(ptr addrspace(1) inreg readonly cap
   %298 = shl i32 %297, 1, !dbg !65
   %299 = select i1 %279, i32 %298, i32 -2147483648, !dbg !65
   %300 = tail call i16 @llvm.amdgcn.raw.ptr.buffer.load.i16(ptr addrspace(8) %120, i32 %299, i32 0, i32 0), !dbg !65
-  store i16 %300, ptr addrspace(3) %131, align 2, !dbg !66
-  tail call void @llvm.amdgcn.s.waitcnt(i32 64519), !dbg !66
-  tail call void @llvm.amdgcn.s.barrier(), !dbg !66
-  %301 = load <8 x i16>, ptr addrspace(3) %133, align 16, !dbg !66
-  %302 = load <8 x i16>, ptr addrspace(3) %134, align 16, !dbg !66
+  store i16 %300, ptr addrspace(3) %131, align 2, !dbg !65
+  tail call void @llvm.amdgcn.s.waitcnt(i32 64519), !dbg !65
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !65
+  %301 = load <8 x i16>, ptr addrspace(3) %133, align 16, !dbg !65
+  %302 = load <8 x i16>, ptr addrspace(3) %134, align 16, !dbg !65
   %303 = extractelement <8 x i16> %301, i64 0, !dbg !65
   %304 = zext i16 %303 to i32, !dbg !65
   %305 = shl nuw i32 %304, 16, !dbg !65
@@ -1968,7 +1968,7 @@ attributes #9 = { nocallback nocreateundeforpoison nofree nosync nounwind specul
 !18 = !DILocation(line: 345, column: 13, scope: !6)
 !19 = !DILocation(line: 43, column: 13, scope: !20, inlinedAt: !22)
 !20 = distinct !DILexicalBlockFile(scope: !6, file: !21, discriminator: 0)
-!21 = !DIFile(filename: "standard.py", directory: "<triton>/python/triton/language")
+!21 = !DIFile(filename: "standard.py", directory: "<repo>/.venv/lib/python3.12/site-packages/triton/language")
 !22 = !DILocation(line: 346, column: 17, scope: !15)
 !23 = !DILocation(line: 43, column: 12, scope: !20, inlinedAt: !22)
 !24 = !DILocation(line: 43, column: 13, scope: !20, inlinedAt: !25)

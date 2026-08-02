@@ -1269,7 +1269,7 @@ amd_strix_halo_gfx1151_attention_fwd_bf16xint4_fp32_runtime_float32_d64_dv64_sha
 	ds_load_2addr_b32 v[72:73], v198 offset0:64 offset1:96
 	ds_load_2addr_b32 v[66:67], v198 offset1:32
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:968:29 ] ]
 	v_max3_f32 v199, v68, v69, v208
 .Ltmp2:

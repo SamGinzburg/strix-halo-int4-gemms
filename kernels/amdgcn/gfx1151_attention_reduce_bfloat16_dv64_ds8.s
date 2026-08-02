@@ -97,7 +97,7 @@ amd_strix_halo_gfx1151_attention_reduce_bfloat16_dv64_ds8:                      
 	v_cndmask_b32_e32 v5, 0xff800000, v5, vcc_lo
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1091:22 ]
 	v_mov_b32_e32 v12, v5
 .Ltmp2:

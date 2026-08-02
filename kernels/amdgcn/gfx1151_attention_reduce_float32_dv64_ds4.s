@@ -79,7 +79,7 @@ amd_strix_halo_gfx1151_attention_reduce_float32_dv64_ds4:                       
 	s_waitcnt vmcnt(1)
 	v_cndmask_b32_e64 v3, 0xff800000, v3, s1
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1091:22 ] ]
 	v_max_f32_e32 v9, v1, v1
 .Ltmp2:

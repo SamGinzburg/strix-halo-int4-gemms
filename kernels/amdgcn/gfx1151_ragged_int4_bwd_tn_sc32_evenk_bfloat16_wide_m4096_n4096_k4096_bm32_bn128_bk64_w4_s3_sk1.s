@@ -18,7 +18,7 @@ amd_strix_halo_gfx1151_ragged_int4_bwd_tn_sc32_evenk_bfloat16_wide_m4096_n4096_k
 	.loc	1 1309 36                       ; ragged.py:1309:36
 	v_and_b32_e32 v35, 15, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ ragged.py:1301:21 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s18, 31

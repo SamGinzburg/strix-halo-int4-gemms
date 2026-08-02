@@ -23,7 +23,7 @@ amd_strix_halo_gfx1151_int4xint4_tn_pc_relu2_bm32_bn512_bk32_gm4_w16_s2_weu2_sk1
 	s_delay_alu instid0(VALU_DEP_1)
 	v_dual_mov_b32 v7, v8 :: v_dual_add_nc_u32 v38, 0, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:115:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s17, 0x1ff

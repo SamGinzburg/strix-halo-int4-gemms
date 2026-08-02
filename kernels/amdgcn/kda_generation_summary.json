@@ -1,0 +1,334 @@
+{
+  "arch": "gfx1151",
+  "failure_count": 0,
+  "failures": [],
+  "family": "kimi_delta_attention",
+  "generated": [
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 1,
+        "lines": 1946,
+        "waitcnt": 34
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 129,
+        "lines": 2961,
+        "waitcnt": 49
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_cache_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_cache_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_cache_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_cache_bf16xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 1,
+        "lines": 1953,
+        "waitcnt": 32
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 129,
+        "lines": 2960,
+        "waitcnt": 55
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_cache_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_cache_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_cache_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_cache_bf16xint4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 1,
+        "lines": 1815,
+        "waitcnt": 34
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 129,
+        "lines": 2970,
+        "waitcnt": 52
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_cache_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_cache_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_cache_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_cache_int4xbf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 1,
+        "lines": 2195,
+        "waitcnt": 31
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 7,
+        "buffer_store": 129,
+        "lines": 3068,
+        "waitcnt": 58
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_fwd_cache_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_fwd_cache_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_fwd_cache_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 2,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_fwd_cache_int4xint4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "forward"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 2,
+        "buffer_store": 2,
+        "lines": 611,
+        "waitcnt": 7
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_pre_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_pre_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_pre_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 262144,
+        "grid_y": 1,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 16
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_pre_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_preprocess"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 2,
+        "buffer_store": 2,
+        "lines": 653,
+        "waitcnt": 9
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_pre_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_pre_int4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_pre_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 262144,
+        "grid_y": 1,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 16
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_pre_int4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_preprocess"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 40,
+        "buffer_store": 2,
+        "lines": 6135,
+        "waitcnt": 93
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_recurrent_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_recurrent_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_recurrent_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_recurrent_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_recurrent"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 40,
+        "buffer_store": 2,
+        "lines": 6298,
+        "waitcnt": 101
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_recurrent_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_recurrent_int4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_recurrent_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 128,
+        "grid_y": 2,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 512
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_recurrent_int4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_recurrent"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 4,
+        "buffer_store": 2,
+        "lines": 884,
+        "waitcnt": 14
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_norm_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_norm_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_norm_bf16_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 262144,
+        "grid_y": 1,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 16
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_norm_bf16_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_normalize"
+    },
+    {
+      "amdgcn_stats": {
+        "buffer_load": 4,
+        "buffer_store": 2,
+        "lines": 889,
+        "waitcnt": 15
+      },
+      "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_norm_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "asm": "kernels/amdgcn/gfx1151_kda_bwd_norm_int4_b4_t2048_h32_d128_dv128_vb64_ci4.s",
+      "kernel_id": "gfx1151_kda_bwd_norm_int4_b4_t2048_h32_d128_dv128_vb64_ci4",
+      "launch_metadata": {
+        "dynamic_grid": 1,
+        "grid_x": 262144,
+        "grid_y": 1,
+        "grid_z": 1,
+        "num_ctas": 1,
+        "num_warps": 4,
+        "persistent": 0,
+        "shared_memory_bytes": 16
+      },
+      "metadata": "kernels/amdgcn/gfx1151_kda_bwd_norm_int4_b4_t2048_h32_d128_dv128_vb64_ci4.json",
+      "phase": "backward_normalize"
+    }
+  ],
+  "generated_count": 14,
+  "removed_before_generation": 74,
+  "selected_jobs": 14,
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7"
+}

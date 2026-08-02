@@ -2,8 +2,8 @@
   "amdgcn_stats": {
     "bf16_wmma": 16,
     "iu4_wmma": 16,
-    "lines": 4539,
-    "waitcnt": 165
+    "lines": 5022,
+    "waitcnt": 67
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bool_local_bfloat16_d64_dv64_hq16_hkv8_lq2048_lk2048_bm64_bn64_w4_s1_ds1",
   "arch": "gfx1151",
@@ -108,7 +108,7 @@
     "num_ctas": 1,
     "num_warps": 4,
     "persistent": 0,
-    "shared_memory_bytes": 8192
+    "shared_memory_bytes": 16384
   },
   "mask_dtype": "bool",
   "mode": "int4-bf16",
@@ -144,13 +144,8 @@
     "query_heads": 16,
     "query_length": 2048
   },
-  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "status": "generated",
-  "triton_artifacts": {
-    "llir": "kernels/triton/gfx1151_attention_fwd_int4xbf16_bool_local_bfloat16_d64_dv64_hq16_hkv8_lq2048_lk2048_bm64_bn64_w4_s1_ds1.llir",
-    "source": "kernels/triton/gfx1151_attention_fwd_int4xbf16_bool_local_bfloat16_d64_dv64_hq16_hkv8_lq2048_lk2048_bm64_bn64_w4_s1_ds1.py",
-    "ttgir": "kernels/triton/gfx1151_attention_fwd_int4xbf16_bool_local_bfloat16_d64_dv64_hq16_hkv8_lq2048_lk2048_bm64_bn64_w4_s1_ds1.ttgir",
-    "ttir": "kernels/triton/gfx1151_attention_fwd_int4xbf16_bool_local_bfloat16_d64_dv64_hq16_hkv8_lq2048_lk2048_bm64_bn64_w4_s1_ds1.ttir"
-  },
+  "triton_artifacts": {},
   "value_dim": 64
 }

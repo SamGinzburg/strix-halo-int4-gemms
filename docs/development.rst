@@ -66,16 +66,19 @@ Do not pass ``--no-triton-artifacts`` for checked-in regeneration: the tracked
 Triton source and IR are part of the provenance update.
 
 ``uv.lock`` pins the custom Triton dependency to
-``0da3c5a751b2d03461e961b62dc3598f85884617``, and the dense, ragged, and
-attention generation summaries record that source commit. The 2,880-entry
-combinatorial dense base, two exact subchannel-256 TN projection-gradient
-artifacts, and 180 packed-INT4 output artifacts bring the checked-in dense
-total to 3,062. The
-ragged matrix contains 302 artifacts after adding its 120 packed-output
-variants.
+``28d04c3f9f23db9a7f9c80906d00667b53e7a7d7``. This revision exposes Gluon
+RDNA3 WMMA plus masked buffer load/store operations and unaligned INT8-load
+vectorization on gfx1151. The dense,
+ragged, attention, and KDA generation summaries and every per-kernel metadata
+file record that same exact compiler revision.
 
-Attention Generation and Tuning
--------------------------------
+The 2,880-entry combinatorial dense base, two exact subchannel-256 TN
+projection-gradient artifacts, and 180 packed-INT4 output artifacts bring the
+checked-in dense total to 3,062. The ragged matrix contains 302 artifacts after
+adding its 120 packed-output variants.
+
+Attention and KDA Generation and Tuning
+---------------------------------------
 
 Regenerate the 792-artifact fused-attention family separately. This produces
 112 generic forward objects, 420 measured-profile forward objects, four
@@ -95,8 +98,23 @@ attention source/assembly contract. The generation summary records the exact
 custom-Triton commit and the parser verifies pointer/scalar offsets, including
 the two hidden Triton ABI pointers, before accepting an artifact.
 
-The current totals are 3,062 dense, 302 ragged, and 792 attention artifacts
-(4,156 packaged HSACOs).
+Regenerate the runtime-shape KDA family separately:
+
+.. code-block:: bash
+
+   TRITON_CHECKOUT=/path/to/triton
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_kda_amdgcn.py --clean
+
+The KDA generator emits 14 objects: four forward BF16/INT4 QK-by-V modes with
+and without checkpoint-cache writes, plus BF16/INT4 variants for each backward
+preprocess, recurrent, and normalization phase. They specialize
+``D=Dv=128,value_block=64,checkpoint_interval=4`` and keep positive B/H plus
+``1 <= T <= 2048`` runtime. ``B4/T2048/H32`` in each artifact ID is the
+generation/provenance shape, not an exact dispatch constraint. KDA cleanup is
+restricted to ``gfx1151_kda_*``.
+
+The current totals are 3,062 dense, 302 ragged, 792 attention, and 14 KDA
+artifacts (4,170 packaged HSACOs).
 
 Regenerate the complete attention timing database on gfx1151 with prepacked
 inputs and the experimental ROCm PyTorch SDPA baseline enabled:
@@ -123,6 +141,17 @@ truth when changing candidate execution or numerical gates.
 Use ``--backend precompiled`` to require packaged candidates, ``--backend jit``
 to reproduce compiler-tuning runs, or the default ``auto`` for native coverage
 with JIT fallback.
+
+Regenerate the target-shape KDA benchmark with packaged dispatch required:
+
+.. code-block:: bash
+
+   TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
+     uv run --extra rocm-triton-fork python scripts/benchmark_kda.py \
+       --backend gluon --precompiled require \
+       --value-block 64 --checkpoint-interval 4 \
+       --warmup-ms 100 --rep-ms 400 \
+       --output benchmarks/gfx1151_kda.json
 
 Backward artifacts are emitted as separate ``backward_dq`` and
 ``backward_dkv`` phases. Each phase includes generic and exact 2048-token GQA
@@ -188,7 +217,7 @@ The wheel is runtime-only. During wheel build, CMake globs every
 ``lld``, and installs the resulting ``kernels/hsaco/*.hsaco`` code objects.
 The wheel bundles those code objects, the dispatch shared library, and the
 ``kernels/amdgcn/*.json`` launch metadata that the dispatcher reads at run
-time (about 43.8 MiB total). The generation provenance — ``*.s`` assembly and the
+time (about 43.0 MiB total). The generation provenance — ``*.s`` assembly and the
 ``kernels/triton/`` IR — stays in the git repository and is excluded from the
 wheel by the CMake install rules;
 it is never read at run time, and keeping it out of the wheel is what keeps the

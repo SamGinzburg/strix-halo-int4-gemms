@@ -13,24 +13,31 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 ; %bb.0:
 	s_clause 0x1
 	s_load_b64 s[28:29], s[0:1], 0x30
-	s_load_b128 s[20:23], s[0:1], 0x0
+	s_load_b128 s[12:15], s[0:1], 0x0
 .Ltmp0:
 	.loc	1 349 16 prologue_end           ; generate_amdgcn.py:349:16
 	s_abs_i32 s7, s2
-	s_load_b32 s36, s[0:1], 0x38
 	.loc	1 357 14                        ; generate_amdgcn.py:357:14
-	v_lshrrev_b32_e32 v72, 4, v0
+	v_lshrrev_b32_e32 v65, 2, v0
 	.loc	1 355 32                        ; generate_amdgcn.py:355:32
-	v_and_b32_e32 v38, 15, v0
+	v_lshlrev_b32_e32 v64, 3, v0
 	.loc	1 357 14                        ; generate_amdgcn.py:357:14
-	v_lshrrev_b32_e32 v73, 2, v0
-	v_or_b32_e32 v80, 0x3f0, v0
-	v_or_b32_e32 v81, 0x7f0, v0
-	v_or_b32_e32 v74, 16, v72
-	v_or_b32_e32 v75, 32, v72
-	v_or_b32_e32 v76, 48, v72
+	v_and_b32_e32 v28, 0xf0, v0
+	s_load_b32 s33, s[0:1], 0x38
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_and_b32_e32 v30, 1, v0
+	v_or_b32_e32 v70, 0x3f0, v0
+	.loc	1 355 32                        ; generate_amdgcn.py:355:32
+	v_and_b32_e32 v2, 24, v64
+	.loc	1 357 14                        ; generate_amdgcn.py:357:14
+	v_lshrrev_b32_e32 v66, 2, v28
+	v_or_b32_e32 v71, 0x7f0, v0
+	v_and_b32_e32 v72, 8, v0
+	v_and_b32_e32 v73, 32, v0
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_and_b32_e32 v29, 14, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:347:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s29, 0xff
@@ -65,37 +72,35 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	.loc	1 348 24 is_stmt 1              ; generate_amdgcn.py:348:24
 	s_lshl_b32 s4, s4, 2
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_mul_lo_u32 v3, s29, v72
+	v_mul_lo_u32 v3, s29, v66
 	.loc	1 349 16                        ; generate_amdgcn.py:349:16
 	s_abs_i32 s5, s4
-	s_mov_b64 s[24:25], s[22:23]
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	s_mul_i32 s30, s29, 3
+	.loc	1 349 16                        ; generate_amdgcn.py:349:16
 	s_cvt_f32_u32 s6, s5
 	s_sub_i32 s9, 0, s5
-	s_mov_b32 s23, 0x31027000
-	s_mov_b32 s22, 0x7ffffffe
+	s_mov_b64 s[24:25], s[14:15]
+	s_mov_b32 s15, 0x31027000
 	v_rcp_iflag_f32_e32 v1, s6
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_lshl_add_u32 v33, v38, 4, v3
-	.loc	1 408 22 is_stmt 0              ; generate_amdgcn.py:408:22
-	s_mov_b32 s26, s22
-	s_mov_b32 s27, s23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_mad_u64_u32 v[34:35], null, s29, 48, v[33:34]
-	.loc	1 349 16 is_stmt 1              ; generate_amdgcn.py:349:16
+	s_mov_b32 s14, 0x7ffffffe
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	s_mov_b32 s27, s15
+	s_mov_b32 s26, s14
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(SALU_CYCLE_3)
+	.loc	1 349 16                        ; generate_amdgcn.py:349:16
 	v_readfirstlane_b32 s6, v1
 	s_mul_f32 s6, s6, 0x4f7ffffe
-	s_delay_alu instid0(SALU_CYCLE_3) | instskip(NEXT) | instid1(SALU_CYCLE_3)
 	s_cvt_u32_f32 s6, s6
+	s_delay_alu instid0(SALU_CYCLE_3) | instskip(NEXT) | instid1(SALU_CYCLE_1)
 	s_mul_i32 s9, s9, s6
-	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
 	s_mul_hi_u32 s9, s6, s9
+	s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)
 	s_add_i32 s6, s6, s9
 	s_xor_b32 s9, s2, s4
 	s_mul_hi_u32 s6, s7, s6
 	s_ashr_i32 s9, s9, 31
 	s_mul_i32 s10, s6, s5
-	s_delay_alu instid0(SALU_CYCLE_1)
 	s_sub_i32 s7, s7, s10
 	s_add_i32 s10, s6, 1
 	s_sub_i32 s11, s7, s5
@@ -116,289 +121,335 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	.loc	1 351 31                        ; generate_amdgcn.py:351:31
 	s_sub_i32 s7, s8, s6
 	.loc	1 352 29                        ; generate_amdgcn.py:352:29
-	s_sub_i32 s4, s2, s5
+	s_sub_i32 s2, s2, s5
 	.loc	1 351 20                        ; generate_amdgcn.py:351:20
-	s_min_i32 s8, s7, 4
+	s_min_i32 s7, s7, 4
 	.loc	1 353 13                        ; generate_amdgcn.py:353:13
-	s_abs_i32 s5, s4
-	s_abs_i32 s7, s8
+	s_abs_i32 s5, s2
+	s_abs_i32 s8, s7
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_1) | instid1(SALU_CYCLE_2)
-	s_cvt_f32_u32 s9, s7
-	s_sub_i32 s10, 0, s7
+	s_cvt_f32_u32 s9, s8
+	s_sub_i32 s10, 0, s8
 	v_rcp_iflag_f32_e32 v1, s9
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_3)
 	v_readfirstlane_b32 s9, v1
 	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	v_mul_lo_u32 v1, s28, v73
+	v_mul_lo_u32 v1, s28, v65
 	.loc	1 353 13                        ; generate_amdgcn.py:353:13
 	s_mul_f32 s9, s9, 0x4f7ffffe
 	s_cvt_u32_f32 s9, s9
 	s_delay_alu instid0(SALU_CYCLE_3) | instskip(NEXT) | instid1(SALU_CYCLE_1)
 	s_mul_i32 s10, s10, s9
-	s_mul_hi_u32 s2, s9, s10
+	s_mul_hi_u32 s4, s9, s10
 	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(SALU_CYCLE_1)
-	s_add_i32 s9, s9, s2
-	s_mul_hi_u32 s2, s5, s9
-	s_xor_b32 s9, s4, s8
-	s_mul_i32 s10, s2, s7
+	s_add_i32 s9, s9, s4
+	s_mul_hi_u32 s4, s5, s9
+	s_xor_b32 s9, s2, s7
+	s_mul_i32 s10, s4, s8
 	s_ashr_i32 s9, s9, 31
 	s_sub_i32 s5, s5, s10
-	s_add_i32 s10, s2, 1
-	s_sub_i32 s11, s5, s7
-	s_cmp_ge_u32 s5, s7
-	s_cselect_b32 s2, s10, s2
+	s_add_i32 s10, s4, 1
+	s_sub_i32 s11, s5, s8
+	s_cmp_ge_u32 s5, s8
+	s_cselect_b32 s4, s10, s4
 	s_cselect_b32 s5, s11, s5
-	s_add_i32 s10, s2, 1
-	s_cmp_ge_u32 s5, s7
-	s_cselect_b32 s2, s10, s2
+	s_add_i32 s10, s4, 1
+	s_cmp_ge_u32 s5, s8
+	s_cselect_b32 s4, s10, s4
 	.loc	1 398 22                        ; generate_amdgcn.py:398:22
-	s_lshl_b32 s37, s3, 6
+	s_lshl_b32 s34, s3, 6
 	.loc	1 353 13                        ; generate_amdgcn.py:353:13
-	s_xor_b32 s2, s2, s9
+	s_xor_b32 s3, s4, s9
 	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v3, s37, v73
+	v_or_b32_e32 v4, s34, v66
 	.loc	1 353 13                        ; generate_amdgcn.py:353:13
-	s_sub_i32 s2, s2, s9
+	s_sub_i32 s3, s3, s9
 .Ltmp12:
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:363:28 ]
-	s_add_i32 s7, s36, 0x7f
+	s_add_i32 s5, s33, 0x7f
 .Ltmp13:
 	.loc	1 352 28                        ; generate_amdgcn.py:352:28
-	s_mul_i32 s5, s2, s8
+	s_mul_i32 s4, s3, s7
 	.loc	1 356 14                        ; generate_amdgcn.py:356:14
-	s_lshl_b32 s14, s2, 8
+	s_lshl_b32 s18, s3, 8
 	.loc	1 352 28                        ; generate_amdgcn.py:352:28
-	s_sub_i32 s5, s4, s5
-	.loc	1 399 23                        ; generate_amdgcn.py:399:23
-	v_cmp_gt_i32_e32 vcc_lo, s36, v3
+	s_sub_i32 s2, s2, s4
+	.loc	1 402 30                        ; generate_amdgcn.py:402:30
+	s_mul_i32 s7, s28, s34
 	.loc	1 352 13                        ; generate_amdgcn.py:352:13
-	s_add_i32 s6, s5, s6
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v4, s37, v72
+	s_add_i32 s2, s2, s6
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	s_mul_i32 s4, s29, s34
 	.loc	1 355 14                        ; generate_amdgcn.py:355:14
-	s_lshl_b32 s33, s6, 5
+	s_lshl_b32 s3, s2, 5
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_cmpk_gt_i32 s7, 0x7f
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v5, s37, v74
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_cselect_b32 s35, -1, 0
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v6, s37, v75
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 vcc_lo, vcc_lo, s35
-	.loc	1 355 32                        ; generate_amdgcn.py:355:32
-	v_lshlrev_b32_e32 v71, 3, v0
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v7, s37, v76
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	s_mul_i32 s9, s29, s37
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s2, s36, v4
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	s_add_i32 s6, s14, s9
-	.loc	1 355 32                        ; generate_amdgcn.py:355:32
-	v_and_b32_e32 v2, 24, v71
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s3, s36, v5
-	v_cmp_gt_i32_e64 s4, s36, v6
-	v_cmp_gt_i32_e64 s5, s36, v7
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 s2, s2, s35
+	s_cmpk_gt_i32 s5, 0x7f
 	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	v_add3_u32 v35, v1, v2, s33
+	v_add3_u32 v25, v1, v2, s3
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_cselect_b32 s31, -1, 0
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v1, s6, v33
-	v_add_nc_u32_e32 v2, s6, v34
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	s_and_b32 s21, s21, 0xffff
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	s_lshl_b32 s30, s29, 4
-	s_lshl_b32 s31, s29, 5
-	.loc	1 408 22 is_stmt 0              ; generate_amdgcn.py:408:22
+	s_add_i32 s4, s18, s4
+	.loc	1 400 23                        ; generate_amdgcn.py:400:23
+	v_cmp_gt_i32_e64 s2, s33, v4
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
 	s_and_b32 s25, s25, 0xffff
-	.loc	1 363 5 is_stmt 1               ; generate_amdgcn.py:363:5
-	s_and_b32 s3, s3, s35
-	s_and_b32 s4, s4, s35
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v1, 0x80000000, v1, s2
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 s2, s5, s35
-	s_cmpk_gt_i32 s7, 0xff
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v78, s30, v33
 	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	s_mul_i32 s10, s28, s37
+	v_add_nc_u32_e32 v11, s7, v25
+	.loc	1 355 32                        ; generate_amdgcn.py:355:32
+	v_and_b32_e32 v31, 15, v0
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	s_and_b32 s13, s13, 0xffff
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_and_b32 s2, s2, s31
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_lshl_add_u32 v67, v31, 4, v3
+	.loc	1 398 17                        ; generate_amdgcn.py:398:17
+	v_or_b32_e32 v3, s34, v65
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_lshl_add_u32 v68, s29, 1, v67
+	v_add_nc_u32_e32 v69, s30, v67
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
+	.loc	1 399 23                        ; generate_amdgcn.py:399:23
+	v_cmp_gt_i32_e32 vcc_lo, s33, v3
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v3, s4, v67
+	v_add_nc_u32_e32 v4, s4, v68
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_add_nc_u32_e32 v5, s4, v69
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_and_b32 vcc_lo, vcc_lo, s31
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v12, s29, v3
+	.loc	1 408 22 is_stmt 0              ; generate_amdgcn.py:408:22
+	v_cndmask_b32_e64 v1, 0x80000000, v3, s2
+	v_cndmask_b32_e64 v2, 0x80000000, v4, s2
+	v_cndmask_b32_e64 v7, 0x80000000, v5, s2
+	s_clause 0x1
+	buffer_load_b128 v[3:6], v2, s[24:27], 0 offen
+	buffer_load_b128 v[7:10], v7, s[24:27], 0 offen
+	.loc	1 402 22 is_stmt 1              ; generate_amdgcn.py:402:22
+	v_cndmask_b32_e32 v2, 0x80000000, v11, vcc_lo
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_cmpk_gt_i32 s5, 0xff
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v14, 0x80000000, v2, s2
+	v_cndmask_b32_e64 v15, 0x80000000, v12, s2
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
 	s_cselect_b32 s2, -1, 0
 	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	s_addk_i32 s37, 0x80
+	s_addk_i32 s34, 0x80
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v79, s31, v33
-	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	v_add_nc_u32_e32 v3, s10, v35
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v18, s37, v73
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v4, s6, v78
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v19, s37, v72
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v5, s6, v79
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v20, s37, v74
+	s_lshl_b32 s6, s29, 7
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_cndmask_b32_e32 v2, 0x80000000, v3, vcc_lo
-	.loc	1 402 30 is_stmt 0              ; generate_amdgcn.py:402:30
-	s_lshl_b32 s5, s28, 7
-	.loc	1 408 30 is_stmt 1              ; generate_amdgcn.py:408:30
-	s_lshl_b32 s8, s29, 7
-	.loc	1 399 23                        ; generate_amdgcn.py:399:23
-	v_cmp_gt_i32_e32 vcc_lo, s36, v18
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v21, s37, v75
+	buffer_load_b64 v[23:24], v2, s[12:15], 0 offen
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v6, 0x80000000, v4, s3
-	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	v_add3_u32 v23, s10, s5, v35
+	s_clause 0x1
+	buffer_load_b128 v[11:14], v1, s[24:27], 0 offen
+	buffer_load_b128 v[15:18], v15, s[24:27], 0 offen
+	.loc	1 398 17                        ; generate_amdgcn.py:398:17
+	v_or_b32_e32 v1, s34, v66
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	s_add_i32 s6, s6, s8
+	s_add_i32 s4, s4, s6
+	s_delay_alu instid0(SALU_CYCLE_1) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_add_nc_u32_e32 v2, s4, v67
+	v_add_nc_u32_e32 v19, s4, v68
 	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s3, s36, v19
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v22, s37, v76
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v10, 0x80000000, v5, s4
-	.loc	1 408 30 is_stmt 0              ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v24, s6, v33
-	.loc	1 400 23 is_stmt 1              ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s4, s36, v20
+	v_cmp_gt_i32_e32 vcc_lo, s33, v1
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v20, s4, v69
+	.loc	1 402 30                        ; generate_amdgcn.py:402:30
+	s_lshl_b32 s4, s28, 7
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v1, s29, v2
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
 	s_and_b32 vcc_lo, vcc_lo, s2
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v25, s6, v78
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s5, s36, v21
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	buffer_load_b64 v[30:31], v2, s[20:23], 0 offen
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_dual_cndmask_b32 v2, 0x80000000, v2 :: v_dual_cndmask_b32 v27, 0x80000000, v20
+	v_dual_cndmask_b32 v1, 0x80000000, v1 :: v_dual_cndmask_b32 v26, 0x80000000, v19
 	s_clause 0x3
-	buffer_load_b128 v[2:5], v1, s[24:27], 0 offen
-	buffer_load_b128 v[6:9], v6, s[24:27], 0 offen
-	buffer_load_b128 v[10:13], v10, s[24:27], 0 offen
-	buffer_load_b128 v[14:17], v14, s[24:27], 0 offen
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_cndmask_b32_e32 v1, 0x80000000, v23, vcc_lo
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 vcc_lo, s3, s2
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v26, s6, v79
-	v_add_nc_u32_e32 v27, s6, v34
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s6, s36, v22
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e32 v18, 0x80000000, v24, vcc_lo
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 vcc_lo, s4, s2
+	buffer_load_b128 v[19:22], v2, s[24:27], 0 offen
+	buffer_load_b128 v[32:35], v1, s[24:27], 0 offen
+	buffer_load_b128 v[36:39], v26, s[24:27], 0 offen
+	buffer_load_b128 v[40:43], v27, s[24:27], 0 offen
+	.loc	1 398 17                        ; generate_amdgcn.py:398:17
+	v_or_b32_e32 v1, s34, v65
+	v_lshlrev_b32_e32 v2, 5, v0
+	v_and_b32_e32 v74, 48, v64
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_4) | instid1(VALU_DEP_1)
+	.loc	1 399 23                        ; generate_amdgcn.py:399:23
+	v_cmp_gt_i32_e32 vcc_lo, s33, v1
+	.loc	1 402 30                        ; generate_amdgcn.py:402:30
+	v_add3_u32 v1, s7, s4, v25
 	s_mov_b32 s4, 0
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e32 v22, 0x80000000, v25, vcc_lo
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 vcc_lo, s5, s2
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e32 v26, 0x80000000, v26, vcc_lo
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_and_b32 vcc_lo, s6, s2
-	s_cmpk_gt_i32 s7, 0x17f
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e32 v32, 0x80000000, v27, vcc_lo
+	s_and_b32 vcc_lo, vcc_lo, s2
+	s_cmpk_gt_i32 s5, 0x17f
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	buffer_load_b64 v[36:37], v1, s[20:23], 0 offen
+	v_cndmask_b32_e32 v1, 0x80000000, v1, vcc_lo
+	buffer_load_b64 v[26:27], v1, s[12:15], 0 offen
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_clause 0x3
-	buffer_load_b128 v[18:21], v18, s[24:27], 0 offen
-	buffer_load_b128 v[22:25], v22, s[24:27], 0 offen
-	buffer_load_b128 v[26:29], v26, s[24:27], 0 offen
-	buffer_load_b128 v[39:42], v32, s[24:27], 0 offen
+	v_bfe_i32 v1, v0, 0, 1
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_and_b32_e32 v1, 0x420, v1
+	v_xor_b32_e32 v44, v1, v66
+	v_lshlrev_b32_e32 v1, 6, v0
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_lshl_or_b32 v76, v29, 10, v44
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v32, 0, v71
-	v_lshrrev_b32_e32 v1, 1, v0
-	s_delay_alu instid0(VALU_DEP_2)
+	v_add_nc_u32_e32 v44, 0, v64
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_add_nc_u32_e32 v43, v32, v71
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	s_waitcnt vmcnt(9)
-	ds_store_b64 v32, v[30:31] offset:32768
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_xor_b32_e32 v77, 0x90, v76
+	v_xor_b32_e32 v78, 0x120, v76
+	v_xor_b32_e32 v79, 0x1b0, v76
+	v_xor_b32_e32 v80, 0x210, v76
+	v_add_nc_u32_e32 v45, 0, v76
+	v_xor_b32_e32 v81, 0x330, v76
+	v_xor_b32_e32 v82, 0x3a0, v76
+	v_add_nc_u32_e32 v46, 0, v77
+	v_add_nc_u32_e32 v47, 0, v78
+	v_add_nc_u32_e32 v48, 0, v79
+	v_add_nc_u32_e32 v49, 0, v80
+	v_add_nc_u32_e32 v50, 0, v81
+	v_add_nc_u32_e32 v51, 0, v82
+	v_add_nc_u32_e32 v52, 0x4000, v45
+	v_add_nc_u32_e32 v53, 0x4000, v46
+	v_add_nc_u32_e32 v54, 0x4000, v47
+	v_add_nc_u32_e32 v55, 0x4000, v48
+	v_add_nc_u32_e32 v56, 0x4000, v49
+	v_add_nc_u32_e32 v57, 0x4000, v50
+	v_add_nc_u32_e32 v58, 0x4000, v51
 	s_waitcnt vmcnt(8)
-	ds_store_b128 v43, v[2:5]
-	s_waitcnt vmcnt(7)
-	ds_store_b128 v43, v[6:9] offset:4096
-	s_waitcnt vmcnt(6)
-	ds_store_b128 v43, v[10:13] offset:8192
+	v_perm_b32 v59, v7, v3, 0x4000501
+	v_perm_b32 v3, v7, v3, 0x6020703
+	v_perm_b32 v7, v8, v4, 0x4000501
+	v_perm_b32 v4, v8, v4, 0x6020703
+	v_perm_b32 v8, v9, v5, 0x4000501
+	v_perm_b32 v5, v9, v5, 0x6020703
+	v_perm_b32 v9, v10, v6, 0x4000501
+	v_perm_b32 v6, v10, v6, 0x6020703
 	s_waitcnt vmcnt(5)
-	ds_store_b128 v43, v[14:17] offset:12288
+	v_perm_b32 v10, v15, v11, 0x4000501
+	v_perm_b32 v11, v15, v11, 0x6020703
+	v_perm_b32 v15, v16, v12, 0x4000501
+	v_perm_b32 v12, v16, v12, 0x6020703
+	v_perm_b32 v16, v17, v13, 0x4000501
+	v_perm_b32 v13, v17, v13, 0x6020703
+	v_perm_b32 v17, v18, v14, 0x4000501
+	v_perm_b32 v14, v18, v14, 0x6020703
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	ds_store_b64 v44, v[23:24] offset:32768
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_perm_b32 v18, v59, v10, 0x7060302
+	v_perm_b32 v10, v59, v10, 0x5040100
+	v_perm_b32 v23, v3, v11, 0x7060302
+	v_perm_b32 v3, v3, v11, 0x5040100
+	v_perm_b32 v11, v7, v15, 0x7060302
+	v_perm_b32 v7, v7, v15, 0x5040100
+	v_perm_b32 v15, v4, v12, 0x7060302
+	v_perm_b32 v4, v4, v12, 0x5040100
+	v_perm_b32 v12, v8, v16, 0x7060302
+	v_perm_b32 v8, v8, v16, 0x5040100
+	v_perm_b32 v16, v5, v13, 0x7060302
+	v_perm_b32 v5, v5, v13, 0x5040100
+	v_perm_b32 v13, v9, v17, 0x7060302
+	v_perm_b32 v9, v9, v17, 0x5040100
+	v_perm_b32 v17, v6, v14, 0x7060302
+	v_perm_b32 v6, v6, v14, 0x5040100
+	s_waitcnt vmcnt(3)
+	v_perm_b32 v14, v32, v19, 0x4000501
+	s_waitcnt vmcnt(1)
+	v_perm_b32 v24, v40, v36, 0x4000501
+	v_perm_b32 v19, v32, v19, 0x6020703
+	v_perm_b32 v32, v40, v36, 0x6020703
+	v_perm_b32 v36, v33, v20, 0x4000501
+	v_perm_b32 v40, v41, v37, 0x4000501
+	v_perm_b32 v20, v33, v20, 0x6020703
+	v_perm_b32 v33, v41, v37, 0x6020703
+	v_perm_b32 v37, v34, v21, 0x4000501
+	v_perm_b32 v41, v42, v38, 0x4000501
+	v_perm_b32 v21, v34, v21, 0x6020703
+	v_perm_b32 v34, v42, v38, 0x6020703
+	v_perm_b32 v38, v35, v22, 0x4000501
+	v_perm_b32 v42, v43, v39, 0x4000501
+	v_perm_b32 v22, v35, v22, 0x6020703
+	v_perm_b32 v35, v43, v39, 0x6020703
+	ds_store_2addr_b32 v45, v18, v10 offset1:16
+	ds_store_2addr_b32 v46, v23, v3 offset1:16
+	ds_store_2addr_b32 v47, v11, v7 offset1:16
+	ds_store_2addr_b32 v48, v15, v4 offset1:16
+	ds_store_2addr_b32 v49, v12, v8 offset1:16
+	ds_store_2addr_b32 v45, v16, v5 offset0:160 offset1:176
+	ds_store_2addr_b32 v50, v13, v9 offset1:16
+	ds_store_2addr_b32 v51, v17, v6 offset1:16
+	v_perm_b32 v3, v24, v14, 0x7060302
+	v_perm_b32 v4, v24, v14, 0x5040100
+	v_perm_b32 v5, v32, v19, 0x7060302
+	v_perm_b32 v6, v32, v19, 0x5040100
+	v_perm_b32 v7, v40, v36, 0x7060302
+	v_perm_b32 v8, v40, v36, 0x5040100
+	v_perm_b32 v9, v33, v20, 0x7060302
+	v_perm_b32 v10, v33, v20, 0x5040100
+	v_perm_b32 v11, v41, v37, 0x7060302
+	v_perm_b32 v12, v41, v37, 0x5040100
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	s_waitcnt vmcnt(4)
-	ds_store_b64 v32, v[36:37] offset:34816
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_waitcnt vmcnt(3)
-	ds_store_b128 v43, v[18:21] offset:16384
-	s_waitcnt vmcnt(2)
-	ds_store_b128 v43, v[22:25] offset:20480
-	s_waitcnt vmcnt(1)
-	ds_store_b128 v43, v[26:29] offset:24576
 	s_waitcnt vmcnt(0)
-	ds_store_b128 v43, v[39:42] offset:28672
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_cbranch_scc1 .LBB0_3
-; %bb.1:                                ; %.._crit_edge_crit_edge
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_or_b32_e32 v2, 0x3f0, v0
-	v_or_b32_e32 v3, 0x7f0, v0
+	ds_store_b64 v44, v[26:27] offset:34816
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_and_b32_e32 v77, 0x70, v1
-	s_clause 0x1
-	s_load_b128 s[16:19], s[0:1], 0x10
-	s_load_b64 s[12:13], s[0:1], 0x20
-	s_cbranch_execz .LBB0_4
-; %bb.2:
+	v_perm_b32 v13, v34, v21, 0x7060302
+	v_perm_b32 v14, v34, v21, 0x5040100
+	v_perm_b32 v15, v42, v38, 0x7060302
+	v_perm_b32 v16, v42, v38, 0x5040100
+	v_perm_b32 v17, v35, v22, 0x7060302
+	v_perm_b32 v18, v35, v22, 0x5040100
+	ds_store_2addr_b32 v52, v3, v4 offset1:16
+	ds_store_2addr_b32 v53, v5, v6 offset1:16
+	ds_store_2addr_b32 v54, v7, v8 offset1:16
+	ds_store_2addr_b32 v55, v9, v10 offset1:16
+	ds_store_2addr_b32 v56, v11, v12 offset1:16
+	ds_store_2addr_b32 v52, v13, v14 offset0:160 offset1:176
+	ds_store_2addr_b32 v57, v15, v16 offset1:16
+	ds_store_2addr_b32 v58, v17, v18 offset1:16
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_cbranch_scc1 .LBB0_2
+; %bb.1:                                ; %.._crit_edge_crit_edge
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_and_b32_e32 v6, 0x1800, v2
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_or_b32_e32 v9, 0x3f0, v0
+	v_or_b32_e32 v10, 0x7f0, v0
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_and_b32_e32 v3, 48, v64
+	v_and_b32_e32 v5, 8, v0
+	v_and_b32_e32 v4, 32, v0
+	v_and_or_b32 v75, 0x1c0, v1, v6
+	s_mov_b32 s6, 0
+	s_branch .LBB0_3
+.LBB0_2:
 	.loc	1 0 22 is_stmt 0                ; generate_amdgcn.py:0:22
-	v_dual_mov_b32 v39, 0 :: v_dual_mov_b32 v40, 0
-	v_dual_mov_b32 v41, 0 :: v_dual_mov_b32 v42, 0
-	v_dual_mov_b32 v43, 0 :: v_dual_mov_b32 v44, 0
-	v_dual_mov_b32 v45, 0 :: v_dual_mov_b32 v46, 0
-	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v48, 0
-	v_dual_mov_b32 v49, 0 :: v_dual_mov_b32 v50, 0
-	v_dual_mov_b32 v51, 0 :: v_dual_mov_b32 v52, 0
-	v_dual_mov_b32 v53, 0 :: v_dual_mov_b32 v54, 0
-	v_dual_mov_b32 v55, 0 :: v_dual_mov_b32 v56, 0
-	v_dual_mov_b32 v57, 0 :: v_dual_mov_b32 v58, 0
-	v_dual_mov_b32 v59, 0 :: v_dual_mov_b32 v60, 0
-	v_dual_mov_b32 v61, 0 :: v_dual_mov_b32 v62, 0
-	v_dual_mov_b32 v63, 0 :: v_dual_mov_b32 v66, 0
-	v_dual_mov_b32 v65, 0 :: v_dual_mov_b32 v68, 0
-	v_dual_mov_b32 v67, 0 :: v_dual_mov_b32 v70, 0
-	v_dual_mov_b32 v69, 0 :: v_dual_mov_b32 v64, 0
-	s_add_i32 s1, 0, 0x8000
-	s_add_i32 s34, 0, 0x8800
-	s_add_i32 s15, 0, 0x4000
-	s_branch .LBB0_7
-.LBB0_3:
-                                        ; implicit-def: $vgpr2
+	s_mov_b32 s6, -1
+                                        ; implicit-def: $vgpr9
+                                        ; implicit-def: $vgpr10
                                         ; implicit-def: $vgpr3
-                                        ; implicit-def: $vgpr77
+                                        ; implicit-def: $vgpr5
+                                        ; implicit-def: $vgpr4
+                                        ; implicit-def: $vgpr75
+.LBB0_3:                                ; %Flow37
 	s_clause 0x1
-	s_load_b128 s[16:19], s[0:1], 0x10
-	s_load_b64 s[12:13], s[0:1], 0x20
-.LBB0_4:                                ; %.lr.ph
+	s_load_b128 s[20:23], s[0:1], 0x10
+	s_load_b64 s[16:17], s[0:1], 0x20
+	v_cmp_eq_u32_e64 s0, 0, v30
+	s_and_not1_b32 vcc_lo, exec_lo, s6
+	s_cbranch_vccnz .LBB0_7
+; %bb.4:                                ; %.lr.ph
+	v_bfe_i32 v3, v0, 3, 1
+	v_dual_mov_b32 v33, 0 :: v_dual_and_b32 v2, 0x1800, v2
 .Ltmp14:
 	.loc	2 43 12 is_stmt 1               ; standard.py:43:12 @[ generate_amdgcn.py:363:28 ]
-	s_lshr_b32 s39, s7, 7
+	s_lshr_b32 s35, s5, 7
 	s_mov_b32 s5, s4
 	s_mov_b32 s6, s4
 	s_mov_b32 s7, s4
@@ -406,1466 +457,1070 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	s_mov_b32 s9, s4
 	s_mov_b32 s10, s4
 	s_mov_b32 s11, s4
+	v_and_b32_e32 v3, 0x210, v3
+	v_bfe_i32 v4, v0, 5, 1
+	v_and_or_b32 v75, 0x1c0, v1, v2
 .Ltmp15:
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_lshlrev_b32_e32 v82, 4, v0
-	v_dual_mov_b32 v64, 0 :: v_dual_and_b32 v77, 0x70, v1
-	v_dual_mov_b32 v1, s4 :: v_dual_mov_b32 v2, s5
-	v_dual_mov_b32 v3, s6 :: v_dual_mov_b32 v4, s7
-	v_dual_mov_b32 v5, s8 :: v_dual_mov_b32 v6, s9
-	v_dual_mov_b32 v7, s10 :: v_dual_mov_b32 v8, s11
-	v_dual_mov_b32 v69, 0 :: v_dual_mov_b32 v70, 0
-	v_dual_mov_b32 v67, 0 :: v_dual_mov_b32 v68, 0
-	v_dual_mov_b32 v65, 0 :: v_dual_mov_b32 v66, 0
-	v_dual_mov_b32 v63, 0 :: v_dual_mov_b32 v62, 0
-	v_dual_mov_b32 v61, 0 :: v_dual_mov_b32 v60, 0
-	v_dual_mov_b32 v59, 0 :: v_dual_mov_b32 v58, 0
-	v_dual_mov_b32 v57, 0 :: v_dual_mov_b32 v56, 0
-	v_dual_mov_b32 v55, 0 :: v_dual_mov_b32 v54, 0
-	v_dual_mov_b32 v53, 0 :: v_dual_mov_b32 v52, 0
-	v_dual_mov_b32 v51, 0 :: v_dual_mov_b32 v50, 0
-	v_dual_mov_b32 v49, 0 :: v_dual_mov_b32 v48, 0
-	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v46, 0
-	v_dual_mov_b32 v45, 0 :: v_dual_mov_b32 v44, 0
-	v_dual_mov_b32 v43, 0 :: v_dual_mov_b32 v42, 0
-	v_dual_mov_b32 v41, 0 :: v_dual_mov_b32 v40, 0
-	v_mov_b32_e32 v39, 0
-	s_addk_i32 s37, 0x80
-	s_mov_b32 s38, 1
-	s_add_i32 s1, 0, 0x8000
-	s_add_i32 s34, 0, 0x8800
-	s_add_i32 s15, 0, 0x4000
-	s_add_i32 s39, s39, -3
-	s_mov_b32 s26, s22
-	s_mov_b32 s27, s23
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v83, s29, v67
+	v_dual_mov_b32 v63, 0 :: v_dual_mov_b32 v60, 0
+	v_xor_b32_e32 v1, v3, v74
+	v_dual_mov_b32 v61, 0 :: v_dual_and_b32 v2, 0x420, v4
+	v_mov_b32_e32 v58, 0
+	v_mov_b32_e32 v62, 0
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_or_b32_e32 v1, v75, v1
+	v_dual_mov_b32 v59, 0 :: v_dual_mov_b32 v56, 0
+	v_dual_mov_b32 v57, 0 :: v_dual_mov_b32 v54, 0
+	v_xor_b32_e32 v84, v1, v2
+	v_dual_mov_b32 v1, s4 :: v_dual_mov_b32 v6, s9
+	v_dual_mov_b32 v2, s5 :: v_dual_mov_b32 v3, s6
+	s_delay_alu instid0(VALU_DEP_3)
+	v_xor_b32_e32 v85, 16, v84
+	v_xor_b32_e32 v86, 32, v84
+	v_xor_b32_e32 v87, 48, v84
+	v_dual_mov_b32 v4, s7 :: v_dual_mov_b32 v5, s8
+	v_dual_mov_b32 v8, s11 :: v_dual_mov_b32 v7, s10
+	v_dual_mov_b32 v55, 0 :: v_dual_mov_b32 v52, 0
+	v_dual_mov_b32 v53, 0 :: v_dual_mov_b32 v50, 0
+	v_dual_mov_b32 v51, 0 :: v_dual_mov_b32 v48, 0
+	v_dual_mov_b32 v49, 0 :: v_dual_mov_b32 v46, 0
+	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v44, 0
+	v_dual_mov_b32 v45, 0 :: v_dual_mov_b32 v42, 0
+	v_dual_mov_b32 v43, 0 :: v_dual_mov_b32 v40, 0
+	v_dual_mov_b32 v41, 0 :: v_dual_mov_b32 v38, 0
+	v_dual_mov_b32 v39, 0 :: v_dual_mov_b32 v36, 0
+	v_dual_mov_b32 v37, 0 :: v_dual_mov_b32 v34, 0
+	v_dual_mov_b32 v35, 0 :: v_dual_mov_b32 v32, 0
+	s_addk_i32 s34, 0x80
+	s_add_i32 s36, 0, 0x8000
+	s_add_i32 s19, 0, 0x8800
+	s_add_i32 s1, 0, 0x4000
+	s_add_i32 s35, s35, -3
+	s_mov_b32 s37, 1
+	s_mov_b32 s26, s14
+	s_mov_b32 s27, s15
 .LBB0_5:                                ; =>This Inner Loop Header: Depth=1
 	.loc	1 364 14                        ; generate_amdgcn.py:364:14
-	s_lshl_b32 s0, s5, 7
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v83, s1, v38
+	s_lshl_b32 s7, s5, 7
+	s_mov_b32 s6, s4
 	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	s_add_i32 s0, s37, s0
-	s_mov_b32 s3, s4
-	v_or_b32_e32 v11, s0, v73
-	.loc	1 402 30                        ; generate_amdgcn.py:402:30
-	v_mad_u64_u32 v[9:10], null, s0, s28, v[35:36]
+	s_add_i32 s4, s34, s7
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_add3_u32 v84, s3, v77, v38
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v85, s1, v80
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_add_nc_u32_e32 v11, s6, v84
+	.loc	1 398 17                        ; generate_amdgcn.py:398:17
+	v_or_b32_e32 v13, s4, v65
+	.loc	1 402 30                        ; generate_amdgcn.py:402:30
+	v_mad_u64_u32 v[9:10], null, s4, s28, v[25:26]
+	.loc	1 402 22 is_stmt 0              ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v124, s36, v31
+	.loc	1 408 22 is_stmt 1              ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v12, s6, v85
+	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 399 23                        ; generate_amdgcn.py:399:23
-	v_cmp_gt_i32_e32 vcc_lo, s36, v11
+	v_cmp_gt_i32_e32 vcc_lo, s33, v13
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v104, s36, v70
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v125, s6, v86
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
 	v_cndmask_b32_e32 v9, 0x80000000, v9, vcc_lo
-	buffer_load_b64 v[36:37], v9, s[20:23], 0 offen
+	buffer_load_b64 v[26:27], v9, s[12:15], 0 offen
 	s_waitcnt lgkmcnt(0)
 	s_barrier
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[88:91], v11
+	ds_load_b128 v[108:111], v11 offset:8192
+	ds_load_b128 v[100:103], v12
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	ds_load_u8 v9, v83 offset:416
-	ds_load_u8 v10, v83 offset:384
-	ds_load_u8 v11, v83 offset:480
-	ds_load_u8 v12, v83 offset:448
-	ds_load_u8 v13, v83 offset:288
-	ds_load_u8 v14, v83 offset:256
-	ds_load_u8 v15, v83 offset:352
-	ds_load_u8 v16, v83 offset:320
-	ds_load_u8 v17, v83 offset:160
-	ds_load_u8 v18, v83 offset:128
-	ds_load_u8 v19, v83 offset:224
-	ds_load_u8 v20, v83 offset:192
-	ds_load_u8 v23, v83 offset:96
-	ds_load_u8 v24, v83 offset:64
-	ds_load_u8 v25, v83
-	ds_load_u8 v21, v83 offset:16
-	ds_load_u8 v26, v83 offset:32
-	ds_load_u8 v22, v83 offset:48
-	ds_load_u8 v27, v84 offset:3328
-	ds_load_u8 v28, v84 offset:3072
-	ds_load_u8 v29, v84 offset:3840
-	ds_load_u8 v30, v84 offset:3584
-	ds_load_u8 v31, v84 offset:2304
-	ds_load_u8 v32, v84 offset:2048
-	ds_load_u8 v86, v84 offset:2816
-	ds_load_u8 v87, v84 offset:2560
-	ds_load_u8 v88, v84 offset:1280
-	ds_load_u8 v89, v84 offset:1024
-	ds_load_u8 v90, v84 offset:1792
-	ds_load_u8 v91, v84 offset:1536
-	ds_load_u8 v92, v84 offset:256
-	ds_load_u8 v93, v84
-	ds_load_u8 v94, v84 offset:768
-	ds_load_u8 v95, v84 offset:512
-	ds_load_u8 v96, v83 offset:928
-	ds_load_u8 v97, v83 offset:896
-	ds_load_u8 v98, v83 offset:992
-	ds_load_u8 v99, v83 offset:960
-	ds_load_u8 v100, v83 offset:800
-	ds_load_u8 v101, v83 offset:768
-	ds_load_u8 v102, v83 offset:864
-	ds_load_u8 v103, v83 offset:832
-	ds_load_u8 v104, v83 offset:672
-	ds_load_u8 v105, v83 offset:640
-	ds_load_u8 v106, v83 offset:736
-	s_waitcnt lgkmcnt(43)
-	v_perm_b32 v9, v10, v9, 0xc0c0004
-	s_waitcnt lgkmcnt(41)
-	v_perm_b32 v10, v12, v11, 0xc0c0004
-	s_waitcnt lgkmcnt(39)
-	v_perm_b32 v11, v14, v13, 0xc0c0004
-	s_waitcnt lgkmcnt(37)
-	v_perm_b32 v13, v16, v15, 0xc0c0004
-	s_waitcnt lgkmcnt(25)
-	v_perm_b32 v14, v28, v27, 0xc0c0004
-	s_waitcnt lgkmcnt(23)
-	v_perm_b32 v15, v30, v29, 0xc0c0004
-	v_lshl_or_b32 v12, v10, 16, v9
-	v_perm_b32 v9, v18, v17, 0xc0c0004
-	v_perm_b32 v10, v20, v19, 0xc0c0004
-	v_lshl_or_b32 v11, v13, 16, v11
-	ds_load_u8 v18, v84 offset:7424
-	ds_load_u8 v30, v84 offset:6656
-	ds_load_u8 v19, v84 offset:7168
-	ds_load_u8 v20, v84 offset:7936
-	v_lshl_or_b32 v10, v10, 16, v9
-	v_perm_b32 v9, v24, v23, 0xc0c0004
-	ds_load_u8 v23, v84 offset:7680
-	ds_load_u8 v29, v84 offset:6912
-	v_perm_b32 v13, v25, v26, 0xc0c0004
-	ds_load_u8 v25, v84 offset:6144
-	s_waitcnt lgkmcnt(28)
-	v_perm_b32 v26, v32, v31, 0xc0c0004
-	s_waitcnt lgkmcnt(26)
-	v_perm_b32 v27, v87, v86, 0xc0c0004
-	ds_load_u8 v86, v84 offset:5376
-	v_lshl_or_b32 v9, v9, 16, v13
-	v_lshl_or_b32 v16, v15, 16, v14
-	ds_load_u8 v87, v84 offset:5120
-	ds_load_u8 v111, v84 offset:5888
+	ds_load_u8 v9, v124 offset:416
+	ds_load_u8 v10, v124 offset:384
+	ds_load_u8 v11, v124 offset:480
+	ds_load_u8 v13, v124 offset:448
+	ds_load_u8 v14, v124 offset:288
+	ds_load_u8 v15, v124 offset:256
+	ds_load_u8 v16, v124 offset:352
+	ds_load_u8 v17, v124 offset:320
+	ds_load_u8 v18, v124 offset:160
+	ds_load_u8 v19, v124 offset:128
+	ds_load_u8 v20, v124 offset:224
+	ds_load_u8 v21, v124 offset:192
+	ds_load_u8 v22, v124 offset:96
+	ds_load_u8 v23, v124 offset:64
+	ds_load_u8 v24, v124
+	ds_load_u8 v92, v124 offset:32
+	ds_load_u8 v93, v124 offset:928
+	ds_load_u8 v94, v124 offset:896
+	ds_load_u8 v95, v124 offset:992
+	ds_load_u8 v96, v124 offset:960
+	ds_load_u8 v97, v124 offset:800
+	ds_load_u8 v98, v124 offset:768
+	ds_load_u8 v99, v124 offset:864
+	ds_load_u8 v105, v124 offset:832
+	ds_load_u8 v106, v124 offset:672
+	ds_load_u8 v107, v124 offset:640
+	ds_load_u8 v116, v124 offset:736
+	ds_load_u8 v117, v124 offset:704
+	ds_load_u8 v118, v124 offset:544
 	s_waitcnt lgkmcnt(27)
-	v_perm_b32 v13, v89, v88, 0xc0c0004
-	ds_load_u8 v88, v84 offset:5632
+	v_perm_b32 v9, v10, v9, 0xc0c0004
+	ds_load_u8 v10, v124 offset:512
+	ds_load_u8 v122, v124 offset:464
+	s_waitcnt lgkmcnt(27)
+	v_perm_b32 v11, v13, v11, 0xc0c0004
+	ds_load_u8 v13, v124 offset:608
 	s_waitcnt lgkmcnt(26)
-	v_perm_b32 v14, v91, v90, 0xc0c0004
-	v_lshl_or_b32 v15, v27, 16, v26
-	ds_load_u8 v90, v84 offset:4096
-	ds_load_u8 v91, v84 offset:4864
+	v_perm_b32 v14, v15, v14, 0xc0c0004
+	ds_load_u8 v15, v124 offset:576
+	ds_load_u8 v121, v124 offset:496
+	s_waitcnt lgkmcnt(26)
+	v_perm_b32 v16, v17, v16, 0xc0c0004
+	s_waitcnt lgkmcnt(24)
+	v_perm_b32 v17, v19, v18, 0xc0c0004
 	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v27, v97, v96, 0xc0c0004
-	ds_load_u8 v97, v84 offset:2432
-	v_lshl_or_b32 v14, v14, 16, v13
-	v_perm_b32 v13, v93, v92, 0xc0c0004
-	ds_load_u8 v92, v84 offset:4608
-	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v28, v99, v98, 0xc0c0004
-	ds_load_u8 v98, v84 offset:2176
-	ds_load_u8 v99, v84 offset:2944
-	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v31, v101, v100, 0xc0c0004
-	s_waitcnt lgkmcnt(20)
-	v_perm_b32 v32, v103, v102, 0xc0c0004
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v18, v19, v18, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v19, v23, v20, 0xc0c0004
-	ds_load_u8 v107, v83 offset:704
-	ds_load_u8 v108, v83 offset:544
-	ds_load_u8 v118, v83 offset:1408
-	ds_load_u8 v17, v83 offset:576
-	v_perm_b32 v26, v95, v94, 0xc0c0004
-	v_lshl_or_b32 v28, v28, 16, v27
-	v_lshl_or_b32 v27, v32, 16, v31
-	v_lshl_or_b32 v32, v19, 16, v18
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v18, v87, v86, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v19, v88, v111, 0xc0c0004
-	ds_load_u8 v109, v83 offset:512
-	ds_load_u8 v110, v83 offset:608
-	ds_load_u8 v24, v84 offset:6400
-	ds_load_u8 v86, v84 offset:7808
-	ds_load_u8 v87, v84 offset:6528
-	ds_load_u8 v89, v84 offset:4352
-	ds_load_u8 v93, v84 offset:3456
-	ds_load_u8 v96, v84 offset:3712
-	ds_load_u8 v111, v84 offset:5248
-	ds_load_u8 v94, v84 offset:3200
-	v_lshl_or_b32 v13, v26, 16, v13
-	v_perm_b32 v26, v105, v104, 0xc0c0004
-	ds_load_u8 v100, v84 offset:2688
-	ds_load_u8 v101, v84 offset:1408
-	ds_load_u8 v104, v84 offset:1664
-	ds_load_u8 v105, v84 offset:384
-	ds_load_u8 v23, v84 offset:896
-	v_perm_b32 v29, v30, v29, 0xc0c0004
-	v_lshl_or_b32 v30, v19, 16, v18
+	v_perm_b32 v18, v21, v20, 0xc0c0004
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[112:115], v12 offset:8192
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
 	s_waitcnt lgkmcnt(21)
-	v_perm_b32 v19, v92, v91, 0xc0c0004
-	s_waitcnt lgkmcnt(20)
-	v_perm_b32 v91, v98, v97, 0xc0c0004
-	ds_load_u8 v97, v84 offset:5760
-	ds_load_u8 v98, v84 offset:4480
-	ds_load_u8 v95, v84 offset:3968
-	s_waitcnt lgkmcnt(21)
-	v_perm_b32 v31, v107, v106, 0xc0c0004
-	ds_load_u8 v102, v84 offset:1152
-	ds_load_u8 v103, v84 offset:1920
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v17, v17, v110, 0xc0c0004
-	ds_load_u8 v107, v84 offset:7552
-	ds_load_u8 v110, v84 offset:5504
-	v_lshl_or_b32 v26, v31, 16, v26
-	v_perm_b32 v31, v109, v108, 0xc0c0004
-	ds_load_u8 v88, v84 offset:6272
-	ds_load_u8 v109, v84 offset:7040
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v18, v90, v89, 0xc0c0004
-	ds_load_u8 v90, v84 offset:6784
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v92, v100, v99, 0xc0c0004
-	ds_load_u8 v99, v84 offset:4224
-	ds_load_u8 v100, v84 offset:4992
-	ds_load_u8 v117, v83 offset:1440
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v89, v96, v95, 0xc0c0004
-	ds_load_u8 v96, v84 offset:6016
-	v_perm_b32 v20, v25, v24, 0xc0c0004
-	ds_load_u8 v24, v84 offset:640
-	ds_load_u8 v106, v84 offset:128
-	v_lshl_or_b32 v25, v17, 16, v31
-	ds_load_u8 v17, v84 offset:7296
-	ds_load_u8 v108, v84 offset:8064
-	v_lshl_or_b32 v31, v29, 16, v20
+	v_perm_b32 v12, v23, v22, 0xc0c0004
+	s_waitcnt lgkmcnt(19)
+	v_perm_b32 v19, v24, v92, 0xc0c0004
+	s_waitcnt lgkmcnt(17)
 	v_perm_b32 v20, v94, v93, 0xc0c0004
-	v_lshl_or_b32 v29, v19, 16, v18
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v18, v102, v101, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v87, v88, v87, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v88, v90, v109, 0xc0c0004
-	v_lshl_or_b32 v20, v89, 16, v20
-	v_perm_b32 v89, v104, v103, 0xc0c0004
-	v_lshl_or_b32 v19, v92, 16, v91
-	ds_load_u8 v91, v83 offset:368
-	ds_load_u8 v93, v83 offset:336
-	ds_load_u8 v92, v83 offset:272
-	ds_load_u8 v94, v83 offset:176
-	ds_load_u8 v90, v83 offset:208
-	v_lshl_or_b32 v18, v89, 16, v18
-	ds_load_u8 v89, v83 offset:304
-	s_waitcnt lgkmcnt(9)
-	v_perm_b32 v23, v24, v23, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v95, v106, v105, 0xc0c0004
-	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v24, v17, v107, 0xc0c0004
-	ds_load_u8 v101, v84 offset:4736
-	ds_load_u8 v102, v83 offset:432
-	ds_load_u8 v105, v83 offset:464
-	v_lshl_or_b32 v17, v23, 16, v95
-	v_lshl_or_b32 v23, v88, 16, v87
-	ds_load_u8 v95, v83 offset:144
-	ds_load_u8 v88, v83 offset:240
-	v_perm_b32 v87, v97, v96, 0xc0c0004
-	ds_load_u8 v96, v83 offset:112
-	v_perm_b32 v97, v99, v98, 0xc0c0004
-	ds_load_u8 v98, v83 offset:80
-	ds_load_u8 v103, v83 offset:400
-	ds_load_u8 v104, v83 offset:496
+	s_waitcnt lgkmcnt(15)
+	v_perm_b32 v21, v96, v95, 0xc0c0004
 	s_waitcnt lgkmcnt(13)
-	v_perm_b32 v91, v93, v91, 0xc0c0004
-	v_perm_b32 v86, v86, v108, 0xc0c0004
+	v_perm_b32 v22, v98, v97, 0xc0c0004
+	s_waitcnt lgkmcnt(11)
+	v_perm_b32 v23, v105, v99, 0xc0c0004
 	s_waitcnt lgkmcnt(9)
-	v_perm_b32 v89, v92, v89, 0xc0c0004
-	ds_load_u8 v92, v83 offset:816
-	v_lshl_or_b32 v24, v86, 16, v24
-	v_perm_b32 v86, v111, v110, 0xc0c0004
-	s_waitcnt lgkmcnt(9)
-	v_perm_b32 v99, v101, v100, 0xc0c0004
-	ds_load_u8 v100, v83 offset:944
-	v_lshl_or_b32 v111, v91, 16, v89
+	v_perm_b32 v24, v107, v106, 0xc0c0004
 	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v94, v95, v94, 0xc0c0004
-	ds_load_u8 v95, v83 offset:880
-	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v88, v90, v88, 0xc0c0004
-	ds_load_u8 v90, v83 offset:848
-	ds_load_u8 v93, v83 offset:784
-	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v96, v98, v96, 0xc0c0004
-	ds_load_u8 v98, v83 offset:688
-	v_lshl_or_b32 v110, v88, 16, v94
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v90, v90, v95, 0xc0c0004
-	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v96, v117, v116, 0xc0c0004
+	v_lshl_or_b32 v95, v11, 16, v9
+	s_waitcnt lgkmcnt(5)
+	v_perm_b32 v10, v10, v118, 0xc0c0004
+	v_lshl_or_b32 v94, v16, 16, v14
+	v_lshl_or_b32 v93, v18, 16, v17
+	v_lshl_or_b32 v92, v12, 16, v19
+	ds_load_u8 v119, v124 offset:432
+	ds_load_u8 v120, v124 offset:400
+	ds_load_u8 v123, v124 offset:304
+	ds_load_u8 v105, v124 offset:272
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v13, v15, v13, 0xc0c0004
+	v_lshl_or_b32 v99, v21, 16, v20
+	v_lshl_or_b32 v98, v23, 16, v22
+	v_lshl_or_b32 v97, v96, 16, v24
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[108:111], v[92:95], v[1:8] neg_lo:[1,1,0]
+	v_lshl_or_b32 v96, v13, 16, v10
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[88:91], v[92:95], v[1:8] neg_lo:[1,1,0]
+	ds_load_u8 v92, v124 offset:368
+	ds_load_u8 v93, v124 offset:336
+	ds_load_u8 v94, v124 offset:176
+	ds_load_u8 v95, v124 offset:144
+	s_waitcnt lgkmcnt(8)
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[112:115], v[96:99], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[100:103], v[96:99], v[9:16] neg_lo:[1,1,0]
+	ds_load_u8 v97, v124 offset:240
+	ds_load_u8 v99, v124 offset:208
+	v_perm_b32 v98, v122, v121, 0xc0c0004
+	s_waitcnt lgkmcnt(8)
+	v_perm_b32 v96, v120, v119, 0xc0c0004
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v105, v105, v123, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_2)
+	v_lshl_or_b32 v119, v98, 16, v96
+	s_waitcnt lgkmcnt(4)
 	v_perm_b32 v92, v93, v92, 0xc0c0004
-	ds_load_u8 v93, v83 offset:560
-	ds_load_u8 v95, v83 offset:528
-	v_perm_b32 v101, v103, v102, 0xc0c0004
-	ds_load_u8 v102, v83 offset:912
-	ds_load_u8 v85, v85
-	v_perm_b32 v103, v105, v104, 0xc0c0004
-	ds_load_u8 v104, v83 offset:976
-	v_perm_b32 v105, v21, v22, 0xc0c0004
-	ds_load_u8 v21, v83 offset:656
-	ds_load_u8 v22, v83 offset:752
-	v_lshl_or_b32 v112, v103, 16, v101
-	v_lshl_or_b32 v115, v90, 16, v92
-	v_lshl_or_b32 v109, v96, 16, v105
-	s_waitcnt lgkmcnt(5)
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v94, v95, v94, 0xc0c0004
+	ds_load_u8 v95, v124 offset:80
+	v_lshl_or_b32 v118, v92, 16, v105
+	ds_load_u8 v92, v124 offset:16
+	ds_load_u8 v93, v124 offset:112
+	s_waitcnt lgkmcnt(3)
+	v_perm_b32 v96, v99, v97, 0xc0c0004
+	ds_load_u8 v97, v124 offset:48
+	v_lshl_or_b32 v117, v96, 16, v94
+	ds_load_u8 v94, v124 offset:944
+	ds_load_u8 v96, v124 offset:912
+	ds_load_u8 v98, v104
+	s_waitcnt lgkmcnt(4)
 	v_perm_b32 v93, v95, v93, 0xc0c0004
+	ds_load_u8 v95, v124 offset:976
 	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v100, v102, v100, 0xc0c0004
-	ds_load_u8 v102, v83 offset:720
+	v_perm_b32 v92, v92, v97, 0xc0c0004
+	ds_load_u8 v97, v124 offset:816
 	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v85, v104, v85, 0xc0c0004
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v98, v21, v98, 0xc0c0004
-	ds_load_u8 v21, v83 offset:624
-	v_lshl_or_b32 v116, v85, 16, v100
+	v_perm_b32 v94, v96, v94, 0xc0c0004
+	v_lshl_or_b32 v116, v93, 16, v92
+	ds_load_u8 v92, v124 offset:656
+	ds_load_u8 v93, v124 offset:752
+	s_waitcnt lgkmcnt(3)
+	v_perm_b32 v95, v95, v98, 0xc0c0004
+	ds_load_u8 v98, v124 offset:880
+	ds_load_u8 v96, v124 offset:784
+	v_lshl_or_b32 v123, v95, 16, v94
+	ds_load_u8 v94, v124 offset:720
 	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v102, v102, v22, 0xc0c0004
-	ds_load_u8 v22, v83 offset:592
-	v_lshl_or_b32 v114, v102, 16, v98
-	v_wmma_i32_16x16x16_iu8 v[101:108], v[13:16], v[109:112], v[1:8] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v95, v22, v21, 0xc0c0004
-	v_lshl_or_b32 v22, v87, 16, v86
-	v_lshl_or_b32 v21, v99, 16, v97
-	v_wmma_i32_16x16x16_iu8 v[85:92], v[13:16], v[9:12], v[1:8] neg_lo:[1,1,0]
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_4)
-	v_lshl_or_b32 v113, v95, 16, v93
-	v_wmma_i32_16x16x16_iu8 v[93:100], v[17:20], v[9:12], v[1:8] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[9:16], v[17:20], v[109:112], v[1:8] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[85:92], v[29:32], v[25:28], v[85:92] neg_lo:[1,1,0]
-	s_delay_alu instid0(VALU_DEP_3)
-	v_wmma_i32_16x16x16_iu8 v[93:100], v[21:24], v[25:28], v[93:100] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[101:108], v[29:32], v[113:116], v[101:108] neg_lo:[1,1,0]
-	ds_load_u8 v25, v83 offset:1504
-	ds_load_u8 v26, v83 offset:1472
-	ds_load_u8 v27, v83 offset:1312
-	ds_load_u8 v28, v83 offset:1280
-	v_wmma_i32_16x16x16_iu8 v[9:16], v[21:24], v[113:116], v[9:16] neg_lo:[1,1,0]
-	ds_load_u8 v17, v83 offset:1376
-	ds_load_u8 v18, v83 offset:1344
-	ds_load_u8 v21, v83 offset:1184
-	ds_load_u8 v22, v83 offset:1152
-	ds_load_u8 v23, v83 offset:1248
-	ds_load_u8 v24, v83 offset:1216
-	ds_load_u8 v29, v83 offset:1056
-	ds_load_u8 v30, v83 offset:1024
-	v_perm_b32 v19, v118, v117, 0xc0c0004
-	ds_load_u8 v31, v83 offset:1120
-	ds_load_u8 v32, v84 offset:9984
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v17, v18, v17, 0xc0c0004
-	v_perm_b32 v20, v26, v25, 0xc0c0004
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v18, v22, v21, 0xc0c0004
-	v_perm_b32 v26, v28, v27, 0xc0c0004
-	ds_load_u8 v21, v84 offset:12032
-	s_waitcnt lgkmcnt(5)
-	v_perm_b32 v22, v24, v23, 0xc0c0004
-	ds_load_u8 v23, v84 offset:11776
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v27, v30, v29, 0xc0c0004
-	ds_load_u8 v28, v84 offset:11008
-	ds_load_u8 v29, v84 offset:10752
-	ds_load_u8 v30, v84 offset:9472
-	ds_load_u8 v25, v83 offset:1088
-	v_lshl_or_b32 v20, v20, 16, v19
-	v_lshl_or_b32 v19, v17, 16, v26
-	ds_load_u8 v17, v84 offset:11520
-	ds_load_u8 v26, v84 offset:11264
-	v_lshl_or_b32 v18, v22, 16, v18
-	ds_load_u8 v22, v84 offset:10496
-	ds_load_u8 v24, v84 offset:10240
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v21, v23, v21, 0xc0c0004
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v23, v29, v28, 0xc0c0004
-	ds_load_u8 v28, v84 offset:9728
-	s_waitcnt lgkmcnt(5)
-	v_perm_b32 v25, v25, v31, 0xc0c0004
-	ds_load_u8 v31, v84 offset:9216
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v26, v26, v17, 0xc0c0004
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v22, v24, v22, 0xc0c0004
-	v_lshl_or_b32 v17, v25, 16, v27
-	s_delay_alu instid0(VALU_DEP_3)
-	v_lshl_or_b32 v24, v21, 16, v26
-	ds_load_u8 v21, v84 offset:8448
-	ds_load_u8 v25, v84 offset:8192
-	ds_load_u8 v26, v84 offset:8960
-	v_lshl_or_b32 v23, v23, 16, v22
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v27, v28, v32, 0xc0c0004
-	ds_load_u8 v28, v84 offset:8704
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v22, v31, v30, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v22, v27, 16, v22
-	ds_load_u8 v27, v84 offset:11648
-	ds_load_u8 v29, v84 offset:11392
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v21, v25, v21, 0xc0c0004
-	ds_load_u8 v25, v84 offset:12160
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v26, v28, v26, 0xc0c0004
-	ds_load_u8 v28, v84 offset:11904
-	v_lshl_or_b32 v21, v26, 16, v21
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v27, v29, v27, 0xc0c0004
-	ds_load_u8 v29, v84 offset:10624
-	v_wmma_i32_16x16x16_iu8 v[85:92], v[21:24], v[17:20], v[85:92] neg_lo:[1,1,0]
+	v_perm_b32 v96, v96, v97, 0xc0c0004
+	ds_load_u8 v97, v124 offset:848
 	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v25, v28, v25, 0xc0c0004
-	ds_load_u8 v28, v84 offset:10368
+	v_perm_b32 v93, v94, v93, 0xc0c0004
+	ds_load_u8 v94, v124 offset:560
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v97, v97, v98, 0xc0c0004
+	ds_load_u8 v98, v124 offset:688
+	v_lshl_or_b32 v122, v97, 16, v96
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v29, v28, v29, 0xc0c0004
-	ds_load_u8 v28, v84 offset:11136
-	ds_load_u8 v30, v84 offset:10880
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v30, v30, v28, 0xc0c0004
-	v_lshl_or_b32 v28, v25, 16, v27
-	ds_load_u8 v25, v84 offset:9600
-	ds_load_u8 v26, v84 offset:9344
-	v_lshl_or_b32 v27, v30, 16, v29
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v25, v26, v25, 0xc0c0004
-	ds_load_u8 v26, v84 offset:10112
-	ds_load_u8 v29, v84 offset:9856
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v26, v29, v26, 0xc0c0004
+	v_perm_b32 v92, v92, v98, 0xc0c0004
 	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v26, v26, 16, v25
-	ds_load_u8 v25, v84 offset:8576
-	ds_load_u8 v29, v84 offset:8320
+	v_lshl_or_b32 v121, v93, 16, v92
+	ds_load_u8 v92, v124 offset:528
+	ds_load_u8 v93, v124 offset:624
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v92, v92, v94, 0xc0c0004
+	ds_load_u8 v94, v124 offset:592
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v25, v29, v25, 0xc0c0004
-	ds_load_u8 v29, v84 offset:9088
-	ds_load_u8 v30, v84 offset:8832
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v29, v30, v29, 0xc0c0004
+	v_perm_b32 v93, v94, v93, 0xc0c0004
 	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v25, v29, 16, v25
-	ds_load_u8 v29, v83 offset:1456
-	ds_load_u8 v30, v83 offset:1424
-	v_wmma_i32_16x16x16_iu8 v[93:100], v[25:28], v[17:20], v[93:100] neg_lo:[1,1,0]
-	ds_load_u8 v17, v83 offset:1520
-	ds_load_u8 v18, v83 offset:1488
-	ds_load_u8 v19, v83 offset:1328
-	ds_load_u8 v20, v83 offset:1296
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v29, v30, v29, 0xc0c0004
-	ds_load_u8 v30, v83 offset:1392
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v17, v18, v17, 0xc0c0004
-	ds_load_u8 v18, v83 offset:1360
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v19, v20, v19, 0xc0c0004
-	v_lshl_or_b32 v20, v17, 16, v29
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v18, v18, v30, 0xc0c0004
+	v_lshl_or_b32 v120, v93, 16, v92
+	v_wmma_i32_16x16x16_iu8 v[92:99], v[88:91], v[116:119], v[1:8] neg_lo:[1,1,0]
+	ds_load_u8 v88, v124 offset:1440
+	ds_load_u8 v89, v124 offset:1408
+	v_wmma_i32_16x16x16_iu8 v[92:99], v[100:103], v[120:123], v[92:99] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[100:107], v[108:111], v[116:119], v[1:8] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v19, v18, 16, v19
-	ds_load_u8 v17, v83 offset:1200
-	ds_load_u8 v18, v83 offset:1168
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v17, v18, v17, 0xc0c0004
-	ds_load_u8 v18, v83 offset:1264
-	ds_load_u8 v29, v83 offset:1232
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v18, v29, v18, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v18, v18, 16, v17
-	ds_load_u8 v17, v83 offset:1072
-	ds_load_u8 v29, v83 offset:1040
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v17, v29, v17, 0xc0c0004
-	ds_load_u8 v29, v83 offset:1136
-	ds_load_u8 v30, v83 offset:1104
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v29, v30, v29, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v17, v29, 16, v17
-	ds_load_u8 v29, v83 offset:1952
-	ds_load_u8 v30, v83 offset:1920
-	v_wmma_i32_16x16x16_iu8 v[101:108], v[21:24], v[17:20], v[101:108] neg_lo:[1,1,0]
-	ds_load_u8 v21, v83 offset:2016
-	ds_load_u8 v22, v83 offset:1984
-	ds_load_u8 v23, v83 offset:1824
-	ds_load_u8 v24, v83 offset:1792
-	v_wmma_i32_16x16x16_iu8 v[9:16], v[25:28], v[17:20], v[9:16] neg_lo:[1,1,0]
-	ds_load_u8 v17, v83 offset:1888
-	ds_load_u8 v18, v83 offset:1856
-	ds_load_u8 v25, v83 offset:1696
-	ds_load_u8 v26, v83 offset:1664
-	ds_load_u8 v27, v83 offset:1760
-	ds_load_u8 v28, v83 offset:1728
-	ds_load_u8 v31, v83 offset:1568
-	ds_load_u8 v32, v83 offset:1536
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v19, v30, v29, 0xc0c0004
-	ds_load_u8 v29, v83 offset:1632
+	v_wmma_i32_16x16x16_iu8 v[100:107], v[112:115], v[120:123], v[100:107] neg_lo:[1,1,0]
+	ds_load_u8 v90, v124 offset:1504
+	ds_load_u8 v91, v124 offset:1472
+	ds_load_u8 v108, v124 offset:1312
+	ds_load_u8 v109, v124 offset:1280
+	ds_load_u8 v110, v124 offset:1376
+	ds_load_u8 v111, v124 offset:1344
+	ds_load_u8 v112, v124 offset:1184
+	ds_load_u8 v113, v124 offset:1152
+	s_waitcnt lgkmcnt(8)
+	v_perm_b32 v88, v89, v88, 0xc0c0004
+	ds_load_u8 v89, v124 offset:1248
 	s_waitcnt lgkmcnt(7)
-	v_perm_b32 v17, v18, v17, 0xc0c0004
-	v_perm_b32 v20, v22, v21, 0xc0c0004
-	ds_load_u8 v21, v83 offset:1600
-	v_perm_b32 v22, v24, v23, 0xc0c0004
+	v_perm_b32 v90, v91, v90, 0xc0c0004
+	ds_load_u8 v91, v124 offset:1216
 	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v18, v26, v25, 0xc0c0004
-	ds_load_u8 v23, v84 offset:16128
-	ds_load_u8 v30, v84 offset:13568
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v24, v28, v27, 0xc0c0004
-	ds_load_u8 v25, v84 offset:15872
-	ds_load_u8 v28, v84 offset:15104
-	v_lshl_or_b32 v20, v20, 16, v19
-	v_lshl_or_b32 v19, v17, 16, v22
-	ds_load_u8 v17, v84 offset:15616
-	ds_load_u8 v22, v84 offset:15360
-	v_lshl_or_b32 v18, v24, 16, v18
-	ds_load_u8 v24, v84 offset:14592
-	ds_load_u8 v26, v84 offset:14336
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v27, v32, v31, 0xc0c0004
-	ds_load_u8 v31, v84 offset:14080
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v32, s0, v76
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_waitcnt lgkmcnt(9)
-	v_perm_b32 v21, v21, v29, 0xc0c0004
-	ds_load_u8 v29, v84 offset:14848
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s3, s36, v32
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v22, v22, v17, 0xc0c0004
-	v_lshl_or_b32 v17, v21, 16, v27
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v26, v26, v24, 0xc0c0004
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v28, v29, v28, 0xc0c0004
-	ds_load_u8 v29, v84 offset:13824
-	v_perm_b32 v23, v25, v23, 0xc0c0004
-	ds_load_u8 v25, v84 offset:13312
-	v_lshl_or_b32 v24, v23, 16, v22
-	v_lshl_or_b32 v23, v28, 16, v26
-	ds_load_u8 v21, v84 offset:12544
-	ds_load_u8 v26, v84 offset:12288
-	ds_load_u8 v28, v84 offset:12800
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v22, v25, v30, 0xc0c0004
-	ds_load_u8 v25, v84 offset:13056
-	v_perm_b32 v27, v29, v31, 0xc0c0004
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v21, v26, v21, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_2)
-	v_lshl_or_b32 v22, v27, 16, v22
-	ds_load_u8 v27, v84 offset:15744
-	ds_load_u8 v29, v84 offset:15488
-	ds_load_u8 v26, v84 offset:16256
-	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v25, v28, v25, 0xc0c0004
-	ds_load_u8 v28, v84 offset:16000
-	v_lshl_or_b32 v21, v25, 16, v21
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v27, v29, v27, 0xc0c0004
-	ds_load_u8 v29, v84 offset:14720
-	v_wmma_i32_16x16x16_iu8 v[85:92], v[21:24], v[17:20], v[85:92] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v26, v28, v26, 0xc0c0004
-	ds_load_u8 v28, v84 offset:14464
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v29, v28, v29, 0xc0c0004
-	ds_load_u8 v28, v84 offset:15232
-	ds_load_u8 v30, v84 offset:14976
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v30, v30, v28, 0xc0c0004
-	v_lshl_or_b32 v28, v26, 16, v27
-	ds_load_u8 v25, v84 offset:13696
-	ds_load_u8 v26, v84 offset:13440
-	v_lshl_or_b32 v27, v30, 16, v29
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v25, v26, v25, 0xc0c0004
-	ds_load_u8 v26, v84 offset:14208
-	ds_load_u8 v29, v84 offset:13952
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v26, v29, v26, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v26, v26, 16, v25
-	ds_load_u8 v25, v84 offset:12672
-	ds_load_u8 v29, v84 offset:12416
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v25, v29, v25, 0xc0c0004
-	ds_load_u8 v29, v84 offset:13184
-	ds_load_u8 v30, v84 offset:12928
-	v_cvt_f32_i32_e32 v84, v91
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_4) | instid1(SALU_CYCLE_1)
-	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v65, v65, v84
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v29, v30, v29, 0xc0c0004
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v30, s1, v81
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	s_mul_i32 s1, s0, s29
-	s_add_i32 s4, s1, s14
-	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_lshl_or_b32 v25, v29, 16, v25
-	ds_load_u8 v29, v83 offset:1968
-	ds_load_u8 v31, v83 offset:1936
-	ds_load_u8 v30, v30
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v32, s4, v34
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_wmma_i32_16x16x16_iu8 v[93:100], v[25:28], v[17:20], v[93:100] neg_lo:[1,1,0]
-	ds_load_u8 v17, v83 offset:2000
-	ds_load_u8 v18, v83 offset:1840
-	ds_load_u8 v19, v83 offset:1808
-	ds_load_u8 v20, v83 offset:1904
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v32, 0x80000000, v32, s3
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v91, v98
+	v_perm_b32 v108, v109, v108, 0xc0c0004
+	ds_load_u8 v109, v124 offset:1056
 	s_waitcnt lgkmcnt(5)
-	v_perm_b32 v29, v31, v29, 0xc0c0004
-	ds_load_u8 v31, v83 offset:1872
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v17, v17, v30, 0xc0c0004
-	ds_load_u8 v30, v83 offset:1712
+	v_perm_b32 v110, v111, v110, 0xc0c0004
 	s_waitcnt lgkmcnt(3)
-	v_perm_b32 v18, v19, v18, 0xc0c0004
+	v_perm_b32 v112, v113, v112, 0xc0c0004
+	ds_load_u8 v113, v124 offset:1120
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v89, v91, v89, 0xc0c0004
+	ds_load_u8 v91, v124 offset:1088
+	ds_load_u8 v111, v124 offset:1024
+	v_lshl_or_b32 v89, v89, 16, v112
 	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v19, v31, v20, 0xc0c0004
-	v_lshl_or_b32 v20, v17, 16, v29
-	ds_load_u8 v29, v83 offset:1744
-	v_lshl_or_b32 v19, v19, 16, v18
-	ds_load_u8 v17, v83 offset:1680
-	ds_load_u8 v18, v83 offset:1776
-	s_waitcnt lgkmcnt(1)
-	v_perm_b32 v17, v17, v30, 0xc0c0004
+	v_perm_b32 v113, v91, v113, 0xc0c0004
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v18, v29, v18, 0xc0c0004
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v29, s0, v72
+	v_perm_b32 v114, v111, v109, 0xc0c0004
+	v_lshl_or_b32 v91, v90, 16, v88
+	v_lshl_or_b32 v90, v110, 16, v108
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[108:111], v125
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_lshl_or_b32 v88, v113, 16, v114
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[112:115], v125 offset:8192
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	s_waitcnt lgkmcnt(1)
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[108:111], v[88:91], v[9:16] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[112:115], v[88:91], v[17:24] neg_lo:[1,1,0]
+	ds_load_u8 v88, v124 offset:1456
+	ds_load_u8 v89, v124 offset:1424
+	ds_load_u8 v90, v124 offset:1520
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v88, v89, v88, 0xc0c0004
+	ds_load_u8 v89, v124 offset:1488
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v89, v89, v90, 0xc0c0004
+	ds_load_u8 v90, v124 offset:1328
+	ds_load_u8 v91, v124 offset:1296
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v90, v91, v90, 0xc0c0004
+	ds_load_u8 v91, v124 offset:1392
+	ds_load_u8 v116, v124 offset:1360
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v116, v116, v91, 0xc0c0004
+	v_lshl_or_b32 v91, v89, 16, v88
+	ds_load_u8 v88, v124 offset:1200
+	ds_load_u8 v89, v124 offset:1168
+	v_lshl_or_b32 v90, v116, 16, v90
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v88, v89, v88, 0xc0c0004
+	ds_load_u8 v89, v124 offset:1264
+	ds_load_u8 v116, v124 offset:1232
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v89, v116, v89, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v89, v89, 16, v88
+	ds_load_u8 v88, v124 offset:1072
+	ds_load_u8 v116, v124 offset:1040
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v88, v116, v88, 0xc0c0004
+	ds_load_u8 v116, v124 offset:1136
+	ds_load_u8 v117, v124 offset:1104
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v116, v117, v116, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_1)
+	v_lshl_or_b32 v88, v116, 16, v88
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v116, s6, v87
+	.loc	1 408 30 is_stmt 0              ; generate_amdgcn.py:408:30
+	s_mul_i32 s6, s4, s29
+	s_add_i32 s6, s6, s18
 	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_lshl_or_b32 v18, v18, 16, v17
-	ds_load_u8 v17, v83 offset:1584
-	ds_load_u8 v30, v83 offset:1552
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e32 vcc_lo, s36, v29
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	.loc	1 409 19 is_stmt 1              ; generate_amdgcn.py:409:19
+	v_wmma_i32_16x16x16_iu8 v[92:99], v[108:111], v[88:91], v[92:99] neg_lo:[1,1,0]
+	ds_load_u8 v108, v124 offset:1952
+	ds_load_u8 v109, v124 offset:1920
+	v_wmma_i32_16x16x16_iu8 v[100:107], v[112:115], v[88:91], v[100:107] neg_lo:[1,1,0]
+	ds_load_u8 v88, v124 offset:2016
+	ds_load_u8 v89, v124 offset:1984
+	ds_load_u8 v90, v124 offset:1824
+	ds_load_u8 v91, v124 offset:1792
+	ds_load_u8 v110, v124 offset:1888
+	ds_load_u8 v111, v124 offset:1856
+	ds_load_u8 v112, v124 offset:1696
+	ds_load_u8 v113, v124 offset:1664
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v88, v89, v88, 0xc0c0004
+	ds_load_u8 v89, v124 offset:1728
+	s_waitcnt lgkmcnt(5)
+	v_perm_b32 v90, v91, v90, 0xc0c0004
+	ds_load_u8 v91, v124 offset:1568
+	v_perm_b32 v108, v109, v108, 0xc0c0004
+	ds_load_u8 v109, v124 offset:1760
+	s_waitcnt lgkmcnt(5)
+	v_perm_b32 v110, v111, v110, 0xc0c0004
+	s_waitcnt lgkmcnt(3)
+	v_perm_b32 v112, v113, v112, 0xc0c0004
+	ds_load_u8 v113, v124 offset:1632
+	v_lshl_or_b32 v90, v110, 16, v90
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v89, v89, v109, 0xc0c0004
+	ds_load_u8 v109, v124 offset:1600
+	ds_load_u8 v111, v124 offset:1536
+	v_lshl_or_b32 v89, v89, 16, v112
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v113, v109, v113, 0xc0c0004
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v17, v30, v17, 0xc0c0004
-	ds_load_u8 v30, v83 offset:1648
-	ds_load_u8 v31, v83 offset:1616
-	v_cvt_f32_i32_e32 v83, v90
-	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v29, s4, v33
+	v_perm_b32 v114, v111, v91, 0xc0c0004
+	v_lshl_or_b32 v91, v88, 16, v108
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[108:111], v116
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v90, v97
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v66, v66, v83
-	v_add_f32_e32 v58, v58, v90
+	v_lshl_or_b32 v88, v113, 16, v114
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[112:115], v116 offset:8192
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	s_waitcnt lgkmcnt(1)
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[108:111], v[88:91], v[9:16] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v30, v31, v30, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[112:115], v[88:91], v[17:24] neg_lo:[1,1,0]
+	s_delay_alu instid0(VALU_DEP_2)
+	v_cvt_f32_i32_e32 v120, v9
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v88, s36, v71
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v121, v10
+	v_cvt_f32_i32_e32 v122, v11
+	v_cvt_f32_i32_e32 v123, v12
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v33, v33, v120
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v89, v124 offset:1968
+	ds_load_u8 v90, v124 offset:1936
+	ds_load_u8 v88, v88
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v63, v63, v121 :: v_dual_add_f32 v62, v62, v122
+	v_add_f32_e32 v61, v61, v123
+	s_mov_b32 s36, s19
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v89, v90, v89, 0xc0c0004
+	ds_load_u8 v90, v124 offset:2000
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v88, v90, v88, 0xc0c0004
+	ds_load_u8 v90, v124 offset:1840
+	ds_load_u8 v91, v124 offset:1808
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v90, v91, v90, 0xc0c0004
+	ds_load_u8 v91, v124 offset:1904
+	ds_load_u8 v116, v124 offset:1872
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v116, v116, v91, 0xc0c0004
+	v_lshl_or_b32 v91, v88, 16, v89
+	ds_load_u8 v88, v124 offset:1712
+	ds_load_u8 v89, v124 offset:1680
+	v_lshl_or_b32 v90, v116, 16, v90
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v88, v89, v88, 0xc0c0004
+	ds_load_u8 v89, v124 offset:1776
+	ds_load_u8 v116, v124 offset:1744
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v89, v116, v89, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v89, v89, 16, v88
+	ds_load_u8 v88, v124 offset:1584
+	ds_load_u8 v116, v124 offset:1552
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v88, v116, v88, 0xc0c0004
+	ds_load_u8 v116, v124 offset:1648
+	ds_load_u8 v117, v124 offset:1616
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v116, v117, v116, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_lshl_or_b32 v88, v116, 16, v88
+	v_wmma_i32_16x16x16_iu8 v[92:99], v[108:111], v[88:91], v[92:99] neg_lo:[1,1,0]
 	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v31, s0, v74
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_or_b32_e32 v108, s4, v66
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_lshl_or_b32 v17, v30, 16, v17
-	.loc	1 398 17                        ; generate_amdgcn.py:398:17
-	v_or_b32_e32 v30, s0, v75
-	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s0, s36, v31
-	s_delay_alu instid0(VALU_DEP_3)
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_wmma_i32_16x16x16_iu8 v[9:16], v[25:28], v[17:20], v[9:16] neg_lo:[1,1,0]
-	v_cvt_f32_i32_e32 v26, v86
-	v_cvt_f32_i32_e32 v86, v93
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e32 v29, 0x80000000, v29, vcc_lo
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v28, v88
-	v_cvt_f32_i32_e32 v88, v95
+	v_wmma_i32_16x16x16_iu8 v[100:107], v[112:115], v[88:91], v[100:107] neg_lo:[1,1,0]
+	v_cvt_f32_i32_e32 v113, v15
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v31, s4, v78
+	v_add_nc_u32_e32 v109, s6, v67
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v115, v13
 	.loc	1 400 23                        ; generate_amdgcn.py:400:23
-	v_cmp_gt_i32_e64 s1, s36, v30
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_wmma_i32_16x16x16_iu8 v[101:108], v[21:24], v[17:20], v[101:108] neg_lo:[1,1,0]
-	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v62, v62, v86
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	buffer_load_b128 v[21:24], v29, s[24:27], 0 offen
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v29, v89
+	v_cmp_gt_i32_e32 vcc_lo, s33, v108
 	.loc	1 408 30                        ; generate_amdgcn.py:408:30
-	v_add_nc_u32_e32 v30, s4, v79
+	v_add_nc_u32_e32 v108, s6, v69
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v60, v60, v88
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v31, 0x80000000, v31, s0
+	v_add_f32_e32 v58, v58, v113
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v25, v85
-	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v67, v67, v29
+	v_cvt_f32_i32_e32 v114, v14
+	v_cvt_f32_i32_e32 v112, v16
+	v_cvt_f32_i32_e32 v88, v21
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_cndmask_b32_e64 v30, 0x80000000, v30, s1
+	v_cndmask_b32_e32 v119, 0x80000000, v108, vcc_lo
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v27, v87
-	v_cvt_f32_i32_e32 v85, v92
-	v_cvt_f32_i32_e32 v87, v94
-	v_cvt_f32_i32_e32 v89, v96
-	v_cvt_f32_i32_e32 v92, v99
-	v_cvt_f32_i32_e32 v93, v100
-	v_cvt_f32_i32_e32 v94, v101
-	v_cvt_f32_i32_e32 v95, v102
-	v_cvt_f32_i32_e32 v96, v103
-	v_cvt_f32_i32_e32 v97, v104
-	v_cvt_f32_i32_e32 v98, v105
-	v_cvt_f32_i32_e32 v99, v106
-	v_cvt_f32_i32_e32 v100, v107
-	v_cvt_f32_i32_e32 v101, v108
-	v_cvt_f32_i32_e32 v102, v9
-	v_cvt_f32_i32_e32 v103, v10
-	v_cvt_f32_i32_e32 v104, v11
-	v_cvt_f32_i32_e32 v105, v12
-	v_cvt_f32_i32_e32 v106, v13
-	v_cvt_f32_i32_e32 v107, v14
-	v_cvt_f32_i32_e32 v108, v15
-	v_cvt_f32_i32_e32 v109, v16
-	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_clause 0x2
-	buffer_load_b128 v[9:12], v31, s[24:27], 0 offen
-	buffer_load_b128 v[13:16], v30, s[24:27], 0 offen
-	buffer_load_b128 v[17:20], v32, s[24:27], 0 offen
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_add_i32 s0, s38, 1
-	s_mov_b32 s4, s15
-	s_cmp_lt_i32 s0, 2
+	v_cvt_f32_i32_e32 v108, v20
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v110, s6, v83
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v89, v22
+	v_cvt_f32_i32_e32 v90, v23
+	v_cvt_f32_i32_e32 v91, v24
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v64, v64, v25
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_cselect_b32 s38, s0, 0
-	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v70, v70, v26
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	s_lshl_b32 s3, s38, 11
+	v_dual_add_f32 v53, v53, v108 :: v_dual_cndmask_b32 v116, 0x80000000, v109
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_lshl_b32 s6, s38, 14
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	s_add_i32 s3, s3, 0
+	v_cndmask_b32_e32 v117, 0x80000000, v110, vcc_lo
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v109, v19
+	.loc	1 408 30                        ; generate_amdgcn.py:408:30
+	v_add_nc_u32_e32 v111, s6, v68
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v110, v18
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_add_i32 s15, s6, 0
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v25, s3, v71
+	s_clause 0x1
+	buffer_load_b128 v[9:12], v116, s[24:27], 0 offen
+	buffer_load_b128 v[13:16], v117, s[24:27], 0 offen
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_add_i32 s6, s37, 1
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v63, v63, v85 :: v_dual_add_nc_u32 v26, s15, v82
-	v_dual_add_f32 v69, v69, v27 :: v_dual_add_f32 v68, v68, v28
-	v_dual_add_f32 v61, v61, v87 :: v_dual_add_f32 v56, v56, v92
-	v_dual_add_f32 v59, v59, v89 :: v_dual_add_f32 v54, v54, v94
-	v_dual_add_f32 v57, v57, v91 :: v_dual_add_f32 v52, v52, v96
-	v_dual_add_f32 v55, v55, v93 :: v_dual_add_f32 v50, v50, v98
-	v_dual_add_f32 v53, v53, v95 :: v_dual_add_f32 v48, v48, v100
-	v_dual_add_f32 v51, v51, v97 :: v_dual_add_f32 v46, v46, v102
-	v_dual_add_f32 v49, v49, v99 :: v_dual_add_f32 v44, v44, v104
-	v_dual_add_f32 v47, v47, v101 :: v_dual_add_f32 v42, v42, v106
-	v_dual_add_f32 v45, v45, v103 :: v_dual_add_f32 v40, v40, v108
-	v_add_f32_e32 v43, v43, v105
-	v_add_f32_e32 v41, v41, v107
-	v_add_f32_e32 v39, v39, v109
+	v_add_f32_e32 v54, v54, v109
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_cndmask_b32_e32 v118, 0x80000000, v111, vcc_lo
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v111, v17
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_add_i32 s0, s5, 1
-	s_mov_b32 s1, s34
+	s_cmp_lt_i32 s6, 2
+	s_mov_b32 s4, s1
+	s_cselect_b32 s37, s6, 0
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	buffer_load_b128 v[17:20], v118, s[24:27], 0 offen
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v56, v56, v111
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	buffer_load_b128 v[21:24], v119, s[24:27], 0 offen
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	s_add_i32 s34, s3, 0x8000
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	s_cmp_lg_u32 s5, s39
-	s_mov_b32 s5, s0
+	s_lshl_b32 s1, s37, 11
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v60, v60, v115
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	s_add_i32 s8, s1, 0
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v92, v92
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v50, v50, v90 :: v_dual_add_nc_u32 v115, s8, v64
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v93, v93
+	v_cvt_f32_i32_e32 v94, v94
+	v_cvt_f32_i32_e32 v95, v95
+	v_cvt_f32_i32_e32 v96, v96
+	v_cvt_f32_i32_e32 v97, v97
+	v_cvt_f32_i32_e32 v98, v98
+	v_cvt_f32_i32_e32 v99, v99
+	v_cvt_f32_i32_e32 v100, v100
+	v_cvt_f32_i32_e32 v101, v101
+	v_cvt_f32_i32_e32 v102, v102
+	v_cvt_f32_i32_e32 v103, v103
+	v_cvt_f32_i32_e32 v104, v104
+	v_cvt_f32_i32_e32 v105, v105
+	v_cvt_f32_i32_e32 v106, v106
+	v_cvt_f32_i32_e32 v107, v107
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	s_waitcnt vmcnt(4)
-	ds_store_b64 v25, v[36:37] offset:32768
+	ds_store_b64 v115, v[26:27] offset:32768
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	s_waitcnt vmcnt(3)
-	ds_store_b128 v26, v[21:24]
+	s_lshl_b32 s7, s37, 14
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v59, v59, v114
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	s_add_i32 s1, s7, 0
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v57, v57, v112
+	v_dual_add_f32 v51, v51, v89 :: v_dual_add_nc_u32 v114, s1, v76
+	v_dual_add_f32 v52, v52, v88 :: v_dual_add_nc_u32 v113, s1, v77
+	v_dual_add_f32 v49, v49, v91 :: v_dual_add_nc_u32 v112, s1, v78
+	v_dual_add_f32 v48, v48, v92 :: v_dual_add_nc_u32 v111, s1, v79
+	v_dual_add_f32 v55, v55, v110 :: v_dual_add_nc_u32 v110, s1, v80
+	v_add_f32_e32 v47, v47, v93
+	v_dual_add_f32 v46, v46, v94 :: v_dual_add_nc_u32 v109, s1, v81
+	v_dual_add_f32 v45, v45, v95 :: v_dual_add_nc_u32 v108, s1, v82
+	v_dual_add_f32 v44, v44, v96 :: v_dual_add_f32 v43, v43, v97
+	v_dual_add_f32 v42, v42, v98 :: v_dual_add_f32 v41, v41, v99
+	v_dual_add_f32 v40, v40, v100 :: v_dual_add_f32 v39, v39, v101
+	v_dual_add_f32 v38, v38, v102 :: v_dual_add_f32 v37, v37, v103
+	v_dual_add_f32 v36, v36, v104 :: v_dual_add_f32 v35, v35, v105
+	v_add_f32_e32 v34, v34, v106
+	v_add_f32_e32 v32, v32, v107
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_add_i32 s6, s5, 1
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	s_add_i32 s19, s8, 0x8000
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	s_cmp_lg_u32 s5, s35
+	s_mov_b32 s5, s6
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
 	s_waitcnt vmcnt(2)
-	ds_store_b128 v26, v[9:12] offset:4096
-	s_waitcnt vmcnt(1)
-	ds_store_b128 v26, v[13:16] offset:8192
+	v_perm_b32 v26, v13, v9, 0x4000501
+	v_perm_b32 v9, v13, v9, 0x6020703
 	s_waitcnt vmcnt(0)
-	ds_store_b128 v26, v[17:20] offset:12288
+	v_perm_b32 v27, v21, v17, 0x4000501
+	v_perm_b32 v13, v21, v17, 0x6020703
+	v_perm_b32 v17, v14, v10, 0x4000501
+	v_perm_b32 v21, v22, v18, 0x4000501
+	v_perm_b32 v10, v14, v10, 0x6020703
+	v_perm_b32 v14, v22, v18, 0x6020703
+	v_perm_b32 v18, v15, v11, 0x4000501
+	v_perm_b32 v22, v23, v19, 0x4000501
+	v_perm_b32 v11, v15, v11, 0x6020703
+	v_perm_b32 v15, v23, v19, 0x6020703
+	v_perm_b32 v19, v16, v12, 0x4000501
+	v_perm_b32 v23, v24, v20, 0x4000501
+	v_perm_b32 v12, v16, v12, 0x6020703
+	v_perm_b32 v16, v24, v20, 0x6020703
+	v_perm_b32 v20, v27, v26, 0x7060302
+	v_perm_b32 v24, v27, v26, 0x5040100
+	v_perm_b32 v26, v13, v9, 0x7060302
+	v_perm_b32 v9, v13, v9, 0x5040100
+	v_perm_b32 v13, v21, v17, 0x7060302
+	v_perm_b32 v17, v21, v17, 0x5040100
+	v_perm_b32 v21, v14, v10, 0x7060302
+	v_perm_b32 v10, v14, v10, 0x5040100
+	v_perm_b32 v14, v22, v18, 0x7060302
+	v_perm_b32 v18, v22, v18, 0x5040100
+	v_perm_b32 v22, v15, v11, 0x7060302
+	v_perm_b32 v11, v15, v11, 0x5040100
+	v_perm_b32 v15, v23, v19, 0x7060302
+	v_perm_b32 v19, v23, v19, 0x5040100
+	v_perm_b32 v23, v16, v12, 0x7060302
+	v_perm_b32 v12, v16, v12, 0x5040100
+	ds_store_2addr_b32 v114, v20, v24 offset1:16
+	ds_store_2addr_b32 v113, v26, v9 offset1:16
+	ds_store_2addr_b32 v112, v13, v17 offset1:16
+	ds_store_2addr_b32 v111, v21, v10 offset1:16
+	ds_store_2addr_b32 v110, v14, v18 offset1:16
+	ds_store_2addr_b32 v114, v22, v11 offset0:160 offset1:176
+	ds_store_2addr_b32 v109, v15, v19 offset1:16
+	ds_store_2addr_b32 v108, v23, v12 offset1:16
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
 	s_cbranch_scc1 .LBB0_5
 ; %bb.6:                                ; %Flow
 	.loc	1 0 5 is_stmt 0                 ; generate_amdgcn.py:0:5
-	v_dual_mov_b32 v2, v80 :: v_dual_mov_b32 v3, v81
-.LBB0_7:                                ; %Flow40
-	v_and_b32_e32 v1, 0xf0, v0
+	v_dual_mov_b32 v9, v70 :: v_dual_mov_b32 v10, v71
+	v_dual_mov_b32 v3, v74 :: v_dual_mov_b32 v4, v73
+	v_mov_b32_e32 v5, v72
+	s_branch .LBB0_8
+.LBB0_7:
+	v_dual_mov_b32 v32, 0 :: v_dual_mov_b32 v35, 0
+	v_dual_mov_b32 v34, 0 :: v_dual_mov_b32 v37, 0
+	v_dual_mov_b32 v36, 0 :: v_dual_mov_b32 v39, 0
+	v_dual_mov_b32 v38, 0 :: v_dual_mov_b32 v41, 0
+	v_dual_mov_b32 v40, 0 :: v_dual_mov_b32 v43, 0
+	v_dual_mov_b32 v42, 0 :: v_dual_mov_b32 v45, 0
+	v_dual_mov_b32 v44, 0 :: v_dual_mov_b32 v47, 0
+	v_dual_mov_b32 v46, 0 :: v_dual_mov_b32 v49, 0
+	v_dual_mov_b32 v48, 0 :: v_dual_mov_b32 v51, 0
+	v_dual_mov_b32 v50, 0 :: v_dual_mov_b32 v53, 0
+	v_dual_mov_b32 v52, 0 :: v_dual_mov_b32 v55, 0
+	v_dual_mov_b32 v54, 0 :: v_dual_mov_b32 v57, 0
+	v_dual_mov_b32 v56, 0 :: v_dual_mov_b32 v59, 0
+	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v61, 0
+	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v63, 0
+	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v33, 0
+	s_add_i32 s36, 0, 0x8000
+	s_add_i32 s19, 0, 0x8800
+	s_add_i32 s1, 0, 0x4000
+.LBB0_8:                                ; %._crit_edge
+	s_delay_alu instid0(VALU_DEP_1)
 	.loc	1 408 22 is_stmt 1              ; generate_amdgcn.py:408:22
-	v_or_b32_e32 v4, v77, v38
-	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_and_not1_b32 vcc_lo, exec_lo, s35
+	v_cmp_eq_u32_e32 vcc_lo, 0, v5
+	s_mov_b32 s8, 0
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	s_cbranch_vccnz .LBB0_9
-; %bb.8:
 	.loc	1 408 22                        ; generate_amdgcn.py:408:22
-	v_add_nc_u32_e32 v22, s4, v4
-	s_mov_b32 s4, 0
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v87, s1, v2
+	v_cndmask_b32_e64 v1, 0x210, 0, vcc_lo
+	v_cmp_eq_u32_e32 vcc_lo, 0, v4
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_xor_b32_e32 v1, v1, v3
+	v_cndmask_b32_e64 v2, 0x420, 0, vcc_lo
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_mov_b32 s5, s4
-	s_mov_b32 s6, s4
-	s_mov_b32 s7, s4
-	s_mov_b32 s8, s4
-	s_mov_b32 s9, s4
-	s_mov_b32 s10, s4
-	s_mov_b32 s11, s4
-	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v5, s1, v38
+	s_and_not1_b32 vcc_lo, exec_lo, s31
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_or_b32_e32 v1, v75, v1
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_xor_b32_e32 v5, v1, v2
+	v_xor_b32_e32 v6, 16, v5
+	v_xor_b32_e32 v7, 32, v5
+	v_xor_b32_e32 v8, 48, v5
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	ds_load_u8 v6, v5 offset:416
-	ds_load_u8 v7, v5 offset:384
-	ds_load_u8 v8, v5 offset:480
-	ds_load_u8 v9, v5 offset:448
-	ds_load_u8 v10, v5 offset:288
-	ds_load_u8 v11, v5 offset:256
-	ds_load_u8 v12, v5 offset:352
-	ds_load_u8 v13, v5 offset:320
-	ds_load_u8 v14, v5 offset:160
-	ds_load_u8 v15, v5 offset:128
-	ds_load_u8 v16, v5 offset:224
-	ds_load_u8 v17, v5 offset:192
-	ds_load_u8 v18, v5 offset:32
-	ds_load_u8 v19, v5
-	ds_load_u8 v20, v5 offset:96
-	ds_load_u8 v21, v5 offset:64
-	ds_load_u8 v107, v5 offset:464
-	ds_load_u8 v108, v5 offset:432
-	ds_load_u8 v109, v5 offset:400
-	ds_load_u8 v110, v5 offset:368
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v6, v7, v6, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v7, v9, v8, 0xc0c0004
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v8, v11, v10, 0xc0c0004
+	s_cbranch_vccnz .LBB0_10
+; %bb.9:
+	s_mov_b32 s9, s8
+	s_mov_b32 s10, s8
+	s_mov_b32 s11, s8
+	s_mov_b32 s12, s8
+	s_mov_b32 s13, s8
+	s_mov_b32 s14, s8
+	s_mov_b32 s15, s8
 	.loc	1 402 22                        ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v10, s1, v3
+	v_add_nc_u32_e32 v27, s36, v31
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v9, v13, v12, 0xc0c0004
-	v_lshl_or_b32 v33, v7, 16, v6
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v6, v15, v14, 0xc0c0004
-	ds_load_u8 v119, v5 offset:80
-	ds_load_u8 v120, v5 offset:48
-	ds_load_u8 v121, v5 offset:16
-	ds_load_u8 v122, v10
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v7, v17, v16, 0xc0c0004
-	v_lshl_or_b32 v32, v9, 16, v8
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v8, v19, v18, 0xc0c0004
-	ds_load_u8 v10, v22 offset:3328
-	ds_load_u8 v11, v22 offset:3072
-	ds_load_u8 v12, v22 offset:3840
-	ds_load_u8 v13, v22 offset:3584
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v9, v21, v20, 0xc0c0004
-	v_lshl_or_b32 v31, v7, 16, v6
-	s_delay_alu instid0(VALU_DEP_2)
-	v_lshl_or_b32 v30, v9, 16, v8
-	ds_load_u8 v6, v22 offset:2304
-	ds_load_u8 v7, v22 offset:2048
-	ds_load_u8 v8, v22 offset:2816
-	ds_load_u8 v9, v22 offset:2560
-	ds_load_u8 v14, v22 offset:1280
-	ds_load_u8 v15, v22 offset:1024
-	ds_load_u8 v16, v22 offset:1792
-	ds_load_u8 v17, v22 offset:1536
-	ds_load_u8 v18, v22 offset:256
-	ds_load_u8 v19, v22
-	ds_load_u8 v20, v22 offset:768
-	ds_load_u8 v21, v22 offset:512
-	ds_load_u8 v23, v22 offset:3968
-	ds_load_u8 v24, v22 offset:3712
-	ds_load_u8 v25, v22 offset:3456
-	ds_load_u8 v26, v22 offset:3200
+	ds_load_u8 v12, v27 offset:416
+	ds_load_u8 v13, v27 offset:384
+	ds_load_u8 v14, v27 offset:480
+	ds_load_u8 v15, v27 offset:448
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v116, s4, v8
+	v_add_nc_u32_e32 v11, s4, v6
+	ds_load_b128 v[1:4], v116
+	ds_load_b128 v[80:83], v11 offset:8192
+	ds_load_b128 v[84:87], v11
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v11, v27 offset:288
+	ds_load_u8 v17, v27 offset:256
+	ds_load_u8 v18, v27 offset:352
+	ds_load_u8 v19, v27 offset:320
+	ds_load_u8 v20, v27 offset:160
+	ds_load_u8 v21, v27 offset:128
+	ds_load_u8 v22, v27 offset:224
+	ds_load_u8 v23, v27 offset:192
+	ds_load_u8 v112, v27 offset:464
+	ds_load_u8 v113, v27 offset:432
+	ds_load_u8 v114, v27 offset:400
+	ds_load_u8 v115, v27 offset:368
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v16, s4, v5
+	ds_load_b128 v[88:91], v16 offset:8192
+	ds_load_b128 v[92:95], v16
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v16, s36, v10
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v127, v27 offset:16
+	ds_load_u8 v128, v16
+	s_waitcnt lgkmcnt(21)
+	v_perm_b32 v12, v13, v12, 0xc0c0004
 	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v6, v7, v6, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v7, v9, v8, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v8, v15, v14, 0xc0c0004
-	v_perm_b32 v10, v11, v10, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v9, v17, v16, 0xc0c0004
-	v_perm_b32 v11, v13, v12, 0xc0c0004
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v12, v19, v18, 0xc0c0004
-	v_lshl_or_b32 v73, v7, 16, v6
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v13, v21, v20, 0xc0c0004
-	v_lshl_or_b32 v72, v9, 16, v8
-	v_lshl_or_b32 v74, v11, 16, v10
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v23, v24, v23, 0xc0c0004
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v25, v26, v25, 0xc0c0004
-	v_lshl_or_b32 v71, v13, 16, v12
-	v_dual_mov_b32 v13, s11 :: v_dual_mov_b32 v12, s10
-	ds_load_u8 v34, v5 offset:928
-	ds_load_u8 v35, v5 offset:896
-	ds_load_u8 v36, v5 offset:992
-	ds_load_u8 v37, v5 offset:960
-	ds_load_u8 v75, v5 offset:800
-	ds_load_u8 v76, v5 offset:768
-	ds_load_u8 v77, v5 offset:864
-	ds_load_u8 v78, v5 offset:832
-	ds_load_u8 v79, v5 offset:672
-	ds_load_u8 v80, v5 offset:640
-	ds_load_u8 v81, v5 offset:736
-	ds_load_u8 v82, v5 offset:704
-	ds_load_u8 v123, v5 offset:976
-	ds_load_u8 v124, v5 offset:944
-	ds_load_u8 v125, v5 offset:912
-	ds_load_u8 v126, v5 offset:880
-	v_mov_b32_e32 v6, s4
-	ds_load_u8 v111, v5 offset:336
-	ds_load_u8 v112, v5 offset:304
-	ds_load_u8 v113, v5 offset:272
-	ds_load_u8 v114, v5 offset:240
-	ds_load_u8 v115, v5 offset:208
-	ds_load_u8 v116, v5 offset:176
-	ds_load_u8 v117, v5 offset:144
-	ds_load_u8 v118, v5 offset:112
-	ds_load_u8 v131, v5 offset:720
-	ds_load_u8 v132, v5 offset:688
-	ds_load_u8 v133, v5 offset:656
-	ds_load_u8 v134, v5 offset:624
-	ds_load_u8 v135, v5 offset:592
-	ds_load_u8 v136, v5 offset:560
-	ds_load_u8 v137, v5 offset:528
-	ds_load_u8 v138, v5 offset:496
-	ds_load_u8 v159, v5 offset:1264
-	ds_load_u8 v160, v5 offset:1232
-	ds_load_u8 v161, v5 offset:1200
-	ds_load_u8 v162, v5 offset:1168
-	ds_load_u8 v163, v5 offset:1136
-	ds_load_u8 v164, v5 offset:1104
-	ds_load_u8 v165, v5 offset:1072
-	ds_load_u8 v166, v5 offset:1040
-	ds_load_u8 v27, v22 offset:2944
-	ds_load_u8 v28, v22 offset:2688
-	ds_load_u8 v29, v22 offset:2432
-	ds_load_u8 v91, v22 offset:2176
-	ds_load_u8 v95, v22 offset:1920
-	ds_load_u8 v96, v22 offset:1664
-	ds_load_u8 v97, v22 offset:1408
-	ds_load_u8 v98, v22 offset:1152
-	s_waitcnt lgkmcnt(42)
-	v_perm_b32 v75, v76, v75, 0xc0c0004
-	ds_load_u8 v99, v22 offset:896
-	ds_load_u8 v100, v22 offset:640
-	ds_load_u8 v101, v22 offset:384
-	ds_load_u8 v102, v22 offset:128
-	s_waitcnt lgkmcnt(44)
-	v_perm_b32 v76, v78, v77, 0xc0c0004
-	ds_load_u8 v143, v22 offset:6016
-	ds_load_u8 v144, v22 offset:5760
-	ds_load_u8 v145, v22 offset:5504
-	ds_load_u8 v146, v22 offset:5248
-	s_waitcnt lgkmcnt(46)
-	v_perm_b32 v77, v80, v79, 0xc0c0004
-	ds_load_u8 v147, v22 offset:4992
-	ds_load_u8 v148, v22 offset:4736
-	ds_load_u8 v149, v22 offset:4480
-	ds_load_u8 v150, v22 offset:4224
-	s_waitcnt lgkmcnt(48)
-	v_perm_b32 v78, v82, v81, 0xc0c0004
-	ds_load_u8 v80, v22 offset:7424
-	ds_load_u8 v81, v22 offset:7168
-	v_perm_b32 v34, v35, v34, 0xc0c0004
-	ds_load_u8 v35, v5 offset:544
-	ds_load_u8 v83, v5 offset:512
-	v_perm_b32 v36, v37, v36, 0xc0c0004
-	ds_load_u8 v37, v5 offset:608
-	ds_load_u8 v84, v5 offset:576
-	ds_load_u8 v127, v5 offset:848
-	ds_load_u8 v128, v5 offset:816
-	ds_load_u8 v129, v5 offset:784
-	ds_load_u8 v130, v5 offset:752
-	ds_load_u8 v179, v22 offset:10112
-	ds_load_u8 v180, v22 offset:9856
-	ds_load_u8 v181, v22 offset:9600
-	ds_load_u8 v182, v22 offset:9344
-	v_dual_mov_b32 v11, s9 :: v_dual_mov_b32 v10, s8
-	v_mov_b32_e32 v9, s7
-	s_waitcnt lgkmcnt(32)
-	v_perm_b32 v26, v28, v27, 0xc0c0004
-	s_waitcnt lgkmcnt(28)
-	v_perm_b32 v28, v96, v95, 0xc0c0004
-	v_perm_b32 v24, v91, v29, 0xc0c0004
-	s_waitcnt lgkmcnt(26)
-	v_perm_b32 v27, v98, v97, 0xc0c0004
-	s_waitcnt lgkmcnt(24)
-	v_perm_b32 v95, v100, v99, 0xc0c0004
-	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v29, v102, v101, 0xc0c0004
-	v_dual_mov_b32 v8, s6 :: v_dual_mov_b32 v7, s5
-	v_lshl_or_b32 v98, v23, 16, v25
-	v_lshl_or_b32 v97, v26, 16, v24
-	v_lshl_or_b32 v96, v28, 16, v27
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v82, v84, v37, 0xc0c0004
-	v_lshl_or_b32 v37, v36, 16, v34
-	v_perm_b32 v79, v83, v35, 0xc0c0004
-	ds_load_u8 v83, v22 offset:7936
-	ds_load_u8 v84, v22 offset:7680
-	v_lshl_or_b32 v36, v76, 16, v75
-	v_lshl_or_b32 v35, v78, 16, v77
-	v_perm_b32 v80, v81, v80, 0xc0c0004
-	v_lshl_or_b32 v34, v82, 16, v79
-	ds_load_u8 v75, v22 offset:6400
-	ds_load_u8 v76, v22 offset:6144
-	ds_load_u8 v77, v22 offset:6912
-	ds_load_u8 v78, v22 offset:6656
-	ds_load_u8 v79, v22 offset:5376
-	ds_load_u8 v82, v22 offset:5120
-	ds_load_u8 v85, v22 offset:5888
-	ds_load_u8 v86, v22 offset:5632
-	ds_load_u8 v103, v22 offset:8064
-	ds_load_u8 v104, v22 offset:7808
-	ds_load_u8 v105, v22 offset:7552
-	ds_load_u8 v106, v22 offset:7296
-	ds_load_u8 v81, v22 offset:4352
-	ds_load_u8 v88, v22 offset:4096
-	v_lshl_or_b32 v95, v95, 16, v29
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[71:74], v[30:33], v[6:13] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v75, v76, v75, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v76, v78, v77, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v79, v82, v79, 0xc0c0004
-	v_perm_b32 v83, v84, v83, 0xc0c0004
-	ds_load_u8 v84, v22 offset:4864
-	ds_load_u8 v89, v22 offset:4608
-	ds_load_u8 v139, v22 offset:7040
-	ds_load_u8 v140, v22 offset:6784
-	ds_load_u8 v141, v22 offset:6528
-	ds_load_u8 v142, v22 offset:6272
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v82, v86, v85, 0xc0c0004
-	ds_load_u8 v85, v5 offset:1440
-	ds_load_u8 v86, v5 offset:1408
-	v_lshl_or_b32 v77, v76, 16, v75
-	v_lshl_or_b32 v78, v83, 16, v80
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v81, v88, v81, 0xc0c0004
-	v_lshl_or_b32 v76, v82, 16, v79
-	v_perm_b32 v99, v106, v105, 0xc0c0004
-	v_perm_b32 v100, v104, v103, 0xc0c0004
-	v_perm_b32 v104, v146, v145, 0xc0c0004
-	v_perm_b32 v105, v144, v143, 0xc0c0004
-	v_perm_b32 v106, v150, v149, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_lshl_or_b32 v102, v100, 16, v99
-	v_lshl_or_b32 v100, v105, 16, v104
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v84, v89, v84, 0xc0c0004
-	ds_load_u8 v88, v5 offset:1504
-	ds_load_u8 v89, v5 offset:1472
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v103, v140, v139, 0xc0c0004
-	v_perm_b32 v139, v148, v147, 0xc0c0004
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v101, v142, v141, 0xc0c0004
-	v_lshl_or_b32 v75, v84, 16, v81
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v85, v86, v85, 0xc0c0004
-	ds_load_u8 v86, v5 offset:1056
-	ds_load_u8 v93, v5 offset:1024
-	ds_load_u8 v79, v5 offset:1312
-	ds_load_u8 v80, v5 offset:1280
-	ds_load_u8 v81, v5 offset:1376
-	ds_load_u8 v82, v5 offset:1344
-	ds_load_u8 v83, v5 offset:1184
-	ds_load_u8 v84, v5 offset:1152
-	ds_load_u8 v90, v5 offset:1248
-	ds_load_u8 v92, v5 offset:1216
-	ds_load_u8 v151, v5 offset:1520
-	ds_load_u8 v152, v5 offset:1488
-	ds_load_u8 v153, v5 offset:1456
-	ds_load_u8 v154, v5 offset:1424
-	v_lshl_or_b32 v101, v103, 16, v101
-	v_lshl_or_b32 v99, v139, 16, v106
-	v_perm_b32 v103, v182, v181, 0xc0c0004
-	v_perm_b32 v104, v180, v179, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[75:78], v[34:37], v[14:21] neg_lo:[1,1,0]
-	s_delay_alu instid0(VALU_DEP_2)
-	v_lshl_or_b32 v104, v104, 16, v103
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v79, v80, v79, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v80, v82, v81, 0xc0c0004
-	v_perm_b32 v88, v89, v88, 0xc0c0004
-	ds_load_u8 v89, v5 offset:1120
-	ds_load_u8 v94, v5 offset:1088
-	ds_load_u8 v155, v5 offset:1392
-	ds_load_u8 v156, v5 offset:1360
-	ds_load_u8 v157, v5 offset:1328
-	ds_load_u8 v158, v5 offset:1296
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v83, v84, v83, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v84, v92, v90, 0xc0c0004
-	v_lshl_or_b32 v81, v80, 16, v79
-	v_lshl_or_b32 v82, v88, 16, v85
-	v_perm_b32 v86, v93, v86, 0xc0c0004
-	ds_load_u8 v90, v22 offset:11520
-	ds_load_u8 v92, v22 offset:11264
-	ds_load_u8 v93, v22 offset:12032
-	ds_load_u8 v167, v22 offset:11776
-	v_lshl_or_b32 v80, v84, 16, v83
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v89, v94, v89, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v79, v89, 16, v86
-	ds_load_u8 v83, v22 offset:10496
-	ds_load_u8 v84, v22 offset:10240
-	ds_load_u8 v85, v22 offset:11008
-	ds_load_u8 v86, v22 offset:10752
-	ds_load_u8 v88, v22 offset:9472
-	ds_load_u8 v89, v22 offset:9216
-	ds_load_u8 v94, v22 offset:9984
-	ds_load_u8 v168, v22 offset:9728
-	ds_load_u8 v169, v22 offset:12160
-	ds_load_u8 v170, v22 offset:11904
-	ds_load_u8 v171, v22 offset:11648
-	ds_load_u8 v172, v22 offset:11392
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v90, v92, v90, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v92, v167, v93, 0xc0c0004
-	ds_load_u8 v93, v22 offset:8448
-	ds_load_u8 v167, v22 offset:8192
-	ds_load_u8 v173, v22 offset:8960
-	ds_load_u8 v174, v22 offset:8704
-	ds_load_u8 v175, v22 offset:11136
-	ds_load_u8 v176, v22 offset:10880
-	ds_load_u8 v177, v22 offset:10624
-	ds_load_u8 v178, v22 offset:10368
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v83, v84, v83, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v84, v86, v85, 0xc0c0004
-	v_lshl_or_b32 v86, v92, 16, v90
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v88, v89, v88, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v89, v168, v94, 0xc0c0004
-	ds_load_u8 v94, v5 offset:1952
-	ds_load_u8 v168, v5 offset:1920
-	ds_load_u8 v183, v5 offset:2016
-	ds_load_u8 v184, v5 offset:1984
-	ds_load_u8 v185, v22 offset:9088
-	ds_load_u8 v186, v22 offset:8832
-	ds_load_u8 v187, v22 offset:8576
-	ds_load_u8 v188, v22 offset:8320
-	v_lshl_or_b32 v85, v84, 16, v83
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v93, v167, v93, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v167, v174, v173, 0xc0c0004
-	ds_load_u8 v173, v5 offset:1824
-	ds_load_u8 v174, v5 offset:1792
-	ds_load_u8 v189, v5 offset:1888
-	ds_load_u8 v190, v5 offset:1856
-	v_lshl_or_b32 v84, v89, 16, v88
-	v_lshl_or_b32 v83, v167, 16, v93
-	ds_load_u8 v167, v87
-	ds_load_u8 v191, v5 offset:2000
-	ds_load_u8 v192, v5 offset:1968
-	ds_load_u8 v193, v5 offset:1936
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v87, v168, v94, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[83:86], v[79:82], v[14:21] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v88, v184, v183, 0xc0c0004
-	ds_load_u8 v92, v5 offset:1696
-	ds_load_u8 v93, v5 offset:1664
-	ds_load_u8 v94, v5 offset:1760
-	ds_load_u8 v168, v5 offset:1728
-	ds_load_u8 v183, v5 offset:1904
-	ds_load_u8 v184, v5 offset:1872
-	ds_load_u8 v194, v5 offset:1840
-	ds_load_u8 v195, v5 offset:1808
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v140, v186, v185, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v139, v188, v187, 0xc0c0004
-	v_lshl_or_b32 v90, v88, 16, v87
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v89, v174, v173, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v173, v190, v189, 0xc0c0004
-	ds_load_u8 v174, v5 offset:1568
-	ds_load_u8 v189, v5 offset:1536
-	ds_load_u8 v190, v5 offset:1632
-	ds_load_u8 v196, v5 offset:1600
-	v_lshl_or_b32 v103, v140, 16, v139
-	v_lshl_or_b32 v89, v173, 16, v89
-	ds_load_u8 v173, v5 offset:1776
-	ds_load_u8 v197, v5 offset:1744
-	ds_load_u8 v198, v5 offset:1712
-	ds_load_u8 v199, v5 offset:1680
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v87, v93, v92, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v88, v168, v94, 0xc0c0004
-	ds_load_u8 v92, v22 offset:15616
-	ds_load_u8 v93, v22 offset:15360
-	ds_load_u8 v94, v22 offset:16128
-	ds_load_u8 v168, v22 offset:15872
-	ds_load_u8 v200, v5 offset:1648
-	ds_load_u8 v201, v5 offset:1616
-	ds_load_u8 v202, v5 offset:1584
-	ds_load_u8 v5, v5 offset:1552
-	v_lshl_or_b32 v88, v88, 16, v87
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v174, v189, v174, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v189, v196, v190, 0xc0c0004
-	ds_load_u8 v190, v22 offset:14592
-	ds_load_u8 v196, v22 offset:14336
-	ds_load_u8 v203, v22 offset:15104
-	ds_load_u8 v204, v22 offset:14848
-	ds_load_u8 v205, v22 offset:13568
-	ds_load_u8 v206, v22 offset:13312
-	ds_load_u8 v207, v22 offset:14080
-	ds_load_u8 v208, v22 offset:13824
-	ds_load_u8 v209, v22 offset:16256
-	ds_load_u8 v210, v22 offset:16000
-	ds_load_u8 v211, v22 offset:15744
-	ds_load_u8 v212, v22 offset:15488
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v92, v93, v92, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v93, v168, v94, 0xc0c0004
-	ds_load_u8 v168, v22 offset:12544
-	ds_load_u8 v213, v22 offset:12288
-	ds_load_u8 v214, v22 offset:13056
-	ds_load_u8 v215, v22 offset:12800
-	ds_load_u8 v216, v22 offset:15232
-	ds_load_u8 v217, v22 offset:14976
-	ds_load_u8 v218, v22 offset:14720
-	ds_load_u8 v219, v22 offset:14464
-	v_lshl_or_b32 v87, v189, 16, v174
+	v_perm_b32 v11, v17, v11, 0xc0c0004
+	v_perm_b32 v13, v15, v14, 0xc0c0004
+	ds_load_u8 v14, v27 offset:96
+	ds_load_u8 v15, v27 offset:64
+	ds_load_u8 v24, v27
+	ds_load_u8 v25, v27 offset:32
+	ds_load_u8 v117, v27 offset:336
+	ds_load_u8 v118, v27 offset:304
+	ds_load_u8 v119, v27 offset:272
+	ds_load_u8 v120, v27 offset:240
 	s_waitcnt lgkmcnt(20)
-	v_perm_b32 v5, v5, v202, 0xc0c0004
-	v_lshl_or_b32 v94, v93, 16, v92
+	v_perm_b32 v17, v19, v18, 0xc0c0004
 	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v190, v196, v190, 0xc0c0004
+	v_perm_b32 v18, v21, v20, 0xc0c0004
 	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v196, v204, v203, 0xc0c0004
-	ds_load_u8 v203, v22 offset:14208
-	ds_load_u8 v204, v22 offset:13952
-	ds_load_u8 v220, v22 offset:13696
-	ds_load_u8 v221, v22 offset:13440
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v205, v206, v205, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v206, v208, v207, 0xc0c0004
-	v_lshl_or_b32 v93, v196, 16, v190
-	ds_load_u8 v174, v22 offset:13184
-	ds_load_u8 v189, v22 offset:12928
-	ds_load_u8 v190, v22 offset:12672
-	ds_load_u8 v196, v22 offset:12416
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v22, v213, v168, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v168, v215, v214, 0xc0c0004
-	v_lshl_or_b32 v92, v206, 16, v205
-	v_perm_b32 v139, v212, v211, 0xc0c0004
-	v_perm_b32 v140, v210, v209, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v141, v219, v218, 0xc0c0004
-	v_lshl_or_b32 v91, v168, 16, v22
-	v_wmma_i32_16x16x16_iu8 v[22:29], v[95:98], v[30:33], v[6:13] neg_lo:[1,1,0]
-	v_perm_b32 v30, v172, v171, 0xc0c0004
-	v_perm_b32 v31, v170, v169, 0xc0c0004
-	v_perm_b32 v32, v178, v177, 0xc0c0004
-	v_perm_b32 v33, v176, v175, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[22:29], v[99:102], v[34:37], v[22:29] neg_lo:[1,1,0]
-	v_perm_b32 v34, v117, v116, 0xc0c0004
-	v_lshl_or_b32 v106, v31, 16, v30
-	v_perm_b32 v30, v109, v108, 0xc0c0004
-	v_lshl_or_b32 v105, v33, 16, v32
-	v_perm_b32 v31, v107, v138, 0xc0c0004
-	v_perm_b32 v32, v113, v112, 0xc0c0004
-	v_perm_b32 v33, v111, v110, 0xc0c0004
-	v_perm_b32 v35, v115, v114, 0xc0c0004
-	v_perm_b32 v36, v121, v120, 0xc0c0004
-	v_perm_b32 v37, v119, v118, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[22:29], v[103:106], v[79:82], v[22:29] neg_lo:[1,1,0]
-	v_lshl_or_b32 v82, v31, 16, v30
-	v_lshl_or_b32 v81, v33, 16, v32
-	v_lshl_or_b32 v80, v35, 16, v34
-	v_lshl_or_b32 v79, v37, 16, v36
-	v_perm_b32 v108, v125, v124, 0xc0c0004
-	v_perm_b32 v109, v123, v167, 0xc0c0004
-	v_perm_b32 v110, v129, v128, 0xc0c0004
-	v_perm_b32 v111, v127, v126, 0xc0c0004
-	v_perm_b32 v112, v133, v132, 0xc0c0004
-	v_perm_b32 v113, v131, v130, 0xc0c0004
-	v_perm_b32 v114, v137, v136, 0xc0c0004
-	v_perm_b32 v115, v135, v134, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[91:94], v[87:90], v[14:21] neg_lo:[1,1,0]
-	v_perm_b32 v142, v217, v216, 0xc0c0004
+	v_perm_b32 v19, v23, v22, 0xc0c0004
+	v_lshl_or_b32 v75, v13, 16, v12
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v64, s4, v7
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_lshl_or_b32 v74, v17, 16, v11
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_4) | instid1(VALU_DEP_1)
+	v_lshl_or_b32 v73, v19, 16, v18
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v11, v15, v14, 0xc0c0004
 	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v143, v221, v220, 0xc0c0004
-	v_perm_b32 v144, v204, v203, 0xc0c0004
+	v_perm_b32 v12, v24, v25, 0xc0c0004
+	v_lshl_or_b32 v72, v11, 16, v12
+	v_mov_b32_e32 v18, s15
+	ds_load_u8 v19, v27 offset:928
+	ds_load_u8 v20, v27 offset:896
+	ds_load_u8 v21, v27 offset:992
+	ds_load_u8 v22, v27 offset:960
+	ds_load_u8 v23, v27 offset:800
+	ds_load_u8 v24, v27 offset:768
+	ds_load_u8 v25, v27 offset:864
+	ds_load_u8 v26, v27 offset:832
+	ds_load_u8 v65, v27 offset:672
+	ds_load_u8 v66, v27 offset:640
+	ds_load_u8 v67, v27 offset:736
+	ds_load_u8 v68, v27 offset:704
+	ds_load_u8 v129, v27 offset:976
+	ds_load_u8 v130, v27 offset:944
+	ds_load_u8 v131, v27 offset:912
+	ds_load_u8 v132, v27 offset:880
+	v_mov_b32_e32 v15, s12
+	v_dual_mov_b32 v17, s14 :: v_dual_mov_b32 v16, s13
+	v_dual_mov_b32 v14, s11 :: v_dual_mov_b32 v13, s10
+	v_dual_mov_b32 v12, s9 :: v_dual_mov_b32 v11, s8
+	ds_load_u8 v121, v27 offset:208
+	ds_load_u8 v122, v27 offset:176
+	ds_load_u8 v123, v27 offset:144
+	ds_load_u8 v124, v27 offset:112
+	ds_load_u8 v125, v27 offset:80
+	ds_load_u8 v126, v27 offset:48
+	s_waitcnt lgkmcnt(16)
+	v_perm_b32 v71, v24, v23, 0xc0c0004
+	ds_load_u8 v137, v27 offset:720
+	ds_load_u8 v138, v27 offset:688
+	ds_load_u8 v139, v27 offset:656
+	ds_load_u8 v140, v27 offset:624
+	s_waitcnt lgkmcnt(18)
+	v_perm_b32 v76, v26, v25, 0xc0c0004
+	ds_load_u8 v154, v27 offset:1264
+	ds_load_u8 v155, v27 offset:1232
+	ds_load_u8 v156, v27 offset:1200
+	ds_load_u8 v157, v27 offset:1168
+	s_waitcnt lgkmcnt(20)
+	v_perm_b32 v65, v66, v65, 0xc0c0004
+	ds_load_u8 v158, v27 offset:1136
+	ds_load_u8 v159, v27 offset:1104
+	ds_load_u8 v160, v27 offset:1072
+	ds_load_u8 v161, v27 offset:1040
+	s_waitcnt lgkmcnt(22)
+	v_perm_b32 v66, v68, v67, 0xc0c0004
+	v_perm_b32 v69, v20, v19, 0xc0c0004
+	ds_load_u8 v67, v27 offset:1440
+	ds_load_u8 v68, v27 offset:1408
+	ds_load_u8 v96, v27 offset:1504
+	ds_load_u8 v97, v27 offset:1472
+	ds_load_u8 v141, v27 offset:592
+	ds_load_u8 v142, v27 offset:560
+	ds_load_u8 v143, v27 offset:528
+	ds_load_u8 v144, v27 offset:496
+	v_perm_b32 v70, v22, v21, 0xc0c0004
+	ds_load_u8 v19, v27 offset:544
+	ds_load_u8 v20, v27 offset:512
+	ds_load_u8 v21, v27 offset:608
+	ds_load_u8 v22, v27 offset:576
+	ds_load_u8 v133, v27 offset:848
+	ds_load_u8 v134, v27 offset:816
+	ds_load_u8 v135, v27 offset:784
+	ds_load_u8 v136, v27 offset:752
+	v_lshl_or_b32 v77, v66, 16, v65
+	v_lshl_or_b32 v78, v76, 16, v71
+	ds_load_u8 v71, v27 offset:1184
+	ds_load_u8 v104, v27 offset:1152
+	ds_load_u8 v105, v27 offset:1248
+	ds_load_u8 v108, v27 offset:1216
+	ds_load_u8 v109, v27 offset:1056
+	ds_load_u8 v110, v27 offset:1024
+	ds_load_u8 v111, v27 offset:1120
+	ds_load_u8 v149, v27 offset:1088
+	ds_load_u8 v150, v27 offset:1392
+	ds_load_u8 v151, v27 offset:1360
+	ds_load_u8 v152, v27 offset:1328
+	ds_load_u8 v153, v27 offset:1296
+	v_lshl_or_b32 v79, v70, 16, v69
+	ds_load_u8 v65, v27 offset:1312
+	ds_load_u8 v66, v27 offset:1280
+	ds_load_u8 v69, v27 offset:1376
+	ds_load_u8 v70, v27 offset:1344
+	ds_load_u8 v145, v27 offset:1520
+	ds_load_u8 v146, v27 offset:1488
+	ds_load_u8 v147, v27 offset:1456
+	ds_load_u8 v148, v27 offset:1424
+	ds_load_u8 v170, v27 offset:1904
+	ds_load_u8 v171, v27 offset:1872
+	ds_load_u8 v172, v27 offset:1840
+	ds_load_u8 v173, v27 offset:1808
+	ds_load_u8 v174, v27 offset:1776
+	ds_load_u8 v175, v27 offset:1744
+	ds_load_u8 v176, v27 offset:1712
+	ds_load_u8 v177, v27 offset:1680
+	s_waitcnt lgkmcnt(42)
+	v_perm_b32 v67, v68, v67, 0xc0c0004
+	s_waitcnt lgkmcnt(40)
+	v_perm_b32 v68, v97, v96, 0xc0c0004
+	s_waitcnt lgkmcnt(34)
+	v_perm_b32 v98, v20, v19, 0xc0c0004
+	s_waitcnt lgkmcnt(32)
+	v_perm_b32 v99, v22, v21, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[19:26], v[92:95], v[72:75], v[11:18] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(14)
+	v_perm_b32 v65, v66, v65, 0xc0c0004
+	v_lshl_or_b32 v107, v68, 16, v67
+	s_waitcnt lgkmcnt(12)
+	v_perm_b32 v66, v70, v69, 0xc0c0004
+	v_perm_b32 v67, v110, v109, 0xc0c0004
+	v_perm_b32 v68, v149, v111, 0xc0c0004
+	v_lshl_or_b32 v76, v99, 16, v98
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[96:99], v64 offset:8192
+	ds_load_b128 v[100:103], v64
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_lshl_or_b32 v106, v66, 16, v65
+	v_perm_b32 v65, v104, v71, 0xc0c0004
+	v_perm_b32 v66, v108, v105, 0xc0c0004
+	ds_load_u8 v69, v27 offset:1952
+	ds_load_u8 v70, v27 offset:1920
+	ds_load_u8 v71, v27 offset:2016
+	ds_load_u8 v108, v27 offset:1984
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v64, s36, v9
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_lshl_or_b32 v104, v68, 16, v67
+	v_wmma_i32_16x16x16_iu8 v[19:26], v[84:87], v[76:79], v[19:26] neg_lo:[1,1,0]
+	v_lshl_or_b32 v105, v66, 16, v65
+	ds_load_u8 v65, v27 offset:1824
+	ds_load_u8 v66, v27 offset:1792
+	ds_load_u8 v67, v27 offset:1888
+	ds_load_u8 v68, v27 offset:1856
+	ds_load_u8 v109, v27 offset:1696
+	ds_load_u8 v110, v27 offset:1664
+	ds_load_u8 v111, v27 offset:1760
+	ds_load_u8 v149, v27 offset:1728
+	ds_load_u8 v162, v27 offset:1568
+	ds_load_u8 v163, v27 offset:1536
+	ds_load_u8 v164, v27 offset:1632
+	ds_load_u8 v165, v27 offset:1600
+	ds_load_u8 v166, v64
+	ds_load_u8 v167, v27 offset:2000
+	ds_load_u8 v168, v27 offset:1968
+	ds_load_u8 v169, v27 offset:1936
+	s_waitcnt lgkmcnt(14)
+	v_perm_b32 v65, v66, v65, 0xc0c0004
+	s_waitcnt lgkmcnt(12)
+	v_perm_b32 v66, v68, v67, 0xc0c0004
+	s_waitcnt lgkmcnt(10)
+	v_perm_b32 v67, v110, v109, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[19:26], v[100:103], v[104:107], v[19:26] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(8)
+	v_perm_b32 v68, v149, v111, 0xc0c0004
+	v_perm_b32 v64, v70, v69, 0xc0c0004
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v70, v163, v162, 0xc0c0004
+	v_perm_b32 v69, v108, v71, 0xc0c0004
+	s_waitcnt lgkmcnt(4)
+	v_perm_b32 v71, v165, v164, 0xc0c0004
+	v_lshl_or_b32 v110, v66, 16, v65
+	v_lshl_or_b32 v109, v68, 16, v67
+	ds_load_u8 v149, v27 offset:1648
+	ds_load_u8 v178, v27 offset:1616
+	ds_load_u8 v179, v27 offset:1584
+	ds_load_u8 v27, v27 offset:1552
+	v_lshl_or_b32 v111, v69, 16, v64
+	v_lshl_or_b32 v108, v71, 16, v70
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_wmma_i32_16x16x16_iu8 v[19:26], v[1:4], v[108:111], v[19:26] neg_lo:[1,1,0]
+	v_cvt_f32_i32_e32 v20, v20
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_cvt_f32_i32_e32 v21, v21
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v63, v63, v20
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_wmma_i32_16x16x16_iu8 v[64:71], v[88:91], v[72:75], v[11:18] neg_lo:[1,1,0]
+	v_perm_b32 v72, v114, v113, 0xc0c0004
+	v_perm_b32 v73, v112, v144, 0xc0c0004
+	v_perm_b32 v74, v119, v118, 0xc0c0004
+	v_perm_b32 v75, v117, v115, 0xc0c0004
+	v_perm_b32 v112, v123, v122, 0xc0c0004
+	v_perm_b32 v113, v121, v120, 0xc0c0004
+	v_perm_b32 v117, v125, v124, 0xc0c0004
+	v_perm_b32 v118, v127, v126, 0xc0c0004
+	v_lshl_or_b32 v115, v73, 16, v72
+	v_lshl_or_b32 v114, v75, 16, v74
+	v_lshl_or_b32 v113, v113, 16, v112
+	v_perm_b32 v119, v135, v134, 0xc0c0004
+	v_lshl_or_b32 v112, v117, 16, v118
+	v_perm_b32 v117, v131, v130, 0xc0c0004
+	s_waitcnt lgkmcnt(7)
+	v_perm_b32 v118, v129, v166, 0xc0c0004
+	v_perm_b32 v120, v133, v132, 0xc0c0004
+	v_perm_b32 v121, v139, v138, 0xc0c0004
+	v_perm_b32 v122, v137, v136, 0xc0c0004
+	v_perm_b32 v123, v143, v142, 0xc0c0004
+	v_perm_b32 v124, v141, v140, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[64:71], v[80:83], v[76:79], v[64:71] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[72:79], v[92:95], v[112:115], v[11:18] neg_lo:[1,1,0]
+	v_lshl_or_b32 v95, v118, 16, v117
+	v_lshl_or_b32 v94, v120, 16, v119
+	v_lshl_or_b32 v93, v122, 16, v121
+	v_lshl_or_b32 v92, v124, 16, v123
+	v_perm_b32 v117, v148, v147, 0xc0c0004
+	v_perm_b32 v118, v146, v145, 0xc0c0004
+	v_perm_b32 v119, v153, v152, 0xc0c0004
+	v_perm_b32 v120, v151, v150, 0xc0c0004
+	v_perm_b32 v121, v157, v156, 0xc0c0004
+	v_perm_b32 v122, v155, v154, 0xc0c0004
+	v_perm_b32 v123, v161, v160, 0xc0c0004
+	v_perm_b32 v124, v159, v158, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[72:79], v[84:87], v[92:95], v[72:79] neg_lo:[1,1,0]
+	v_lshl_or_b32 v87, v118, 16, v117
+	v_lshl_or_b32 v86, v120, 16, v119
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[116:119], v116 offset:8192
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_lshl_or_b32 v85, v122, 16, v121
+	v_lshl_or_b32 v84, v124, 16, v123
+	v_wmma_i32_16x16x16_iu8 v[11:18], v[88:91], v[112:115], v[11:18] neg_lo:[1,1,0]
+	v_perm_b32 v88, v177, v176, 0xc0c0004
+	v_perm_b32 v89, v175, v174, 0xc0c0004
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v27, v27, v179, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[72:79], v[100:103], v[84:87], v[72:79] neg_lo:[1,1,0]
+	v_perm_b32 v100, v169, v168, 0xc0c0004
+	v_perm_b32 v101, v167, v128, 0xc0c0004
+	v_perm_b32 v102, v173, v172, 0xc0c0004
+	v_perm_b32 v103, v171, v170, 0xc0c0004
+	v_perm_b32 v90, v178, v149, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[64:71], v[96:99], v[104:107], v[64:71] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[11:18], v[80:83], v[92:95], v[11:18] neg_lo:[1,1,0]
+	v_lshl_or_b32 v83, v101, 16, v100
+	v_lshl_or_b32 v82, v103, 16, v102
+	v_lshl_or_b32 v81, v89, 16, v88
+	v_lshl_or_b32 v80, v90, 16, v27
+	v_wmma_i32_16x16x16_iu8 v[11:18], v[96:99], v[84:87], v[11:18] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v145, v196, v190, 0xc0c0004
-	v_perm_b32 v107, v189, v174, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[30:37], v[71:74], v[79:82], v[6:13] neg_lo:[1,1,0]
-	v_lshl_or_b32 v74, v109, 16, v108
-	v_lshl_or_b32 v73, v111, 16, v110
-	v_lshl_or_b32 v72, v113, 16, v112
-	v_lshl_or_b32 v71, v115, 16, v114
-	v_perm_b32 v108, v154, v153, 0xc0c0004
-	v_perm_b32 v109, v152, v151, 0xc0c0004
-	v_perm_b32 v110, v158, v157, 0xc0c0004
-	v_perm_b32 v111, v156, v155, 0xc0c0004
-	v_perm_b32 v112, v162, v161, 0xc0c0004
-	v_perm_b32 v113, v160, v159, 0xc0c0004
-	v_perm_b32 v114, v166, v165, 0xc0c0004
-	v_perm_b32 v115, v164, v163, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[95:98], v[79:82], v[6:13] neg_lo:[1,1,0]
-	v_perm_b32 v81, v201, v200, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[30:37], v[75:78], v[71:74], v[30:37] neg_lo:[1,1,0]
-	v_lshl_or_b32 v78, v109, 16, v108
-	v_lshl_or_b32 v77, v111, 16, v110
-	v_lshl_or_b32 v76, v113, 16, v112
-	v_lshl_or_b32 v75, v115, 16, v114
-	v_lshl_or_b32 v110, v140, 16, v139
-	v_lshl_or_b32 v109, v142, 16, v141
-	v_lshl_or_b32 v108, v144, 16, v143
-	v_lshl_or_b32 v107, v107, 16, v145
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[99:102], v[71:74], v[6:13] neg_lo:[1,1,0]
-	v_lshl_or_b32 v71, v81, 16, v5
-	v_cvt_f32_i32_e32 v5, v15
-	v_wmma_i32_16x16x16_iu8 v[30:37], v[83:86], v[75:78], v[30:37] neg_lo:[1,1,0]
-	v_perm_b32 v83, v193, v192, 0xc0c0004
-	v_perm_b32 v84, v191, v122, 0xc0c0004
-	v_perm_b32 v85, v195, v194, 0xc0c0004
-	v_perm_b32 v86, v184, v183, 0xc0c0004
-	v_perm_b32 v79, v199, v198, 0xc0c0004
-	v_perm_b32 v80, v197, v173, 0xc0c0004
-	v_cvt_f32_i32_e32 v15, v16
-	v_wmma_i32_16x16x16_iu8 v[22:29], v[107:110], v[87:90], v[22:29] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[64:71], v[116:119], v[108:111], v[64:71] neg_lo:[1,1,0]
+	v_cvt_f32_i32_e32 v20, v26
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v70, v70, v5
+	v_add_f32_e32 v62, v62, v21
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v5, v17
-	v_lshl_or_b32 v74, v84, 16, v83
-	v_lshl_or_b32 v73, v86, 16, v85
-	v_lshl_or_b32 v72, v80, 16, v79
+	v_wmma_i32_16x16x16_iu8 v[72:79], v[1:4], v[80:83], v[72:79] neg_lo:[1,1,0]
+	v_cvt_f32_i32_e32 v1, v22
+	v_cvt_f32_i32_e32 v2, v23
+	v_cvt_f32_i32_e32 v3, v24
+	v_cvt_f32_i32_e32 v4, v25
+	v_wmma_i32_16x16x16_iu8 v[11:18], v[116:119], v[80:83], v[11:18] neg_lo:[1,1,0]
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v69, v69, v15
+	v_add_f32_e32 v61, v61, v1
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v15, v18
-	v_cvt_f32_i32_e32 v16, v19
-	v_cvt_f32_i32_e32 v17, v20
-	v_cvt_f32_i32_e32 v18, v21
+	v_cvt_f32_i32_e32 v1, v64
 	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_4) | instid1(VALU_DEP_4)
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v68, v68, v5 :: v_dual_add_f32 v67, v67, v15
+	v_dual_add_f32 v59, v59, v3 :: v_dual_add_f32 v58, v58, v4
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v5, v22
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[103:106], v[75:78], v[6:13] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[30:37], v[91:94], v[71:74], v[30:37] neg_lo:[1,1,0]
+	v_cvt_f32_i32_e32 v3, v66
+	v_cvt_f32_i32_e32 v4, v67
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v66, v66, v16 :: v_dual_add_f32 v65, v65, v17
-	v_dual_add_f32 v63, v63, v18 :: v_dual_add_f32 v62, v62, v5
+	v_add_f32_e32 v60, v60, v2
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v15, v23
-	v_cvt_f32_i32_e32 v17, v25
-	v_cvt_f32_i32_e32 v18, v26
-	v_cvt_f32_i32_e32 v5, v27
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[107:110], v[71:74], v[6:13] neg_lo:[1,1,0]
-	v_cvt_f32_i32_e32 v16, v24
+	v_cvt_f32_i32_e32 v2, v65
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v61, v61, v15
-	v_dual_add_f32 v59, v59, v17 :: v_dual_add_f32 v58, v58, v18
+	v_dual_add_f32 v57, v57, v20 :: v_dual_add_f32 v54, v54, v3
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v15, v28
-	v_cvt_f32_i32_e32 v18, v31
+	v_cvt_f32_i32_e32 v3, v71
+	s_delay_alu instid0(VALU_DEP_3)
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v57, v57, v5
+	v_dual_add_f32 v56, v56, v1 :: v_dual_add_f32 v55, v55, v2
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v5, v32
+	v_cvt_f32_i32_e32 v1, v69
+	v_cvt_f32_i32_e32 v2, v70
+	v_cvt_f32_i32_e32 v20, v68
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v60, v60, v16
+	v_add_f32_e32 v53, v53, v4
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v16, v29
-	v_cvt_f32_i32_e32 v17, v30
+	v_cvt_f32_i32_e32 v4, v72
 	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v53, v53, v18 :: v_dual_add_f32 v52, v52, v5
+	v_dual_add_f32 v51, v51, v1 :: v_dual_add_f32 v50, v50, v2
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v5, v37
-	v_cvt_f32_i32_e32 v6, v6
-	v_cvt_f32_i32_e32 v7, v7
-	v_cvt_f32_i32_e32 v8, v8
-	v_cvt_f32_i32_e32 v9, v9
+	v_cvt_f32_i32_e32 v1, v74
+	v_cvt_f32_i32_e32 v2, v75
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v56, v56, v15 :: v_dual_add_f32 v55, v55, v16
-	v_add_f32_e32 v54, v54, v17
+	v_add_f32_e32 v52, v52, v20
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v15, v33
-	v_cvt_f32_i32_e32 v16, v34
-	v_cvt_f32_i32_e32 v17, v35
-	v_cvt_f32_i32_e32 v18, v36
+	v_cvt_f32_i32_e32 v20, v73
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v47, v47, v5 :: v_dual_add_f32 v46, v46, v6
-	v_dual_add_f32 v45, v45, v7 :: v_dual_add_f32 v44, v44, v8
+	v_add_f32_e32 v49, v49, v3
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v5, v10
-	v_cvt_f32_i32_e32 v6, v11
-	v_cvt_f32_i32_e32 v7, v12
+	v_cvt_f32_i32_e32 v3, v76
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_add_f32_e32 v43, v43, v9
+	v_dual_add_f32 v46, v46, v1 :: v_dual_add_f32 v45, v45, v2
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
-	v_cvt_f32_i32_e32 v8, v13
-	v_cvt_f32_i32_e32 v9, v14
+	v_cvt_f32_i32_e32 v1, v79
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v51, v51, v15 :: v_dual_add_f32 v50, v50, v16
-	v_dual_add_f32 v49, v49, v17 :: v_dual_add_f32 v48, v48, v18
-	v_dual_add_f32 v42, v42, v5 :: v_dual_add_f32 v41, v41, v6
-	v_dual_add_f32 v40, v40, v7 :: v_dual_add_f32 v39, v39, v8
-	v_add_f32_e32 v64, v64, v9
-.LBB0_9:
+	v_add_f32_e32 v48, v48, v4
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v4, v77
+	v_cvt_f32_i32_e32 v2, v11
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v47, v47, v20
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v20, v78
+	v_cvt_f32_i32_e32 v11, v14
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v43, v43, v4
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v4, v13
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v40, v40, v2
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v2, v16
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v44, v44, v3
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v3, v12
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v42, v42, v20 :: v_dual_add_f32 v41, v41, v1
+	v_add_f32_e32 v37, v37, v11
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v1, v15
+	s_delay_alu instid0(VALU_DEP_4)
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v39, v39, v3
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v3, v17
+	v_cvt_f32_i32_e32 v11, v19
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v38, v38, v4
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	v_cvt_f32_i32_e32 v4, v18
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v36, v36, v1 :: v_dual_add_f32 v35, v35, v2
+	v_add_f32_e32 v34, v34, v3
+	s_delay_alu instid0(VALU_DEP_3)
+	v_dual_add_f32 v33, v33, v11 :: v_dual_add_f32 v32, v32, v4
+.LBB0_10:
 	.loc	1 0 13 is_stmt 0                ; generate_amdgcn.py:0:13
-	v_dual_mov_b32 v5, 0 :: v_dual_mov_b32 v6, 0
-	v_dual_mov_b32 v7, 0 :: v_dual_mov_b32 v8, 0
-	v_dual_mov_b32 v9, 0 :: v_dual_mov_b32 v10, 0
+	v_dual_mov_b32 v1, 0 :: v_dual_mov_b32 v2, 0
+	v_dual_mov_b32 v3, 0 :: v_dual_mov_b32 v4, 0
 	v_dual_mov_b32 v11, 0 :: v_dual_mov_b32 v12, 0
 	v_dual_mov_b32 v13, 0 :: v_dual_mov_b32 v14, 0
 	v_dual_mov_b32 v15, 0 :: v_dual_mov_b32 v16, 0
@@ -1874,19 +1529,19 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	v_dual_mov_b32 v21, 0 :: v_dual_mov_b32 v22, 0
 	v_dual_mov_b32 v23, 0 :: v_dual_mov_b32 v24, 0
 	v_dual_mov_b32 v25, 0 :: v_dual_mov_b32 v26, 0
-	v_dual_mov_b32 v27, 0 :: v_dual_mov_b32 v28, 0
-	v_dual_mov_b32 v29, 0 :: v_dual_mov_b32 v30, 0
-	v_dual_mov_b32 v31, 0 :: v_dual_mov_b32 v32, 0
-	v_dual_mov_b32 v33, 0 :: v_dual_mov_b32 v34, 0
-	v_dual_mov_b32 v35, 0 :: v_dual_mov_b32 v36, 0
+	v_dual_mov_b32 v27, 0 :: v_dual_mov_b32 v64, 0
+	v_dual_mov_b32 v65, 0 :: v_dual_mov_b32 v66, 0
+	v_dual_mov_b32 v67, 0 :: v_dual_mov_b32 v68, 0
+	v_dual_mov_b32 v69, 0 :: v_dual_mov_b32 v70, 0
+	v_dual_mov_b32 v71, 0 :: v_dual_mov_b32 v72, 0
+	v_dual_mov_b32 v73, 0 :: v_dual_mov_b32 v74, 0
 	.loc	1 409 19 is_stmt 1              ; generate_amdgcn.py:409:19
 	s_and_not1_b32 vcc_lo, exec_lo, s2
-	s_cbranch_vccnz .LBB0_11
-; %bb.10:
+	s_cbranch_vccnz .LBB0_12
+; %bb.11:
 	.loc	1 0 19 is_stmt 0                ; generate_amdgcn.py:0:19
 	s_mov_b32 s4, 0
-	.loc	1 402 22 is_stmt 1              ; generate_amdgcn.py:402:22
-	v_add_nc_u32_e32 v2, s34, v2
+	s_delay_alu instid0(SALU_CYCLE_1)
 	.loc	1 409 19                        ; generate_amdgcn.py:409:19
 	s_mov_b32 s5, s4
 	s_mov_b32 s6, s4
@@ -1895,928 +1550,705 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	s_mov_b32 s9, s4
 	s_mov_b32 s10, s4
 	s_mov_b32 s11, s4
-	s_delay_alu instid0(SALU_CYCLE_1)
-	v_dual_mov_b32 v36, s11 :: v_dual_add_nc_u32 v5, s34, v38
-	ds_load_u8 v6, v5 offset:416
-	ds_load_u8 v7, v5 offset:384
-	ds_load_u8 v8, v5 offset:480
-	ds_load_u8 v9, v5 offset:448
-	ds_load_u8 v10, v5 offset:288
-	ds_load_u8 v11, v5 offset:256
-	ds_load_u8 v12, v5 offset:352
-	ds_load_u8 v13, v5 offset:320
-	ds_load_u8 v14, v5 offset:160
-	ds_load_u8 v15, v5 offset:128
-	ds_load_u8 v16, v5 offset:224
-	ds_load_u8 v17, v5 offset:192
-	ds_load_u8 v18, v5 offset:32
-	ds_load_u8 v19, v5
-	ds_load_u8 v20, v5 offset:96
-	ds_load_u8 v21, v5 offset:64
-	ds_load_u8 v26, v5 offset:464
-	ds_load_u8 v27, v5 offset:432
-	ds_load_u8 v28, v5 offset:400
-	ds_load_u8 v37, v5 offset:368
-	v_dual_mov_b32 v35, s10 :: v_dual_add_nc_u32 v4, s15, v4
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v6, v7, v6, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v7, v9, v8, 0xc0c0004
-	v_dual_mov_b32 v34, s9 :: v_dual_add_nc_u32 v3, s34, v3
+	.loc	1 408 22 is_stmt 1              ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v8, s1, v8
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v17, s19, v31
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	v_add_nc_u32_e32 v11, s1, v7
+	v_add_nc_u32_e32 v16, s1, v6
+	v_add_nc_u32_e32 v18, s1, v5
+	ds_load_b128 v[1:4], v8 offset:8192
+	ds_load_b128 v[5:8], v8
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v19, v17 offset:288
+	ds_load_u8 v20, v17 offset:256
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[83:86], v11 offset:8192
+	ds_load_b128 v[87:90], v11
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v11, v17 offset:352
+	ds_load_u8 v21, v17 offset:320
+	ds_load_u8 v22, v17 offset:160
+	ds_load_u8 v23, v17 offset:128
+	ds_load_u8 v24, v17 offset:224
+	ds_load_u8 v25, v17 offset:192
+	ds_load_u8 v26, v17 offset:464
+	ds_load_u8 v27, v17 offset:432
+	ds_load_u8 v64, v17 offset:400
+	ds_load_u8 v65, v17 offset:368
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v10, s19, v10
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v120, v17 offset:16
+	ds_load_u8 v121, v10
 	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v8, v11, v10, 0xc0c0004
+	v_perm_b32 v19, v20, v19, 0xc0c0004
+	ds_load_u8 v20, v17
+	ds_load_u8 v67, v17 offset:32
 	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v9, v13, v12, 0xc0c0004
-	v_lshl_or_b32 v25, v7, 16, v6
+	v_perm_b32 v11, v21, v11, 0xc0c0004
 	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v6, v15, v14, 0xc0c0004
-	ds_load_u8 v111, v5 offset:80
-	ds_load_u8 v112, v5 offset:48
-	ds_load_u8 v113, v5 offset:16
-	ds_load_u8 v114, v3
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v7, v17, v16, 0xc0c0004
-	v_lshl_or_b32 v24, v9, 16, v8
-	ds_load_u8 v9, v4 offset:3328
-	ds_load_u8 v10, v4 offset:3072
-	ds_load_u8 v11, v4 offset:3840
-	ds_load_u8 v12, v4 offset:3584
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v3, v19, v18, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v8, v21, v20, 0xc0c0004
-	v_lshl_or_b32 v23, v7, 16, v6
-	ds_load_u8 v88, v5 offset:1440
-	ds_load_u8 v89, v5 offset:1408
-	v_mov_b32_e32 v29, s4
-	ds_load_u8 v103, v5 offset:336
-	ds_load_u8 v104, v5 offset:304
-	ds_load_u8 v105, v5 offset:272
-	ds_load_u8 v106, v5 offset:240
-	v_lshl_or_b32 v22, v8, 16, v3
-	ds_load_u8 v3, v4 offset:2304
-	ds_load_u8 v6, v4 offset:2048
-	ds_load_u8 v7, v4 offset:2816
-	ds_load_u8 v8, v4 offset:2560
-	ds_load_u8 v13, v4 offset:1280
-	ds_load_u8 v14, v4 offset:1024
-	ds_load_u8 v15, v4 offset:1792
-	ds_load_u8 v16, v4 offset:1536
-	ds_load_u8 v17, v4 offset:256
-	ds_load_u8 v18, v4
-	ds_load_u8 v19, v4 offset:768
-	ds_load_u8 v20, v4 offset:512
-	ds_load_u8 v21, v4 offset:3968
-	ds_load_u8 v95, v4 offset:3712
-	ds_load_u8 v96, v4 offset:3456
-	ds_load_u8 v97, v4 offset:3200
-	ds_load_u8 v107, v5 offset:208
-	ds_load_u8 v108, v5 offset:176
-	ds_load_u8 v109, v5 offset:144
-	ds_load_u8 v110, v5 offset:112
-	ds_load_u8 v98, v4 offset:2944
-	ds_load_u8 v99, v4 offset:2688
-	ds_load_u8 v100, v4 offset:2432
-	ds_load_u8 v101, v4 offset:2176
-	ds_load_u8 v102, v4 offset:1920
-	ds_load_u8 v115, v4 offset:1664
-	ds_load_u8 v116, v4 offset:1408
-	ds_load_u8 v117, v4 offset:1152
-	ds_load_u8 v127, v5 offset:720
-	ds_load_u8 v128, v5 offset:688
-	ds_load_u8 v129, v5 offset:656
-	ds_load_u8 v130, v5 offset:624
-	ds_load_u8 v131, v5 offset:592
-	ds_load_u8 v132, v5 offset:560
-	ds_load_u8 v133, v5 offset:528
-	ds_load_u8 v134, v5 offset:496
-	s_waitcnt lgkmcnt(34)
-	v_perm_b32 v3, v6, v3, 0xc0c0004
-	ds_load_u8 v157, v5 offset:1264
-	ds_load_u8 v158, v5 offset:1232
-	ds_load_u8 v159, v5 offset:1200
-	ds_load_u8 v160, v5 offset:1168
-	s_waitcnt lgkmcnt(36)
-	v_perm_b32 v6, v8, v7, 0xc0c0004
-	ds_load_u8 v161, v5 offset:1136
-	ds_load_u8 v162, v5 offset:1104
-	ds_load_u8 v163, v5 offset:1072
-	ds_load_u8 v164, v5 offset:1040
-	v_perm_b32 v9, v10, v9, 0xc0c0004
-	s_waitcnt lgkmcnt(38)
-	v_perm_b32 v7, v14, v13, 0xc0c0004
-	v_perm_b32 v10, v12, v11, 0xc0c0004
-	v_lshl_or_b32 v81, v6, 16, v3
-	s_waitcnt lgkmcnt(34)
-	v_perm_b32 v11, v18, v17, 0xc0c0004
-	ds_load_u8 v3, v5 offset:928
-	ds_load_u8 v17, v5 offset:896
-	s_waitcnt lgkmcnt(34)
-	v_perm_b32 v12, v20, v19, 0xc0c0004
-	ds_load_u8 v18, v5 offset:992
-	ds_load_u8 v19, v5 offset:960
-	ds_load_u8 v20, v5 offset:800
-	ds_load_u8 v71, v5 offset:768
-	ds_load_u8 v72, v5 offset:864
-	ds_load_u8 v73, v5 offset:832
-	ds_load_u8 v74, v5 offset:672
-	ds_load_u8 v75, v5 offset:640
-	ds_load_u8 v76, v5 offset:736
-	ds_load_u8 v77, v5 offset:704
-	ds_load_u8 v119, v5 offset:976
-	ds_load_u8 v120, v5 offset:944
-	ds_load_u8 v121, v5 offset:912
-	ds_load_u8 v122, v5 offset:880
-	v_perm_b32 v88, v89, v88, 0xc0c0004
-	ds_load_u8 v89, v5 offset:1056
-	ds_load_u8 v92, v5 offset:1024
-	v_perm_b32 v8, v16, v15, 0xc0c0004
-	ds_load_u8 v14, v4 offset:896
-	ds_load_u8 v15, v4 offset:640
-	ds_load_u8 v16, v4 offset:384
-	ds_load_u8 v118, v4 offset:128
-	ds_load_u8 v145, v4 offset:4992
-	ds_load_u8 v146, v4 offset:4736
-	ds_load_u8 v147, v4 offset:4480
-	ds_load_u8 v148, v4 offset:4224
-	ds_load_u8 v176, v4 offset:10112
-	ds_load_u8 v177, v4 offset:9856
-	ds_load_u8 v178, v4 offset:9600
-	ds_load_u8 v179, v4 offset:9344
-	ds_load_u8 v217, v4 offset:13184
-	ds_load_u8 v218, v4 offset:12928
-	ds_load_u8 v219, v4 offset:12672
-	ds_load_u8 v220, v4 offset:12416
-	v_lshl_or_b32 v82, v10, 16, v9
-	v_lshl_or_b32 v80, v8, 16, v7
-	s_waitcnt lgkmcnt(28)
-	v_perm_b32 v20, v71, v20, 0xc0c0004
-	v_lshl_or_b32 v79, v12, 16, v11
-	s_waitcnt lgkmcnt(26)
-	v_perm_b32 v71, v73, v72, 0xc0c0004
-	v_dual_mov_b32 v33, s8 :: v_dual_mov_b32 v32, s7
-	s_waitcnt lgkmcnt(24)
-	v_perm_b32 v72, v75, v74, 0xc0c0004
-	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v75, v77, v76, 0xc0c0004
-	v_perm_b32 v3, v17, v3, 0xc0c0004
-	ds_load_u8 v17, v5 offset:544
-	ds_load_u8 v78, v5 offset:512
-	v_perm_b32 v18, v19, v18, 0xc0c0004
-	ds_load_u8 v19, v5 offset:608
-	ds_load_u8 v83, v5 offset:576
-	ds_load_u8 v123, v5 offset:848
-	ds_load_u8 v124, v5 offset:816
-	ds_load_u8 v125, v5 offset:784
-	ds_load_u8 v126, v5 offset:752
-	ds_load_u8 v76, v4 offset:7424
-	ds_load_u8 v77, v4 offset:7168
-	v_lshl_or_b32 v73, v71, 16, v20
-	v_lshl_or_b32 v72, v75, 16, v72
-	v_lshl_or_b32 v74, v18, 16, v3
-	s_waitcnt lgkmcnt(26)
-	v_perm_b32 v89, v92, v89, 0xc0c0004
-	s_waitcnt lgkmcnt(22)
-	v_perm_b32 v16, v118, v16, 0xc0c0004
-	v_perm_b32 v14, v15, v14, 0xc0c0004
-	v_dual_mov_b32 v31, s6 :: v_dual_mov_b32 v30, s5
-	v_perm_b32 v27, v28, v27, 0xc0c0004
-	v_perm_b32 v26, v26, v134, 0xc0c0004
-	v_perm_b32 v28, v105, v104, 0xc0c0004
-	v_perm_b32 v37, v103, v37, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[79:82], v[22:25], v[29:36] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v19, v83, v19, 0xc0c0004
-	v_perm_b32 v17, v78, v17, 0xc0c0004
-	ds_load_u8 v78, v4 offset:7936
-	ds_load_u8 v83, v4 offset:7680
-	v_lshl_or_b32 v105, v37, 16, v28
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v76, v77, v76, 0xc0c0004
-	ds_load_u8 v77, v4 offset:4352
-	ds_load_u8 v86, v4 offset:4096
-	v_lshl_or_b32 v71, v19, 16, v17
-	ds_load_u8 v3, v4 offset:6400
-	ds_load_u8 v17, v4 offset:6144
-	ds_load_u8 v18, v4 offset:6912
-	ds_load_u8 v19, v4 offset:6656
-	ds_load_u8 v20, v4 offset:5376
-	ds_load_u8 v75, v4 offset:5120
-	ds_load_u8 v84, v4 offset:5888
-	ds_load_u8 v85, v4 offset:5632
-	ds_load_u8 v135, v4 offset:8064
-	ds_load_u8 v136, v4 offset:7808
-	ds_load_u8 v137, v4 offset:7552
-	ds_load_u8 v138, v4 offset:7296
-	v_perm_b32 v28, v125, v124, 0xc0c0004
-	v_perm_b32 v37, v123, v122, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v3, v17, v3, 0xc0c0004
+	v_perm_b32 v21, v23, v22, 0xc0c0004
 	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v17, v19, v18, 0xc0c0004
-	ds_load_u8 v18, v4 offset:6016
-	ds_load_u8 v19, v4 offset:5760
-	ds_load_u8 v143, v4 offset:5504
-	ds_load_u8 v144, v4 offset:5248
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v20, v75, v20, 0xc0c0004
-	v_perm_b32 v78, v83, v78, 0xc0c0004
-	ds_load_u8 v83, v4 offset:4864
-	ds_load_u8 v87, v4 offset:4608
-	ds_load_u8 v139, v4 offset:7040
-	ds_load_u8 v140, v4 offset:6784
-	ds_load_u8 v141, v4 offset:6528
-	ds_load_u8 v142, v4 offset:6272
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v75, v85, v84, 0xc0c0004
-	v_perm_b32 v77, v86, v77, 0xc0c0004
-	v_lshl_or_b32 v85, v17, 16, v3
-	v_lshl_or_b32 v86, v78, 16, v76
-	s_delay_alu instid0(VALU_DEP_4)
-	v_lshl_or_b32 v84, v75, 16, v20
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v83, v87, v83, 0xc0c0004
-	ds_load_u8 v87, v5 offset:1504
-	ds_load_u8 v90, v5 offset:1472
-	v_lshl_or_b32 v83, v83, 16, v77
-	ds_load_u8 v3, v5 offset:1312
-	ds_load_u8 v17, v5 offset:1280
-	ds_load_u8 v20, v5 offset:1376
-	ds_load_u8 v75, v5 offset:1344
-	ds_load_u8 v76, v5 offset:1184
-	ds_load_u8 v77, v5 offset:1152
-	ds_load_u8 v78, v5 offset:1248
-	ds_load_u8 v91, v5 offset:1216
-	ds_load_u8 v149, v5 offset:1520
-	ds_load_u8 v150, v5 offset:1488
-	ds_load_u8 v151, v5 offset:1456
-	ds_load_u8 v152, v5 offset:1424
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[83:86], v[71:74], v[6:13] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v3, v17, v3, 0xc0c0004
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v17, v75, v20, 0xc0c0004
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v20, v77, v76, 0xc0c0004
-	v_perm_b32 v87, v90, v87, 0xc0c0004
-	ds_load_u8 v90, v5 offset:1120
-	ds_load_u8 v93, v5 offset:1088
-	ds_load_u8 v153, v5 offset:1392
-	ds_load_u8 v154, v5 offset:1360
-	ds_load_u8 v155, v5 offset:1328
-	ds_load_u8 v156, v5 offset:1296
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v75, v91, v78, 0xc0c0004
-	ds_load_u8 v91, v4 offset:11520
-	ds_load_u8 v92, v4 offset:11264
-	ds_load_u8 v94, v4 offset:12032
-	ds_load_u8 v165, v4 offset:11776
-	v_lshl_or_b32 v77, v17, 16, v3
-	v_lshl_or_b32 v78, v87, 16, v88
-	v_lshl_or_b32 v76, v75, 16, v20
-	s_waitcnt lgkmcnt(8)
-	v_perm_b32 v90, v93, v90, 0xc0c0004
-	s_waitcnt lgkmcnt(2)
-	v_perm_b32 v91, v92, v91, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_2)
-	v_lshl_or_b32 v75, v90, 16, v89
-	ds_load_u8 v3, v4 offset:10496
-	ds_load_u8 v17, v4 offset:10240
-	ds_load_u8 v20, v4 offset:11008
-	ds_load_u8 v87, v4 offset:10752
-	ds_load_u8 v88, v4 offset:9472
-	ds_load_u8 v89, v4 offset:9216
-	ds_load_u8 v90, v4 offset:9984
-	ds_load_u8 v93, v4 offset:9728
-	ds_load_u8 v166, v4 offset:12160
-	ds_load_u8 v167, v4 offset:11904
-	ds_load_u8 v168, v4 offset:11648
-	ds_load_u8 v169, v4 offset:11392
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v92, v165, v94, 0xc0c0004
-	ds_load_u8 v94, v4 offset:8448
-	ds_load_u8 v165, v4 offset:8192
-	ds_load_u8 v170, v4 offset:8960
-	ds_load_u8 v171, v4 offset:8704
-	ds_load_u8 v172, v4 offset:11136
-	ds_load_u8 v173, v4 offset:10880
-	ds_load_u8 v174, v4 offset:10624
-	ds_load_u8 v175, v4 offset:10368
-	s_waitcnt lgkmcnt(18)
-	v_perm_b32 v3, v17, v3, 0xc0c0004
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v17, v87, v20, 0xc0c0004
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v20, v89, v88, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v87, v93, v90, 0xc0c0004
-	ds_load_u8 v93, v5 offset:1952
-	ds_load_u8 v180, v5 offset:1920
-	ds_load_u8 v181, v5 offset:2016
-	ds_load_u8 v182, v5 offset:1984
-	ds_load_u8 v183, v4 offset:9088
-	ds_load_u8 v184, v4 offset:8832
-	ds_load_u8 v185, v4 offset:8576
-	ds_load_u8 v186, v4 offset:8320
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v94, v165, v94, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v165, v171, v170, 0xc0c0004
-	ds_load_u8 v170, v5 offset:1824
-	ds_load_u8 v171, v5 offset:1792
-	ds_load_u8 v187, v5 offset:1888
-	ds_load_u8 v188, v5 offset:1856
-	v_lshl_or_b32 v90, v92, 16, v91
-	v_lshl_or_b32 v89, v17, 16, v3
-	v_lshl_or_b32 v88, v87, 16, v20
-	v_lshl_or_b32 v87, v165, 16, v94
-	ds_load_u8 v165, v2
-	ds_load_u8 v189, v5 offset:2000
-	ds_load_u8 v190, v5 offset:1968
-	ds_load_u8 v191, v5 offset:1936
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[87:90], v[75:78], v[6:13] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v2, v180, v93, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v3, v182, v181, 0xc0c0004
-	ds_load_u8 v17, v5 offset:1696
-	ds_load_u8 v20, v5 offset:1664
-	ds_load_u8 v91, v5 offset:1760
-	ds_load_u8 v92, v5 offset:1728
-	ds_load_u8 v180, v5 offset:1904
-	ds_load_u8 v181, v5 offset:1872
-	ds_load_u8 v182, v5 offset:1840
-	ds_load_u8 v192, v5 offset:1808
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v93, v171, v170, 0xc0c0004
-	v_lshl_or_b32 v94, v3, 16, v2
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v170, v188, v187, 0xc0c0004
-	ds_load_u8 v171, v5 offset:1568
-	ds_load_u8 v187, v5 offset:1536
-	ds_load_u8 v188, v5 offset:1632
-	ds_load_u8 v193, v5 offset:1600
-	v_lshl_or_b32 v93, v170, 16, v93
-	ds_load_u8 v170, v5 offset:1776
-	ds_load_u8 v194, v5 offset:1744
-	ds_load_u8 v195, v5 offset:1712
-	ds_load_u8 v196, v5 offset:1680
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v2, v20, v17, 0xc0c0004
-	ds_load_u8 v17, v4 offset:15616
-	ds_load_u8 v20, v4 offset:15360
-	ds_load_u8 v197, v4 offset:16128
-	ds_load_u8 v198, v4 offset:15872
-	ds_load_u8 v199, v5 offset:1648
-	ds_load_u8 v200, v5 offset:1616
-	ds_load_u8 v201, v5 offset:1584
-	ds_load_u8 v202, v5 offset:1552
-	s_waitcnt lgkmcnt(20)
-	v_perm_b32 v3, v92, v91, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v92, v3, 16, v2
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v5, v187, v171, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v91, v193, v188, 0xc0c0004
-	ds_load_u8 v171, v4 offset:14592
-	ds_load_u8 v187, v4 offset:14336
-	ds_load_u8 v188, v4 offset:15104
-	ds_load_u8 v193, v4 offset:14848
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v208, v20, v17, 0xc0c0004
-	ds_load_u8 v17, v4 offset:12544
-	ds_load_u8 v20, v4 offset:12288
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v197, v198, v197, 0xc0c0004
-	v_lshl_or_b32 v91, v91, 16, v5
-	ds_load_u8 v2, v4 offset:13568
-	ds_load_u8 v3, v4 offset:13312
-	ds_load_u8 v5, v4 offset:14080
-	ds_load_u8 v203, v4 offset:13824
-	ds_load_u8 v204, v4 offset:16256
-	ds_load_u8 v205, v4 offset:16000
-	ds_load_u8 v206, v4 offset:15744
-	ds_load_u8 v207, v4 offset:15488
-	ds_load_u8 v198, v4 offset:15232
-	ds_load_u8 v209, v4 offset:14976
-	ds_load_u8 v210, v4 offset:14720
-	ds_load_u8 v211, v4 offset:14464
-	s_waitcnt lgkmcnt(16)
-	v_perm_b32 v171, v187, v171, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v216, v3, v2, 0xc0c0004
-	v_perm_b32 v187, v193, v188, 0xc0c0004
-	ds_load_u8 v188, v4 offset:13056
-	ds_load_u8 v193, v4 offset:12800
-	ds_load_u8 v212, v4 offset:14208
-	ds_load_u8 v213, v4 offset:13952
-	ds_load_u8 v214, v4 offset:13696
-	ds_load_u8 v215, v4 offset:13440
-	v_perm_b32 v221, v20, v17, 0xc0c0004
-	v_perm_b32 v2, v97, v96, 0xc0c0004
-	v_perm_b32 v3, v95, v21, 0xc0c0004
-	v_perm_b32 v4, v101, v100, 0xc0c0004
-	v_perm_b32 v17, v99, v98, 0xc0c0004
-	v_perm_b32 v20, v117, v116, 0xc0c0004
-	v_perm_b32 v21, v115, v102, 0xc0c0004
-	s_waitcnt lgkmcnt(14)
-	v_perm_b32 v203, v203, v5, 0xc0c0004
-	v_lshl_or_b32 v5, v3, 16, v2
-	v_lshl_or_b32 v4, v17, 16, v4
-	v_lshl_or_b32 v2, v14, 16, v16
-	v_lshl_or_b32 v3, v21, 16, v20
-	v_perm_b32 v95, v138, v137, 0xc0c0004
-	v_perm_b32 v96, v136, v135, 0xc0c0004
-	v_perm_b32 v97, v142, v141, 0xc0c0004
-	v_perm_b32 v98, v140, v139, 0xc0c0004
-	v_perm_b32 v100, v144, v143, 0xc0c0004
-	v_perm_b32 v101, v19, v18, 0xc0c0004
-	v_perm_b32 v102, v148, v147, 0xc0c0004
-	v_perm_b32 v115, v146, v145, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[2:5], v[22:25], v[29:36] neg_lo:[1,1,0]
-	v_lshl_or_b32 v25, v96, 16, v95
-	v_lshl_or_b32 v24, v98, 16, v97
-	v_lshl_or_b32 v23, v101, 16, v100
-	v_lshl_or_b32 v22, v115, 16, v102
-	v_perm_b32 v95, v169, v168, 0xc0c0004
-	v_perm_b32 v96, v167, v166, 0xc0c0004
-	v_perm_b32 v97, v175, v174, 0xc0c0004
-	v_perm_b32 v100, v173, v172, 0xc0c0004
-	v_perm_b32 v101, v179, v178, 0xc0c0004
-	v_perm_b32 v102, v177, v176, 0xc0c0004
-	v_perm_b32 v115, v186, v185, 0xc0c0004
-	v_perm_b32 v116, v184, v183, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[22:25], v[71:74], v[14:21] neg_lo:[1,1,0]
-	v_perm_b32 v71, v109, v108, 0xc0c0004
-	v_perm_b32 v72, v107, v106, 0xc0c0004
-	v_perm_b32 v73, v113, v112, 0xc0c0004
-	v_perm_b32 v74, v111, v110, 0xc0c0004
-	v_lshl_or_b32 v98, v96, 16, v95
-	v_lshl_or_b32 v97, v100, 16, v97
-	v_lshl_or_b32 v96, v102, 16, v101
-	v_lshl_or_b32 v95, v116, 16, v115
-	v_lshl_or_b32 v106, v26, 16, v27
-	v_lshl_or_b32 v104, v72, 16, v71
-	v_lshl_or_b32 v103, v74, 16, v73
-	v_perm_b32 v26, v121, v120, 0xc0c0004
-	v_perm_b32 v27, v119, v165, 0xc0c0004
-	v_perm_b32 v108, v129, v128, 0xc0c0004
-	v_perm_b32 v109, v127, v126, 0xc0c0004
-	v_perm_b32 v110, v133, v132, 0xc0c0004
-	v_perm_b32 v111, v131, v130, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[95:98], v[75:78], v[14:21] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[71:78], v[79:82], v[103:106], v[29:36] neg_lo:[1,1,0]
-	v_lshl_or_b32 v82, v27, 16, v26
-	v_lshl_or_b32 v81, v37, 16, v28
-	v_lshl_or_b32 v80, v109, 16, v108
-	v_lshl_or_b32 v79, v111, 16, v110
-	v_perm_b32 v26, v152, v151, 0xc0c0004
-	v_perm_b32 v27, v150, v149, 0xc0c0004
-	v_perm_b32 v28, v156, v155, 0xc0c0004
-	v_perm_b32 v37, v154, v153, 0xc0c0004
-	v_perm_b32 v108, v160, v159, 0xc0c0004
-	v_perm_b32 v109, v158, v157, 0xc0c0004
-	v_perm_b32 v110, v164, v163, 0xc0c0004
-	v_perm_b32 v111, v162, v161, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[71:78], v[83:86], v[79:82], v[71:78] neg_lo:[1,1,0]
-	v_lshl_or_b32 v86, v27, 16, v26
-	v_lshl_or_b32 v85, v37, 16, v28
-	v_lshl_or_b32 v84, v109, 16, v108
-	v_lshl_or_b32 v83, v111, 16, v110
-	v_wmma_i32_16x16x16_iu8 v[29:36], v[2:5], v[103:106], v[29:36] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(4)
-	v_perm_b32 v99, v193, v188, 0xc0c0004
-	v_perm_b32 v115, v207, v206, 0xc0c0004
-	v_perm_b32 v116, v205, v204, 0xc0c0004
-	v_perm_b32 v117, v211, v210, 0xc0c0004
-	v_perm_b32 v118, v209, v198, 0xc0c0004
+	v_perm_b32 v22, v25, v24, 0xc0c0004
+	v_lshl_or_b32 v77, v11, 16, v19
+	s_waitcnt lgkmcnt(5)
+	v_perm_b32 v27, v64, v27, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_3)
+	v_lshl_or_b32 v76, v22, 16, v21
+	.loc	1 402 22                        ; generate_amdgcn.py:402:22
+	v_add_nc_u32_e32 v22, s19, v9
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
 	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v135, v215, v214, 0xc0c0004
-	v_perm_b32 v136, v213, v212, 0xc0c0004
-	v_perm_b32 v137, v220, v219, 0xc0c0004
-	v_perm_b32 v107, v218, v217, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[71:78], v[87:90], v[83:86], v[71:78] neg_lo:[1,1,0]
-	v_perm_b32 v26, v191, v190, 0xc0c0004
-	v_perm_b32 v27, v189, v114, 0xc0c0004
-	v_perm_b32 v28, v192, v182, 0xc0c0004
-	v_perm_b32 v37, v181, v180, 0xc0c0004
-	v_perm_b32 v2, v196, v195, 0xc0c0004
-	v_perm_b32 v3, v194, v170, 0xc0c0004
-	v_perm_b32 v87, v202, v201, 0xc0c0004
-	v_perm_b32 v88, v200, v199, 0xc0c0004
-	v_wmma_i32_16x16x16_iu8 v[29:36], v[22:25], v[79:82], v[29:36] neg_lo:[1,1,0]
-	v_lshl_or_b32 v102, v197, 16, v208
-	v_lshl_or_b32 v101, v187, 16, v171
-	v_lshl_or_b32 v100, v203, 16, v216
-	v_lshl_or_b32 v99, v99, 16, v221
-	v_lshl_or_b32 v110, v116, 16, v115
-	v_lshl_or_b32 v109, v118, 16, v117
-	v_lshl_or_b32 v108, v136, 16, v135
-	v_lshl_or_b32 v107, v107, 16, v137
-	v_lshl_or_b32 v5, v27, 16, v26
-	v_lshl_or_b32 v4, v37, 16, v28
-	v_lshl_or_b32 v3, v3, 16, v2
-	v_lshl_or_b32 v2, v88, 16, v87
-	v_wmma_i32_16x16x16_iu8 v[29:36], v[95:98], v[83:86], v[29:36] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[6:13], v[99:102], v[91:94], v[6:13] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[14:21], v[107:110], v[91:94], v[14:21] neg_lo:[1,1,0]
+	v_perm_b32 v10, v20, v67, 0xc0c0004
+	v_dual_mov_b32 v74, s11 :: v_dual_mov_b32 v71, s8
+	v_mov_b32_e32 v69, s6
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[91:94], v18 offset:8192
+	ds_load_b128 v[95:98], v18
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v18, v17 offset:928
+	ds_load_u8 v19, v17 offset:896
+	ds_load_u8 v20, v17 offset:992
+	ds_load_u8 v21, v17 offset:960
+	.loc	1 408 22                        ; generate_amdgcn.py:408:22
+	ds_load_b128 v[99:102], v16 offset:8192
+	ds_load_b128 v[103:106], v16
+	.loc	1 409 19                        ; generate_amdgcn.py:409:19
+	ds_load_u8 v23, v17 offset:800
+	ds_load_u8 v24, v17 offset:768
+	ds_load_u8 v79, v17 offset:864
+	ds_load_u8 v80, v17 offset:832
+	ds_load_u8 v81, v17 offset:672
+	ds_load_u8 v82, v17 offset:640
+	ds_load_u8 v107, v17 offset:736
+	ds_load_u8 v108, v17 offset:704
+	ds_load_u8 v122, v17 offset:976
+	ds_load_u8 v123, v17 offset:944
+	ds_load_u8 v124, v17 offset:912
+	ds_load_u8 v125, v17 offset:880
+	ds_load_u8 v12, v17 offset:416
+	ds_load_u8 v13, v17 offset:384
+	ds_load_u8 v14, v17 offset:480
+	ds_load_u8 v15, v17 offset:448
+	ds_load_u8 v115, v17 offset:208
+	ds_load_u8 v116, v17 offset:176
+	ds_load_u8 v117, v17 offset:144
+	ds_load_u8 v118, v17 offset:112
+	ds_load_u8 v25, v17 offset:80
+	ds_load_u8 v119, v17 offset:48
+	ds_load_u8 v134, v17 offset:592
+	ds_load_u8 v135, v17 offset:560
+	ds_load_u8 v136, v17 offset:528
+	ds_load_u8 v137, v17 offset:496
+	ds_load_u8 v130, v17 offset:720
+	ds_load_u8 v131, v17 offset:688
+	ds_load_u8 v132, v17 offset:656
+	ds_load_u8 v133, v17 offset:624
+	ds_load_u8 v149, v17 offset:1264
+	ds_load_u8 v150, v17 offset:1232
+	ds_load_u8 v151, v17 offset:1200
+	ds_load_u8 v152, v17 offset:1168
+	v_dual_mov_b32 v73, s10 :: v_dual_mov_b32 v72, s9
+	v_mov_b32_e32 v70, s7
+	s_waitcnt lgkmcnt(32)
+	v_perm_b32 v23, v24, v23, 0xc0c0004
+	v_mov_b32_e32 v68, s5
+	s_waitcnt lgkmcnt(30)
+	v_perm_b32 v24, v80, v79, 0xc0c0004
+	v_mov_b32_e32 v67, s4
+	s_waitcnt lgkmcnt(28)
+	v_perm_b32 v79, v82, v81, 0xc0c0004
+	v_perm_b32 v18, v19, v18, 0xc0c0004
+	ds_load_u8 v19, v17 offset:544
+	ds_load_u8 v109, v17 offset:512
+	v_perm_b32 v20, v21, v20, 0xc0c0004
+	ds_load_u8 v21, v17 offset:608
+	ds_load_u8 v110, v17 offset:576
+	ds_load_u8 v126, v17 offset:848
+	ds_load_u8 v127, v17 offset:816
+	ds_load_u8 v128, v17 offset:784
+	ds_load_u8 v129, v17 offset:752
+	s_waitcnt lgkmcnt(34)
+	v_perm_b32 v80, v108, v107, 0xc0c0004
+	ds_load_u8 v107, v17 offset:1440
+	ds_load_u8 v108, v17 offset:1408
+	v_lshl_or_b32 v81, v24, 16, v23
+	v_lshl_or_b32 v82, v20, 16, v18
+	s_waitcnt lgkmcnt(30)
+	v_perm_b32 v12, v13, v12, 0xc0c0004
+	v_lshl_or_b32 v80, v80, 16, v79
+	s_waitcnt lgkmcnt(28)
+	v_perm_b32 v13, v15, v14, 0xc0c0004
+	ds_load_u8 v14, v17 offset:96
+	ds_load_u8 v15, v17 offset:64
+	ds_load_u8 v66, v17 offset:336
+	ds_load_u8 v111, v17 offset:304
+	ds_load_u8 v112, v17 offset:272
+	ds_load_u8 v113, v17 offset:240
+	ds_load_u8 v165, v17 offset:1904
+	ds_load_u8 v166, v17 offset:1872
+	ds_load_u8 v167, v17 offset:1840
+	ds_load_u8 v168, v17 offset:1808
+	ds_load_u8 v171, v17 offset:1776
+	ds_load_u8 v172, v17 offset:1744
+	ds_load_u8 v173, v17 offset:1712
+	ds_load_u8 v174, v17 offset:1680
+	s_waitcnt lgkmcnt(32)
+	v_perm_b32 v26, v26, v137, 0xc0c0004
+	v_lshl_or_b32 v78, v13, 16, v12
+	v_perm_b32 v25, v25, v118, 0xc0c0004
+	s_waitcnt lgkmcnt(20)
+	v_perm_b32 v21, v110, v21, 0xc0c0004
+	v_lshl_or_b32 v118, v26, 16, v27
+	v_perm_b32 v19, v109, v19, 0xc0c0004
+	ds_load_u8 v109, v17 offset:1504
+	ds_load_u8 v110, v17 offset:1472
+	s_waitcnt lgkmcnt(19)
+	v_perm_b32 v27, v128, v127, 0xc0c0004
+	s_waitcnt lgkmcnt(16)
+	v_perm_b32 v107, v108, v107, 0xc0c0004
+	ds_load_u8 v108, v17 offset:1056
+	ds_load_u8 v143, v17 offset:1024
+	v_lshl_or_b32 v79, v21, 16, v19
+	ds_load_u8 v18, v17 offset:1312
+	ds_load_u8 v19, v17 offset:1280
+	ds_load_u8 v20, v17 offset:1376
+	ds_load_u8 v21, v17 offset:1344
+	ds_load_u8 v23, v17 offset:1184
+	ds_load_u8 v24, v17 offset:1152
+	ds_load_u8 v114, v17 offset:1248
+	ds_load_u8 v138, v17 offset:1216
+	ds_load_u8 v139, v17 offset:1520
+	ds_load_u8 v140, v17 offset:1488
+	ds_load_u8 v141, v17 offset:1456
+	ds_load_u8 v142, v17 offset:1424
+	s_waitcnt lgkmcnt(28)
+	v_perm_b32 v11, v15, v14, 0xc0c0004
+	s_waitcnt lgkmcnt(25)
+	v_perm_b32 v64, v112, v111, 0xc0c0004
+	v_perm_b32 v65, v66, v65, 0xc0c0004
+	v_perm_b32 v66, v117, v116, 0xc0c0004
+	v_perm_b32 v111, v136, v135, 0xc0c0004
+	v_lshl_or_b32 v75, v11, 16, v10
+	v_perm_b32 v112, v134, v133, 0xc0c0004
+	v_lshl_or_b32 v117, v65, 16, v64
+	v_perm_b32 v64, v126, v125, 0xc0c0004
+	s_waitcnt lgkmcnt(10)
+	v_perm_b32 v18, v19, v18, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[95:98], v[75:78], v[67:74] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(8)
+	v_perm_b32 v19, v21, v20, 0xc0c0004
+	v_perm_b32 v109, v110, v109, 0xc0c0004
+	ds_load_u8 v110, v17 offset:1120
+	ds_load_u8 v144, v17 offset:1088
+	ds_load_u8 v145, v17 offset:1392
+	ds_load_u8 v146, v17 offset:1360
+	ds_load_u8 v147, v17 offset:1328
+	ds_load_u8 v148, v17 offset:1296
+	s_waitcnt lgkmcnt(12)
+	v_perm_b32 v20, v24, v23, 0xc0c0004
+	s_waitcnt lgkmcnt(10)
+	v_perm_b32 v21, v138, v114, 0xc0c0004
+	v_perm_b32 v23, v143, v108, 0xc0c0004
+	ds_load_u8 v24, v17 offset:1952
+	ds_load_u8 v114, v17 offset:1920
+	ds_load_u8 v143, v17 offset:2016
+	ds_load_u8 v156, v17 offset:1984
+	ds_load_u8 v138, v17 offset:1136
+	ds_load_u8 v153, v17 offset:1104
+	ds_load_u8 v154, v17 offset:1072
+	ds_load_u8 v155, v17 offset:1040
+	v_perm_b32 v65, v132, v131, 0xc0c0004
+	v_lshl_or_b32 v108, v21, 16, v20
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[103:106], v[79:82], v[9:16] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(12)
+	v_perm_b32 v144, v144, v110, 0xc0c0004
+	v_lshl_or_b32 v110, v109, 16, v107
+	v_lshl_or_b32 v109, v19, 16, v18
+	s_delay_alu instid0(VALU_DEP_3)
+	v_lshl_or_b32 v107, v144, 16, v23
+	ds_load_u8 v18, v17 offset:1824
+	ds_load_u8 v19, v17 offset:1792
+	ds_load_u8 v20, v17 offset:1888
+	ds_load_u8 v21, v17 offset:1856
+	ds_load_u8 v23, v17 offset:1696
+	ds_load_u8 v144, v17 offset:1664
+	ds_load_u8 v157, v17 offset:1760
+	ds_load_u8 v158, v17 offset:1728
+	ds_load_u8 v159, v22
+	ds_load_u8 v160, v17 offset:2000
+	ds_load_u8 v161, v17 offset:1968
+	ds_load_u8 v162, v17 offset:1936
+	s_waitcnt lgkmcnt(18)
+	v_perm_b32 v22, v114, v24, 0xc0c0004
+	s_waitcnt lgkmcnt(16)
+	v_perm_b32 v24, v156, v143, 0xc0c0004
+	ds_load_u8 v143, v17 offset:1568
+	ds_load_u8 v156, v17 offset:1536
+	ds_load_u8 v163, v17 offset:1632
+	ds_load_u8 v164, v17 offset:1600
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[87:90], v[107:110], v[9:16] neg_lo:[1,1,0]
+	v_lshl_or_b32 v114, v24, 16, v22
+	s_waitcnt lgkmcnt(14)
+	v_perm_b32 v169, v19, v18, 0xc0c0004
+	s_waitcnt lgkmcnt(12)
+	v_perm_b32 v170, v21, v20, 0xc0c0004
+	s_waitcnt lgkmcnt(10)
+	v_perm_b32 v144, v144, v23, 0xc0c0004
+	s_waitcnt lgkmcnt(8)
+	v_perm_b32 v157, v158, v157, 0xc0c0004
+	ds_load_u8 v158, v17 offset:1648
+	ds_load_u8 v175, v17 offset:1616
+	ds_load_u8 v176, v17 offset:1584
+	ds_load_u8 v177, v17 offset:1552
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[91:94], v[75:78], v[67:74] neg_lo:[1,1,0]
+	v_perm_b32 v75, v115, v113, 0xc0c0004
+	v_perm_b32 v76, v120, v119, 0xc0c0004
+	s_waitcnt lgkmcnt(11)
+	v_perm_b32 v26, v122, v159, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[99:102], v[79:82], v[17:24] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(6)
+	v_perm_b32 v143, v156, v143, 0xc0c0004
+	v_lshl_or_b32 v116, v75, 16, v66
+	v_lshl_or_b32 v115, v25, 16, v76
+	v_perm_b32 v25, v124, v123, 0xc0c0004
+	v_perm_b32 v66, v130, v129, 0xc0c0004
+	s_waitcnt lgkmcnt(4)
+	v_perm_b32 v156, v164, v163, 0xc0c0004
+	v_lshl_or_b32 v113, v170, 16, v169
+	v_wmma_i32_16x16x16_iu8 v[75:82], v[95:98], v[115:118], v[67:74] neg_lo:[1,1,0]
+	v_lshl_or_b32 v98, v26, 16, v25
+	v_lshl_or_b32 v97, v64, 16, v27
+	v_lshl_or_b32 v96, v66, 16, v65
+	v_lshl_or_b32 v95, v112, 16, v111
+	v_perm_b32 v25, v142, v141, 0xc0c0004
+	v_perm_b32 v26, v140, v139, 0xc0c0004
+	v_perm_b32 v27, v148, v147, 0xc0c0004
+	v_perm_b32 v64, v146, v145, 0xc0c0004
+	v_perm_b32 v65, v152, v151, 0xc0c0004
+	v_perm_b32 v66, v150, v149, 0xc0c0004
+	v_perm_b32 v111, v155, v154, 0xc0c0004
+	v_perm_b32 v112, v153, v138, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[75:82], v[103:106], v[95:98], v[75:82] neg_lo:[1,1,0]
+	v_lshl_or_b32 v106, v26, 16, v25
+	v_lshl_or_b32 v105, v64, 16, v27
+	v_lshl_or_b32 v104, v66, 16, v65
+	v_lshl_or_b32 v103, v112, 16, v111
+	v_wmma_i32_16x16x16_iu8 v[67:74], v[91:94], v[115:118], v[67:74] neg_lo:[1,1,0]
+	v_perm_b32 v25, v162, v161, 0xc0c0004
+	v_perm_b32 v26, v160, v121, 0xc0c0004
+	v_perm_b32 v27, v168, v167, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[75:82], v[87:90], v[103:106], v[75:82] neg_lo:[1,1,0]
+	v_perm_b32 v64, v166, v165, 0xc0c0004
+	v_perm_b32 v65, v174, v173, 0xc0c0004
+	v_perm_b32 v66, v172, v171, 0xc0c0004
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v87, v177, v176, 0xc0c0004
+	v_perm_b32 v91, v175, v158, 0xc0c0004
+	v_wmma_i32_16x16x16_iu8 v[67:74], v[99:102], v[95:98], v[67:74] neg_lo:[1,1,0]
+	v_lshl_or_b32 v112, v157, 16, v144
+	v_lshl_or_b32 v111, v156, 16, v143
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[83:86], v[107:110], v[17:24] neg_lo:[1,1,0]
+	v_lshl_or_b32 v90, v26, 16, v25
+	v_lshl_or_b32 v89, v64, 16, v27
+	v_lshl_or_b32 v88, v66, 16, v65
+	v_lshl_or_b32 v87, v91, 16, v87
+	v_wmma_i32_16x16x16_iu8 v[67:74], v[83:86], v[103:106], v[67:74] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[9:16], v[5:8], v[111:114], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[17:24], v[1:4], v[111:114], v[17:24] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_wmma_i32_16x16x16_iu8 v[71:78], v[99:102], v[2:5], v[71:78] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu8 v[29:36], v[107:110], v[2:5], v[29:36] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[75:82], v[5:8], v[87:90], v[75:82] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu8 v[67:74], v[1:4], v[87:90], v[67:74] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_4)
-	v_cvt_f32_i32_e32 v5, v6
-	v_cvt_f32_i32_e32 v6, v7
-	v_cvt_f32_i32_e32 v7, v8
-	v_cvt_f32_i32_e32 v8, v9
-	v_cvt_f32_i32_e32 v9, v10
-	v_cvt_f32_i32_e32 v10, v11
-	v_cvt_f32_i32_e32 v11, v12
-	v_cvt_f32_i32_e32 v12, v13
-	v_cvt_f32_i32_e32 v13, v14
-	v_cvt_f32_i32_e32 v14, v15
-	v_cvt_f32_i32_e32 v15, v16
-	v_cvt_f32_i32_e32 v16, v17
-	v_cvt_f32_i32_e32 v17, v18
-	v_cvt_f32_i32_e32 v18, v19
-	v_cvt_f32_i32_e32 v19, v20
-	v_cvt_f32_i32_e32 v20, v21
-	v_cvt_f32_i32_e32 v21, v71
-	v_cvt_f32_i32_e32 v22, v72
-	v_cvt_f32_i32_e32 v23, v73
-	v_cvt_f32_i32_e32 v24, v74
-	v_cvt_f32_i32_e32 v25, v75
-	v_cvt_f32_i32_e32 v26, v76
-	v_cvt_f32_i32_e32 v27, v77
-	v_cvt_f32_i32_e32 v28, v78
-	v_cvt_f32_i32_e32 v29, v29
-	v_cvt_f32_i32_e32 v30, v30
-	v_cvt_f32_i32_e32 v31, v31
-	v_cvt_f32_i32_e32 v32, v32
-	v_cvt_f32_i32_e32 v33, v33
-	v_cvt_f32_i32_e32 v34, v34
-	v_cvt_f32_i32_e32 v35, v35
-	v_cvt_f32_i32_e32 v36, v36
-.LBB0_11:
+	v_cvt_f32_i32_e32 v1, v9
+	v_cvt_f32_i32_e32 v2, v10
+	v_cvt_f32_i32_e32 v3, v11
+	v_cvt_f32_i32_e32 v4, v12
+	v_cvt_f32_i32_e32 v11, v13
+	v_cvt_f32_i32_e32 v12, v14
+	v_cvt_f32_i32_e32 v13, v15
+	v_cvt_f32_i32_e32 v14, v16
+	v_cvt_f32_i32_e32 v15, v17
+	v_cvt_f32_i32_e32 v16, v18
+	v_cvt_f32_i32_e32 v17, v19
+	v_cvt_f32_i32_e32 v18, v20
+	v_cvt_f32_i32_e32 v19, v21
+	v_cvt_f32_i32_e32 v20, v22
+	v_cvt_f32_i32_e32 v21, v23
+	v_cvt_f32_i32_e32 v22, v24
+	v_cvt_f32_i32_e32 v23, v75
+	v_cvt_f32_i32_e32 v24, v76
+	v_cvt_f32_i32_e32 v25, v77
+	v_cvt_f32_i32_e32 v26, v78
+	v_cvt_f32_i32_e32 v27, v79
+	v_cvt_f32_i32_e32 v64, v80
+	v_cvt_f32_i32_e32 v65, v81
+	v_cvt_f32_i32_e32 v66, v82
+	v_cvt_f32_i32_e32 v67, v67
+	v_cvt_f32_i32_e32 v68, v68
+	v_cvt_f32_i32_e32 v69, v69
+	v_cvt_f32_i32_e32 v70, v70
+	v_cvt_f32_i32_e32 v71, v71
+	v_cvt_f32_i32_e32 v72, v72
+	v_cvt_f32_i32_e32 v73, v73
+	v_cvt_f32_i32_e32 v74, v74
+.LBB0_12:
 	.loc	1 434 22                        ; generate_amdgcn.py:434:22
-	v_or_b32_e32 v2, s33, v38
+	v_or_b32_e32 v5, s3, v31
 	.loc	1 434 14 is_stmt 0              ; generate_amdgcn.py:434:14
-	s_and_b32 s5, s17, 0xffff
+	s_and_b32 s5, s21, 0xffff
 	s_mov_b32 s7, 0x31027000
 	s_mov_b32 s6, 0x7ffffffe
-	s_mov_b32 s4, s16
-	.loc	1 434 22                        ; generate_amdgcn.py:434:22
-	v_lshlrev_b32_e32 v3, 1, v2
-	.loc	1 356 14 is_stmt 1              ; generate_amdgcn.py:356:14
-	v_or_b32_e32 v2, s14, v0
-	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_bfe_i32 v73, v0, 0, 1
-	v_lshl_add_u32 v74, v1, 1, 0
-	.loc	1 450 23                        ; generate_amdgcn.py:450:23
-	s_mul_i32 s1, s29, 3
+	s_mov_b32 s4, s20
+	.loc	1 429 13 is_stmt 1              ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v3, v62, v3 :: v_dual_lshlrev_b32 v6, 1, v5
+	.loc	1 356 14                        ; generate_amdgcn.py:356:14
+	v_or_b32_e32 v5, s18, v0
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_dual_add_f32 v1, v33, v1 :: v_dual_add_f32 v2, v63, v2
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
 	.loc	1 434 14                        ; generate_amdgcn.py:434:14
-	v_or_b32_e32 v4, 32, v3
+	v_or_b32_e32 v7, 32, v6
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v10, v57, v14
 	.loc	1 435 14                        ; generate_amdgcn.py:435:14
-	v_lshlrev_b32_e32 v37, 1, v2
-	.loc	1 450 23                        ; generate_amdgcn.py:450:23
-	s_mul_i32 s3, s29, 5
-	s_mul_i32 s8, s29, 9
+	v_lshlrev_b32_e32 v8, 1, v5
+	.loc	1 429 13                        ; generate_amdgcn.py:429:13
+	v_add_f32_e32 v14, v53, v18
 	.loc	1 434 14                        ; generate_amdgcn.py:434:14
 	s_clause 0x1
-	buffer_load_u16 v38, v3, s[4:7], 0 offen
-	buffer_load_u16 v71, v4, s[4:7], 0 offen
+	buffer_load_u16 v31, v6, s[4:7], 0 offen
+	buffer_load_u16 v75, v7, s[4:7], 0 offen
 	.loc	1 435 14                        ; generate_amdgcn.py:435:14
-	s_and_b32 s5, s19, 0xffff
-	s_mov_b32 s4, s18
+	s_and_b32 s5, s23, 0xffff
+	s_mov_b32 s4, s22
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v4, v64, v5 :: v_dual_add_f32 v5, v70, v6
-	v_add_f32_e32 v6, v69, v7
+	v_add_f32_e32 v7, v60, v11
 	.loc	1 435 14                        ; generate_amdgcn.py:435:14
-	buffer_load_u16 v3, v37, s[4:7], 0 offen
+	buffer_load_u16 v6, v8, s[4:7], 0 offen
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v7, v68, v8 :: v_dual_add_f32 v8, v67, v9
-	v_dual_add_f32 v9, v66, v10 :: v_dual_add_f32 v10, v65, v11
-	v_dual_add_f32 v11, v63, v12 :: v_dual_add_f32 v12, v62, v13
-	v_dual_add_f32 v13, v61, v14 :: v_dual_add_f32 v14, v60, v15
-	v_dual_add_f32 v15, v59, v16 :: v_dual_add_f32 v16, v58, v17
-	v_dual_add_f32 v17, v57, v18 :: v_dual_add_f32 v18, v56, v19
-	v_dual_add_f32 v19, v55, v20 :: v_dual_add_f32 v20, v54, v21
-	v_dual_add_f32 v21, v53, v22 :: v_dual_add_f32 v22, v52, v23
-	v_add_f32_e32 v23, v51, v24
-	s_delay_alu instid0(VALU_DEP_3)
+	v_dual_add_f32 v8, v59, v12 :: v_dual_add_f32 v11, v56, v15
+	v_dual_add_f32 v12, v55, v16 :: v_dual_add_f32 v15, v52, v19
+	v_dual_add_f32 v16, v51, v20 :: v_dual_add_f32 v19, v48, v23
+	v_add_f32_e32 v18, v49, v22
+	v_dual_add_f32 v20, v47, v24 :: v_dual_add_f32 v23, v44, v27
+	v_add_f32_e32 v22, v45, v26
+	v_dual_add_f32 v24, v43, v64 :: v_dual_add_f32 v27, v40, v67
+	v_add_f32_e32 v26, v41, v66
+	v_dual_add_f32 v64, v39, v68 :: v_dual_add_f32 v67, v36, v71
+	v_add_f32_e32 v66, v37, v70
+	v_add_f32_e32 v68, v35, v72
+	v_dual_add_f32 v70, v32, v74 :: v_dual_lshlrev_b32 v71, 2, v28
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	v_cndmask_b32_e64 v55, v55, v19, s2
+	v_cndmask_b32_e64 v48, v48, v19, s2
 	.loc	1 429 13                        ; generate_amdgcn.py:429:13
-	v_dual_add_f32 v24, v50, v25 :: v_dual_add_f32 v25, v49, v26
-	v_dual_add_f32 v26, v48, v27 :: v_dual_add_f32 v27, v47, v28
-	v_dual_add_f32 v28, v46, v29 :: v_dual_add_f32 v29, v45, v30
-	v_dual_add_f32 v30, v44, v31 :: v_dual_add_f32 v31, v43, v32
-	v_dual_add_f32 v32, v42, v33 :: v_dual_add_f32 v33, v41, v34
-	v_dual_add_f32 v34, v40, v35 :: v_dual_add_f32 v35, v39, v36
+	v_dual_add_f32 v4, v61, v4 :: v_dual_add_f32 v9, v58, v13
+	v_add_f32_e32 v13, v54, v17
+	v_add_f32_e32 v17, v50, v21
+	v_add_f32_e32 v21, v46, v25
+	v_add_f32_e32 v25, v42, v65
+	v_add_f32_e32 v65, v38, v69
+	v_add_f32_e32 v69, v34, v73
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_lshlrev_b32_e32 v36, 2, v1
+	v_lshl_add_u32 v73, v28, 1, 0
+	.loc	1 450 9                         ; generate_amdgcn.py:450:9
+	v_cndmask_b32_e64 v74, 0x840, 0, s0
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	v_cndmask_b32_e64 v64, v64, v4, s2
-	v_cndmask_b32_e64 v58, v58, v16, s2
-	v_cndmask_b32_e64 v57, v57, v17, s2
-	v_cndmask_b32_e64 v70, v70, v5, s2
-	v_cndmask_b32_e64 v69, v69, v6, s2
-	v_cndmask_b32_e64 v67, v67, v8, s2
+	v_cndmask_b32_e64 v33, v33, v1, s2
+	v_cndmask_b32_e64 v63, v63, v2, s2
+	v_cndmask_b32_e64 v61, v61, v4, s2
+	v_cndmask_b32_e64 v62, v62, v3, s2
+	v_cndmask_b32_e64 v18, v49, v18, s2
+	v_cndmask_b32_e64 v20, v47, v20, s2
+	v_cndmask_b32_e64 v22, v45, v22, s2
+	v_cndmask_b32_e64 v24, v43, v24, s2
+	v_cndmask_b32_e64 v26, v41, v26, s2
+	v_cndmask_b32_e64 v39, v39, v64, s2
+	v_cndmask_b32_e64 v38, v38, v65, s2
+	v_cndmask_b32_e64 v37, v37, v66, s2
+	v_cndmask_b32_e64 v36, v36, v67, s2
+	v_cndmask_b32_e64 v34, v34, v69, s2
+	v_cndmask_b32_e64 v32, v32, v70, s2
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	v_cndmask_b32_e64 v68, v68, v7, s2
-	v_cndmask_b32_e64 v66, v66, v9, s2
-	v_cndmask_b32_e64 v65, v65, v10, s2
-	v_cndmask_b32_e64 v63, v63, v11, s2
-	v_cndmask_b32_e64 v62, v62, v12, s2
-	v_cndmask_b32_e64 v61, v61, v13, s2
-	v_cndmask_b32_e64 v60, v60, v14, s2
-	v_cndmask_b32_e64 v59, v59, v15, s2
-	v_cndmask_b32_e64 v51, v51, v23, s2
-	v_cndmask_b32_e64 v53, v53, v21, s2
-	v_cndmask_b32_e64 v18, v56, v18, s2
-	v_cndmask_b32_e64 v28, v46, v28, s2
-	v_cndmask_b32_e64 v45, v45, v29, s2
-	v_cndmask_b32_e64 v20, v54, v20, s2
-	v_cndmask_b32_e64 v49, v49, v25, s2
-	v_cndmask_b32_e64 v22, v52, v22, s2
-	v_cndmask_b32_e64 v30, v44, v30, s2
-	v_cndmask_b32_e64 v24, v50, v24, s2
-	v_cndmask_b32_e64 v47, v47, v27, s2
-	v_cndmask_b32_e64 v43, v43, v31, s2
-	v_cndmask_b32_e64 v32, v42, v32, s2
-	v_cndmask_b32_e64 v26, v48, v26, s2
-	v_cndmask_b32_e64 v33, v41, v33, s2
-	v_cndmask_b32_e64 v34, v40, v34, s2
+	v_cndmask_b32_e64 v51, v51, v16, s2
+	v_cndmask_b32_e64 v50, v50, v17, s2
+	v_cndmask_b32_e64 v60, v60, v7, s2
+	v_cndmask_b32_e64 v59, v59, v8, s2
+	v_cndmask_b32_e64 v58, v58, v9, s2
+	v_cndmask_b32_e64 v57, v57, v10, s2
+	v_cndmask_b32_e64 v56, v56, v11, s2
+	v_cndmask_b32_e64 v55, v55, v12, s2
+	v_cndmask_b32_e64 v54, v54, v13, s2
+	v_cndmask_b32_e64 v53, v53, v14, s2
+	v_cndmask_b32_e64 v52, v52, v15, s2
+	v_cndmask_b32_e64 v46, v46, v21, s2
+	v_cndmask_b32_e64 v44, v44, v23, s2
+	v_cndmask_b32_e64 v40, v40, v27, s2
+	v_cndmask_b32_e64 v42, v42, v25, s2
 	.loc	1 450 23                        ; generate_amdgcn.py:450:23
-	s_mul_i32 s4, s29, 6
-	s_mul_i32 s5, s29, 7
-	s_mul_i32 s9, s29, 10
-	s_mul_i32 s10, s29, 11
-	s_mul_i32 s11, s29, 12
-	s_mul_i32 s16, s29, 13
-	s_mul_i32 s17, s29, 14
-	s_mul_i32 s18, s29, 15
-	s_mul_i32 s19, s29, 17
-	s_mul_i32 s20, s29, 18
-	s_mul_i32 s21, s29, 19
-	s_mul_i32 s22, s29, 20
-	s_mul_i32 s23, s29, 21
-	s_mul_i32 s24, s29, 22
-	s_mul_i32 s25, s29, 23
-	s_mul_i32 s26, s29, 24
-	s_mul_i32 s27, s29, 25
-	s_mul_i32 s28, s29, 26
+	s_mul_i32 s11, s29, 5
+	s_mul_i32 s12, s29, 6
+	s_mul_i32 s13, s29, 7
+	s_mul_i32 s14, s29, 9
+	s_mul_i32 s15, s29, 10
+	s_mul_i32 s20, s29, 11
+	s_mul_i32 s21, s29, 12
+	s_mul_i32 s22, s29, 13
+	s_mul_i32 s23, s29, 14
+	s_mul_i32 s24, s29, 15
+	s_mul_i32 s25, s29, 17
+	s_mul_i32 s26, s29, 18
+	s_mul_i32 s27, s29, 19
+	s_mul_i32 s28, s29, 20
+	s_mul_i32 s31, s29, 21
+	s_mul_i32 s33, s29, 22
+	s_mul_i32 s34, s29, 23
+	s_mul_i32 s35, s29, 24
+	s_mul_i32 s36, s29, 25
+	s_mul_i32 s10, s29, 26
 	.loc	1 450 9 is_stmt 0               ; generate_amdgcn.py:450:9
-	s_and_b32 s13, s13, 0xffff
-	s_mov_b32 s14, s6
-	s_mov_b32 s15, s7
+	s_and_b32 s17, s17, 0xffff
+	s_mov_b32 s18, s6
+	s_mov_b32 s19, s7
 	.loc	1 450 23                        ; generate_amdgcn.py:450:23
-	s_mul_i32 s34, s29, 27
-	s_mul_i32 s35, s29, 28
-	s_mul_i32 s36, s29, 29
-	s_mul_i32 s37, s29, 30
-	s_mul_i32 s0, s29, 31
+	s_mul_i32 s9, s29, 27
+	s_mul_i32 s8, s29, 28
+	s_mul_i32 s5, s29, 29
+	s_mul_i32 s4, s29, 30
+	s_mul_i32 s1, s29, 31
 	.loc	1 434 14 is_stmt 1              ; generate_amdgcn.py:434:14
 	s_waitcnt vmcnt(2)
-	v_lshlrev_b32_e32 v19, 16, v38
+	v_lshlrev_b32_e32 v19, 16, v31
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_and_b32_e32 v37, 14, v0
-	v_and_b32_e32 v72, 1, v0
+	v_lshlrev_b32_e32 v72, 5, v30
 	.loc	1 450 9                         ; generate_amdgcn.py:450:9
 	v_lshlrev_b32_e32 v0, 2, v0
-	v_lshlrev_b32_e32 v1, 3, v1
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_lshlrev_b32_e32 v5, 2, v37
+	v_lshlrev_b32_e32 v28, 3, v28
+	v_lshlrev_b32_e32 v76, 2, v29
+	v_lshlrev_b32_e32 v30, 6, v30
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_lshlrev_b32_e32 v4, 5, v72
-	.loc	1 450 23                        ; generate_amdgcn.py:450:23
-	s_waitcnt vmcnt(0)
-	v_mad_u64_u32 v[16:17], null, s33, s29, v[2:3]
-	.loc	1 450 9 is_stmt 0               ; generate_amdgcn.py:450:9
+	v_add3_u32 v1, 0, v71, v72
+	.loc	1 450 9                         ; generate_amdgcn.py:450:9
 	v_and_b32_e32 v0, 0x3f8, v0
-	v_and_b32_e32 v2, 0x840, v73
-	v_lshlrev_b32_e32 v6, 6, v72
+	.loc	1 450 23 is_stmt 0              ; generate_amdgcn.py:450:23
+	s_waitcnt vmcnt(0)
+	v_mad_u64_u32 v[16:17], null, s3, s29, v[5:6]
+	.loc	1 450 9                         ; generate_amdgcn.py:450:9
+	v_or3_b32 v2, v28, v30, v76
 	.loc	1 436 16 is_stmt 1              ; generate_amdgcn.py:436:16
-	v_add3_u32 v4, 0, v36, v4
-	.loc	1 363 5                         ; generate_amdgcn.py:363:5
-	v_cndmask_b32_e64 v35, v39, v35, s2
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_lshl_add_u32 v1, v29, 1, v1
 	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_xor_b32_e32 v0, v2, v0
-	v_or3_b32 v8, v1, v6, v5
-	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_lshl_add_u32 v1, v37, 1, v4
-	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_add_lshl_u32 v39, v16, s29, 2
-	v_add_lshl_u32 v40, v16, s1, 2
-	v_lshl_or_b32 v17, v37, 11, v0
+	v_xor_b32_e32 v4, v74, v0
 	.loc	1 435 14                        ; generate_amdgcn.py:435:14
-	v_lshlrev_b32_e32 v0, 16, v3
+	v_lshlrev_b32_e32 v0, 16, v6
+	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_add_nc_u32_e32 v37, 0, v8
-	v_xad_u32 v88, 0x840, v8, 0
-	v_xad_u32 v89, 0x1008, v8, 0
-	v_xad_u32 v90, 0x1848, v8, 0
+	v_add_nc_u32_e32 v41, 0, v2
+	.loc	1 363 5                         ; generate_amdgcn.py:363:5
+	v_cndmask_b32_e64 v35, v35, v68, s2
+	.loc	1 450 9                         ; generate_amdgcn.py:450:9
+	v_xad_u32 v43, 0x840, v2, 0
+	v_xad_u32 v45, 0x1008, v2, 0
+	v_xad_u32 v47, 0x1848, v2, 0
+	v_xad_u32 v49, 0x2010, v2, 0
+	v_xad_u32 v64, 0x2850, v2, 0
+	v_xad_u32 v65, 0x3018, v2, 0
+	v_xad_u32 v66, 0x3858, v2, 0
+	v_xad_u32 v67, 0x4020, v2, 0
+	v_xad_u32 v68, 0x4860, v2, 0
+	v_xad_u32 v69, 0x5028, v2, 0
+	v_xad_u32 v70, 0x5868, v2, 0
+	v_xad_u32 v71, 0x6030, v2, 0
+	v_xad_u32 v72, 0x6870, v2, 0
+	v_xad_u32 v74, 0x7038, v2, 0
+	v_xad_u32 v76, 0x7878, v2, 0
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
 	ds_store_b32 v1, v0
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b128 v[0:3], v74
-	ds_load_b128 v[4:7], v74 offset:16
+	ds_load_b128 v[0:3], v73
 	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_xad_u32 v91, 0x2010, v8, 0
-	v_xad_u32 v92, 0x2850, v8, 0
-	v_xad_u32 v93, 0x3018, v8, 0
-	v_xad_u32 v94, 0x3858, v8, 0
-	v_xad_u32 v95, 0x4020, v8, 0
-	v_xad_u32 v96, 0x4860, v8, 0
-	v_xad_u32 v97, 0x5028, v8, 0
-	v_xad_u32 v98, 0x5868, v8, 0
-	v_xad_u32 v99, 0x6030, v8, 0
-	v_xad_u32 v100, 0x6870, v8, 0
-	v_xad_u32 v101, 0x7038, v8, 0
-	v_xad_u32 v102, 0x7878, v8, 0
+	v_lshl_or_b32 v17, v29, 11, v4
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	ds_load_b128 v[8:11], v74 offset:512
-	ds_load_b128 v[12:15], v74 offset:528
-	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_xad_u32 v104, v17, 8, 0
-	v_xad_u32 v105, v17, 16, 0
-	v_xad_u32 v106, v17, 24, 0
-	v_xad_u32 v107, v17, 32, 0
-	v_xad_u32 v74, v17, 40, 0
-	v_xad_u32 v108, v17, 48, 0
-	v_xad_u32 v38, v17, 56, 0
-	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	s_waitcnt lgkmcnt(3)
-	v_mul_f32_e32 v23, v1, v19
-	.loc	1 450 9                         ; generate_amdgcn.py:450:9
-	v_add_nc_u32_e32 v103, 0, v17
-	.loc	1 434 14                        ; generate_amdgcn.py:434:14
-	v_lshlrev_b32_e32 v17, 16, v71
+	ds_load_b128 v[4:7], v73 offset:16
+	ds_load_b128 v[8:11], v73 offset:512
+	ds_load_b128 v[12:15], v73 offset:528
 	.loc	1 450 9                         ; generate_amdgcn.py:450:9
 	s_waitcnt lgkmcnt(0)
+	v_add_nc_u32_e32 v104, 0, v17
+	v_xad_u32 v105, v17, 8, 0
+	v_xad_u32 v106, v17, 16, 0
+	v_xad_u32 v107, v17, 24, 0
+	v_xad_u32 v108, v17, 32, 0
+	v_xad_u32 v73, v17, 40, 0
+	v_xad_u32 v109, v17, 48, 0
+	v_xad_u32 v110, v17, 56, 0
+	.loc	1 434 14                        ; generate_amdgcn.py:434:14
+	v_lshlrev_b32_e32 v17, 16, v75
+	.loc	1 450 9                         ; generate_amdgcn.py:450:9
 	s_barrier
-	v_add_lshl_u32 v41, v16, s3, 2
-	v_add_lshl_u32 v42, v16, s4, 2
+	v_add_lshl_u32 v78, v16, s29, 2
+	v_add_lshl_u32 v79, v16, s30, 2
+	v_add_lshl_u32 v80, v16, s11, 2
+	v_add_lshl_u32 v81, v16, s12, 2
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
 	v_mul_f32_e32 v118, v0, v17
 	v_mul_f32_e32 v21, v0, v19
-	v_mul_f32_e32 v29, v4, v19
-	v_mul_f32_e32 v25, v2, v19
-	v_mul_f32_e32 v110, v8, v19
-	v_mul_f32_e32 v116, v14, v19
+	v_mul_f32_e32 v23, v1, v19
+	v_mul_f32_e32 v31, v7, v19
+	v_mul_f32_e32 v75, v8, v19
+	v_mul_f32_e32 v111, v9, v19
 	.loc	1 436 9 is_stmt 0               ; generate_amdgcn.py:436:9
-	v_dual_mul_f32 v0, v64, v21 :: v_dual_mul_f32 v113, v11, v19
+	v_dual_mul_f32 v0, v33, v21 :: v_dual_mul_f32 v113, v11, v19
 	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_dual_mul_f32 v126, v8, v17 :: v_dual_mul_f32 v111, v9, v19
+	v_dual_mul_f32 v120, v2, v17 :: v_dual_mul_f32 v117, v15, v19
 	v_mul_f32_e32 v124, v6, v17
-	v_mul_f32_e32 v119, v1, v17
+	v_mul_f32_e32 v126, v8, v17
+	v_dual_mul_f32 v30, v6, v19 :: v_dual_mul_f32 v119, v1, v17
 	v_mul_f32_e32 v127, v9, v17
-	v_dual_mul_f32 v109, v7, v19 :: v_dual_mul_f32 v120, v2, v17
-	v_mul_f32_e32 v112, v10, v19
-	v_dual_mul_f32 v115, v13, v19 :: v_dual_mul_f32 v128, v10, v17
+	v_mul_f32_e32 v25, v2, v19
 	v_mul_f32_e32 v27, v3, v19
-	v_dual_mul_f32 v71, v6, v19 :: v_dual_mul_f32 v122, v4, v17
-	v_dual_mul_f32 v117, v15, v19 :: v_dual_mul_f32 v130, v12, v17
-	s_delay_alu instid0(VALU_DEP_3)
-	v_dual_mul_f32 v121, v3, v17 :: v_dual_mul_f32 v6, v68, v27
-	v_mul_f32_e32 v133, v15, v17
-	.loc	1 436 9                         ; generate_amdgcn.py:436:9
-	v_dual_mul_f32 v8, v67, v29 :: v_dual_mul_f32 v21, v60, v112
-	v_dual_mul_f32 v29, v18, v116 :: v_dual_mul_f32 v18, v28, v126
-	.loc	1 436 16                        ; generate_amdgcn.py:436:16
-	v_dual_mul_f32 v129, v11, v17 :: v_dual_lshlrev_b32 v36, 2, v16
-	v_mul_f32_e32 v31, v5, v19
+	v_dual_mul_f32 v112, v10, v19 :: v_dual_mul_f32 v121, v3, v17
+	v_mul_f32_e32 v128, v10, v17
 	v_dual_mul_f32 v114, v12, v19 :: v_dual_mul_f32 v123, v5, v17
-	v_dual_mul_f32 v125, v7, v17 :: v_dual_mul_f32 v12, v65, v71
-	v_mul_f32_e32 v131, v13, v17
-	v_dual_mul_f32 v132, v14, v17 :: v_dual_mul_f32 v19, v61, v111
+	s_delay_alu instid0(VALU_DEP_4)
+	v_dual_mul_f32 v129, v11, v17 :: v_dual_mul_f32 v6, v61, v27
+	v_dual_mul_f32 v28, v4, v19 :: v_dual_lshlrev_b32 v77, 2, v16
+	v_mul_f32_e32 v29, v5, v19
+	v_dual_mul_f32 v115, v13, v19 :: v_dual_mul_f32 v122, v4, v17
+	v_dual_mul_f32 v116, v14, v19 :: v_dual_mul_f32 v125, v7, v17
+	v_dual_mul_f32 v130, v12, v17 :: v_dual_mul_f32 v21, v54, v112
+	v_dual_mul_f32 v131, v13, v17 :: v_dual_mul_f32 v8, v60, v28
+	v_mul_f32_e32 v132, v14, v17
+	v_dual_mul_f32 v133, v15, v17 :: v_dual_mul_f32 v12, v58, v30
 	.loc	1 436 9                         ; generate_amdgcn.py:436:9
-	v_dual_mul_f32 v4, v69, v25 :: v_dual_mul_f32 v17, v62, v110
-	v_dual_mul_f32 v1, v20, v118 :: v_dual_mul_f32 v2, v70, v23
-	v_mul_f32_e32 v3, v53, v119
-	v_dual_mul_f32 v20, v45, v127 :: v_dual_mul_f32 v5, v22, v120
-	v_dual_mul_f32 v22, v30, v128 :: v_dual_mul_f32 v23, v59, v113
-	v_mul_f32_e32 v28, v33, v131
-	v_mul_f32_e32 v27, v57, v115
-	v_mul_f32_e32 v7, v51, v121
-	v_dual_mul_f32 v9, v24, v122 :: v_dual_mul_f32 v24, v43, v129
-	v_mul_f32_e32 v10, v66, v31
-	v_dual_mul_f32 v14, v63, v109 :: v_dual_mul_f32 v25, v58, v114
-	v_dual_mul_f32 v31, v55, v117 :: v_dual_mul_f32 v30, v34, v132
-	v_mul_f32_e32 v11, v49, v123
-	v_mul_f32_e32 v13, v26, v124
-	v_dual_mul_f32 v15, v47, v125 :: v_dual_mul_f32 v26, v32, v130
-	v_mul_f32_e32 v32, v35, v133
+	v_mul_f32_e32 v2, v63, v23
+	v_dual_mul_f32 v14, v57, v31 :: v_dual_mul_f32 v31, v18, v117
+	v_mul_f32_e32 v17, v56, v75
+	v_mul_f32_e32 v19, v55, v111
+	v_dual_mul_f32 v23, v53, v113 :: v_dual_mul_f32 v18, v40, v126
+	v_mul_f32_e32 v1, v48, v118
+	v_mul_f32_e32 v3, v20, v119
+	v_mul_f32_e32 v20, v39, v127
+	v_dual_mul_f32 v4, v62, v25 :: v_dual_mul_f32 v27, v51, v115
+	v_mul_f32_e32 v5, v46, v120
+	v_mul_f32_e32 v7, v22, v121
+	v_dual_mul_f32 v22, v38, v128 :: v_dual_mul_f32 v25, v52, v114
+	v_dual_mul_f32 v11, v24, v123 :: v_dual_mul_f32 v30, v34, v132
+	v_mul_f32_e32 v24, v37, v129
+	v_dual_mul_f32 v10, v59, v29 :: v_dual_mul_f32 v29, v50, v116
+	v_dual_mul_f32 v9, v44, v122 :: v_dual_mul_f32 v28, v35, v131
+	v_dual_mul_f32 v13, v42, v124 :: v_dual_mul_f32 v32, v32, v133
+	v_dual_mul_f32 v15, v26, v125 :: v_dual_mul_f32 v26, v36, v130
 	.loc	1 450 9 is_stmt 1               ; generate_amdgcn.py:450:9
-	v_add_nc_u32_e32 v34, s30, v36
-	ds_store_2addr_stride64_b64 v103, v[0:1], v[17:18] offset1:2
-	ds_store_2addr_stride64_b64 v104, v[2:3], v[19:20] offset1:2
-	ds_store_2addr_stride64_b64 v105, v[4:5], v[21:22] offset1:2
-	ds_store_2addr_stride64_b64 v106, v[6:7], v[23:24] offset1:2
-	ds_store_2addr_stride64_b64 v107, v[8:9], v[25:26] offset1:2
-	ds_store_2addr_stride64_b64 v74, v[10:11], v[27:28] offset1:2
-	ds_store_2addr_stride64_b64 v108, v[12:13], v[29:30] offset1:2
-	ds_store_2addr_stride64_b64 v38, v[14:15], v[31:32] offset1:2
+	ds_store_2addr_stride64_b64 v104, v[0:1], v[17:18] offset1:2
+	ds_store_2addr_stride64_b64 v105, v[2:3], v[19:20] offset1:2
+	ds_store_2addr_stride64_b64 v106, v[4:5], v[21:22] offset1:2
+	ds_store_2addr_stride64_b64 v107, v[6:7], v[23:24] offset1:2
+	ds_store_2addr_stride64_b64 v108, v[8:9], v[25:26] offset1:2
+	ds_store_2addr_stride64_b64 v73, v[10:11], v[27:28] offset1:2
+	ds_store_2addr_stride64_b64 v109, v[12:13], v[29:30] offset1:2
+	ds_store_2addr_stride64_b64 v110, v[14:15], v[31:32] offset1:2
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b64 v[0:1], v37
-	ds_load_b64 v[2:3], v88
-	ds_load_b64 v[4:5], v89
-	ds_load_b64 v[6:7], v90
-	ds_load_b64 v[8:9], v91
-	ds_load_b64 v[10:11], v92
-	ds_load_b64 v[12:13], v93
-	ds_load_b64 v[14:15], v94
-	ds_load_b64 v[17:18], v95
-	ds_load_b64 v[19:20], v96
-	ds_load_b64 v[21:22], v97
-	ds_load_b64 v[23:24], v98
-	ds_load_b64 v[25:26], v99
-	ds_load_b64 v[27:28], v100
-	ds_load_b64 v[29:30], v101
-	ds_load_b64 v[31:32], v102
-	v_lshl_add_u32 v33, s29, 3, v36
-	v_add_lshl_u32 v44, v16, s5, 2
-	v_add_lshl_u32 v46, v16, s8, 2
-	v_add_lshl_u32 v48, v16, s9, 2
-	v_add_lshl_u32 v50, v16, s10, 2
-	v_add_lshl_u32 v52, v16, s11, 2
-	v_add_lshl_u32 v54, v16, s16, 2
-	v_add_lshl_u32 v56, v16, s17, 2
-	v_add_lshl_u32 v72, v16, s18, 2
-	v_add_lshl_u32 v73, v16, s19, 2
-	v_add_lshl_u32 v75, v16, s20, 2
-	v_add_lshl_u32 v76, v16, s21, 2
-	v_add_lshl_u32 v77, v16, s22, 2
-	v_add_lshl_u32 v78, v16, s23, 2
-	v_add_lshl_u32 v79, v16, s24, 2
-	v_add_lshl_u32 v80, v16, s25, 2
-	v_add_lshl_u32 v81, v16, s26, 2
-	v_add_lshl_u32 v82, v16, s27, 2
-	v_add_lshl_u32 v83, v16, s28, 2
-	v_add_nc_u32_e32 v35, s31, v36
-	v_lshl_add_u32 v37, s29, 6, v36
+	ds_load_b64 v[0:1], v41
+	ds_load_b64 v[2:3], v43
+	ds_load_b64 v[4:5], v45
+	ds_load_b64 v[6:7], v47
+	ds_load_b64 v[8:9], v49
+	ds_load_b64 v[10:11], v64
+	ds_load_b64 v[12:13], v65
+	ds_load_b64 v[14:15], v66
+	ds_load_b64 v[17:18], v67
+	ds_load_b64 v[19:20], v68
+	ds_load_b64 v[21:22], v69
+	ds_load_b64 v[23:24], v70
+	ds_load_b64 v[25:26], v71
+	ds_load_b64 v[27:28], v72
+	ds_load_b64 v[29:30], v74
+	ds_load_b64 v[31:32], v76
+	v_lshl_add_u32 v33, s29, 3, v77
+	v_lshl_add_u32 v34, s29, 4, v77
+	v_add_lshl_u32 v82, v16, s13, 2
+	v_add_lshl_u32 v83, v16, s14, 2
+	v_add_lshl_u32 v84, v16, s15, 2
+	v_add_lshl_u32 v85, v16, s20, 2
+	v_add_lshl_u32 v86, v16, s21, 2
+	v_add_lshl_u32 v87, v16, s22, 2
+	v_add_lshl_u32 v88, v16, s23, 2
+	v_add_lshl_u32 v89, v16, s24, 2
+	v_add_lshl_u32 v90, v16, s25, 2
+	v_add_lshl_u32 v91, v16, s26, 2
+	v_add_lshl_u32 v92, v16, s27, 2
+	v_add_lshl_u32 v93, v16, s28, 2
+	v_add_lshl_u32 v94, v16, s31, 2
+	v_add_lshl_u32 v95, v16, s33, 2
+	v_add_lshl_u32 v96, v16, s34, 2
+	v_add_lshl_u32 v97, v16, s35, 2
+	v_add_lshl_u32 v98, v16, s36, 2
+	v_add_lshl_u32 v99, v16, s10, 2
+	v_lshl_add_u32 v35, s29, 5, v77
+	v_lshl_add_u32 v36, s29, 6, v77
 	s_waitcnt lgkmcnt(15)
-	buffer_atomic_add_f32 v0, v36, s[12:15], 0 offen
+	buffer_atomic_add_f32 v0, v77, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(14)
-	buffer_atomic_add_f32 v2, v39, s[12:15], 0 offen
+	buffer_atomic_add_f32 v2, v78, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(13)
-	buffer_atomic_add_f32 v4, v33, s[12:15], 0 offen
+	buffer_atomic_add_f32 v4, v33, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(12)
-	buffer_atomic_add_f32 v6, v40, s[12:15], 0 offen
+	buffer_atomic_add_f32 v6, v79, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(11)
-	buffer_atomic_add_f32 v8, v34, s[12:15], 0 offen
+	buffer_atomic_add_f32 v8, v34, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(10)
-	buffer_atomic_add_f32 v10, v41, s[12:15], 0 offen
+	buffer_atomic_add_f32 v10, v80, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(9)
-	buffer_atomic_add_f32 v12, v42, s[12:15], 0 offen
+	buffer_atomic_add_f32 v12, v81, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(8)
-	buffer_atomic_add_f32 v14, v44, s[12:15], 0 offen
+	buffer_atomic_add_f32 v14, v82, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(7)
-	buffer_atomic_add_f32 v17, v35, s[12:15], 0 offen
+	buffer_atomic_add_f32 v17, v35, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(6)
-	buffer_atomic_add_f32 v19, v46, s[12:15], 0 offen
+	buffer_atomic_add_f32 v19, v83, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(5)
-	buffer_atomic_add_f32 v21, v48, s[12:15], 0 offen
+	buffer_atomic_add_f32 v21, v84, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(4)
-	buffer_atomic_add_f32 v23, v50, s[12:15], 0 offen
+	buffer_atomic_add_f32 v23, v85, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(3)
-	buffer_atomic_add_f32 v25, v52, s[12:15], 0 offen
+	buffer_atomic_add_f32 v25, v86, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(2)
-	buffer_atomic_add_f32 v27, v54, s[12:15], 0 offen
+	buffer_atomic_add_f32 v27, v87, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(1)
-	buffer_atomic_add_f32 v29, v56, s[12:15], 0 offen
+	buffer_atomic_add_f32 v29, v88, s[16:19], 0 offen
 	s_waitcnt lgkmcnt(0)
 	s_clause 0xb
-	buffer_atomic_add_f32 v31, v72, s[12:15], 0 offen
-	buffer_atomic_add_f32 v1, v37, s[12:15], 0 offen
-	buffer_atomic_add_f32 v3, v73, s[12:15], 0 offen
-	buffer_atomic_add_f32 v5, v75, s[12:15], 0 offen
-	buffer_atomic_add_f32 v7, v76, s[12:15], 0 offen
-	buffer_atomic_add_f32 v9, v77, s[12:15], 0 offen
-	buffer_atomic_add_f32 v11, v78, s[12:15], 0 offen
-	buffer_atomic_add_f32 v13, v79, s[12:15], 0 offen
-	buffer_atomic_add_f32 v15, v80, s[12:15], 0 offen
-	buffer_atomic_add_f32 v18, v81, s[12:15], 0 offen
-	buffer_atomic_add_f32 v20, v82, s[12:15], 0 offen
-	buffer_atomic_add_f32 v22, v83, s[12:15], 0 offen
-	v_add_lshl_u32 v84, v16, s34, 2
-	v_add_lshl_u32 v85, v16, s35, 2
-	v_add_lshl_u32 v86, v16, s36, 2
-	v_add_lshl_u32 v87, v16, s37, 2
-	v_add_lshl_u32 v0, v16, s0, 2
+	buffer_atomic_add_f32 v31, v89, s[16:19], 0 offen
+	buffer_atomic_add_f32 v1, v36, s[16:19], 0 offen
+	buffer_atomic_add_f32 v3, v90, s[16:19], 0 offen
+	buffer_atomic_add_f32 v5, v91, s[16:19], 0 offen
+	buffer_atomic_add_f32 v7, v92, s[16:19], 0 offen
+	buffer_atomic_add_f32 v9, v93, s[16:19], 0 offen
+	buffer_atomic_add_f32 v11, v94, s[16:19], 0 offen
+	buffer_atomic_add_f32 v13, v95, s[16:19], 0 offen
+	buffer_atomic_add_f32 v15, v96, s[16:19], 0 offen
+	buffer_atomic_add_f32 v18, v97, s[16:19], 0 offen
+	buffer_atomic_add_f32 v20, v98, s[16:19], 0 offen
+	buffer_atomic_add_f32 v22, v99, s[16:19], 0 offen
+	v_add_lshl_u32 v100, v16, s9, 2
+	v_add_lshl_u32 v101, v16, s8, 2
+	v_add_lshl_u32 v102, v16, s5, 2
+	v_add_lshl_u32 v103, v16, s4, 2
+	v_add_lshl_u32 v0, v16, s1, 2
 	s_clause 0x4
-	buffer_atomic_add_f32 v24, v84, s[12:15], 0 offen
-	buffer_atomic_add_f32 v26, v85, s[12:15], 0 offen
-	buffer_atomic_add_f32 v28, v86, s[12:15], 0 offen
-	buffer_atomic_add_f32 v30, v87, s[12:15], 0 offen
-	buffer_atomic_add_f32 v32, v0, s[12:15], 0 offen
+	buffer_atomic_add_f32 v24, v100, s[16:19], 0 offen
+	buffer_atomic_add_f32 v26, v101, s[16:19], 0 offen
+	buffer_atomic_add_f32 v28, v102, s[16:19], 0 offen
+	buffer_atomic_add_f32 v30, v103, s[16:19], 0 offen
+	buffer_atomic_add_f32 v32, v0, s[16:19], 0 offen
 	.loc	1 338 1                         ; generate_amdgcn.py:338:1
 	s_nop 0
 	s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)
@@ -2843,7 +2275,7 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
 		.amdhsa_next_free_vgpr 241
-		.amdhsa_next_free_sgpr 40
+		.amdhsa_next_free_sgpr 38
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
@@ -2870,9 +2302,9 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	.size	amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk, .Lfunc_end0-amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk
 	.cfi_endproc
                                         ; -- End function
-	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.num_vgpr, 222
+	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.num_vgpr, 180
 	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.num_agpr, 0
-	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.numbered_sgpr, 40
+	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.numbered_sgpr, 38
 	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.num_named_barrier, 0
 	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.private_seg_size, 0
 	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.uses_vcc, 1
@@ -2882,9 +2314,9 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 	.set amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 18704
-; TotalNumSgprs: 42
-; NumVgprs: 222
+; codeLenInByte = 13796
+; TotalNumSgprs: 40
+; NumVgprs: 180
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
@@ -2892,7 +2324,7 @@ amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_m
 ; LDSByteSize: 0 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
 ; VGPRBlocks: 30
-; NumSGPRsForWavesPerEU: 42
+; NumSGPRsForWavesPerEU: 40
 ; NumVGPRsForWavesPerEU: 241
 ; Occupancy: 5
 ; WaveLimiterHint : 0
@@ -3106,12 +2538,12 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 256
     .name:           amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk
     .private_segment_fixed_size: 0
-    .sgpr_count:     42
+    .sgpr_count:     40
     .sgpr_spill_count: 0
     .symbol:         amd_strix_halo_gfx1151_int8xint8_tn_pc_none_bm32_bn256_bk64_gm4_w8_s3_weu2_sk2_maskk.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     222
+    .vgpr_count:     180
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1

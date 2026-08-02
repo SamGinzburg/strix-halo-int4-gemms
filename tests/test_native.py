@@ -9,6 +9,7 @@ from amd_strix_halo_kernels.native import (
     _launch_grid,
     _require_bfloat16_scale,
     _require_device,
+    _raw_hsaco_argument_storage,
     _validate_launch_shape,
     amdgcn_metadata_dir,
     amdgcn_metadata_path_for_kernel_id,
@@ -170,7 +171,7 @@ def test_dispatch_runtime_status_loads_built_library_when_available() -> None:
     status = dispatch_runtime_status(library)
 
     assert status.library_path == Path(library)
-    assert status.dispatch_version == 4
+    assert status.dispatch_version == 5
     assert status.has_hip_runtime in {False, True}
     assert status.has_linked_kernels == (status.has_compiled_code_objects and status.has_hip_runtime)
 
@@ -196,3 +197,32 @@ def test_launch_hsaco_reports_native_errors_when_library_available(tmp_path) -> 
             c_ptr=1,
             library_path=library,
         )
+
+
+def test_raw_hsaco_argument_storage_preserves_types_and_pointer_mask() -> None:
+    storage, params, pointer_mask = _raw_hsaco_argument_storage(
+        (("pointer", 0x1234), ("i32", -7), ("fp32", 0.5))
+    )
+
+    assert len(storage) == 5
+    assert len(params) == 5
+    assert storage[0].value == 0x1234
+    assert storage[1].value == -7
+    assert storage[2].value == pytest.approx(0.5)
+    assert storage[3].value is None
+    assert storage[4].value is None
+    assert pointer_mask == 1
+
+
+@pytest.mark.parametrize(
+    ("arguments", "error"),
+    [
+        ((), "at least one"),
+        ((("bad", 1),), "unsupported"),
+        ((("pointer", -1),), "non-negative"),
+        ((("i32", 1.5),), "Python ints"),
+    ],
+)
+def test_raw_hsaco_argument_storage_rejects_invalid_abi(arguments, error) -> None:
+    with pytest.raises((TypeError, ValueError), match=error):
+        _raw_hsaco_argument_storage(arguments)

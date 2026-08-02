@@ -21,6 +21,7 @@ from amd_strix_halo_kernels import (
     quantize_attention_qk_int4,
     quantize_attention_value_int4,
 )
+from amd_strix_halo_kernels.artifacts import installed_triton_commit
 
 
 @dataclass(frozen=True, slots=True)
@@ -332,6 +333,7 @@ def main(argv: list[str] | None = None) -> int:
             if candidates:
                 winners.append(min(candidates, key=lambda record: record["runtime_ms"]))
     output = {
+        "triton_git_revision": installed_triton_commit(),
         "records": records,
         "baselines": baselines,
         "failures": failures,

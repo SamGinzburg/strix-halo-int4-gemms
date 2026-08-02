@@ -27,7 +27,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_none_bm32_bn128_bk64_gm4_w8_s3_weu2_sk4
 	v_dual_mov_b32 v24, 0 :: v_dual_mov_b32 v23, 0
 	v_dual_mov_b32 v22, 0 :: v_dual_mov_b32 v21, 0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:347:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s29, 0x7f

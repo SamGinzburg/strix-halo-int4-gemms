@@ -203,7 +203,7 @@ int load_kernel_function(HipRuntime *runtime, const char *hsaco_path, const char
 
 } // namespace
 
-extern "C" int amd_strix_halo_kernels_dispatch_version() { return 4; }
+extern "C" int amd_strix_halo_kernels_dispatch_version() { return 5; }
 
 extern "C" int amd_strix_halo_kernels_has_compiled_code_objects() {
   return AMD_STRIX_HALO_HAS_HSACO;
@@ -276,6 +276,63 @@ extern "C" int amd_strix_halo_kernels_launch_hsaco(
   auto stream = reinterpret_cast<hipStream_t>(stream_handle);
   error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y, block_z,
                                          shared_memory_bytes, stream, params, nullptr);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipModuleLaunchKernel", error);
+  }
+  return 0;
+}
+
+extern "C" int amd_strix_halo_kernels_launch_raw_hsaco(
+    const char *hsaco_path, const char *symbol, int device_index, uint32_t grid_x,
+    uint32_t grid_y, uint32_t grid_z, uint32_t block_x, uint32_t block_y,
+    uint32_t block_z, uint32_t shared_memory_bytes, uintptr_t stream_handle,
+    void **params, uint32_t param_count, uint64_t device_pointer_mask) {
+  last_error.clear();
+  if (hsaco_path == nullptr || symbol == nullptr) {
+    return fail("hsaco_path and symbol must be non-null");
+  }
+  if (grid_x == 0 || grid_y == 0 || grid_z == 0 || block_x == 0 || block_y == 0 ||
+      block_z == 0) {
+    return fail("grid and block dimensions must be non-zero");
+  }
+  if (params == nullptr || param_count == 0 || param_count > 64) {
+    return fail("raw kernel params must contain between 1 and 64 arguments");
+  }
+  if (param_count < 64 && (device_pointer_mask >> param_count) != 0) {
+    return fail("raw kernel device-pointer mask contains unknown arguments");
+  }
+  for (uint32_t index = 0; index < param_count; ++index) {
+    if (params[index] == nullptr) {
+      return fail("raw kernel argument storage must be non-null");
+    }
+  }
+
+  if (!load_hip_runtime(true)) {
+    return 1;
+  }
+  HipRuntime *runtime = &hip_runtime;
+  hipError_t error = runtime->hipSetDevice(device_index);
+  if (error != hipSuccess) {
+    return fail_hip(runtime, "hipSetDevice", error);
+  }
+  for (uint32_t index = 0; index < param_count; ++index) {
+    if ((device_pointer_mask & (uint64_t{1} << index)) == 0) {
+      continue;
+    }
+    auto pointer_storage = reinterpret_cast<void **>(params[index]);
+    std::string name = "arg" + std::to_string(index);
+    if (int rc = canonicalize_device_pointer(runtime, pointer_storage, name.c_str()); rc != 0) {
+      return rc;
+    }
+  }
+
+  hipFunction_t function = nullptr;
+  if (int rc = load_kernel_function(runtime, hsaco_path, symbol, &function); rc != 0) {
+    return rc;
+  }
+  auto stream = reinterpret_cast<hipStream_t>(stream_handle);
+  error = runtime->hipModuleLaunchKernel(function, grid_x, grid_y, grid_z, block_x, block_y,
+                                         block_z, shared_memory_bytes, stream, params, nullptr);
   if (error != hipSuccess) {
     return fail_hip(runtime, "hipModuleLaunchKernel", error);
   }

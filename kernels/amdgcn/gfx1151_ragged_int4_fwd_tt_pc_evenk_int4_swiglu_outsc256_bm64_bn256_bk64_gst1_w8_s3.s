@@ -18,11 +18,12 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	.loc	1 1033 25 prologue_end          ; ragged.py:1033:25
 	s_abs_i32 s8, s2
 	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_and_b32_e32 v3, 63, v0
+	v_and_b32_e32 v19, 63, v0
 	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
-	v_dual_mov_b32 v69, 0 :: v_dual_lshlrev_b32 v8, 1, v0
+	v_dual_mov_b32 v65, 0 :: v_dual_and_b32 v148, 16, v0
+	v_lshlrev_b32_e32 v147, 1, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13 is_stmt 1               ; standard.py:43:13 @[ ragged.py:1031:21 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s20, 0xff
@@ -124,7 +125,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	.loc	1 1041 23                       ; ragged.py:1041:23
 	s_add_u32 s6, s6, s2
 	s_addc_u32 s7, s7, s3
-	s_load_b64 s[22:23], s[6:7], 0x0
+	s_load_b64 s[26:27], s[6:7], 0x0
 	.loc	1 1042 24                       ; ragged.py:1042:24
 	s_add_u32 s6, s8, s2
 	s_addc_u32 s7, s9, s3
@@ -132,9 +133,9 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	s_add_u32 s2, s10, s2
 	s_addc_u32 s3, s11, s3
 	.loc	1 1042 24                       ; ragged.py:1042:24
-	s_load_b64 s[24:25], s[6:7], 0x0
+	s_load_b64 s[22:23], s[6:7], 0x0
 	.loc	1 1043 22                       ; ragged.py:1043:22
-	s_load_b64 s[26:27], s[2:3], 0x0
+	s_load_b64 s[24:25], s[2:3], 0x0
 	.loc	1 1040 20                       ; ragged.py:1040:20
 	s_load_b64 s[6:7], s[4:5], 0x0
 	.loc	1 1049 17                       ; ragged.py:1049:17
@@ -142,16 +143,16 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	s_mov_b32 s4, 0
 	.loc	1 1044 18                       ; ragged.py:1044:18
 	s_waitcnt lgkmcnt(0)
-	v_add_co_u32 v1, s2, s22, v3
+	v_add_co_u32 v1, s2, s26, v19
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_add_co_ci_u32_e64 v2, null, s23, 0, s2
-	v_add_nc_u32_e32 v165, s22, v3
+	v_add_co_ci_u32_e64 v2, null, s27, 0, s2
+	v_add_nc_u32_e32 v137, s26, v19
 	.loc	1 1066 35                       ; ragged.py:1066:35
 	s_mul_i32 s3, s6, s3
 	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e32 vcc_lo, s[24:25], v[1:2]
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[1:2]
 	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s2, s[26:27], v[1:2]
+	v_cmp_gt_i64_e64 s2, s[24:25], v[1:2]
 	.loc	1 1046 20                       ; ragged.py:1046:20
 	s_and_b32 s2, vcc_lo, s2
 	.loc	1 1058 19 is_stmt 1             ; ragged.py:1058:19
@@ -159,5618 +160,3957 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	s_cbranch_scc1 .LBB0_2
 ; %bb.1:                                ; %.._crit_edge_crit_edge
 	.loc	1 0 19 is_stmt 0                ; ragged.py:0:19
-	v_dual_mov_b32 v4, s22 :: v_dual_lshlrev_b32 v1, 1, v0
-	v_dual_mov_b32 v53, s3 :: v_dual_and_b32 v2, 0x80, v0
-	.loc	1 1254 13 is_stmt 1             ; ragged.py:1254:13
-	v_add_nc_u32_e32 v3, s22, v3
+	v_dual_mov_b32 v1, s3 :: v_dual_lshlrev_b32 v2, 1, v0
+	.loc	1 1245 22 is_stmt 1             ; ragged.py:1245:22
+	v_and_b32_e32 v30, 16, v0
+	v_dual_mov_b32 v32, s26 :: v_dual_add_nc_u32 v31, s26, v19
 	s_branch .LBB0_3
 .LBB0_2:
-	.loc	1 0 13 is_stmt 0                ; ragged.py:0:13
+	.loc	1 0 22 is_stmt 0                ; ragged.py:0:22
 	s_mov_b32 s4, -1
-                                        ; implicit-def: $vgpr1
                                         ; implicit-def: $vgpr2
-                                        ; implicit-def: $vgpr4
-                                        ; implicit-def: $vgpr3
-                                        ; implicit-def: $vgpr53
+                                        ; implicit-def: $vgpr30
+                                        ; implicit-def: $vgpr32
+                                        ; implicit-def: $vgpr31
+                                        ; implicit-def: $vgpr1
 .LBB0_3:                                ; %Flow
 	s_clause 0x1
-	s_load_b128 s[8:11], s[0:1], 0x40
+	s_load_b128 s[12:15], s[0:1], 0x40
 	s_load_b128 s[16:19], s[0:1], 0x10
-	v_dual_mov_b32 v89, 0 :: v_dual_and_b32 v166, 15, v0
-	v_dual_mov_b32 v94, 0 :: v_dual_mov_b32 v5, 0
-	v_dual_mov_b32 v90, 0 :: v_dual_mov_b32 v13, 0
-	v_dual_mov_b32 v12, 0 :: v_dual_mov_b32 v113, 0
-	v_dual_mov_b32 v14, 0 :: v_dual_mov_b32 v111, 0
-	v_dual_mov_b32 v112, 0 :: v_dual_mov_b32 v39, 0
-	v_dual_mov_b32 v110, 0 :: v_dual_mov_b32 v41, 0
-	v_dual_mov_b32 v38, 0 :: v_dual_mov_b32 v77, 0
-	v_dual_mov_b32 v42, 0 :: v_dual_mov_b32 v103, 0
-	v_dual_mov_b32 v101, 0 :: v_dual_mov_b32 v102, 0
-	v_dual_mov_b32 v9, 0 :: v_dual_mov_b32 v168, 0
-	v_dual_mov_b32 v15, 0 :: v_dual_mov_b32 v158, 0
-	v_dual_mov_b32 v167, 0 :: v_dual_mov_b32 v156, 0
-	v_dual_mov_b32 v157, 0 :: v_dual_mov_b32 v44, 0
-	v_dual_mov_b32 v155, 0 :: v_dual_mov_b32 v80, 0
-	v_dual_mov_b32 v43, 0 :: v_dual_mov_b32 v78, 0
-	v_dual_mov_b32 v79, 0 :: v_dual_mov_b32 v136, 0
-	v_dual_mov_b32 v137, 0 :: v_dual_mov_b32 v10, 0
-	v_dual_mov_b32 v135, 0 :: v_dual_mov_b32 v162, 0
-	v_dual_mov_b32 v169, 0 :: v_dual_mov_b32 v160, 0
-	v_dual_mov_b32 v171, 0 :: v_dual_mov_b32 v82, 0
-	v_dual_mov_b32 v173, 0 :: v_dual_mov_b32 v84, 0
-	v_dual_mov_b32 v163, 0 :: v_dual_mov_b32 v130, 0
-	v_dual_mov_b32 v161, 0 :: v_dual_mov_b32 v140, 0
-	v_dual_mov_b32 v81, 0 :: v_dual_mov_b32 v138, 0
-	v_dual_mov_b32 v83, 0 :: v_dual_mov_b32 v68, 0
-	v_dual_mov_b32 v139, 0 :: v_dual_mov_b32 v66, 0
-	v_dual_mov_b32 v11, 0 :: v_dual_mov_b32 v164, 0
-	v_dual_mov_b32 v67, 0 :: v_dual_mov_b32 v132, 0
-	v_dual_mov_b32 v159, 0 :: v_dual_mov_b32 v88, 0
-	v_dual_mov_b32 v129, 0 :: v_dual_mov_b32 v86, 0
-	v_dual_mov_b32 v87, 0 :: v_dual_mov_b32 v142, 0
-	v_dual_mov_b32 v85, 0 :: v_dual_mov_b32 v72, 0
-	v_dual_mov_b32 v145, 0 :: v_dual_mov_b32 v70, 0
-	v_dual_mov_b32 v143, 0 :: v_dual_mov_b32 v150, 0
-	v_dual_mov_b32 v141, 0 :: v_dual_mov_b32 v148, 0
-	v_dual_mov_b32 v73, 0 :: v_dual_mov_b32 v30, 0
-	v_dual_mov_b32 v71, 0 :: v_dual_mov_b32 v76, 0
-	v_dual_mov_b32 v149, 0 :: v_dual_mov_b32 v154, 0
-	v_dual_mov_b32 v147, 0 :: v_dual_mov_b32 v152, 0
-	v_dual_mov_b32 v31, 0 :: v_dual_mov_b32 v34, 0
-	v_dual_mov_b32 v75, 0 :: v_dual_mov_b32 v36, 0
-	v_dual_mov_b32 v153, 0 :: v_dual_mov_b32 v108, 0
-	v_dual_mov_b32 v151, 0 :: v_dual_mov_b32 v106, 0
-	v_dual_mov_b32 v35, 0 :: v_dual_mov_b32 v46, 0
-	v_dual_mov_b32 v37, 0 :: v_dual_mov_b32 v48, 0
-	v_dual_mov_b32 v109, 0 :: v_dual_mov_b32 v6, 0
-	v_dual_mov_b32 v107, 0 :: v_dual_mov_b32 v40, 0
-	v_dual_mov_b32 v45, 0 :: v_dual_mov_b32 v26, 0
-	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v28, 0
-	v_dual_mov_b32 v7, 0 :: v_dual_mov_b32 v174, 0
-	v_dual_mov_b32 v29, 0 :: v_dual_mov_b32 v24, 0
-	v_dual_mov_b32 v27, 0 :: v_dual_mov_b32 v32, 0
-	v_dual_mov_b32 v33, 0 :: v_dual_mov_b32 v170, 0
-	v_dual_mov_b32 v25, 0 :: v_dual_mov_b32 v172, 0
-	v_dual_mov_b32 v65, 0 :: v_dual_mov_b32 v74, 0
-	v_dual_mov_b32 v98, 0 :: v_dual_mov_b32 v99, 0
-	v_dual_mov_b32 v100, 0 :: v_dual_mov_b32 v105, 0
-	v_dual_mov_b32 v95, 0 :: v_dual_mov_b32 v96, 0
-	v_dual_mov_b32 v97, 0 :: v_dual_mov_b32 v104, 0
-	v_dual_mov_b32 v91, 0 :: v_dual_mov_b32 v92, 0
-	v_dual_mov_b32 v93, 0 :: v_dual_mov_b32 v146, 0
-	v_dual_mov_b32 v131, 0 :: v_dual_mov_b32 v134, 0
-	v_dual_mov_b32 v133, 0 :: v_dual_mov_b32 v144, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_and_b32 v145, 15, v0
+	v_dual_mov_b32 v67, 0 :: v_dual_and_b32 v146, 1, v0
+	v_dual_mov_b32 v49, 0 :: v_dual_and_b32 v144, 0xc0, v0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v47, 0
+	v_dual_mov_b32 v50, 0 :: v_dual_mov_b32 v75, 0
+	v_dual_mov_b32 v48, 0 :: v_dual_mov_b32 v73, 0
+	v_dual_mov_b32 v76, 0 :: v_dual_mov_b32 v79, 0
+	v_dual_mov_b32 v74, 0 :: v_dual_mov_b32 v77, 0
+	v_dual_mov_b32 v80, 0 :: v_dual_mov_b32 v83, 0
+	v_dual_mov_b32 v78, 0 :: v_dual_mov_b32 v81, 0
+	v_dual_mov_b32 v84, 0 :: v_dual_mov_b32 v87, 0
+	v_dual_mov_b32 v82, 0 :: v_dual_mov_b32 v85, 0
+	v_dual_mov_b32 v88, 0 :: v_dual_mov_b32 v99, 0
+	v_dual_mov_b32 v86, 0 :: v_dual_mov_b32 v129, 0
+	v_dual_mov_b32 v98, 0 :: v_dual_mov_b32 v97, 0
+	v_dual_mov_b32 v102, 0 :: v_dual_mov_b32 v103, 0
+	v_dual_mov_b32 v101, 0 :: v_dual_mov_b32 v100, 0
+	v_dual_mov_b32 v133, 0 :: v_dual_mov_b32 v132, 0
+	v_dual_mov_b32 v131, 0 :: v_dual_mov_b32 v130, 0
+	v_dual_mov_b32 v114, 0 :: v_dual_mov_b32 v113, 0
+	v_dual_mov_b32 v112, 0 :: v_dual_mov_b32 v111, 0
+	v_dual_mov_b32 v141, 0 :: v_dual_mov_b32 v142, 0
+	v_dual_mov_b32 v140, 0 :: v_dual_mov_b32 v139, 0
+	v_dual_mov_b32 v110, 0 :: v_dual_mov_b32 v115, 0
+	v_dual_mov_b32 v109, 0 :: v_dual_mov_b32 v108, 0
+	v_dual_mov_b32 v151, 0 :: v_dual_mov_b32 v150, 0
+	v_dual_mov_b32 v149, 0 :: v_dual_mov_b32 v106, 0
+	v_dual_mov_b32 v143, 0 :: v_dual_mov_b32 v104, 0
+	v_dual_mov_b32 v107, 0 :: v_dual_mov_b32 v158, 0
+	v_dual_mov_b32 v105, 0 :: v_dual_mov_b32 v156, 0
+	v_dual_mov_b32 v159, 0 :: v_dual_mov_b32 v128, 0
+	v_dual_mov_b32 v157, 0 :: v_dual_mov_b32 v160, 0
+	v_dual_mov_b32 v127, 0 :: v_dual_mov_b32 v126, 0
+	v_dual_mov_b32 v155, 0 :: v_dual_mov_b32 v154, 0
+	v_dual_mov_b32 v153, 0 :: v_dual_mov_b32 v152, 0
+	v_dual_mov_b32 v124, 0 :: v_dual_mov_b32 v123, 0
+	v_dual_mov_b32 v122, 0 :: v_dual_mov_b32 v121, 0
+	v_dual_mov_b32 v138, 0 :: v_dual_mov_b32 v135, 0
+	v_dual_mov_b32 v136, 0 :: v_dual_mov_b32 v119, 0
+	v_dual_mov_b32 v134, 0 :: v_dual_mov_b32 v117, 0
+	v_dual_mov_b32 v118, 0 :: v_dual_mov_b32 v91, 0
+	v_dual_mov_b32 v116, 0 :: v_dual_mov_b32 v89, 0
+	v_dual_mov_b32 v92, 0 :: v_dual_mov_b32 v95, 0
+	v_dual_mov_b32 v90, 0 :: v_dual_mov_b32 v93, 0
+	v_dual_mov_b32 v96, 0 :: v_dual_mov_b32 v71, 0
+	v_dual_mov_b32 v94, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v72, 0 :: v_dual_mov_b32 v53, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v51, 0
+	v_dual_mov_b32 v54, 0 :: v_dual_mov_b32 v17, 0
+	v_dual_mov_b32 v52, 0 :: v_dual_mov_b32 v15, 0
+	v_dual_mov_b32 v16, 0 :: v_dual_mov_b32 v13, 0
+	v_dual_mov_b32 v18, 0 :: v_dual_mov_b32 v11, 0
+	v_dual_mov_b32 v12, 0 :: v_dual_mov_b32 v9, 0
+	v_dual_mov_b32 v14, 0 :: v_dual_mov_b32 v7, 0
+	v_dual_mov_b32 v8, 0 :: v_dual_mov_b32 v5, 0
+	v_dual_mov_b32 v10, 0 :: v_dual_mov_b32 v3, 0
+	v_dual_mov_b32 v4, 0 :: v_dual_mov_b32 v175, 0
+	v_dual_mov_b32 v6, 0 :: v_dual_mov_b32 v173, 0
+	v_dual_mov_b32 v174, 0 :: v_dual_mov_b32 v171, 0
+	v_dual_mov_b32 v176, 0 :: v_dual_mov_b32 v169, 0
+	v_dual_mov_b32 v170, 0 :: v_dual_mov_b32 v167, 0
+	v_dual_mov_b32 v172, 0 :: v_dual_mov_b32 v165, 0
+	v_dual_mov_b32 v166, 0 :: v_dual_mov_b32 v163, 0
+	v_dual_mov_b32 v168, 0 :: v_dual_mov_b32 v161, 0
+	v_mov_b32_e32 v162, 0
+	v_mov_b32_e32 v164, 0
 	s_and_not1_b32 vcc_lo, exec_lo, s4
 	s_lshl_b32 s29, s28, 8
-	scratch_store_b32 off, v0, off offset:460 ; 4-byte Folded Spill
 	s_cbranch_vccnz .LBB0_7
 ; %bb.4:                                ; %.lr.ph
-	scratch_load_b32 v32, off, off offset:460 ; 4-byte Folded Reload
-	v_lshlrev_b32_e32 v4, 5, v166
-	v_and_b32_e32 v5, 24, v8
+	.loc	1 1045 36 is_stmt 1             ; ragged.py:1045:36
+	v_lshrrev_b32_e32 v1, 1, v0
+	v_bfe_u32 v3, v0, 4, 1
+	v_and_b32_e32 v4, 24, v147
 	s_clause 0x1
-	s_load_b128 s[12:15], s[0:1], 0x0
+	s_load_b128 s[8:11], s[0:1], 0x0
 	s_load_b32 s0, s[0:1], 0x50
+	.loc	1 1052 18                       ; ragged.py:1052:18
+	v_lshrrev_b32_e32 v149, 3, v144
+	v_xor_b32_e32 v2, v147, v1
+	.loc	1 1045 36                       ; ragged.py:1045:36
+	v_or_b32_e32 v1, s29, v1
+	v_and_or_b32 v3, v147, 30, v3
+	.loc	1 1058 13                       ; ragged.py:1058:13
+	v_add_nc_u32_e32 v121, 0, v19
+	v_lshl_add_u32 v122, v19, 5, 0
+	v_and_b32_e32 v2, 24, v2
+	.loc	1 1045 18                       ; ragged.py:1045:18
+	v_or_b32_e32 v5, 0x80, v1
+	v_add_nc_u32_e32 v1, s3, v1
+	v_dual_mov_b32 v6, 0 :: v_dual_lshlrev_b32 v151, 2, v3
+	v_mov_b32_e32 v8, 0
+	v_dual_mov_b32 v9, 0 :: v_dual_lshlrev_b32 v124, 3, v144
+	s_delay_alu instid0(VALU_DEP_4)
+	v_add_nc_u32_e32 v3, s20, v1
+	v_mul_lo_u32 v152, v1, s21
+	v_mov_b32_e32 v1, 0
+	v_lshl_or_b32 v150, v145, 5, v4
+	v_dual_mov_b32 v10, 0 :: v_dual_mov_b32 v11, 0
+	v_mul_lo_u32 v154, v3, s21
+	v_mov_b32_e32 v3, 0
+	s_delay_alu instid0(VALU_DEP_4)
+	v_xor_b32_e32 v129, 8, v150
+	v_xor_b32_e32 v130, 16, v150
+	v_xor_b32_e32 v131, 24, v150
+	v_xor_b32_e32 v132, 0x208, v150
+	v_xor_b32_e32 v123, v2, v149
+	v_add_nc_u32_e32 v2, s3, v5
+	v_dual_mov_b32 v5, 0 :: v_dual_mov_b32 v128, 0
+	v_add_nc_u32_e32 v159, 0, v130
+	v_add_nc_u32_e32 v158, 0, v129
+	v_add_nc_u32_e32 v160, 0, v131
+	v_add_nc_u32_e32 v161, 0, v132
+	v_xor_b32_e32 v129, 0x218, v150
+	v_xor_b32_e32 v130, 0x210, v150
+	v_xor_b32_e32 v131, 0x410, v150
+	v_xor_b32_e32 v132, 0x418, v150
+	v_xor_b32_e32 v133, 0x408, v150
+	v_dual_mov_b32 v7, 0 :: v_dual_add_nc_u32 v4, s20, v2
+	v_add_nc_u32_e32 v162, 0, v129
+	v_add_nc_u32_e32 v163, 0, v130
+	v_add_nc_u32_e32 v164, 0, v131
+	v_add_nc_u32_e32 v165, 0, v132
+	v_add_nc_u32_e32 v166, 0, v133
+	v_xor_b32_e32 v129, 0x618, v150
+	v_xor_b32_e32 v130, 0x610, v150
+	v_xor_b32_e32 v131, 0x608, v150
+	v_or_b32_e32 v132, 0x3f0, v0
+	v_or_b32_e32 v133, 0x7f0, v0
+	v_mul_lo_u32 v153, s21, v2
+	v_mul_lo_u32 v155, v4, s21
+	v_mov_b32_e32 v2, 0
+	v_mov_b32_e32 v4, 0
+	v_dual_mov_b32 v12, 0 :: v_dual_mov_b32 v13, 0
+	v_dual_mov_b32 v14, 0 :: v_dual_mov_b32 v15, 0
+	v_dual_mov_b32 v16, 0 :: v_dual_mov_b32 v17, 0
+	v_dual_mov_b32 v18, 0 :: v_dual_mov_b32 v19, 0
+	v_dual_mov_b32 v20, 0 :: v_dual_mov_b32 v21, 0
+	v_dual_mov_b32 v22, 0 :: v_dual_mov_b32 v23, 0
+	v_dual_mov_b32 v24, 0 :: v_dual_mov_b32 v25, 0
+	v_dual_mov_b32 v26, 0 :: v_dual_mov_b32 v27, 0
+	v_dual_mov_b32 v28, 0 :: v_dual_mov_b32 v29, 0
+	v_dual_mov_b32 v30, 0 :: v_dual_mov_b32 v31, 0
+	v_dual_mov_b32 v32, 0 :: v_dual_mov_b32 v33, 0
+	v_dual_mov_b32 v34, 0 :: v_dual_mov_b32 v35, 0
+	v_dual_mov_b32 v36, 0 :: v_dual_mov_b32 v37, 0
+	v_dual_mov_b32 v38, 0 :: v_dual_mov_b32 v39, 0
+	v_dual_mov_b32 v40, 0 :: v_dual_mov_b32 v41, 0
+	v_dual_mov_b32 v42, 0 :: v_dual_mov_b32 v43, 0
+	v_dual_mov_b32 v44, 0 :: v_dual_mov_b32 v45, 0
+	v_dual_mov_b32 v46, 0 :: v_dual_mov_b32 v47, 0
+	v_dual_mov_b32 v48, 0 :: v_dual_mov_b32 v49, 0
+	v_dual_mov_b32 v50, 0 :: v_dual_mov_b32 v51, 0
+	v_dual_mov_b32 v52, 0 :: v_dual_mov_b32 v53, 0
+	v_dual_mov_b32 v54, 0 :: v_dual_mov_b32 v55, 0
+	v_dual_mov_b32 v56, 0 :: v_dual_mov_b32 v57, 0
+	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
+	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
+	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
+	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
+	v_dual_mov_b32 v66, 0 :: v_dual_mov_b32 v67, 0
+	v_dual_mov_b32 v68, 0 :: v_dual_mov_b32 v69, 0
+	v_dual_mov_b32 v70, 0 :: v_dual_mov_b32 v71, 0
+	v_dual_mov_b32 v72, 0 :: v_dual_mov_b32 v73, 0
+	v_dual_mov_b32 v74, 0 :: v_dual_mov_b32 v75, 0
+	v_dual_mov_b32 v76, 0 :: v_dual_mov_b32 v77, 0
+	v_dual_mov_b32 v78, 0 :: v_dual_mov_b32 v79, 0
+	v_dual_mov_b32 v80, 0 :: v_dual_mov_b32 v81, 0
+	v_dual_mov_b32 v82, 0 :: v_dual_mov_b32 v83, 0
+	v_dual_mov_b32 v84, 0 :: v_dual_mov_b32 v85, 0
+	v_dual_mov_b32 v86, 0 :: v_dual_mov_b32 v87, 0
+	v_dual_mov_b32 v88, 0 :: v_dual_mov_b32 v89, 0
+	v_dual_mov_b32 v90, 0 :: v_dual_mov_b32 v91, 0
+	v_dual_mov_b32 v92, 0 :: v_dual_mov_b32 v93, 0
+	v_dual_mov_b32 v94, 0 :: v_dual_mov_b32 v95, 0
+	v_dual_mov_b32 v96, 0 :: v_dual_mov_b32 v97, 0
+	v_dual_mov_b32 v98, 0 :: v_dual_mov_b32 v99, 0
+	v_dual_mov_b32 v100, 0 :: v_dual_mov_b32 v101, 0
+	v_dual_mov_b32 v102, 0 :: v_dual_mov_b32 v103, 0
+	v_dual_mov_b32 v104, 0 :: v_dual_mov_b32 v105, 0
+	v_dual_mov_b32 v106, 0 :: v_dual_mov_b32 v107, 0
+	v_dual_mov_b32 v108, 0 :: v_dual_mov_b32 v109, 0
+	v_dual_mov_b32 v110, 0 :: v_dual_mov_b32 v111, 0
+	v_dual_mov_b32 v112, 0 :: v_dual_mov_b32 v113, 0
+	v_dual_mov_b32 v114, 0 :: v_dual_mov_b32 v115, 0
+	v_dual_mov_b32 v116, 0 :: v_dual_mov_b32 v117, 0
+	v_dual_mov_b32 v118, 0 :: v_dual_mov_b32 v119, 0
+	v_dual_mov_b32 v120, 0 :: v_dual_add_nc_u32 v157, v121, v124
+	v_dual_mov_b32 v121, 0 :: v_dual_add_nc_u32 v156, v122, v123
+	v_dual_mov_b32 v122, 0 :: v_dual_mov_b32 v123, 0
+	v_dual_mov_b32 v124, 0 :: v_dual_mov_b32 v125, 0
+	v_dual_mov_b32 v126, 0 :: v_dual_mov_b32 v127, 0
+	v_add_nc_u32_e32 v167, 0, v129
+	v_add_nc_u32_e32 v168, 0, v130
+	v_add_nc_u32_e32 v169, 0, v131
+	v_add_nc_u32_e32 v170, 0, v132
+	v_add_nc_u32_e32 v171, 0, v133
+	.loc	1 1052 18                       ; ragged.py:1052:18
+	v_lshlrev_b32_e32 v172, 4, v146
+	v_or_b32_e32 v173, 1, v149
+	v_or_b32_e32 v174, 2, v149
+	v_or_b32_e32 v175, 3, v149
+	v_or_b32_e32 v176, 4, v149
+	v_or_b32_e32 v177, 5, v149
+	v_or_b32_e32 v178, 6, v149
+	v_or_b32_e32 v179, 7, v149
+	v_xor_b32_e32 v180, 4, v151
+	v_add_nc_u32_e32 v181, 0, v145
 	s_mov_b32 s7, 0x31027000
 	s_mov_b32 s6, 0x7ffffffe
-	s_mov_b32 s1, 0
-	v_mov_b32_e32 v42, 0
-	v_mov_b32_e32 v44, 0
-	v_dual_mov_b32 v46, 0 :: v_dual_mov_b32 v43, 0
-	v_mov_b32_e32 v45, 0
-	v_dual_mov_b32 v47, 0 :: v_dual_mov_b32 v36, 0
-	v_mov_b32_e32 v38, 0
-	v_dual_mov_b32 v226, 0 :: v_dual_mov_b32 v37, 0
-	v_dual_mov_b32 v228, 0 :: v_dual_mov_b32 v39, 0
-	v_dual_mov_b32 v227, 0 :: v_dual_mov_b32 v232, 0
-	v_mov_b32_e32 v231, 0
 	s_waitcnt lgkmcnt(0)
-	s_and_b32 s13, s13, 0xffff
-	s_and_b32 s15, s15, 0xffff
-	s_mov_b32 s4, s12
-	s_mov_b32 s5, s13
-	s_mov_b32 s12, s14
-	s_mov_b32 s13, s15
-	s_mov_b32 s14, s6
-	s_mov_b32 s15, s7
-	v_mov_b32_e32 v50, 0
-	v_dual_mov_b32 v40, 0 :: v_dual_mov_b32 v41, 0
-	v_dual_mov_b32 v34, 0 :: v_dual_mov_b32 v35, 0
-	v_dual_mov_b32 v229, 0 :: v_dual_mov_b32 v230, 0
-	v_mov_b32_e32 v51, 0
-	v_dual_mov_b32 v233, 0 :: v_dual_mov_b32 v52, 0
-	v_mov_b32_e32 v53, 0
-	v_dual_mov_b32 v57, 0 :: v_dual_mov_b32 v54, 0
-	v_dual_mov_b32 v56, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v55, 0 :: v_dual_mov_b32 v58, 0
-	v_dual_mov_b32 v63, 0 :: v_dual_mov_b32 v60, 0
-	v_mov_b32_e32 v65, 0
-	v_dual_mov_b32 v61, 0 :: v_dual_mov_b32 v62, 0
-	v_mov_b32_e32 v64, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off
-	scratch_store_b128 off, v[62:65], off offset:16
-	v_mov_b32_e32 v58, 0
-	v_mov_b32_e32 v60, 0
-	v_mov_b32_e32 v62, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v59, 0
-	v_mov_b32_e32 v61, 0
-	v_mov_b32_e32 v65, 0
-	v_mov_b32_e32 v63, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:32
-	scratch_store_b128 off, v[62:65], off offset:48
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:64
-	scratch_store_b128 off, v[62:65], off offset:80
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:96
-	scratch_store_b128 off, v[62:65], off offset:112
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:128
-	scratch_store_b128 off, v[62:65], off offset:144
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:160
-	scratch_store_b128 off, v[62:65], off offset:176
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:192
-	scratch_store_b128 off, v[62:65], off offset:208
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_mov_b32_e32 v65, 0
-	v_add_nc_u32_e32 v209, 0, v166
-	.loc	1 1045 36 is_stmt 1             ; ragged.py:1045:36
-	s_waitcnt vmcnt(0)
-	v_lshrrev_b32_e32 v0, 5, v32
-	v_and_b32_e32 v1, 0xe0, v32
-	v_bfe_i32 v2, v32, 7, 1
-	v_and_b32_e32 v3, 0x7f, v32
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_or_b32_e32 v0, s29, v0
-	v_lshlrev_b32_e32 v1, 4, v1
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_and_b32_e32 v2, 0x88, v2
-	v_add_nc_u32_e32 v0, s3, v0
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_or3_b32 v133, v4, v5, v1
-	v_xor_b32_e32 v129, v2, v3
-	s_delay_alu instid0(VALU_DEP_3)
-	v_mul_lo_u32 v1, v0, s21
-	v_add_nc_u32_e32 v2, 8, v0
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v8, off offset:764
-	scratch_store_b32 off, v133, off offset:468
-	v_add_nc_u32_e32 v3, 16, v0
-	v_add_nc_u32_e32 v6, 24, v0
-	v_add_nc_u32_e32 v4, 40, v0
-	v_add_nc_u32_e32 v5, 48, v0
-	scratch_store_b32 off, v1, off offset:472 ; 4-byte Folded Spill
-	v_mul_lo_u32 v1, s21, v2
-	v_add_nc_u32_e32 v7, 56, v0
-	v_add_nc_u32_e32 v8, 64, v0
-	v_add_nc_u32_e32 v10, 0x50, v0
-	v_add_nc_u32_e32 v11, 0x58, v0
-	v_add_nc_u32_e32 v12, 0x60, v0
-	v_add_nc_u32_e32 v13, 0x68, v0
-	v_add_nc_u32_e32 v15, 0x78, v0
-	scratch_store_b32 off, v1, off offset:476 ; 4-byte Folded Spill
-	v_mul_lo_u32 v1, s21, v3
-	v_add_nc_u32_e32 v16, 0x80, v0
-	v_add_nc_u32_e32 v17, 0x88, v0
-	v_add_nc_u32_e32 v18, 0x90, v0
-	v_add_nc_u32_e32 v20, 0xa0, v0
-	v_add_nc_u32_e32 v21, 0xa8, v0
-	v_add_nc_u32_e32 v22, 0xb0, v0
-	v_add_nc_u32_e32 v23, 0xb8, v0
-	scratch_store_b32 off, v1, off offset:480 ; 4-byte Folded Spill
-	v_mul_lo_u32 v1, s21, v6
-	v_add_nc_u32_e32 v25, 0xc8, v0
-	v_add_nc_u32_e32 v26, 0xd0, v0
-	v_add_nc_u32_e32 v27, 0xd8, v0
-	v_add_nc_u32_e32 v28, 0xe0, v0
-	v_add_nc_u32_e32 v30, 0xf0, v0
-	v_add_nc_u32_e32 v31, 0xf8, v0
-	v_add_nc_u32_e32 v2, s20, v2
-	scratch_store_b32 off, v1, off offset:484 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v1, 32, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v9, s21, v1
-	v_add_nc_u32_e32 v1, s20, v1
-	scratch_store_b32 off, v9, off offset:488 ; 4-byte Folded Spill
-	v_mul_lo_u32 v9, s21, v4
-	scratch_store_b32 off, v9, off offset:492 ; 4-byte Folded Spill
-	v_mul_lo_u32 v9, s21, v5
-	scratch_store_b32 off, v9, off offset:496 ; 4-byte Folded Spill
-	v_mul_lo_u32 v9, s21, v7
-	scratch_store_b32 off, v9, off offset:500 ; 4-byte Folded Spill
-	v_mul_lo_u32 v9, s21, v8
-	scratch_store_b32 off, v9, off offset:504 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v9, 0x48, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v14, s21, v9
-	scratch_store_b32 off, v14, off offset:508 ; 4-byte Folded Spill
-	v_mul_lo_u32 v14, s21, v10
-	scratch_store_b32 off, v14, off offset:512 ; 4-byte Folded Spill
-	v_mul_lo_u32 v14, s21, v11
-	scratch_store_b32 off, v14, off offset:516 ; 4-byte Folded Spill
-	v_mul_lo_u32 v14, s21, v12
-	scratch_store_b32 off, v14, off offset:520 ; 4-byte Folded Spill
-	v_mul_lo_u32 v14, s21, v13
-	scratch_store_b32 off, v14, off offset:524 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v14, 0x70, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v19, s21, v14
-	scratch_store_b32 off, v19, off offset:528 ; 4-byte Folded Spill
-	v_mul_lo_u32 v19, s21, v15
-	scratch_store_b32 off, v19, off offset:532 ; 4-byte Folded Spill
-	v_mul_lo_u32 v19, s21, v16
-	scratch_store_b32 off, v19, off offset:536 ; 4-byte Folded Spill
-	v_mul_lo_u32 v19, s21, v17
-	scratch_store_b32 off, v19, off offset:540 ; 4-byte Folded Spill
-	v_mul_lo_u32 v19, s21, v18
-	scratch_store_b32 off, v19, off offset:544 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v19, 0x98, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v24, s21, v19
-	scratch_store_b32 off, v24, off offset:548 ; 4-byte Folded Spill
-	v_mul_lo_u32 v24, s21, v20
-	scratch_store_b32 off, v24, off offset:552 ; 4-byte Folded Spill
-	v_mul_lo_u32 v24, s21, v21
-	scratch_store_b32 off, v24, off offset:556 ; 4-byte Folded Spill
-	v_mul_lo_u32 v24, s21, v22
-	scratch_store_b32 off, v24, off offset:560 ; 4-byte Folded Spill
-	v_mul_lo_u32 v24, s21, v23
-	scratch_store_b32 off, v24, off offset:564 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v24, 0xc0, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v29, s21, v24
-	scratch_store_b32 off, v29, off offset:568 ; 4-byte Folded Spill
-	v_mul_lo_u32 v29, s21, v25
-	scratch_store_b32 off, v29, off offset:572 ; 4-byte Folded Spill
-	v_mul_lo_u32 v29, s21, v26
-	scratch_store_b32 off, v29, off offset:576 ; 4-byte Folded Spill
-	v_mul_lo_u32 v29, s21, v27
-	scratch_store_b32 off, v29, off offset:580 ; 4-byte Folded Spill
-	v_mul_lo_u32 v29, s21, v28
-	scratch_store_b32 off, v29, off offset:584 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v29, 0xe8, v0
-	v_add_nc_u32_e32 v0, s20, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_mul_lo_u32 v33, s21, v29
-	v_mul_lo_u32 v0, v0, s21
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v33, off offset:588
-	scratch_store_b32 off, v0, off offset:600
-	v_mul_lo_u32 v33, s21, v30
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v6
-	v_mov_b32_e32 v6, 0
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v33, off offset:592
-	scratch_store_b32 off, v0, off offset:604
-	v_add_nc_u32_e32 v0, s20, v3
-	v_mul_lo_u32 v33, s21, v31
-	v_add_nc_u32_e32 v3, s20, v4
-	v_add_nc_u32_e32 v4, s20, v5
-	v_mov_b32_e32 v5, v32
-	v_mul_lo_u32 v0, v0, s21
-	v_mov_b32_e32 v32, 0
-	scratch_store_b32 off, v33, off offset:596 ; 4-byte Folded Spill
-	v_mov_b32_e32 v33, 0
-	v_or_b32_e32 v132, 0x7f0, v5
-	v_mov_b32_e32 v64, 0
-	scratch_store_b32 off, v0, off offset:608 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v9
-	v_or_b32_e32 v130, 0x700, v5
-	v_or_b32_e32 v131, 0x3f0, v5
-	v_mov_b32_e32 v9, 0
-	scratch_store_b32 off, v0, off offset:612 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, s20, v8
-	v_mov_b32_e32 v8, 0
-	scratch_store_b32 off, v0, off offset:616 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v3, s21
-	v_add_nc_u32_e32 v3, s20, v10
-	v_mov_b32_e32 v10, 0
-	scratch_store_b32 off, v0, off offset:620 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	v_add_nc_u32_e32 v4, s20, v11
-	v_mov_b32_e32 v11, 0
-	scratch_store_b32 off, v0, off offset:624 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, s20, v7
-	v_mov_b32_e32 v7, 0
-	s_delay_alu instid0(VALU_DEP_2)
-	v_mul_lo_u32 v0, v0, s21
-	scratch_store_b32 off, v0, off offset:628 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, s20, v13
-	v_mov_b32_e32 v13, 0
-	scratch_store_b32 off, v0, off offset:632 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v14
-	scratch_store_b32 off, v0, off offset:636 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v3, s21
-	v_add_nc_u32_e32 v3, s20, v15
-	scratch_store_b32 off, v0, off offset:640 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	v_add_nc_u32_e32 v4, s20, v16
-	v_mov_b32_e32 v16, 0
-	scratch_store_b32 off, v0, off offset:644 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, s20, v12
-	v_mov_b32_e32 v12, 0
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[6:9], off offset:288
-	scratch_store_b128 off, v[10:13], off offset:304
-	v_mul_lo_u32 v0, v0, s21
-	v_dual_mov_b32 v6, 0 :: v_dual_mov_b32 v7, 0
-	v_dual_mov_b32 v8, 0 :: v_dual_mov_b32 v9, 0
-	v_dual_mov_b32 v10, 0 :: v_dual_mov_b32 v11, 0
-	v_mov_b32_e32 v12, 0
-	scratch_store_b32 off, v0, off offset:648 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, s20, v18
-	v_dual_mov_b32 v18, 0 :: v_dual_mov_b32 v13, 0
-	s_clause 0x2                            ; 36-byte Folded Spill
-	scratch_store_b128 off, v[6:9], off offset:320
-	scratch_store_b128 off, v[10:13], off offset:336
-	scratch_store_b32 off, v0, off offset:652
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v19
-	v_mov_b32_e32 v19, 0
-	scratch_store_b32 off, v0, off offset:656 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v3, s21
-	v_add_nc_u32_e32 v3, s20, v20
-	v_mov_b32_e32 v20, 0
-	scratch_store_b32 off, v0, off offset:660 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	v_add_nc_u32_e32 v4, s20, v21
-	v_mov_b32_e32 v21, 0
-	scratch_store_b32 off, v0, off offset:664 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, s20, v17
-	v_mov_b32_e32 v17, 0
-	s_delay_alu instid0(VALU_DEP_2)
-	v_mul_lo_u32 v0, v0, s21
-	scratch_store_b32 off, v0, off offset:668 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, s20, v23
-	v_mov_b32_e32 v23, 0
-	scratch_store_b32 off, v0, off offset:672 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v24
-	scratch_store_b32 off, v0, off offset:676 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v3, s21
-	v_add_nc_u32_e32 v3, s20, v25
-	scratch_store_b32 off, v0, off offset:680 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	v_add_nc_u32_e32 v4, s20, v26
-	scratch_store_b32 off, v0, off offset:684 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, s20, v22
-	v_mov_b32_e32 v22, 0
-	s_delay_alu instid0(VALU_DEP_2)
-	v_mul_lo_u32 v0, v0, s21
-	scratch_store_b32 off, v0, off offset:688 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, s20, v28
-	scratch_store_b32 off, v0, off offset:692 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v2, s21
-	v_add_nc_u32_e32 v2, s20, v29
-	scratch_store_b32 off, v0, off offset:696 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v3, s21
-	v_add_nc_u32_e32 v3, s20, v30
-	scratch_store_b32 off, v0, off offset:700 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	v_add_nc_u32_e32 v4, s20, v31
-	scratch_store_b32 off, v0, off offset:704 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, s20, v27
-	s_delay_alu instid0(VALU_DEP_1)
-	v_mul_lo_u32 v0, v0, s21
-	scratch_store_b32 off, v0, off offset:708 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v1, s21
-	v_add_nc_u32_e32 v1, 0, v132
-	v_xor_b32_e32 v132, 24, v133
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:224
-	scratch_store_b128 off, v[62:65], off offset:240
-	v_dual_mov_b32 v58, 0 :: v_dual_mov_b32 v59, 0
-	v_dual_mov_b32 v60, 0 :: v_dual_mov_b32 v61, 0
-	scratch_store_b32 off, v0, off offset:712 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v2, s21
-	v_dual_mov_b32 v62, 0 :: v_dual_mov_b32 v63, 0
-	v_dual_mov_b32 v64, 0 :: v_dual_mov_b32 v65, 0
-	s_clause 0x2                            ; 36-byte Folded Spill
-	scratch_store_b128 off, v[58:61], off offset:256
-	scratch_store_b128 off, v[62:65], off offset:272
-	scratch_store_b32 off, v0, off offset:716
-	v_mul_lo_u32 v0, v3, s21
-	scratch_store_b32 off, v0, off offset:720 ; 4-byte Folded Spill
-	v_mul_lo_u32 v0, v4, s21
-	scratch_store_b32 off, v0, off offset:724 ; 4-byte Folded Spill
-	v_or_b32_e32 v0, 0x300, v5
-	s_delay_alu instid0(VALU_DEP_1)
-	v_add_nc_u32_e32 v0, 0, v0
-	scratch_store_b32 off, v0, off offset:728 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, 0, v130
-	v_xor_b32_e32 v130, 8, v133
-	scratch_store_b32 off, v0, off offset:732 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, 0, v131
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v0, off offset:736
-	scratch_store_b32 off, v129, off offset:464
-	v_xor_b32_e32 v0, 0x110, v129
-	v_xor_b32_e32 v131, 16, v133
-	s_delay_alu instid0(VALU_DEP_2)
-	v_add_nc_u32_e32 v204, 0, v0
-	.loc	1 1052 18                       ; ragged.py:1052:18
-	v_lshrrev_b32_e32 v0, 6, v5
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v1, off offset:740
-	scratch_store_b32 off, v0, off offset:744
-	v_add_nc_u32_e32 v0, 0, v130
-	scratch_store_b32 off, v0, off offset:748 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, 0, v131
-	scratch_store_b32 off, v0, off offset:752 ; 4-byte Folded Spill
-	v_add_nc_u32_e32 v0, 0, v132
-	s_clause 0x1                            ; 8-byte Folded Spill
-	scratch_store_b32 off, v0, off offset:756
-	scratch_store_b32 off, v166, off offset:760
+	s_and_b32 s9, s9, 0xffff
+	s_and_b32 s11, s11, 0xffff
+	.loc	1 1058 13                       ; ragged.py:1058:13
+	s_mov_b32 s1, 0
+	s_mov_b32 s4, s8
+	s_mov_b32 s5, s9
+	s_mov_b32 s8, s10
+	s_mov_b32 s9, s11
+	s_mov_b32 s10, s6
+	s_mov_b32 s11, s7
+	v_cmp_eq_u32_e32 vcc_lo, 0, v148
 .LBB0_5:                                ; =>This Inner Loop Header: Depth=1
-	.loc	1 0 18 is_stmt 0                ; ragged.py:0:18
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v1, off, off offset:744
-	scratch_load_b32 v2, off, off offset:460
-	v_mov_b32_e32 v71, v57
-	v_mov_b32_e32 v69, v55
-	v_mov_b32_e32 v67, v53
-	v_dual_mov_b32 v65, v51 :: v_dual_mov_b32 v70, v56
-	v_mov_b32_e32 v68, v54
-	v_mov_b32_e32 v66, v52
-	v_dual_mov_b32 v64, v50 :: v_dual_mov_b32 v63, v47
-	v_mov_b32_e32 v61, v45
-	v_mov_b32_e32 v59, v43
-	v_dual_mov_b32 v57, v41 :: v_dual_mov_b32 v62, v46
-	v_mov_b32_e32 v60, v44
-	v_mov_b32_e32 v58, v42
-	v_mov_b32_e32 v56, v40
-	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
-	s_waitcnt vmcnt(1)
-	v_or_b32_e32 v0, s1, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v0, s0, v[165:166]
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v0, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 4, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v132, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 8, v1
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v133, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 12, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v135, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 16, v1
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v136, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 20, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v137, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 24, v1
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
-	v_cndmask_b32_e64 v138, 0x80000000, v130, s2
-	.loc	1 1052 18 is_stmt 1             ; ragged.py:1052:18
-	v_or_b32_e32 v130, 28, v1
+	v_or_b32_e32 v188, s1, v172
+	s_delay_alu instid0(VALU_DEP_1)
 	.loc	1 1070 38                       ; ragged.py:1070:38
-	scratch_load_b32 v1, off, off offset:472 ; 4-byte Folded Reload
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v130, s1, v130
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	.loc	1 1069 38                       ; ragged.py:1069:38
-	v_mad_u64_u32 v[130:131], null, v130, s0, v[165:166]
-	.loc	1 1052 18                       ; ragged.py:1052:18
+	v_add_nc_u32_e32 v129, v152, v188
+	v_add_nc_u32_e32 v133, v153, v188
+	.loc	1 1070 30 is_stmt 0             ; ragged.py:1070:30
+	s_clause 0x1
+	buffer_load_b128 v[129:132], v129, s[8:11], 0 offen
+	buffer_load_b128 v[133:136], v133, s[8:11], 0 offen
 	s_waitcnt vmcnt(1)
-	v_and_b32_e32 v131, 31, v2
-	.loc	1 1059 22                       ; ragged.py:1059:22
-	v_or_b32_e32 v210, s1, v131
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(SALU_CYCLE_1)
+	ds_bpermute_b32 v140, v151, v129
+	ds_bpermute_b32 v191, v180, v129
+	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v149
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	ds_bpermute_b32 v141, v151, v130
+	ds_bpermute_b32 v192, v180, v130
+	ds_bpermute_b32 v190, v151, v132
+	ds_bpermute_b32 v194, v180, v132
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	s_waitcnt vmcnt(0)
+	ds_bpermute_b32 v195, v151, v133
+	ds_bpermute_b32 v199, v180, v133
+	ds_bpermute_b32 v196, v151, v134
+	ds_bpermute_b32 v200, v180, v134
+	ds_bpermute_b32 v197, v151, v135
+	ds_bpermute_b32 v201, v180, v135
 	.loc	1 1069 30                       ; ragged.py:1069:30
-	v_cndmask_b32_e64 v130, 0x80000000, v130, s2
+	v_cndmask_b32_e64 v132, 0x80000000, v129, s2
+	.loc	1 1059 22                       ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v173
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	ds_bpermute_b32 v189, v151, v131
+	ds_bpermute_b32 v193, v180, v131
+	ds_bpermute_b32 v198, v151, v136
+	ds_bpermute_b32 v202, v180, v136
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
+	v_add_nc_u32_e32 v203, 0, v150
+	s_delay_alu instid0(VALU_DEP_2)
+	v_cndmask_b32_e64 v133, 0x80000000, v129, s2
+	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v174
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	s_clause 0x1
+	buffer_load_u8 v184, v133, s[4:7], 0 offen
+	buffer_load_u8 v185, v132, s[4:7], 0 offen
+	.loc	1 1069 38 is_stmt 0             ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	.loc	1 1070 30 is_stmt 1             ; ragged.py:1070:30
+	s_waitcnt lgkmcnt(14)
+	v_cndmask_b32_e32 v133, v191, v140, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	v_cndmask_b32_e64 v134, 0x80000000, v129, s2
+	.loc	1 1059 22                       ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v175
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	s_delay_alu instid0(VALU_DEP_1)
+	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
+	v_cndmask_b32_e64 v135, 0x80000000, v129, s2
+	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v176
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	s_clause 0x1
+	buffer_load_u8 v186, v135, s[4:7], 0 offen
+	buffer_load_u8 v187, v134, s[4:7], 0 offen
+	.loc	1 1069 38 is_stmt 0             ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	.loc	1 1070 30 is_stmt 1             ; ragged.py:1070:30
+	s_waitcnt lgkmcnt(8)
+	v_dual_cndmask_b32 v134, v192, v141 :: v_dual_cndmask_b32 v135, v199, v195
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	v_cndmask_b32_e64 v131, 0x80000000, v129, s2
+	.loc	1 1059 22                       ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v177
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
+	v_cndmask_b32_e64 v136, 0x80000000, v129, s2
+	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v179
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(SALU_CYCLE_1)
+	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
+	v_cndmask_b32_e64 v138, 0x80000000, v129, s2
+	.loc	1 1059 22 is_stmt 1             ; ragged.py:1059:22
+	v_or_b32_e32 v129, s1, v178
 	.loc	1 1110 17                       ; ragged.py:1110:17
 	s_add_i32 s1, s1, 32
 	.loc	1 1058 19                       ; ragged.py:1058:19
 	s_cmp_lt_i32 s1, s21
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:476 ; 4-byte Folded Reload
-	.loc	1 1070 30 is_stmt 0             ; ragged.py:1070:30
-	buffer_load_u8 v14, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:480 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v9, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:484 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v24, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:488 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v10, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:492 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v26, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:496 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v11, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:500 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v28, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:504 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v12, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:508 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v224, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:512 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v13, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:516 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v239, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:520 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v15, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:524 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v222, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:528 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v25, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:532 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v220, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:536 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v27, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:540 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v218, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:544 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v29, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:548 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v216, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:552 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v225, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:556 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v214, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:560 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v223, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:564 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v212, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:568 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v221, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:572 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v211, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:576 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v219, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:580 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v240, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:584 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v217, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:588 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v241, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:592 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v215, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	scratch_load_b32 v1, off, off offset:596 ; 4-byte Folded Reload
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v242, v131, s[12:15], 0 offen
-	.loc	1 1070 38                       ; ragged.py:1070:38
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v131, v1, v210
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	buffer_load_u8 v213, v131, s[12:15], 0 offen
-	.loc	1 1069 30 is_stmt 1             ; ragged.py:1069:30
-	s_clause 0x7
-	buffer_load_u8 v0, v0, s[4:7], 0 offen
-	buffer_load_u8 v131, v132, s[4:7], 0 offen
-	buffer_load_u8 v132, v133, s[4:7], 0 offen
-	buffer_load_u8 v133, v136, s[4:7], 0 offen
-	buffer_load_u8 v136, v137, s[4:7], 0 offen
-	buffer_load_u8 v137, v138, s[4:7], 0 offen
-	buffer_load_u8 v130, v130, s[4:7], 0 offen
-	buffer_load_u8 v135, v135, s[4:7], 0 offen
-	v_add_nc_u32_e32 v138, 0, v2
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1069 38                       ; ragged.py:1069:38
+	v_mad_u64_u32 v[129:130], null, v129, s0, v[137:138]
+	.loc	1 1069 30 is_stmt 0             ; ragged.py:1069:30
+	v_cndmask_b32_e64 v129, 0x80000000, v129, s2
+	s_clause 0x3
+	buffer_load_u8 v143, v136, s[4:7], 0 offen
+	buffer_load_u8 v142, v138, s[4:7], 0 offen
+	buffer_load_u8 v183, v131, s[4:7], 0 offen
+	buffer_load_u8 v182, v129, s[4:7], 0 offen
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	s_waitcnt vmcnt(7)
-	ds_store_b8 v138, v0
-	s_waitcnt vmcnt(6)
-	ds_store_b8 v138, v131 offset:256
-	s_waitcnt vmcnt(5)
-	ds_store_b8 v138, v132 offset:512
-	s_waitcnt vmcnt(4)
-	ds_store_b8 v138, v133 offset:1024
+	.loc	1 1070 30 is_stmt 1             ; ragged.py:1070:30
+	v_cndmask_b32_e32 v136, v200, v196, vcc_lo
+	.loc	1 1069 30                       ; ragged.py:1069:30
 	s_waitcnt vmcnt(3)
-	ds_store_b8 v138, v136 offset:1280
+	v_lshlrev_b16 v129.l, 8, v143.l
 	s_waitcnt vmcnt(2)
-	ds_store_b8 v138, v137 offset:1536
-	scratch_load_b32 v0, off, off offset:728 ; 4-byte Folded Reload
+	v_lshlrev_b16 v129.h, 8, v142.l
+	s_waitcnt vmcnt(1)
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_2)
+	v_or_b16 v131.l, v183.l, v129.l
+	v_lshlrev_b16 v129.l, 8, v184.l
 	s_waitcnt vmcnt(0)
-	ds_store_b8 v0, v135
-	scratch_load_b32 v0, off, off offset:732 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	ds_store_b8 v0, v130
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	ds_load_u8 v0, v209 offset:320
-	ds_load_u8 v130, v209 offset:256
-	ds_load_u8 v131, v209 offset:336
-	ds_load_u8 v132, v209 offset:272
-	ds_load_u8 v133, v209 offset:352
-	ds_load_u8 v135, v209 offset:288
-	ds_load_u8 v136, v209 offset:368
-	ds_load_u8 v137, v209 offset:304
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v0, v130, v0, 0xc0c0004
-	ds_load_u8 v130, v209 offset:448
-	ds_load_u8 v138, v209 offset:384
-	ds_load_u8 v139, v209 offset:464
-	ds_load_u8 v140, v209 offset:400
-	ds_load_u8 v141, v209 offset:480
-	ds_load_u8 v142, v209 offset:416
-	ds_load_u8 v143, v209 offset:496
-	ds_load_u8 v144, v209 offset:432
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v130, v138, v130, 0xc0c0004
-	ds_load_u8 v138, v209 offset:64
-	ds_load_u8 v145, v209
-	ds_load_u8 v146, v209 offset:80
-	ds_load_u8 v147, v209 offset:16
-	ds_load_u8 v148, v209 offset:96
-	ds_load_u8 v149, v209 offset:32
-	ds_load_u8 v150, v209 offset:112
-	ds_load_u8 v151, v209 offset:48
-	v_lshl_or_b32 v197, v130, 16, v0
-	v_perm_b32 v0, v132, v131, 0xc0c0004
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v130, v140, v139, 0xc0c0004
-	v_mov_b32_e32 v139, v165
-	s_delay_alu instid0(VALU_DEP_2)
-	v_lshl_or_b32 v199, v130, 16, v0
-	v_perm_b32 v0, v135, v133, 0xc0c0004
-	s_waitcnt lgkmcnt(10)
-	v_perm_b32 v130, v142, v141, 0xc0c0004
-	s_waitcnt lgkmcnt(6)
-	v_perm_b32 v138, v145, v138, 0xc0c0004
-	ds_load_u8 v145, v209 offset:192
-	ds_load_u8 v152, v209 offset:128
-	ds_load_u8 v153, v209 offset:208
-	ds_load_u8 v154, v209 offset:144
-	ds_load_u8 v155, v209 offset:224
-	ds_load_u8 v156, v209 offset:160
-	ds_load_u8 v157, v209 offset:240
-	ds_load_u8 v158, v209 offset:176
-	s_waitcnt lgkmcnt(12)
-	v_perm_b32 v131, v147, v146, 0xc0c0004
-	ds_load_u8 v179, v209 offset:960
-	ds_load_u8 v180, v209 offset:896
-	ds_load_u8 v142, v209 offset:1024
-	ds_load_u8 v174, v209 offset:976
-	ds_load_u8 v176, v209 offset:912
-	ds_load_u8 v141, v209 offset:992
-	ds_load_u8 v253, v209 offset:928
-	ds_load_u8 v160, v209 offset:944
-	ds_load_u8 v5, v209 offset:832
-	ds_load_u8 v202, v209 offset:768
-	ds_load_u8 v146, v209 offset:848
-	ds_load_u8 v191, v209 offset:784
-	ds_load_u8 v166, v209 offset:864
-	v_lshl_or_b32 v201, v130, 16, v0
-	v_perm_b32 v0, v137, v136, 0xc0c0004
-	v_perm_b32 v130, v144, v143, 0xc0c0004
-	s_waitcnt lgkmcnt(19)
-	v_perm_b32 v145, v152, v145, 0xc0c0004
-	s_waitcnt lgkmcnt(17)
-	v_perm_b32 v132, v154, v153, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_lshl_or_b32 v196, v145, 16, v138
-	s_waitcnt lgkmcnt(13)
-	v_perm_b32 v133, v158, v157, 0xc0c0004
-	v_lshl_or_b32 v198, v132, 16, v131
-	v_perm_b32 v131, v149, v148, 0xc0c0004
-	v_perm_b32 v132, v156, v155, 0xc0c0004
+	v_or_b16 v131.h, v182.l, v129.h
+	v_or_b16 v130.l, v185.l, v129.l
+	v_lshlrev_b16 v129.l, 8, v186.l
 	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v200, v132, 16, v131
-	v_perm_b32 v132, v151, v150, 0xc0c0004
-	v_lshl_or_b32 v150, v130, 16, v0
-	ds_load_u8 v168, v209 offset:800
-	ds_load_u8 v255, v209 offset:880
-	ds_load_u8 v173, v209 offset:816
-	ds_load_u8 v203, v209 offset:704
-	ds_load_u8 v206, v209 offset:640
-	ds_load_u8 v207, v209 offset:720
-	ds_load_u8 v208, v209 offset:656
-	ds_load_u8 v192, v209 offset:736
-	ds_load_u8 v193, v209 offset:672
-	ds_load_u8 v171, v209 offset:752
-	ds_load_u8 v8, v209 offset:688
-	ds_load_u8 v205, v209 offset:576
-	ds_load_u8 v4, v209 offset:512
-	ds_load_u8 v7, v209 offset:592
-	ds_load_u8 v147, v209 offset:528
-	ds_load_u8 v184, v209 offset:608
-	ds_load_u8 v185, v209 offset:544
-	ds_load_u8 v186, v209 offset:624
-	ds_load_u8 v187, v209 offset:560
-	ds_load_u8 v161, v209 offset:1216
-	ds_load_u8 v72, v209 offset:1280
-	ds_load_u8 v155, v209 offset:1232
-	ds_load_u8 v156, v209 offset:1168
-	ds_load_u8 v143, v209 offset:1248
-	ds_load_u8 v154, v209 offset:1184
-	ds_load_u8 v152, v209 offset:1264
-	ds_load_u8 v153, v209 offset:1200
-	ds_load_u8 v145, v209 offset:1152
-	ds_load_u8 v175, v209 offset:1088
-	ds_load_u8 v137, v209 offset:1104
-	ds_load_u8 v252, v209 offset:1040
-	ds_load_u8 v162, v209 offset:1120
-	ds_load_u8 v163, v209 offset:1056
-	ds_load_u8 v157, v209 offset:1136
-	ds_load_u8 v158, v209 offset:1072
-	ds_load_u8 v6, v209 offset:1472
-	ds_load_u8 v0, v209 offset:1536
-	v_lshl_or_b32 v149, v133, 16, v132
-	v_dual_mov_b32 v129, v226 :: v_dual_mov_b32 v130, v227
-	v_mov_b32_e32 v134, v231
-	v_dual_mov_b32 v132, v229 :: v_dual_mov_b32 v131, v228
-	v_dual_mov_b32 v135, v232 :: v_dual_mov_b32 v136, v233
-	v_mov_b32_e32 v133, v230
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:352 ; 4-byte Folded Spill
-	ds_load_u8 v167, v209 offset:1488
-	ds_load_u8 v169, v209 offset:1424
-	ds_load_u8 v177, v209 offset:1504
-	ds_load_u8 v178, v209 offset:1440
-	ds_load_u8 v254, v209 offset:1520
-	ds_load_u8 v144, v209 offset:1456
-	ds_load_u8 v188, v209 offset:1408
-	ds_load_u8 v189, v209 offset:1344
-	ds_load_u8 v190, v209 offset:1360
-	ds_load_u8 v148, v209 offset:1296
-	ds_load_u8 v194, v209 offset:1376
-	ds_load_u8 v195, v209 offset:1312
-	ds_load_u8 v170, v209 offset:1392
-	ds_load_u8 v172, v209 offset:1328
-	ds_load_u8 v0, v209 offset:1984
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:388 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:2000
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:372 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1936
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:380 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:2016
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:364 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1952
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:368 ; 4-byte Folded Spill
-	scratch_load_b32 v0, off, off offset:736 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	ds_load_u8 v3, v0
-	scratch_load_b32 v0, off, off offset:740 ; 4-byte Folded Reload
-	s_waitcnt lgkmcnt(0)
-	v_perm_b32 v3, v160, v3, 0xc0c0004
-	s_waitcnt vmcnt(0)
-	ds_load_u8 v0, v0
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:356 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1968
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:360 ; 4-byte Folded Spill
-	ds_load_u8 v159, v209 offset:1920
-	ds_load_u8 v138, v209 offset:1856
-	ds_load_u8 v0, v209 offset:1872
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:404 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1808
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:412 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1888
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:392 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1824
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:396 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1904
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:376 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1840
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:384 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1728
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:432 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1792
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:448 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1744
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:420 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1680
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:424 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1760
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:416 ; 4-byte Folded Spill
-	ds_load_u8 v243, v209 offset:1696
-	ds_load_u8 v0, v209 offset:1776
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:400 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1712
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:408 ; 4-byte Folded Spill
-	ds_load_u8 v140, v209 offset:1664
-	ds_load_u8 v151, v209 offset:1600
-	ds_load_u8 v0, v209 offset:1616
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:452 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1552
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:456 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1632
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:440 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1568
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:444 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1648
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:428 ; 4-byte Folded Spill
-	ds_load_u8 v0, v209 offset:1584
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	s_waitcnt lgkmcnt(0)
-	scratch_store_b32 off, v0, off offset:436 ; 4-byte Folded Spill
+	v_or_b16 v130.h, v187.l, v129.l
+	ds_store_b64 v156, v[130:131]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	scratch_load_b32 v0, off, off offset:464 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v237, 0, v0
-	ds_store_b8 v237, v14
-	ds_store_b8 v237, v24 offset:512
-	ds_store_b8 v237, v26 offset:1024
-	ds_store_b8 v237, v28 offset:1536
-	ds_store_b8 v237, v224 offset:2048
-	ds_store_b8 v237, v239 offset:2560
-	ds_store_b8 v237, v222 offset:3072
-	ds_store_b8 v237, v220 offset:3584
-	ds_store_b8 v237, v218 offset:4096
-	ds_store_b8 v237, v216 offset:4608
-	ds_store_b8 v237, v214 offset:5120
-	ds_store_b8 v237, v212 offset:5632
-	ds_store_b8 v237, v211 offset:6144
-	ds_store_b8 v237, v240 offset:6656
-	ds_store_b8 v237, v241 offset:7168
-	ds_store_b8 v237, v242 offset:7680
-	ds_store_b8 v204, v9
-	ds_store_b8 v204, v10 offset:512
-	ds_store_b8 v204, v11 offset:1024
-	ds_store_b8 v204, v12 offset:1536
-	ds_store_b8 v204, v13 offset:2048
-	ds_store_b8 v204, v15 offset:2560
-	ds_store_b8 v204, v25 offset:3072
-	ds_store_b8 v204, v27 offset:3584
-	ds_store_b8 v204, v29 offset:4096
-	ds_store_b8 v204, v225 offset:4608
-	ds_store_b8 v204, v223 offset:5120
-	ds_store_b8 v204, v221 offset:5632
-	ds_store_b8 v204, v219 offset:6144
-	ds_store_b8 v204, v217 offset:6656
-	ds_store_b8 v204, v215 offset:7168
-	ds_store_b8 v204, v213 offset:7680
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	s_clause 0x13                           ; 272-byte Folded Reload
-	scratch_load_b32 v0, off, off offset:468
-	scratch_load_b32 v1, off, off offset:680
-	scratch_load_b128 v[73:76], off, off offset:32
-	scratch_load_b128 v[77:80], off, off offset:48
-	scratch_load_b128 v[89:92], off, off offset:96
-	scratch_load_b128 v[93:96], off, off offset:112
-	scratch_load_b128 v[105:108], off, off offset:160
-	scratch_load_b128 v[109:112], off, off offset:176
-	scratch_load_b128 v[121:124], off, off offset:224
-	scratch_load_b128 v[125:128], off, off offset:240
-	scratch_load_b32 v2, off, off offset:684
-	scratch_load_b128 v[81:84], off, off offset:64
-	scratch_load_b128 v[85:88], off, off offset:80
-	scratch_load_b128 v[97:100], off, off offset:128
-	scratch_load_b128 v[101:104], off, off offset:144
-	scratch_load_b128 v[113:116], off, off offset:192
-	scratch_load_b128 v[117:120], off, off offset:208
-	scratch_load_b128 v[24:27], off, off offset:256
-	scratch_load_b128 v[28:31], off, off offset:272
-	scratch_load_b32 v9, off, off offset:704
-	s_waitcnt vmcnt(19)
-	v_add_nc_u32_e32 v222, 0, v0
-	.loc	1 1096 25                       ; ragged.py:1096:25
-	scratch_load_b32 v0, off, off offset:600 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(19)
-	v_add_nc_u32_e32 v1, v1, v210
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	ds_load_2addr_stride64_b64 v[211:214], v222 offset1:8
-	.loc	1 1096 25                       ; ragged.py:1096:25
-	s_waitcnt vmcnt(10)
-	v_add_nc_u32_e32 v244, v2, v210
-	scratch_load_b32 v2, off, off offset:688 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v248, v9, v210
-	scratch_load_b32 v9, off, off offset:708 ; 4-byte Folded Reload
+	ds_load_b64 v[129:130], v161
+	ds_load_b64 v[138:139], v167
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	s_waitcnt lgkmcnt(0)
-	v_wmma_i32_16x16x16_iu4 v[73:80], v[211:212], v[196:197], v[73:80] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[89:96], v[211:212], v[198:199], v[89:96] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[105:112], v[211:212], v[200:201], v[105:112] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[121:128], v[211:212], v[149:150], v[121:128] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[81:88], v[213:214], v[196:197], v[81:88] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[97:104], v[213:214], v[198:199], v[97:104] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[113:120], v[213:214], v[200:201], v[113:120] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[24:31], v[213:214], v[149:150], v[24:31] neg_lo:[1,1,0]
-	.loc	1 1096 25                       ; ragged.py:1096:25
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v211, v0, v210
-	scratch_load_b32 v0, off, off offset:604 ; 4-byte Folded Reload
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	buffer_load_u8 v183, v211, s[12:15], 0 offen
-	.loc	1 1096 25                       ; ragged.py:1096:25
-	s_waitcnt vmcnt(3)
-	v_add_nc_u32_e32 v245, v2, v210
-	scratch_load_b32 v2, off, off offset:692 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(3)
-	v_add_nc_u32_e32 v164, v9, v210
-	scratch_load_b32 v9, off, off offset:712 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(3)
-	v_add_nc_u32_e32 v212, v0, v210
-	scratch_load_b32 v0, off, off offset:608 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v246, v2, v210
-	scratch_load_b32 v2, off, off offset:696 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v165, v9, v210
-	scratch_load_b32 v9, off, off offset:716 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v213, v0, v210
-	scratch_load_b32 v0, off, off offset:612 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v247, v2, v210
-	scratch_load_b32 v2, off, off offset:700 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v181, v9, v210
-	scratch_load_b32 v9, off, off offset:720 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v214, v0, v210
-	scratch_load_b32 v0, off, off offset:616 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(2)
-	v_add_nc_u32_e32 v2, v2, v210
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v182, v9, v210
-	scratch_load_b32 v9, off, off offset:724 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(1)
-	v_add_nc_u32_e32 v215, v0, v210
-	scratch_load_b32 v0, off, off offset:620 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v216, v0, v210
-	scratch_load_b32 v0, off, off offset:624 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v217, v0, v210
-	scratch_load_b32 v0, off, off offset:628 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v218, v0, v210
-	scratch_load_b32 v0, off, off offset:632 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v219, v0, v210
-	scratch_load_b32 v0, off, off offset:636 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v220, v0, v210
-	scratch_load_b32 v0, off, off offset:640 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v221, v0, v210
-	scratch_load_b32 v0, off, off offset:644 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v223, v0, v210
-	scratch_load_b32 v0, off, off offset:648 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v224, v0, v210
-	scratch_load_b32 v0, off, off offset:652 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v225, v0, v210
-	scratch_load_b32 v0, off, off offset:656 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v239, v0, v210
-	scratch_load_b32 v0, off, off offset:660 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v240, v0, v210
-	scratch_load_b32 v0, off, off offset:664 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v241, v0, v210
-	scratch_load_b32 v0, off, off offset:668 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v242, v0, v210
-	scratch_load_b32 v0, off, off offset:672 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v238, v0, v210
-	scratch_load_b32 v0, off, off offset:676 ; 4-byte Folded Reload
-	s_waitcnt vmcnt(0)
-	v_add_nc_u32_e32 v0, v0, v210
-	v_add_nc_u32_e32 v210, v9, v210
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	s_clause 0x1e
-	buffer_load_u8 v228, v213, s[12:15], 0 offen
-	buffer_load_u8 v229, v215, s[12:15], 0 offen
-	buffer_load_u8 v230, v217, s[12:15], 0 offen
-	buffer_load_u8 v231, v219, s[12:15], 0 offen
-	buffer_load_u8 v232, v221, s[12:15], 0 offen
-	buffer_load_u8 v224, v224, s[12:15], 0 offen
-	buffer_load_u8 v233, v239, s[12:15], 0 offen
-	buffer_load_u8 v234, v241, s[12:15], 0 offen
-	buffer_load_u8 v235, v238, s[12:15], 0 offen
-	buffer_load_u8 v1, v1, s[12:15], 0 offen
-	buffer_load_u8 v236, v245, s[12:15], 0 offen
-	buffer_load_u8 v238, v247, s[12:15], 0 offen
-	buffer_load_u8 v239, v248, s[12:15], 0 offen
-	buffer_load_u8 v165, v165, s[12:15], 0 offen
-	buffer_load_u8 v182, v182, s[12:15], 0 offen
-	buffer_load_u8 v241, v218, s[12:15], 0 offen
-	buffer_load_u8 v245, v216, s[12:15], 0 offen
-	buffer_load_u8 v247, v214, s[12:15], 0 offen
-	buffer_load_u8 v248, v212, s[12:15], 0 offen
-	buffer_load_u8 v240, v240, s[12:15], 0 offen
-	buffer_load_u8 v225, v225, s[12:15], 0 offen
-	buffer_load_u8 v223, v223, s[12:15], 0 offen
-	buffer_load_u8 v9, v220, s[12:15], 0 offen
-	buffer_load_u8 v10, v246, s[12:15], 0 offen
-	buffer_load_u8 v11, v244, s[12:15], 0 offen
-	buffer_load_u8 v0, v0, s[12:15], 0 offen
-	buffer_load_u8 v12, v242, s[12:15], 0 offen
-	buffer_load_u8 v13, v210, s[12:15], 0 offen
-	buffer_load_u8 v14, v181, s[12:15], 0 offen
-	buffer_load_u8 v15, v164, s[12:15], 0 offen
-	buffer_load_u8 v2, v2, s[12:15], 0 offen
-	s_clause 0x2                            ; 12-byte Folded Reload
-	scratch_load_b32 v164, off, off offset:748
-	scratch_load_b32 v181, off, off offset:752
-	scratch_load_b32 v242, off, off offset:756
-	.loc	1 1070 30                       ; ragged.py:1070:30
-	s_waitcnt vmcnt(2)
-	ds_load_2addr_stride64_b64 v[210:213], v164 offset1:8
-	s_waitcnt vmcnt(1)
-	ds_load_2addr_stride64_b64 v[214:217], v181 offset1:8
-	s_waitcnt vmcnt(0)
-	ds_load_2addr_stride64_b64 v[218:221], v242 offset1:8
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	ds_store_b8 v237, v183
-	ds_store_b8 v237, v228 offset:512
-	ds_store_b8 v237, v229 offset:1024
-	ds_store_b8 v237, v230 offset:1536
-	ds_store_b8 v237, v231 offset:2048
-	ds_store_b8 v237, v232 offset:2560
-	ds_store_b8 v237, v224 offset:3072
-	ds_store_b8 v237, v233 offset:3584
-	ds_store_b8 v237, v234 offset:4096
-	ds_store_b8 v237, v235 offset:4608
-	ds_store_b8 v237, v1 offset:5120
-	ds_store_b8 v237, v236 offset:5632
-	ds_store_b8 v237, v238 offset:6144
-	ds_store_b8 v237, v239 offset:6656
-	ds_store_b8 v237, v165 offset:7168
-	ds_store_b8 v237, v182 offset:7680
-	ds_store_b8 v204, v248
-	ds_store_b8 v204, v247 offset:512
-	ds_store_b8 v204, v245 offset:1024
-	ds_store_b8 v204, v241 offset:1536
-	ds_store_b8 v204, v9 offset:2048
-	ds_store_b8 v204, v223 offset:2560
-	ds_store_b8 v204, v225 offset:3072
-	ds_store_b8 v204, v240 offset:3584
-	ds_store_b8 v204, v12 offset:4096
-	ds_store_b8 v204, v0 offset:4608
-	ds_store_b8 v204, v11 offset:5120
-	ds_store_b8 v204, v10 offset:5632
-	ds_store_b8 v204, v2 offset:6144
-	ds_store_b8 v204, v15 offset:6656
-	ds_store_b8 v204, v14 offset:7168
-	ds_store_b8 v204, v13 offset:7680
-	s_clause 0x3                            ; 64-byte Folded Reload
-	scratch_load_b128 v[40:43], off, off offset:288
-	scratch_load_b128 v[44:47], off, off offset:304
-	scratch_load_b128 v[234:237], off, off offset:320
-	scratch_load_b128 v[238:241], off, off offset:336
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_perm_b32 v0, v202, v5, 0xc0c0004
-	v_perm_b32 v1, v180, v179, 0xc0c0004
-	v_perm_b32 v2, v4, v205, 0xc0c0004
-	v_perm_b32 v9, v206, v203, 0xc0c0004
-	v_dual_mov_b32 v233, v136 :: v_dual_mov_b32 v232, v135
-	v_dual_mov_b32 v231, v134 :: v_dual_mov_b32 v230, v133
-	v_dual_mov_b32 v229, v132 :: v_dual_mov_b32 v228, v131
-	v_dual_mov_b32 v227, v130 :: v_dual_mov_b32 v226, v129
-	v_lshl_or_b32 v131, v1, 16, v0
-	v_lshl_or_b32 v130, v9, 16, v2
-	v_perm_b32 v0, v191, v146, 0xc0c0004
-	v_perm_b32 v1, v176, v174, 0xc0c0004
-	v_perm_b32 v2, v147, v7, 0xc0c0004
-	v_perm_b32 v7, v208, v207, 0xc0c0004
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_lshl_or_b32 v180, v1, 16, v0
-	v_perm_b32 v0, v168, v166, 0xc0c0004
-	v_lshl_or_b32 v179, v7, 16, v2
-	v_perm_b32 v1, v253, v141, 0xc0c0004
-	v_perm_b32 v2, v185, v184, 0xc0c0004
-	v_perm_b32 v7, v193, v192, 0xc0c0004
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	ds_load_2addr_stride64_b64 v[222:225], v222 offset1:8
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_wmma_i32_16x16x16_iu4 v[73:80], v[210:211], v[130:131], v[73:80] neg_lo:[1,1,0]
-	v_lshl_or_b32 v192, v1, 16, v0
-	v_perm_b32 v0, v187, v186, 0xc0c0004
-	v_lshl_or_b32 v191, v7, 16, v2
-	v_perm_b32 v1, v8, v171, 0xc0c0004
-	v_perm_b32 v2, v173, v255, 0xc0c0004
-	v_wmma_i32_16x16x16_iu4 v[81:88], v[212:213], v[130:131], v[81:88] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[89:96], v[210:211], v[179:180], v[89:96] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[97:104], v[212:213], v[179:180], v[97:104] neg_lo:[1,1,0]
-	v_lshl_or_b32 v173, v1, 16, v0
-	v_lshl_or_b32 v174, v3, 16, v2
-	v_wmma_i32_16x16x16_iu4 v[105:112], v[210:211], v[191:192], v[105:112] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[113:120], v[212:213], v[191:192], v[113:120] neg_lo:[1,1,0]
-	v_perm_b32 v0, v72, v189, 0xc0c0004
-	v_perm_b32 v1, v188, v6, 0xc0c0004
-	v_wmma_i32_16x16x16_iu4 v[121:128], v[210:211], v[173:174], v[121:128] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[24:31], v[212:213], v[173:174], v[24:31] neg_lo:[1,1,0]
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	ds_load_2addr_stride64_b64 v[210:213], v164 offset1:8
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_perm_b32 v2, v142, v175, 0xc0c0004
-	v_perm_b32 v3, v145, v161, 0xc0c0004
-	v_mov_b32_e32 v165, v139
-	v_dual_mov_b32 v251, v63 :: v_dual_mov_b32 v250, v62
-	v_dual_mov_b32 v249, v61 :: v_dual_mov_b32 v248, v60
-	v_dual_mov_b32 v247, v59 :: v_dual_mov_b32 v246, v58
-	v_dual_mov_b32 v245, v57 :: v_dual_mov_b32 v244, v56
-	v_dual_mov_b32 v50, v64 :: v_dual_mov_b32 v51, v65
-	v_dual_mov_b32 v52, v66 :: v_dual_mov_b32 v53, v67
-	v_dual_mov_b32 v54, v68 :: v_dual_mov_b32 v55, v69
-	v_dual_mov_b32 v56, v70 :: v_dual_mov_b32 v57, v71
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[58:61], off, off
-	scratch_load_b128 v[62:65], off, off offset:16
-	.loc	1 1100 32                       ; ragged.py:1100:32
 	s_waitcnt lgkmcnt(1)
-	v_wmma_i32_16x16x16_iu4 v[244:251], v[222:223], v[198:199], v[244:251] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[32:39], v[224:225], v[198:199], v[32:39] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[226:233], v[222:223], v[200:201], v[226:233] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[50:57], v[224:225], v[200:201], v[50:57] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[16:23], v[224:225], v[149:150], v[16:23] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[81:88], v[133:134], v[129:130], v[81:88] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[89:96], v[135:136], v[129:130], v[89:96] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[129:130], v164
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	s_waitcnt lgkmcnt(1)
+	v_wmma_i32_16x16x16_iu4 v[113:120], v[133:134], v[138:139], v[113:120] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[121:128], v[135:136], v[138:139], v[121:128] neg_lo:[1,1,0]
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	v_dual_cndmask_b32 v139, v198, v202 :: v_dual_cndmask_b32 v138, v197, v201
+	.loc	1 1071 27                       ; ragged.py:1071:27
 	s_waitcnt lgkmcnt(0)
-	v_wmma_i32_16x16x16_iu4 v[244:251], v[210:211], v[179:180], v[244:251] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[32:39], v[212:213], v[179:180], v[32:39] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[226:233], v[210:211], v[191:192], v[226:233] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[50:57], v[212:213], v[191:192], v[50:57] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[16:23], v[212:213], v[173:174], v[16:23] neg_lo:[1,1,0]
-	s_waitcnt vmcnt(4)
-	v_wmma_i32_16x16x16_iu4 v[40:47], v[222:223], v[196:197], v[40:47] neg_lo:[1,1,0]
-	s_waitcnt vmcnt(2)
-	v_wmma_i32_16x16x16_iu4 v[234:241], v[224:225], v[196:197], v[234:241] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[97:104], v[133:134], v[129:130], v[97:104] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[105:112], v[135:136], v[129:130], v[105:112] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_2addr_stride64_b64 v[129:132], v203 offset1:1
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[65:72], v[133:134], v[129:130], v[65:72] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[73:80], v[135:136], v[129:130], v[73:80] neg_lo:[1,1,0]
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	v_dual_cndmask_b32 v129, v193, v189 :: v_dual_cndmask_b32 v136, v196, v200
+	v_dual_cndmask_b32 v130, v194, v190 :: v_dual_cndmask_b32 v133, v201, v197
+	v_dual_cndmask_b32 v134, v202, v198 :: v_dual_cndmask_b32 v135, v195, v199
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_wmma_i32_16x16x16_iu4 v[40:47], v[210:211], v[130:131], v[40:47] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[234:241], v[212:213], v[130:131], v[234:241] neg_lo:[1,1,0]
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_lshl_or_b32 v131, v1, 16, v0
-	v_perm_b32 v0, v148, v190, 0xc0c0004
-	v_perm_b32 v1, v169, v167, 0xc0c0004
-	v_lshl_or_b32 v130, v3, 16, v2
-	v_perm_b32 v2, v252, v137, 0xc0c0004
-	v_perm_b32 v3, v156, v155, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_4)
-	v_lshl_or_b32 v161, v1, 16, v0
-	v_perm_b32 v0, v195, v194, 0xc0c0004
-	v_perm_b32 v1, v178, v177, 0xc0c0004
-	v_lshl_or_b32 v160, v3, 16, v2
-	v_perm_b32 v2, v163, v162, 0xc0c0004
-	v_perm_b32 v3, v154, v143, 0xc0c0004
-	v_wmma_i32_16x16x16_iu4 v[73:80], v[214:215], v[130:131], v[73:80] neg_lo:[1,1,0]
-	v_lshl_or_b32 v163, v1, 16, v0
-	v_perm_b32 v0, v172, v170, 0xc0c0004
-	v_perm_b32 v1, v144, v254, 0xc0c0004
-	v_lshl_or_b32 v162, v3, 16, v2
-	v_perm_b32 v2, v158, v157, 0xc0c0004
-	v_perm_b32 v3, v153, v152, 0xc0c0004
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	ds_load_2addr_stride64_b64 v[152:155], v181 offset1:8
+	v_wmma_i32_16x16x16_iu4 v[81:88], v[129:130], v[131:132], v[81:88] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[89:96], v[133:134], v[131:132], v[89:96] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[131:132], v158
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_lshl_or_b32 v157, v1, 16, v0
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v0, off, off offset:448
-	scratch_load_b32 v1, off, off offset:388
-	v_lshl_or_b32 v156, v3, 16, v2
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v3, off, off offset:432
-	scratch_load_b32 v2, off, off offset:352
-	v_wmma_i32_16x16x16_iu4 v[81:88], v[216:217], v[130:131], v[81:88] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[89:96], v[214:215], v[160:161], v[89:96] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[97:104], v[216:217], v[160:161], v[97:104] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[105:112], v[214:215], v[162:163], v[105:112] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[113:120], v[216:217], v[162:163], v[113:120] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[121:128], v[214:215], v[156:157], v[121:128] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[24:31], v[216:217], v[156:157], v[24:31] neg_lo:[1,1,0]
-	.loc	1 1100 32                       ; ragged.py:1100:32
 	s_waitcnt lgkmcnt(0)
-	v_wmma_i32_16x16x16_iu4 v[40:47], v[152:153], v[130:131], v[40:47] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[234:241], v[154:155], v[130:131], v[234:241] neg_lo:[1,1,0]
-	.loc	1 1095 35                       ; ragged.py:1095:35
-	ds_load_2addr_stride64_b64 v[130:133], v242 offset1:8
-	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[244:251], v[152:153], v[160:161], v[244:251] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[32:39], v[154:155], v[160:161], v[32:39] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[226:233], v[152:153], v[162:163], v[226:233] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[50:57], v[154:155], v[162:163], v[50:57] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[16:23], v[154:155], v[156:157], v[16:23] neg_lo:[1,1,0]
-	s_waitcnt vmcnt(4)
-	v_wmma_i32_16x16x16_iu4 v[58:65], v[222:223], v[149:150], v[58:65] neg_lo:[1,1,0]
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_wmma_i32_16x16x16_iu4 v[58:65], v[210:211], v[173:174], v[58:65] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[58:65], v[152:153], v[156:157], v[58:65] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[65:72], v[129:130], v[131:132], v[65:72] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[73:80], v[133:134], v[131:132], v[73:80] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[131:132], v165
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	s_waitcnt vmcnt(3)
-	v_perm_b32 v0, v0, v138, 0xc0c0004
-	s_waitcnt vmcnt(2)
-	v_perm_b32 v1, v159, v1, 0xc0c0004
-	s_waitcnt vmcnt(1)
-	v_perm_b32 v3, v140, v3, 0xc0c0004
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v2, v2, v151, 0xc0c0004
-	v_lshl_or_b32 v138, v1, 16, v0
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v0, off, off offset:404
-	scratch_load_b32 v1, off, off offset:412
-	v_lshl_or_b32 v137, v3, 16, v2
-	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[97:104], v[129:130], v[131:132], v[97:104] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[105:112], v[133:134], v[131:132], v[105:112] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[131:132], v168
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[113:120], v[129:130], v[131:132], v[113:120] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[129:130], v159
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	v_wmma_i32_16x16x16_iu4 v[121:128], v[133:134], v[131:132], v[121:128] neg_lo:[1,1,0]
+	.loc	1 1070 30                       ; ragged.py:1070:30
+	v_dual_cndmask_b32 v133, v140, v191 :: v_dual_cndmask_b32 v140, v189, v193
+	v_dual_cndmask_b32 v134, v141, v192 :: v_dual_cndmask_b32 v141, v190, v194
+	.loc	1 1071 27                       ; ragged.py:1071:27
 	s_waitcnt lgkmcnt(0)
 	s_delay_alu instid0(VALU_DEP_1)
-	v_wmma_i32_16x16x16_iu4 v[40:47], v[130:131], v[137:138], v[40:47] neg_lo:[1,1,0]
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[40:43], off offset:288
-	scratch_store_b128 off, v[44:47], off offset:304
+	v_wmma_i32_16x16x16_iu4 v[65:72], v[133:134], v[129:130], v[65:72] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[73:80], v[135:136], v[129:130], v[73:80] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[129:130], v169
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_wmma_i32_16x16x16_iu4 v[73:80], v[218:219], v[137:138], v[73:80] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[81:88], v[220:221], v[137:138], v[81:88] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[113:120], v[133:134], v[129:130], v[113:120] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[121:128], v[135:136], v[129:130], v[121:128] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[129:130], v162
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[81:88], v[133:134], v[129:130], v[81:88] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[89:96], v[135:136], v[129:130], v[89:96] neg_lo:[1,1,0]
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_2addr_stride64_b64 v[129:132], v203 offset0:2 offset1:3
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	s_waitcnt lgkmcnt(0)
+	v_wmma_i32_16x16x16_iu4 v[97:104], v[133:134], v[129:130], v[97:104] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[105:112], v[135:136], v[129:130], v[105:112] neg_lo:[1,1,0]
+	.loc	1 1096 25                       ; ragged.py:1096:25
+	v_add_nc_u32_e32 v129, v154, v188
+	v_add_nc_u32_e32 v130, v155, v188
+	.loc	1 1071 27                       ; ragged.py:1071:27
+	v_wmma_i32_16x16x16_iu4 v[113:120], v[140:141], v[131:132], v[113:120] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[121:128], v[138:139], v[131:132], v[121:128] neg_lo:[1,1,0]
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	s_clause 0x1
+	buffer_load_b128 v[133:136], v129, s[8:11], 0 offen
+	buffer_load_b128 v[129:132], v130, s[8:11], 0 offen
+	.loc	1 1069 30                       ; ragged.py:1069:30
+	ds_load_b64 v[188:189], v160
+	ds_load_b64 v[190:191], v163
+	ds_load_b64 v[192:193], v166
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b8 v157, v185
+	ds_store_b8 v157, v184 offset:64
+	ds_store_b8 v157, v187 offset:128
+	ds_store_b8 v157, v186 offset:192
+	ds_store_b8 v157, v183 offset:256
+	ds_store_b8 v157, v143 offset:320
+	ds_store_b8 v157, v182 offset:384
+	ds_store_b8 v157, v142 offset:448
+	s_waitcnt lgkmcnt(0)
+	s_barrier
 	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[234:241], v[132:133], v[137:138], v[234:241] neg_lo:[1,1,0]
-	s_clause 0x5                            ; 96-byte Folded Spill
-	scratch_store_b128 off, v[73:76], off offset:32
-	scratch_store_b128 off, v[77:80], off offset:48
-	scratch_store_b128 off, v[81:84], off offset:64
-	scratch_store_b128 off, v[85:88], off offset:80
-	scratch_store_b128 off, v[234:237], off offset:320
-	scratch_store_b128 off, v[238:241], off offset:336
+	ds_load_u8 v142, v181 offset:320
+	ds_load_u8 v143, v181 offset:256
+	ds_load_u8 v182, v181 offset:448
+	ds_load_u8 v183, v181 offset:384
+	ds_load_u8 v186, v181 offset:80
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v0, v1, v0, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v1, off, off offset:372
-	scratch_load_b32 v2, off, off offset:380
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v1, v2, v1, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v2, off, off offset:452
-	scratch_load_b32 v3, off, off offset:456
-	v_lshl_or_b32 v140, v1, 16, v0
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v0, off, off offset:392
-	scratch_load_b32 v1, off, off offset:396
-	s_waitcnt vmcnt(2)
-	v_perm_b32 v2, v3, v2, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v3, off, off offset:420
-	scratch_load_b32 v4, off, off offset:424
-	s_waitcnt vmcnt(2)
-	v_perm_b32 v0, v1, v0, 0xc0c0004
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v3, v4, v3, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v139, v3, 16, v2
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v1, off, off offset:364
-	scratch_load_b32 v2, off, off offset:368
+	v_wmma_i32_16x16x16_iu4 v[65:72], v[140:141], v[188:189], v[65:72] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[73:80], v[138:139], v[188:189], v[73:80] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[81:88], v[140:141], v[190:191], v[81:88] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[97:104], v[140:141], v[192:193], v[97:104] neg_lo:[1,1,0]
 	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[244:251], v[130:131], v[139:140], v[244:251] neg_lo:[1,1,0]
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	v_wmma_i32_16x16x16_iu4 v[89:96], v[218:219], v[139:140], v[89:96] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[97:104], v[220:221], v[139:140], v[97:104] neg_lo:[1,1,0]
-	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[32:39], v[132:133], v[139:140], v[32:39] neg_lo:[1,1,0]
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[89:92], off offset:96
-	scratch_store_b128 off, v[93:96], off offset:112
-	v_dual_mov_b32 v40, v244 :: v_dual_mov_b32 v41, v245
-	v_dual_mov_b32 v42, v246 :: v_dual_mov_b32 v43, v247
-	v_dual_mov_b32 v44, v248 :: v_dual_mov_b32 v45, v249
-	v_dual_mov_b32 v46, v250 :: v_dual_mov_b32 v47, v251
-	s_clause 0x1                            ; 32-byte Folded Spill
-	scratch_store_b128 off, v[97:100], off offset:128
-	scratch_store_b128 off, v[101:104], off offset:144
-	.loc	1 1071 27                       ; ragged.py:1071:27
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v1, v2, v1, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v2, off, off offset:440
-	scratch_load_b32 v3, off, off offset:444
-	v_lshl_or_b32 v136, v1, 16, v0
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v0, off, off offset:428
-	scratch_load_b32 v1, off, off offset:436
-	s_waitcnt vmcnt(2)
-	v_perm_b32 v2, v3, v2, 0xc0c0004
-	scratch_load_b32 v3, off, off offset:416 ; 4-byte Folded Reload
+	ds_load_u8 v140, v181 offset:64
+	ds_load_u8 v141, v181
+	s_waitcnt lgkmcnt(5)
+	v_perm_b32 v142, v143, v142, 0xc0c0004
+	ds_load_u8 v143, v181 offset:464
+	s_waitcnt lgkmcnt(4)
+	v_perm_b32 v182, v183, v182, 0xc0c0004
+	ds_load_u8 v183, v181 offset:400
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v140, v141, v140, 0xc0c0004
+	ds_load_u8 v141, v181 offset:16
+	.loc	1 1095 35                       ; ragged.py:1095:35
 	s_waitcnt vmcnt(1)
-	v_perm_b32 v0, v1, v0, 0xc0c0004
+	ds_bpermute_b32 v196, v180, v135
 	s_waitcnt vmcnt(0)
-	v_perm_b32 v3, v243, v3, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1)
-	v_lshl_or_b32 v135, v3, 16, v2
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v1, off, off offset:400
-	scratch_load_b32 v2, off, off offset:408
-	v_wmma_i32_16x16x16_iu4 v[105:112], v[218:219], v[135:136], v[105:112] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[113:120], v[220:221], v[135:136], v[113:120] neg_lo:[1,1,0]
-	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[226:233], v[130:131], v[135:136], v[226:233] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[50:57], v[132:133], v[135:136], v[50:57] neg_lo:[1,1,0]
-	s_clause 0x3                            ; 64-byte Folded Spill
-	scratch_store_b128 off, v[105:108], off offset:160
-	scratch_store_b128 off, v[109:112], off offset:176
-	scratch_store_b128 off, v[113:116], off offset:192
-	scratch_store_b128 off, v[117:120], off offset:208
+	ds_bpermute_b32 v187, v151, v130
+	ds_bpermute_b32 v189, v180, v130
+	ds_bpermute_b32 v188, v180, v129
+	ds_bpermute_b32 v194, v180, v131
+	ds_bpermute_b32 v195, v180, v132
+	ds_bpermute_b32 v197, v180, v136
+	s_waitcnt lgkmcnt(4)
+	v_cndmask_b32_e32 v130, v189, v187, vcc_lo
 	.loc	1 1071 27                       ; ragged.py:1071:27
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v1, v2, v1, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v2, off, off offset:376
-	scratch_load_b32 v3, off, off offset:384
-	v_lshl_or_b32 v141, v1, 16, v0
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v2, v3, v2, 0xc0c0004
-	s_clause 0x1                            ; 8-byte Folded Reload
-	scratch_load_b32 v3, off, off offset:356
-	scratch_load_b32 v4, off, off offset:360
-	s_waitcnt vmcnt(0)
-	v_perm_b32 v3, v4, v3, 0xc0c0004
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_lshl_or_b32 v142, v3, 16, v2
-	v_wmma_i32_16x16x16_iu4 v[121:128], v[218:219], v[141:142], v[121:128] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[24:31], v[220:221], v[141:142], v[24:31] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[89:96], v[138:139], v[190:191], v[89:96] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[105:112], v[138:139], v[192:193], v[105:112] neg_lo:[1,1,0]
 	.loc	1 1100 32                       ; ragged.py:1100:32
-	v_wmma_i32_16x16x16_iu4 v[58:65], v[130:131], v[141:142], v[58:65] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[16:23], v[132:133], v[141:142], v[16:23] neg_lo:[1,1,0]
-	s_clause 0x5                            ; 96-byte Folded Spill
-	scratch_store_b128 off, v[121:124], off offset:224
-	scratch_store_b128 off, v[125:128], off offset:240
-	scratch_store_b128 off, v[24:27], off offset:256
-	scratch_store_b128 off, v[28:31], off offset:272
-	scratch_store_b128 off, v[58:61], off
-	scratch_store_b128 off, v[62:65], off offset:16
+	ds_load_u8 v138, v181 offset:192
+	ds_load_u8 v139, v181 offset:128
+	ds_load_u8 v184, v181 offset:336
+	ds_load_u8 v185, v181 offset:272
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	ds_bpermute_b32 v192, v151, v135
+	ds_bpermute_b32 v193, v151, v136
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(4)
+	v_perm_b32 v138, v139, v138, 0xc0c0004
+	v_lshl_or_b32 v139, v182, 16, v142
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v182, v185, v184, 0xc0c0004
+	ds_load_u8 v184, v181 offset:352
+	v_perm_b32 v143, v183, v143, 0xc0c0004
+	v_lshl_or_b32 v138, v138, 16, v140
+	ds_load_u8 v140, v181 offset:208
+	ds_load_u8 v142, v181 offset:144
+	ds_load_u8 v183, v181 offset:288
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v140, v142, v140, 0xc0c0004
+	ds_load_u8 v142, v181 offset:416
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v183, v183, v184, 0xc0c0004
+	ds_load_u8 v184, v181 offset:224
+	v_perm_b32 v185, v141, v186, 0xc0c0004
+	ds_load_u8 v186, v181 offset:480
+	v_lshl_or_b32 v141, v143, 16, v182
+	ds_load_u8 v143, v181 offset:32
+	ds_load_u8 v182, v181 offset:96
+	v_lshl_or_b32 v140, v140, 16, v185
+	ds_load_u8 v185, v181 offset:160
+	s_waitcnt lgkmcnt(3)
+	v_perm_b32 v142, v142, v186, 0xc0c0004
+	ds_load_u8 v186, v181 offset:368
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v182, v143, v182, 0xc0c0004
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v184, v185, v184, 0xc0c0004
+	ds_load_u8 v185, v181 offset:304
+	v_lshl_or_b32 v143, v142, 16, v183
+	v_lshl_or_b32 v142, v184, 16, v182
+	ds_load_u8 v182, v181 offset:496
+	ds_load_u8 v183, v181 offset:432
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v184, v185, v186, 0xc0c0004
+	ds_load_u8 v185, v181 offset:112
+	s_waitcnt lgkmcnt(1)
+	v_perm_b32 v182, v183, v182, 0xc0c0004
+	ds_load_u8 v183, v181 offset:48
+	v_lshl_or_b32 v191, v182, 16, v184
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	ds_bpermute_b32 v182, v151, v133
+	ds_bpermute_b32 v184, v180, v133
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v183, v183, v185, 0xc0c0004
+	ds_load_u8 v185, v181 offset:240
+	ds_load_u8 v186, v181 offset:176
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	s_waitcnt lgkmcnt(2)
+	v_dual_cndmask_b32 v133, v184, v182 :: v_dual_cndmask_b32 v182, v182, v184
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v185, v186, v185, 0xc0c0004
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	ds_bpermute_b32 v186, v151, v129
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_lshl_or_b32 v190, v185, 16, v183
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	ds_bpermute_b32 v183, v151, v134
+	ds_bpermute_b32 v185, v180, v134
+	s_waitcnt lgkmcnt(2)
+	v_dual_cndmask_b32 v129, v188, v186 :: v_dual_cndmask_b32 v184, v186, v188
+	v_cndmask_b32_e32 v186, v192, v196, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2)
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[129:130], v[138:139], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[129:130], v[140:141], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[129:130], v[142:143], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[129:130], v[190:191], v[57:64] neg_lo:[1,1,0]
+	ds_load_u8 v129, v181 offset:832
+	ds_load_u8 v130, v181 offset:768
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	s_waitcnt lgkmcnt(2)
+	v_dual_cndmask_b32 v134, v185, v183 :: v_dual_cndmask_b32 v183, v183, v185
+	s_delay_alu instid0(VALU_DEP_1)
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[133:134], v[190:191], v[49:56] neg_lo:[1,1,0]
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	ds_bpermute_b32 v190, v151, v131
+	ds_bpermute_b32 v191, v151, v132
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[133:134], v[138:139], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[133:134], v[140:141], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[133:134], v[142:143], v[33:40] neg_lo:[1,1,0]
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	v_cndmask_b32_e32 v185, v187, v189, vcc_lo
+	v_cndmask_b32_e32 v187, v193, v197, vcc_lo
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v129, v130, v129, 0xc0c0004
+	ds_load_u8 v130, v181 offset:960
+	ds_load_u8 v131, v181 offset:896
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	s_waitcnt lgkmcnt(2)
+	v_dual_cndmask_b32 v188, v190, v194 :: v_dual_cndmask_b32 v189, v191, v195
+	v_cndmask_b32_e32 v141, v195, v191, vcc_lo
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v130, v131, v130, 0xc0c0004
+	ds_load_u8 v131, v181 offset:576
+	ds_load_u8 v132, v181 offset:512
+	v_lshl_or_b32 v130, v130, 16, v129
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:704
+	ds_load_u8 v133, v181 offset:640
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v133, v132, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v129, v132, 16, v131
+	ds_load_u8 v131, v181 offset:848
+	ds_load_u8 v132, v181 offset:784
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:976
+	ds_load_u8 v133, v181 offset:912
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v133, v132, 0xc0c0004
+	ds_load_u8 v133, v181 offset:592
+	ds_load_u8 v134, v181 offset:528
+	v_lshl_or_b32 v132, v132, 16, v131
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v133, v134, v133, 0xc0c0004
+	ds_load_u8 v134, v181 offset:720
+	ds_load_u8 v135, v181 offset:656
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v134, v135, v134, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v131, v134, 16, v133
+	ds_load_u8 v133, v181 offset:864
+	ds_load_u8 v134, v181 offset:800
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v133, v134, v133, 0xc0c0004
+	ds_load_u8 v134, v181 offset:992
+	ds_load_u8 v135, v181 offset:928
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v134, v135, v134, 0xc0c0004
+	ds_load_u8 v135, v181 offset:608
+	ds_load_u8 v136, v181 offset:544
+	v_lshl_or_b32 v134, v134, 16, v133
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v135, v136, v135, 0xc0c0004
+	ds_load_u8 v136, v181 offset:736
+	ds_load_u8 v138, v181 offset:672
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v136, v138, v136, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v133, v136, 16, v135
+	ds_load_u8 v135, v181 offset:624
+	ds_load_u8 v136, v181 offset:560
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v135, v136, v135, 0xc0c0004
+	ds_load_u8 v136, v181 offset:752
+	ds_load_u8 v138, v181 offset:688
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v136, v138, v136, 0xc0c0004
+	ds_load_u8 v138, v181 offset:880
+	ds_load_u8 v139, v181 offset:816
+	v_lshl_or_b32 v135, v136, 16, v135
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v138, v139, v138, 0xc0c0004
+	ds_load_u8 v139, v181 offset:944
+	ds_load_u8 v140, v170
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v139, v139, v140, 0xc0c0004
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	v_cndmask_b32_e32 v140, v194, v190, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_lshl_or_b32 v136, v139, 16, v138
+	.loc	1 1095 35                       ; ragged.py:1095:35
+	v_dual_cndmask_b32 v138, v196, v192 :: v_dual_cndmask_b32 v139, v197, v193
+	.loc	1 1100 32                       ; ragged.py:1100:32
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[140:141], v[129:130], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[140:141], v[131:132], v[25:32] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[140:141], v[133:134], v[41:48] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[140:141], v[135:136], v[57:64] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[138:139], v[129:130], v[1:8] neg_lo:[1,1,0]
+	ds_load_u8 v129, v181 offset:1280
+	ds_load_u8 v130, v181 offset:1344
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[138:139], v[131:132], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[138:139], v[133:134], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[138:139], v[135:136], v[49:56] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v129, v129, v130, 0xc0c0004
+	ds_load_u8 v130, v181 offset:1408
+	ds_load_u8 v131, v181 offset:1472
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v130, v130, v131, 0xc0c0004
+	ds_load_u8 v131, v181 offset:1024
+	ds_load_u8 v132, v181 offset:1088
+	v_lshl_or_b32 v136, v130, 16, v129
+	ds_load_u8 v129, v181 offset:1360
+	ds_load_u8 v130, v181 offset:1296
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v131, v131, v132, 0xc0c0004
+	ds_load_u8 v132, v181 offset:1152
+	ds_load_u8 v133, v181 offset:1216
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v129, v130, v129, 0xc0c0004
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v132, v133, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v135, v132, 16, v131
+	ds_load_u8 v130, v181 offset:1488
+	ds_load_u8 v131, v181 offset:1424
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[182:183], v[135:136], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[184:185], v[135:136], v[9:16] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v130, v131, v130, 0xc0c0004
+	ds_load_u8 v131, v181 offset:1104
+	ds_load_u8 v132, v181 offset:1040
+	v_lshl_or_b32 v141, v130, 16, v129
+	ds_load_u8 v129, v181 offset:1376
+	ds_load_u8 v130, v181 offset:1312
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:1232
+	ds_load_u8 v133, v181 offset:1168
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v129, v130, v129, 0xc0c0004
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v133, v132, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v140, v132, 16, v131
+	ds_load_u8 v130, v181 offset:1504
+	ds_load_u8 v131, v181 offset:1440
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[182:183], v[140:141], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[184:185], v[140:141], v[25:32] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v130, v131, v130, 0xc0c0004
+	ds_load_u8 v131, v181 offset:1120
+	ds_load_u8 v132, v181 offset:1056
+	v_lshl_or_b32 v143, v130, 16, v129
+	ds_load_u8 v129, v181 offset:1392
+	ds_load_u8 v130, v181 offset:1328
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:1248
+	ds_load_u8 v133, v181 offset:1184
+	s_waitcnt lgkmcnt(2)
+	v_perm_b32 v129, v130, v129, 0xc0c0004
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v133, v132, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v142, v132, 16, v131
+	ds_load_u8 v130, v181 offset:1520
+	ds_load_u8 v131, v181 offset:1456
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[182:183], v[142:143], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[184:185], v[142:143], v[41:48] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v130, v131, v130, 0xc0c0004
+	ds_load_u8 v131, v181 offset:1136
+	ds_load_u8 v132, v181 offset:1072
+	v_lshl_or_b32 v130, v130, 16, v129
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:1264
+	ds_load_u8 v133, v181 offset:1200
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v133, v132, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v129, v132, 16, v131
+	ds_load_u8 v131, v181 offset:1856
+	ds_load_u8 v132, v181 offset:1792
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[182:183], v[129:130], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[184:185], v[129:130], v[57:64] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v131, v132, v131, 0xc0c0004
+	ds_load_u8 v132, v181 offset:1920
+	ds_load_u8 v133, v181 offset:1984
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v132, v132, v133, 0xc0c0004
+	ds_load_u8 v133, v181 offset:1536
+	ds_load_u8 v134, v181 offset:1600
+	v_lshl_or_b32 v132, v132, 16, v131
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v133, v133, v134, 0xc0c0004
+	ds_load_u8 v134, v181 offset:1664
+	ds_load_u8 v138, v181 offset:1728
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v134, v134, v138, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v131, v134, 16, v133
+	ds_load_u8 v133, v181 offset:1872
+	ds_load_u8 v134, v181 offset:1808
+	v_wmma_i32_16x16x16_iu4 v[1:8], v[186:187], v[131:132], v[1:8] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[9:16], v[188:189], v[131:132], v[9:16] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v133, v134, v133, 0xc0c0004
+	ds_load_u8 v134, v181 offset:2000
+	ds_load_u8 v138, v181 offset:1936
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v134, v138, v134, 0xc0c0004
+	ds_load_u8 v138, v181 offset:1616
+	ds_load_u8 v139, v181 offset:1552
+	v_lshl_or_b32 v134, v134, 16, v133
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v138, v139, v138, 0xc0c0004
+	ds_load_u8 v139, v181 offset:1744
+	ds_load_u8 v198, v181 offset:1680
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v139, v198, v139, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v133, v139, 16, v138
+	ds_load_u8 v138, v181 offset:1888
+	ds_load_u8 v139, v181 offset:1824
+	v_wmma_i32_16x16x16_iu4 v[17:24], v[186:187], v[133:134], v[17:24] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[25:32], v[188:189], v[133:134], v[25:32] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v138, v139, v138, 0xc0c0004
+	ds_load_u8 v139, v181 offset:2016
+	ds_load_u8 v198, v181 offset:1952
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v139, v198, v139, 0xc0c0004
+	ds_load_u8 v198, v181 offset:1632
+	ds_load_u8 v199, v181 offset:1568
+	v_lshl_or_b32 v139, v139, 16, v138
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v198, v199, v198, 0xc0c0004
+	ds_load_u8 v199, v181 offset:1760
+	ds_load_u8 v200, v181 offset:1696
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v199, v200, v199, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1)
+	v_lshl_or_b32 v138, v199, 16, v198
+	ds_load_u8 v198, v181 offset:1648
+	ds_load_u8 v199, v181 offset:1584
+	v_wmma_i32_16x16x16_iu4 v[33:40], v[186:187], v[138:139], v[33:40] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[41:48], v[188:189], v[138:139], v[41:48] neg_lo:[1,1,0]
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v198, v199, v198, 0xc0c0004
+	ds_load_u8 v199, v181 offset:1776
+	ds_load_u8 v200, v181 offset:1712
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v199, v200, v199, 0xc0c0004
+	ds_load_u8 v200, v181 offset:1904
+	ds_load_u8 v201, v181 offset:1840
+	v_lshl_or_b32 v198, v199, 16, v198
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v200, v201, v200, 0xc0c0004
+	ds_load_u8 v201, v171
+	ds_load_u8 v202, v181 offset:1968
+	s_waitcnt lgkmcnt(0)
+	v_perm_b32 v201, v202, v201, 0xc0c0004
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_lshl_or_b32 v199, v201, 16, v200
+	v_wmma_i32_16x16x16_iu4 v[49:56], v[186:187], v[198:199], v[49:56] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[57:64], v[188:189], v[198:199], v[57:64] neg_lo:[1,1,0]
 	.loc	1 1058 19                       ; ragged.py:1058:19
 	s_cbranch_scc1 .LBB0_5
 ; %bb.6:                                ; %._crit_edge.loopexit
-	.loc	1 0 19 is_stmt 0                ; ragged.py:0:19
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:32
-	scratch_load_b128 v[4:7], off, off offset:48
-	.loc	1 1112 24 is_stmt 1             ; ragged.py:1112:24
-	v_cvt_f32_i32_e32 v81, v42
-	v_cvt_f32_i32_e32 v84, v41
-	v_cvt_f32_i32_e32 v83, v40
-	v_cvt_f32_i32_e32 v82, v43
-	v_cvt_f32_i32_e32 v76, v44
-	v_cvt_f32_i32_e32 v75, v45
-	v_cvt_f32_i32_e32 v31, v46
-	v_cvt_f32_i32_e32 v30, v47
-	v_cvt_f32_i32_e32 v32, v32
-	v_cvt_f32_i32_e32 v173, v33
-	v_cvt_f32_i32_e32 v171, v34
-	v_cvt_f32_i32_e32 v169, v35
-	v_cvt_f32_i32_e32 v10, v36
-	v_cvt_f32_i32_e32 v25, v37
-	v_cvt_f32_i32_e32 v24, v38
-	v_cvt_f32_i32_e32 v174, v39
-	v_cvt_f32_i32_e32 v80, v226
-	v_cvt_f32_i32_e32 v79, v227
-	v_cvt_f32_i32_e32 v43, v228
-	v_cvt_f32_i32_e32 v44, v229
-	v_cvt_f32_i32_e32 v37, v230
-	v_cvt_f32_i32_e32 v36, v231
-	v_cvt_f32_i32_e32 v35, v232
-	v_cvt_f32_i32_e32 v34, v233
-	v_cvt_f32_i32_e32 v33, v50
-	v_cvt_f32_i32_e32 v168, v51
-	v_cvt_f32_i32_e32 v167, v52
-	v_cvt_f32_i32_e32 v15, v53
-	v_cvt_f32_i32_e32 v9, v54
-	v_cvt_f32_i32_e32 v28, v55
-	v_cvt_f32_i32_e32 v27, v56
-	v_cvt_f32_i32_e32 v26, v57
-	v_cvt_f32_i32_e32 v40, v16
-	v_cvt_f32_i32_e32 v14, v17
-	v_cvt_f32_i32_e32 v13, v18
-	v_cvt_f32_i32_e32 v12, v19
-	v_cvt_f32_i32_e32 v29, v21
-	scratch_load_b32 v166, off, off offset:760 ; 4-byte Folded Reload
-	v_mov_b32_e32 v53, s3
 	.loc	1 1111 19                       ; ragged.py:1111:19
-	s_waitcnt vmcnt(2)
-	v_cvt_f32_i32_e32 v129, v0
-	v_cvt_f32_i32_e32 v132, v1
-	v_cvt_f32_i32_e32 v164, v2
-	v_cvt_f32_i32_e32 v159, v3
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v141, v4
-	v_cvt_f32_i32_e32 v142, v5
-	v_cvt_f32_i32_e32 v143, v6
-	v_cvt_f32_i32_e32 v145, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:64
-	scratch_load_b128 v[4:7], off, off offset:80
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v144, v0
-	v_cvt_f32_i32_e32 v138, v1
-	v_cvt_f32_i32_e32 v139, v2
-	v_cvt_f32_i32_e32 v140, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v130, v4
-	v_cvt_f32_i32_e32 v134, v5
-	v_cvt_f32_i32_e32 v133, v6
-	v_cvt_f32_i32_e32 v131, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:96
-	scratch_load_b128 v[4:7], off, off offset:112
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v161, v0
-	v_cvt_f32_i32_e32 v160, v1
-	v_cvt_f32_i32_e32 v163, v2
-	v_cvt_f32_i32_e32 v162, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v148, v4
-	v_cvt_f32_i32_e32 v147, v5
-	v_cvt_f32_i32_e32 v149, v6
-	v_cvt_f32_i32_e32 v150, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:128
-	scratch_load_b128 v[4:7], off, off offset:144
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v146, v0
-	v_cvt_f32_i32_e32 v136, v1
-	v_cvt_f32_i32_e32 v135, v2
-	v_cvt_f32_i32_e32 v137, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v78, v4
-	v_cvt_f32_i32_e32 v93, v5
-	v_cvt_f32_i32_e32 v92, v6
-	v_cvt_f32_i32_e32 v91, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:160
-	scratch_load_b128 v[4:7], off, off offset:176
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v156, v0
-	v_cvt_f32_i32_e32 v155, v1
-	v_cvt_f32_i32_e32 v158, v2
-	v_cvt_f32_i32_e32 v157, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v152, v4
-	v_cvt_f32_i32_e32 v151, v5
-	v_cvt_f32_i32_e32 v153, v6
-	v_cvt_f32_i32_e32 v154, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:192
-	scratch_load_b128 v[4:7], off, off offset:208
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v104, v0
-	v_cvt_f32_i32_e32 v102, v1
-	v_cvt_f32_i32_e32 v101, v2
-	v_cvt_f32_i32_e32 v103, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v77, v4
-	v_cvt_f32_i32_e32 v97, v5
-	v_cvt_f32_i32_e32 v96, v6
-	v_cvt_f32_i32_e32 v95, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:224
-	scratch_load_b128 v[4:7], off, off offset:240
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v110, v0
-	v_cvt_f32_i32_e32 v111, v1
-	v_cvt_f32_i32_e32 v113, v2
-	v_cvt_f32_i32_e32 v112, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v106, v4
-	v_cvt_f32_i32_e32 v107, v5
-	v_cvt_f32_i32_e32 v108, v6
-	v_cvt_f32_i32_e32 v109, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:256
-	scratch_load_b128 v[4:7], off, off offset:272
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v105, v0
-	v_cvt_f32_i32_e32 v89, v1
-	v_cvt_f32_i32_e32 v90, v2
-	v_cvt_f32_i32_e32 v94, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v69, v4
-	v_cvt_f32_i32_e32 v100, v5
-	v_cvt_f32_i32_e32 v99, v6
-	v_cvt_f32_i32_e32 v98, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:288
-	scratch_load_b128 v[4:7], off, off offset:304
+	v_cvt_f32_i32_e32 v156, v65
+	v_cvt_f32_i32_e32 v157, v66
+	v_cvt_f32_i32_e32 v159, v67
+	v_cvt_f32_i32_e32 v158, v68
+	v_cvt_f32_i32_e32 v152, v69
+	v_cvt_f32_i32_e32 v153, v70
+	v_cvt_f32_i32_e32 v154, v71
+	v_cvt_f32_i32_e32 v155, v72
+	v_cvt_f32_i32_e32 v161, v73
+	v_cvt_f32_i32_e32 v143, v74
+	v_cvt_f32_i32_e32 v149, v75
+	v_cvt_f32_i32_e32 v150, v76
+	v_cvt_f32_i32_e32 v151, v77
+	v_cvt_f32_i32_e32 v164, v78
+	v_cvt_f32_i32_e32 v163, v79
+	v_cvt_f32_i32_e32 v162, v80
+	v_cvt_f32_i32_e32 v139, v81
+	v_cvt_f32_i32_e32 v140, v82
+	v_cvt_f32_i32_e32 v142, v83
+	v_cvt_f32_i32_e32 v141, v84
+	v_cvt_f32_i32_e32 v134, v85
+	v_cvt_f32_i32_e32 v135, v86
+	v_cvt_f32_i32_e32 v136, v87
+	v_cvt_f32_i32_e32 v138, v88
+	v_cvt_f32_i32_e32 v165, v89
+	v_cvt_f32_i32_e32 v130, v90
+	v_cvt_f32_i32_e32 v131, v91
+	v_cvt_f32_i32_e32 v132, v92
+	v_cvt_f32_i32_e32 v133, v93
+	v_cvt_f32_i32_e32 v168, v94
+	v_cvt_f32_i32_e32 v167, v95
+	v_cvt_f32_i32_e32 v166, v96
+	v_cvt_f32_i32_e32 v97, v97
+	v_cvt_f32_i32_e32 v98, v98
+	v_cvt_f32_i32_e32 v129, v99
+	v_cvt_f32_i32_e32 v99, v100
+	v_cvt_f32_i32_e32 v89, v101
+	v_cvt_f32_i32_e32 v90, v102
+	v_cvt_f32_i32_e32 v91, v103
+	v_cvt_f32_i32_e32 v92, v104
+	v_cvt_f32_i32_e32 v169, v105
+	v_cvt_f32_i32_e32 v81, v106
+	v_cvt_f32_i32_e32 v82, v107
+	v_cvt_f32_i32_e32 v83, v108
+	v_cvt_f32_i32_e32 v84, v109
+	v_cvt_f32_i32_e32 v172, v110
+	v_cvt_f32_i32_e32 v171, v111
+	v_cvt_f32_i32_e32 v170, v112
+	v_cvt_f32_i32_e32 v73, v113
+	v_cvt_f32_i32_e32 v74, v114
+	v_cvt_f32_i32_e32 v76, v115
+	v_cvt_f32_i32_e32 v75, v116
+	v_cvt_f32_i32_e32 v69, v117
+	v_cvt_f32_i32_e32 v70, v118
+	v_cvt_f32_i32_e32 v71, v119
+	v_cvt_f32_i32_e32 v72, v120
+	v_cvt_f32_i32_e32 v173, v121
+	v_cvt_f32_i32_e32 v67, v122
+	v_cvt_f32_i32_e32 v66, v123
+	v_cvt_f32_i32_e32 v68, v124
+	v_cvt_f32_i32_e32 v65, v125
+	v_cvt_f32_i32_e32 v176, v126
+	v_cvt_f32_i32_e32 v175, v127
+	v_cvt_f32_i32_e32 v174, v128
 	.loc	1 1112 24                       ; ragged.py:1112:24
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v85, v0
-	v_cvt_f32_i32_e32 v86, v1
-	v_cvt_f32_i32_e32 v88, v2
-	v_cvt_f32_i32_e32 v87, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v70, v4
-	v_cvt_f32_i32_e32 v71, v5
-	v_cvt_f32_i32_e32 v72, v6
-	v_cvt_f32_i32_e32 v73, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off offset:320
-	scratch_load_b128 v[4:7], off, off offset:336
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v74, v0
-	v_cvt_f32_i32_e32 v66, v1
-	v_cvt_f32_i32_e32 v67, v2
-	v_cvt_f32_i32_e32 v68, v3
-	s_waitcnt vmcnt(0)
-	v_cvt_f32_i32_e32 v11, v4
-	v_cvt_f32_i32_e32 v65, v5
-	v_cvt_f32_i32_e32 v172, v6
-	v_cvt_f32_i32_e32 v170, v7
-	s_clause 0x1                            ; 32-byte Folded Reload
-	scratch_load_b128 v[0:3], off, off
-	scratch_load_b128 v[4:7], off, off offset:16
-	s_waitcnt vmcnt(1)
-	v_cvt_f32_i32_e32 v42, v0
-	scratch_load_b32 v0, off, off offset:460 ; 4-byte Folded Reload
-	v_cvt_f32_i32_e32 v41, v1
-	scratch_load_b32 v1, off, off offset:764 ; 4-byte Folded Reload
-	v_cvt_f32_i32_e32 v38, v2
-	v_cvt_f32_i32_e32 v39, v3
-	s_waitcnt vmcnt(2)
-	v_cvt_f32_i32_e32 v48, v4
-	v_cvt_f32_i32_e32 v47, v5
-	v_cvt_f32_i32_e32 v46, v6
-	v_cvt_f32_i32_e32 v45, v7
-	v_cvt_f32_i32_e32 v5, v20
-	v_cvt_f32_i32_e32 v6, v22
-	v_cvt_f32_i32_e32 v7, v23
-	v_dual_mov_b32 v4, s22 :: v_dual_mov_b32 v3, v165
-	s_waitcnt vmcnt(1)
-	v_and_b32_e32 v2, 0x80, v0
+	v_cvt_f32_i32_e32 v126, v1
+	v_cvt_f32_i32_e32 v127, v2
+	v_cvt_f32_i32_e32 v160, v3
+	v_cvt_f32_i32_e32 v128, v4
+	v_cvt_f32_i32_e32 v121, v5
+	v_cvt_f32_i32_e32 v122, v6
+	v_cvt_f32_i32_e32 v123, v7
+	v_cvt_f32_i32_e32 v124, v8
+	v_cvt_f32_i32_e32 v3, v9
+	v_cvt_f32_i32_e32 v104, v10
+	v_cvt_f32_i32_e32 v105, v11
+	v_cvt_f32_i32_e32 v106, v12
+	v_cvt_f32_i32_e32 v107, v13
+	v_cvt_f32_i32_e32 v6, v14
+	v_cvt_f32_i32_e32 v5, v15
+	v_cvt_f32_i32_e32 v4, v16
+	v_cvt_f32_i32_e32 v108, v17
+	v_cvt_f32_i32_e32 v109, v18
+	v_cvt_f32_i32_e32 v115, v19
+	v_cvt_f32_i32_e32 v110, v20
+	v_cvt_f32_i32_e32 v116, v21
+	v_cvt_f32_i32_e32 v117, v22
+	v_cvt_f32_i32_e32 v118, v23
+	v_cvt_f32_i32_e32 v119, v24
+	v_cvt_f32_i32_e32 v7, v25
+	v_cvt_f32_i32_e32 v111, v26
+	v_cvt_f32_i32_e32 v112, v27
+	v_cvt_f32_i32_e32 v113, v28
+	v_cvt_f32_i32_e32 v114, v29
+	v_cvt_f32_i32_e32 v10, v30
+	v_cvt_f32_i32_e32 v9, v31
+	v_cvt_f32_i32_e32 v8, v32
+	v_cvt_f32_i32_e32 v100, v33
+	v_cvt_f32_i32_e32 v101, v34
+	v_cvt_f32_i32_e32 v103, v35
+	v_cvt_f32_i32_e32 v102, v36
+	v_cvt_f32_i32_e32 v93, v37
+	v_cvt_f32_i32_e32 v94, v38
+	v_cvt_f32_i32_e32 v95, v39
+	v_cvt_f32_i32_e32 v96, v40
+	v_cvt_f32_i32_e32 v11, v41
+	v_cvt_f32_i32_e32 v85, v42
+	v_cvt_f32_i32_e32 v86, v43
+	v_cvt_f32_i32_e32 v87, v44
+	v_cvt_f32_i32_e32 v88, v45
+	v_cvt_f32_i32_e32 v14, v46
+	v_cvt_f32_i32_e32 v13, v47
+	v_cvt_f32_i32_e32 v12, v48
+	v_cvt_f32_i32_e32 v77, v49
+	v_cvt_f32_i32_e32 v78, v50
+	v_cvt_f32_i32_e32 v80, v51
+	v_cvt_f32_i32_e32 v79, v52
+	v_cvt_f32_i32_e32 v51, v53
+	v_cvt_f32_i32_e32 v52, v54
+	v_cvt_f32_i32_e32 v53, v55
+	v_cvt_f32_i32_e32 v54, v56
+	v_cvt_f32_i32_e32 v15, v57
+	v_cvt_f32_i32_e32 v47, v58
+	v_cvt_f32_i32_e32 v48, v59
+	v_cvt_f32_i32_e32 v49, v60
+	v_cvt_f32_i32_e32 v50, v61
+	v_cvt_f32_i32_e32 v18, v62
+	v_cvt_f32_i32_e32 v17, v63
+	v_cvt_f32_i32_e32 v16, v64
+	v_dual_mov_b32 v1, s3 :: v_dual_mov_b32 v32, s26
+	v_dual_mov_b32 v2, v147 :: v_dual_mov_b32 v31, v137
+	v_mov_b32_e32 v30, v148
 .LBB0_7:                                ; %._crit_edge
-	.loc	1 0 24 is_stmt 0                ; ragged.py:0:24
-	scratch_load_b32 v165, off, off offset:460 ; 4-byte Folded Reload
-	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
-	s_waitcnt vmcnt(1)
-	v_and_b32_e32 v8, 28, v1
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	s_waitcnt lgkmcnt(0)
-	s_and_b32 s13, s17, 0xffff
-	s_mov_b32 s15, 0x31027000
-	s_mov_b32 s14, 0x7ffffffe
-	s_mov_b32 s12, s16
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	s_waitcnt vmcnt(0)
-	v_lshlrev_b32_e32 v1, 5, v165
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_and_b32_e32 v49, 32, v1
 	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_and_b32_e32 v1, 0xf0, v165
+	v_lshrrev_b32_e32 v33, 4, v0
+	.loc	1 1114 36                       ; ragged.py:1114:36
+	s_waitcnt lgkmcnt(0)
+	s_and_b32 s9, s17, 0xffff
+	s_mov_b32 s11, 0x31027000
+	s_mov_b32 s10, 0x7ffffffe
 	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_lshl_add_u32 v50, v1, 2, 0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add3_u32 v52, v50, v49, v8
-	.loc	1 1044 18                       ; ragged.py:1044:18
-	v_add_co_u32 v49, s0, s22, v166
-	v_add_co_ci_u32_e64 v50, null, s23, 0, s0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_lshlrev_b32_e32 v8, 1, v49
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e32 vcc_lo, s[24:25], v[49:50]
-	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s0, s[26:27], v[49:50]
-	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
-	v_or_b32_e32 v49, 16, v166
+	v_and_b32_e32 v2, 28, v2
+	.loc	1 1044 32                       ; ragged.py:1044:32
+	v_or_b32_e32 v19, 48, v33
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
-	v_add_co_u32 v49, s1, s22, v49
-	v_add_co_ci_u32_e64 v50, null, s23, 0, s1
-	.loc	1 1046 20 is_stmt 1             ; ragged.py:1046:20
-	s_and_b32 vcc_lo, vcc_lo, s0
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_dual_cndmask_b32 v0, 0x80000000, v8 :: v_dual_lshlrev_b32 v51, 1, v49
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e64 s1, s[24:25], v[49:50]
+	v_add_co_u32 v19, s0, s26, v19
+	v_add_co_ci_u32_e64 v20, null, s27, 0, s0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	.loc	1 1046 21 is_stmt 1             ; ragged.py:1046:21
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[19:20]
 	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s3, s[26:27], v[49:50]
+	v_cmp_gt_i64_e64 s0, s[24:25], v[19:20]
 	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
-	v_or_b32_e32 v49, 32, v166
-	s_mov_b32 s0, 0x76543210
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_or_b32_e32 v19, 32, v33
 	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
-	v_add_co_u32 v49, s4, s22, v49
-	v_add_co_ci_u32_e64 v50, null, s23, 0, s4
+	v_add_co_u32 v19, s1, s26, v19
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_4) | instid1(VALU_DEP_1)
+	v_add_co_ci_u32_e64 v20, null, s27, 0, s1
 	.loc	1 1046 20 is_stmt 1             ; ragged.py:1046:20
-	s_and_b32 vcc_lo, s1, s3
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_lshlrev_b32_e32 v54, 1, v49
-	v_cndmask_b32_e32 v8, 0x80000000, v51, vcc_lo
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e64 s4, s[24:25], v[49:50]
-	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s5, s[26:27], v[49:50]
-	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
-	v_or_b32_e32 v49, 48, v166
-	.loc	1 1249 38                       ; ragged.py:1249:38
-	s_lshr_b32 s1, s20, 31
-	s_delay_alu instid0(SALU_CYCLE_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	s_add_i32 s1, s20, s1
-	.loc	1 1044 18                       ; ragged.py:1044:18
-	v_add_co_u32 v49, s6, s22, v49
-	s_delay_alu instid0(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v50, null, s23, 0, s6
-	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 vcc_lo, s4, s5
+	s_and_b32 s0, vcc_lo, s0
 	.loc	1 1046 21 is_stmt 0             ; ragged.py:1046:21
-	v_cmp_le_i64_e64 s6, s[24:25], v[49:50]
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[19:20]
 	.loc	1 1046 48                       ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s7, s[26:27], v[49:50]
-	.loc	1 1120 21 is_stmt 1             ; ragged.py:1120:21
-	v_or_b32_e32 v50, s29, v165
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_lshlrev_b32_e32 v49, 1, v49
-	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 1120 21                       ; ragged.py:1120:21
-	v_add_nc_u32_e32 v53, v50, v53
-	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_cndmask_b32_e32 v50, 0x80000000, v54, vcc_lo
+	v_cmp_gt_i64_e64 s1, s[24:25], v[19:20]
+	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
+	v_or_b32_e32 v19, 16, v33
+	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
+	v_add_co_u32 v19, s3, s26, v19
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_4) | instid1(VALU_DEP_1)
+	v_add_co_ci_u32_e64 v20, null, s27, 0, s3
+	.loc	1 1046 20 is_stmt 1             ; ragged.py:1046:20
+	s_and_b32 s1, vcc_lo, s1
+	.loc	1 1046 21 is_stmt 0             ; ragged.py:1046:21
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[19:20]
+	.loc	1 1046 48                       ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s3, s[24:25], v[19:20]
+	.loc	1 1044 18 is_stmt 1             ; ragged.py:1044:18
+	v_add_co_u32 v19, s4, s26, v33
+	v_add_co_ci_u32_e64 v20, null, s27, 0, s4
 	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 vcc_lo, s6, s7
-	.loc	1 1249 38                       ; ragged.py:1249:38
-	s_ashr_i32 s6, s1, 1
+	s_and_b32 s3, vcc_lo, s3
+	.loc	1 1046 21 is_stmt 0             ; ragged.py:1046:21
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[19:20]
+	.loc	1 1046 48                       ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s4, s[24:25], v[19:20]
+	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
+	v_or_b32_e32 v19, 48, v145
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
+	v_add_co_u32 v19, s5, s26, v19
+	v_add_co_ci_u32_e64 v20, null, s27, 0, s5
+	.loc	1 1046 20 is_stmt 1             ; ragged.py:1046:20
+	s_and_b32 s4, vcc_lo, s4
+	.loc	1 1046 21 is_stmt 0             ; ragged.py:1046:21
+	v_cmp_le_i64_e32 vcc_lo, s[22:23], v[19:20]
+	.loc	1 1046 48                       ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s5, s[24:25], v[19:20]
+	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
+	v_or_b32_e32 v20, 32, v145
 	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_cndmask_b32_e32 v49, 0x80000000, v49, vcc_lo
-	s_clause 0x3
-	buffer_load_u16 v0, v0, s[12:15], 0 offen
-	buffer_load_u16 v8, v8, s[12:15], 0 offen
-	buffer_load_u16 v54, v50, s[12:15], 0 offen
-	buffer_load_u16 v55, v49, s[12:15], 0 offen
-	.loc	1 1119 36                       ; ragged.py:1119:36
-	s_and_b32 s13, s19, 0xffff
-	s_mov_b32 s12, s18
+	v_lshlrev_b32_e32 v19, 1, v19
+	.loc	1 1046 20                       ; ragged.py:1046:20
+	s_and_b32 vcc_lo, vcc_lo, s5
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1044 18                       ; ragged.py:1044:18
+	v_add_co_u32 v20, s5, s26, v20
+	v_add_co_ci_u32_e64 v21, null, s27, 0, s5
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 1114 36                       ; ragged.py:1114:36
-	s_waitcnt vmcnt(3)
-	v_lshlrev_b32_e32 v51, 16, v0
-	s_waitcnt vmcnt(2)
-	v_lshlrev_b32_e32 v50, 16, v8
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	s_waitcnt vmcnt(0)
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	v_dual_mul_f32 v63, v161, v50 :: v_dual_lshlrev_b32 v8, 16, v55
-	v_dual_mul_f32 v64, v160, v50 :: v_dual_lshlrev_b32 v49, 1, v53
-	v_mul_f32_e32 v58, v162, v50
-	v_mul_f32_e32 v59, v163, v50
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v84, v84, v50 :: v_dual_mul_f32 v39, v39, v8
-	.loc	1 1119 36                       ; ragged.py:1119:36
-	buffer_load_u16 v49, v49, s[12:15], 0 offen
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v10, v10, v50
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v0, v113, v8
-	v_mul_f32_e32 v122, v112, v8
-	v_mul_f32_e32 v110, v110, v8
-	v_mul_f32_e32 v123, v111, v8
-	v_mul_f32_e32 v106, v106, v8
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v45, v45, v8
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v89, v89, v8
-	v_mul_f32_e32 v93, v93, v50
-	v_mul_f32_e32 v91, v91, v50
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v83, v83, v50
-	v_mul_f32_e32 v31, v31, v50
-	v_mul_f32_e32 v19, v24, v50
-	v_mul_f32_e32 v21, v174, v50
-	v_mul_f32_e32 v7, v7, v8
-	v_mul_f32_e32 v5, v5, v8
-	.loc	1 1119 36                       ; ragged.py:1119:36
-	s_waitcnt vmcnt(0)
-	v_lshlrev_b32_e32 v49, 16, v49
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	ds_store_b32 v52, v49
+	v_cndmask_b32_e32 v19, 0x80000000, v19, vcc_lo
+	.loc	1 1046 21                       ; ragged.py:1046:21
+	v_cmp_le_i64_e64 s5, s[22:23], v[20:21]
+	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s6, s[24:25], v[20:21]
+	.loc	1 1044 32 is_stmt 1             ; ragged.py:1044:32
+	v_or_b32_e32 v21, 16, v145
+	.loc	1 1046 20                       ; ragged.py:1046:20
+	s_and_b32 s5, s5, s6
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1044 18                       ; ragged.py:1044:18
+	v_add_co_u32 v21, s6, s26, v21
+	v_add_co_ci_u32_e64 v22, null, s27, 0, s6
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_4) | instid1(VALU_DEP_1)
+	.loc	1 1046 21                       ; ragged.py:1046:21
+	v_cmp_le_i64_e64 s6, s[22:23], v[21:22]
+	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s7, s[24:25], v[21:22]
+	.loc	1 1114 36 is_stmt 1             ; ragged.py:1114:36
+	v_lshlrev_b32_e32 v21, 1, v21
+	.loc	1 1046 20                       ; ragged.py:1046:20
+	s_and_b32 s6, s6, s7
+	.loc	1 1044 18                       ; ragged.py:1044:18
+	v_add_co_u32 v22, s7, s26, v145
+	v_add_co_ci_u32_e64 v23, null, s27, 0, s7
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 1114 36                       ; ragged.py:1114:36
-	v_lshlrev_b32_e32 v49, 16, v54
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	s_waitcnt lgkmcnt(0)
-	s_barrier
+	v_cndmask_b32_e64 v21, 0x80000000, v21, s6
+	.loc	1 1046 21                       ; ragged.py:1046:21
+	v_cmp_le_i64_e64 s7, s[22:23], v[22:23]
+	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
+	v_cmp_gt_i64_e64 s8, s[24:25], v[22:23]
+	.loc	1 1114 36 is_stmt 1             ; ragged.py:1114:36
+	v_lshlrev_b32_e32 v22, 1, v22
+	.loc	1 1046 20                       ; ragged.py:1046:20
+	s_and_b32 s7, s7, s8
+	.loc	1 1114 36                       ; ragged.py:1114:36
+	s_mov_b32 s8, s16
 	s_delay_alu instid0(VALU_DEP_1)
+	v_cndmask_b32_e64 v22, 0x80000000, v22, s7
+	s_clause 0x2
+	buffer_load_u16 v21, v21, s[8:11], 0 offen
+	buffer_load_u16 v19, v19, s[8:11], 0 offen
+	buffer_load_u16 v22, v22, s[8:11], 0 offen
+	s_waitcnt vmcnt(0)
+	v_lshlrev_b32_e32 v125, 16, v22
+	v_lshlrev_b32_e32 v20, 1, v20
+	v_lshlrev_b32_e32 v55, 16, v19
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_cndmask_b32_e64 v20, 0x80000000, v20, s5
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v114, v158, v49
-	v_mul_f32_e32 v54, v164, v51
-	v_mul_f32_e32 v57, v129, v51
-	v_mul_f32_e32 v117, v155, v49
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_lshl_add_u32 v155, v1, 1, 0
+	v_mul_f32_e32 v41, v176, v55
+	s_mov_b32 s5, 0x76543210
+	.loc	1 1114 36                       ; ragged.py:1114:36
+	buffer_load_u16 v20, v20, s[8:11], 0 offen
+	.loc	1 1119 36                       ; ragged.py:1119:36
+	s_and_b32 s9, s19, 0xffff
+	s_mov_b32 s8, s18
+	.loc	1 1114 36                       ; ragged.py:1114:36
+	s_waitcnt vmcnt(0)
+	v_lshlrev_b32_e32 v64, 16, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v55, v159, v51
-	v_mul_f32_e32 v115, v157, v49
-	v_mul_f32_e32 v116, v156, v49
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	ds_load_b128 v[118:121], v155
-	ds_load_b128 v[156:159], v155 offset:16
+	v_dual_mul_f32 v37, v172, v64 :: v_dual_lshlrev_b32 v120, 16, v21
+	v_mul_f32_e32 v36, v169, v64
+	v_dual_mul_f32 v35, v166, v120 :: v_dual_mul_f32 v44, v3, v125
+	.loc	1 1120 21                       ; ragged.py:1120:21
+	v_or_b32_e32 v3, s29, v0
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_dual_mul_f32 v56, v132, v51 :: v_dual_mul_f32 v127, v154, v49
-	v_mul_f32_e32 v128, v153, v49
-	v_mul_f32_e32 v129, v152, v49
-	v_mul_f32_e32 v132, v151, v49
-	v_mul_f32_e32 v104, v104, v49
-	v_mul_f32_e32 v151, v103, v49
-	v_mul_f32_e32 v103, v101, v49
-	v_mul_f32_e32 v97, v97, v49
-	v_dual_mul_f32 v96, v96, v49 :: v_dual_mul_f32 v85, v85, v51
+	v_mul_f32_e32 v21, v163, v125
+	v_dual_mul_f32 v26, v162, v125 :: v_dual_mul_f32 v59, v9, v120
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_3)
 	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v80, v80, v49
-	v_dual_mul_f32 v79, v79, v49 :: v_dual_mul_f32 v70, v70, v51
-	v_mul_f32_e32 v37, v37, v49
-	v_mul_f32_e32 v71, v71, v51
-	v_dual_mul_f32 v35, v35, v49 :: v_dual_mul_f32 v18, v169, v50
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	s_waitcnt lgkmcnt(1)
-	v_dual_mul_f32 v60, v57, v118 :: v_dual_mul_f32 v61, v56, v119
-	v_dual_mul_f32 v62, v54, v120 :: v_dual_mul_f32 v55, v55, v121
-	v_mul_f32_e32 v112, v117, v119
-	v_dual_mul_f32 v56, v63, v118 :: v_dual_mul_f32 v57, v64, v119
-	v_dual_mul_f32 v58, v58, v121 :: v_dual_mul_f32 v59, v59, v120
-	v_dual_mul_f32 v111, v116, v118 :: v_dual_mul_f32 v114, v114, v120
-	v_dual_mul_f32 v113, v115, v121 :: v_dual_mul_f32 v54, v110, v118
-	v_dual_mul_f32 v110, v0, v120 :: v_dual_mul_f32 v115, v143, v51
+	v_dual_mul_f32 v148, v18, v55 :: v_dual_add_nc_u32 v9, v3, v1
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v0, v145, v51
-	v_mul_f32_e32 v116, v142, v51
-	v_dual_mul_f32 v117, v141, v51 :: v_dual_mul_f32 v118, v150, v50
-	v_dual_mul_f32 v120, v147, v50 :: v_dual_mul_f32 v141, v109, v8
-	s_waitcnt lgkmcnt(0)
-	v_dual_mul_f32 v142, v108, v8 :: v_dual_mul_f32 v125, v115, v158
-	v_mul_f32_e32 v143, v107, v8
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_dual_mul_f32 v63, v123, v119 :: v_dual_mul_f32 v64, v122, v121
+	v_dual_mul_f32 v29, v167, v120 :: v_dual_mul_f32 v40, v173, v55
+	v_dual_mul_f32 v19, v161, v125 :: v_dual_and_b32 v34, 0xf0, v0
+	.loc	1 1119 36                       ; ragged.py:1119:36
+	v_lshlrev_b32_e32 v1, 1, v9
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v121, v149, v50
-	v_mul_f32_e32 v119, v148, v50
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_dual_mul_f32 v123, v117, v156 :: v_dual_mul_f32 v124, v116, v157
-	v_mul_f32_e32 v126, v0, v159
-	v_dual_mul_f32 v122, v118, v159 :: v_dual_mul_f32 v107, v129, v156
-	v_dual_mul_f32 v108, v132, v157 :: v_dual_mul_f32 v117, v142, v158
-	v_dual_mul_f32 v109, v128, v158 :: v_dual_mul_f32 v116, v127, v159
-	v_dual_mul_f32 v106, v106, v156 :: v_dual_mul_f32 v115, v143, v157
-	v_dual_mul_f32 v118, v141, v159 :: v_dual_mul_f32 v149, v136, v50
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v0, v144, v51
-	v_dual_mul_f32 v127, v140, v51 :: v_dual_mul_f32 v132, v146, v50
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	ds_load_b128 v[140:143], v155 offset:512
-	ds_load_b128 v[144:147], v155 offset:528
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v128, v139, v51
-	v_dual_mul_f32 v129, v138, v51 :: v_dual_mul_f32 v138, v105, v8
-	v_mul_f32_e32 v148, v137, v50
-	v_mul_f32_e32 v150, v135, v50
-	v_mul_f32_e32 v102, v102, v49
-	v_mul_f32_e32 v94, v94, v8
-	v_mul_f32_e32 v98, v98, v8
+	v_dual_mul_f32 v27, v165, v120 :: v_dual_mul_f32 v42, v175, v55
 	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v40, v40, v8 :: v_dual_mul_f32 v67, v67, v51
-	v_dual_mul_f32 v33, v33, v49 :: v_dual_mul_f32 v20, v171, v50
-	v_mul_f32_e32 v17, v168, v49
-	v_mul_f32_e32 v9, v9, v49
-	v_mul_f32_e32 v11, v11, v51
-	v_mul_f32_e32 v23, v28, v49
+	v_dual_mul_f32 v56, v4, v125 :: v_dual_mul_f32 v57, v7, v120
+	.loc	1 1119 36                       ; ragged.py:1119:36
+	buffer_load_u16 v1, v1, s[8:11], 0 offen
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v63, v13, v64
 	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_dual_mul_f32 v120, v120, v157 :: v_dual_mul_f32 v121, v121, v158
-	s_waitcnt lgkmcnt(1)
-	v_mul_f32_e32 v139, v0, v140
+	v_lshlrev_b32_e32 v3, 5, v146
+	v_lshl_add_u32 v4, v34, 2, 0
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_mul_f32_e32 v90, v90, v8
-	v_dual_mul_f32 v0, v134, v51 :: v_dual_mul_f32 v135, v132, v140
+	v_dual_mul_f32 v39, v170, v64 :: v_dual_mul_f32 v46, v5, v125
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v58, v10, v120 :: v_dual_mul_f32 v147, v15, v55
+	v_dual_mul_f32 v61, v11, v64 :: v_dual_mul_f32 v162, v16, v55
+	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_dual_mul_f32 v105, v104, v140 :: v_dual_mul_f32 v136, v129, v141
-	v_mul_f32_e32 v137, v128, v142
-	v_dual_mul_f32 v101, v138, v140 :: v_dual_mul_f32 v138, v127, v143
-	v_dual_mul_f32 v127, v149, v141 :: v_dual_mul_f32 v128, v150, v142
-	v_mul_f32_e32 v89, v89, v141
-	v_dual_mul_f32 v129, v148, v143 :: v_dual_mul_f32 v102, v102, v141
-	v_mul_f32_e32 v103, v103, v142
-	v_mul_f32_e32 v90, v90, v142
-	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_dual_mul_f32 v134, v130, v51 :: v_dual_mul_f32 v149, v69, v8
+	v_add3_u32 v10, v4, v3, v2
+	v_lshl_add_u32 v11, v34, 1, 0
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v45, v6, v125 :: v_dual_mul_f32 v60, v8, v120
+	v_dual_mul_f32 v62, v14, v64 :: v_dual_mul_f32 v161, v17, v55
+	.loc	1 1122 17                       ; ragged.py:1122:17
 	s_waitcnt lgkmcnt(0)
-	v_dual_mul_f32 v142, v99, v8 :: v_dual_mul_f32 v69, v0, v145
-	.loc	1 1124 41                       ; ragged.py:1124:41
-	v_add_lshl_u32 v0, v53, s20, 1
+	s_barrier
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_dual_mul_f32 v132, v133, v51 :: v_dual_mul_f32 v141, v100, v8
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_mul_f32_e32 v104, v151, v143
-	v_mul_f32_e32 v94, v94, v143
-	.loc	1 1124 41                       ; ragged.py:1124:41
-	buffer_load_u16 v0, v0, s[12:15], 0 offen
+	v_mul_f32_e32 v20, v164, v125
+	v_mul_f32_e32 v28, v168, v120
+	v_dual_mul_f32 v38, v171, v64 :: v_dual_mul_f32 v43, v174, v55
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v112, v112, v120
+	v_mul_f32_e32 v100, v100, v64
 	.loc	1 1115 17                       ; ragged.py:1115:17
-	v_dual_mul_f32 v133, v131, v51 :: v_dual_mul_f32 v92, v92, v50
-	v_dual_mul_f32 v140, v95, v49 :: v_dual_mul_f32 v131, v132, v146
-	v_dual_mul_f32 v143, v78, v50 :: v_dual_mul_f32 v148, v77, v49
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_mul_f32_e32 v98, v98, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v94, v94, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v90, v90, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v86, v86, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v82, v82, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v78, v78, v55 :: v_dual_mul_f32 v119, v119, v120
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v97, v97, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v123, v123, v125
+	v_mul_f32_e32 v121, v121, v125
+	v_mul_f32_e32 v109, v109, v120
+	v_mul_f32_e32 v115, v115, v120
+	v_mul_f32_e32 v117, v117, v120
+	v_mul_f32_e32 v103, v103, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v99, v99, v64
+	v_mul_f32_e32 v91, v91, v64
+	v_mul_f32_e32 v89, v89, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v95, v95, v64
+	v_mul_f32_e32 v93, v93, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v83, v83, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v87, v87, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v81, v81, v64
+	v_mul_f32_e32 v75, v75, v55
+	v_mul_f32_e32 v73, v73, v55
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v79, v79, v55
+	v_mul_f32_e32 v77, v77, v55
+	v_mul_f32_e32 v51, v51, v55
+	v_mul_f32_e32 v53, v53, v55
+	.loc	1 1119 36                       ; ragged.py:1119:36
+	s_waitcnt vmcnt(0)
+	v_lshlrev_b32_e32 v1, 16, v1
 	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_mul_f32_e32 v133, v133, v147
-	v_dual_mul_f32 v99, v93, v145 :: v_dual_mul_f32 v100, v92, v146
-	v_dual_mul_f32 v95, v97, v145 :: v_dual_mul_f32 v130, v91, v147
-	v_dual_mul_f32 v77, v141, v145 :: v_dual_mul_f32 v96, v96, v146
-	v_mul_f32_e32 v91, v98, v147
-	v_dual_mul_f32 v97, v140, v147 :: v_dual_mul_f32 v78, v142, v146
-	v_mul_f32_e32 v93, v148, v144
-	v_mul_f32_e32 v134, v134, v144
-	v_dual_mul_f32 v98, v143, v144 :: v_dual_mul_f32 v53, v86, v51
-	v_mul_f32_e32 v92, v149, v144
+	ds_store_b32 v10, v1
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[22:25], v11
+	ds_load_b128 v[14:17], v11 offset:16
+	ds_load_b128 v[1:4], v11 offset:512
+	ds_load_b128 v[5:8], v11 offset:528
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v137, v12, v64
+	v_mul_f32_e32 v110, v110, v120
+	v_mul_f32_e32 v108, v108, v120
+	v_mul_f32_e32 v111, v111, v120
+	v_mul_f32_e32 v118, v118, v120
+	v_mul_f32_e32 v113, v113, v120
+	v_mul_f32_e32 v114, v114, v120
+	v_mul_f32_e32 v102, v102, v64
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	s_waitcnt lgkmcnt(3)
+	v_dual_mul_f32 v74, v74, v55 :: v_dual_mul_f32 v73, v73, v22
+	s_delay_alu instid0(VALU_DEP_1)
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v74, v74, v23
+	s_waitcnt lgkmcnt(0)
+	v_dual_mul_f32 v146, v19, v1 :: v_dual_mul_f32 v163, v20, v6
+	v_mul_f32_e32 v172, v42, v7
+	v_dual_mul_f32 v164, v21, v7 :: v_dual_mul_f32 v167, v28, v6
+	v_mul_f32_e32 v37, v37, v6
+	v_mul_f32_e32 v171, v41, v6
+	.loc	1 1124 41                       ; ragged.py:1124:41
+	v_add_lshl_u32 v6, v9, s20, 1
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_dual_mul_f32 v165, v26, v8 :: v_dual_mul_f32 v36, v36, v1
+	v_mul_f32_e32 v166, v27, v1
+	v_mul_f32_e32 v168, v29, v7
+	.loc	1 1124 41                       ; ragged.py:1124:41
+	buffer_load_u16 v6, v6, s[8:11], 0 offen
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v35, v35, v8
+	v_dual_mul_f32 v169, v38, v7 :: v_dual_mul_f32 v170, v39, v8
+	v_mul_f32_e32 v173, v43, v8
 	.loc	1 1127 21                       ; ragged.py:1127:21
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v147, v42, v8
-	v_mul_f32_e32 v148, v41, v8
-	v_mul_f32_e32 v149, v38, v8
-	.loc	1 1122 17                       ; ragged.py:1122:17
-	v_mul_f32_e32 v119, v119, v156
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	s_and_b32 s13, s9, 0xffff
-	s_mov_b32 s12, s8
+	s_and_b32 s9, s13, 0xffff
+	s_mov_b32 s8, s12
 	.loc	1 1124 41                       ; ragged.py:1124:41
 	s_waitcnt vmcnt(0)
-	v_lshlrev_b32_e32 v0, 16, v0
+	v_lshlrev_b32_e32 v6, 16, v6
 	.loc	1 1127 21                       ; ragged.py:1127:21
-	ds_store_b32 v52, v0
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v0, v88, v51
-	v_mul_f32_e32 v52, v87, v51
-	v_mul_f32_e32 v88, v44, v49
-	v_mul_f32_e32 v146, v43, v49
-	.loc	1 1127 21                       ; ragged.py:1127:21
+	ds_store_b32 v10, v6
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b128 v[41:44], v155
-	ds_load_b128 v[142:145], v155 offset:16
+	ds_load_b128 v[26:29], v11
+	ds_load_b128 v[18:21], v11 offset:16
+	ds_load_b128 v[6:9], v11 offset:512
+	ds_load_b128 v[10:13], v11 offset:528
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v40, v1
 	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v86, v82, v50
-	v_mul_f32_e32 v87, v81, v50
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	s_waitcnt lgkmcnt(1)
-	v_mul_f32_e32 v141, v85, v41
-	v_mul_f32_e32 v140, v53, v42
-	v_dual_mul_f32 v132, v52, v44 :: v_dual_mul_f32 v53, v79, v42
-	v_dual_mul_f32 v81, v83, v41 :: v_dual_mul_f32 v82, v84, v42
-	v_dual_mul_f32 v83, v86, v44 :: v_dual_mul_f32 v84, v87, v43
-	v_mul_f32_e32 v52, v80, v41
-	v_dual_mul_f32 v79, v88, v44 :: v_dual_mul_f32 v80, v146, v43
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v85, v36, v49 :: v_dual_mul_f32 v38, v39, v44
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	s_waitcnt lgkmcnt(0)
-	v_dual_mul_f32 v87, v70, v142 :: v_dual_mul_f32 v44, v72, v51
-	v_dual_mul_f32 v0, v0, v43 :: v_dual_mul_f32 v41, v147, v41
-	v_dual_mul_f32 v42, v148, v42 :: v_dual_mul_f32 v39, v149, v43
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v43, v73, v51 :: v_dual_mul_f32 v72, v76, v50
-	v_dual_mul_f32 v147, v46, v8 :: v_dual_mul_f32 v76, v75, v50
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_dual_mul_f32 v73, v44, v144 :: v_dual_mul_f32 v30, v30, v50
-	s_delay_alu instid0(VALU_DEP_3)
-	v_mul_f32_e32 v75, v43, v145
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v34, v34, v49
-	v_mul_f32_e32 v88, v48, v8
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_mul_f32_e32 v36, v37, v142
-	v_dual_mul_f32 v37, v85, v143 :: v_dual_mul_f32 v146, v47, v8
-	v_mul_f32_e32 v86, v71, v143
-	v_dual_mul_f32 v46, v72, v142 :: v_dual_mul_f32 v43, v35, v144
-	v_dual_mul_f32 v47, v76, v143 :: v_dual_mul_f32 v48, v31, v144
-	v_dual_mul_f32 v70, v30, v145 :: v_dual_mul_f32 v35, v147, v144
-	v_dual_mul_f32 v44, v34, v145 :: v_dual_mul_f32 v147, v12, v8
-	v_dual_mul_f32 v31, v88, v142 :: v_dual_mul_f32 v34, v146, v143
-	v_dual_mul_f32 v30, v45, v145 :: v_dual_mul_f32 v45, v74, v51
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v72, v15, v49
-	v_mul_f32_e32 v74, v14, v8
-	v_mul_f32_e32 v146, v13, v8
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	ds_load_b128 v[12:15], v155 offset:512
-	ds_load_b128 v[142:145], v155 offset:528
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v68, v68, v51
-	v_mul_f32_e32 v66, v66, v51
-	v_mul_f32_e32 v16, v167, v49
-	v_mul_f32_e32 v6, v6, v8
+	v_mul_f32_e32 v107, v107, v125
+	v_mul_f32_e32 v122, v122, v125
+	v_mul_f32_e32 v116, v116, v120
+	v_dual_mul_f32 v101, v101, v64 :: v_dual_mul_f32 v52, v52, v55
 .Ltmp3:
 	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 .Ltmp4:
 	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_mul_f32_e32 v45, v45, v12
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v22, v173, v50 :: v_dual_mul_f32 v85, v68, v15
-	v_dual_mul_f32 v32, v32, v50 :: v_dual_mul_f32 v33, v33, v12
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_mul_f32_e32 v88, v66, v13
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_dual_mul_f32 v76, v67, v14 :: v_dual_mul_f32 v71, v22, v13
-	v_mul_f32_e32 v148, v32, v12
-	v_mul_f32_e32 v66, v20, v14
-	v_dual_mul_f32 v32, v17, v13 :: v_dual_mul_f32 v17, v170, v51
-	v_dual_mul_f32 v67, v18, v15 :: v_dual_mul_f32 v18, v25, v50
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_dual_mul_f32 v25, v26, v49 :: v_dual_mul_f32 v26, v29, v8
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_dual_mul_f32 v149, v40, v12 :: v_dual_mul_f32 v12, v74, v13
-	v_mul_f32_e32 v23, v23, v143
-	v_mul_f32_e32 v13, v146, v14
-	v_mul_f32_e32 v20, v16, v14
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v16, v172, v51
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_dual_mul_f32 v29, v26, v143 :: v_dual_mul_f32 v24, v27, v49
-	v_dual_mul_f32 v49, v6, v144 :: v_dual_mul_f32 v6, 0xbfb8aa3b, v45
-	v_mul_f32_e32 v22, v72, v15
-	v_dual_mul_f32 v14, v147, v15 :: v_dual_mul_f32 v27, v25, v145
-	.loc	1 1117 21                       ; ragged.py:1117:21
-	v_mul_f32_e32 v15, v65, v51
-	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v6
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_mul_f32_e32 v5, v5, v142
-	v_mul_f32_e32 v25, v10, v142
-	v_mul_f32_e32 v26, v11, v142
-	v_mul_f32_e32 v8, v15, v143
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v6, 0, 0x42800000, vcc_lo
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_dual_mul_f32 v15, v16, v144 :: v_dual_mul_f32 v50, v7, v145
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v7, 0, 0xffffffc0, vcc_lo
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_mul_f32_e32 v16, v17, v145
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_dual_fmac_f32 v6, 0xbfb8aa3b, v45 :: v_dual_mul_f32 v17, v18, v143
-	.loc	1 1127 21                       ; ragged.py:1127:21
-	v_dual_mul_f32 v18, v19, v144 :: v_dual_mul_f32 v19, v21, v145
-	v_mul_f32_e32 v21, v9, v142
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_exp_f32_e32 v6, v6
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v6, v6, v7
-	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
-	v_add_f32_e32 v6, 1.0, v6
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v7, null, v6, v6, v45
-	v_rcp_f32_e32 v9, v7
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v10, -v7, v9, 1.0
-	v_fmac_f32_e32 v9, v10, v9
-	v_div_scale_f32 v10, vcc_lo, v45, v6, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1127 21 is_stmt 1             ; ragged.py:1127:21
-	v_dual_mul_f32 v24, v24, v144 :: v_dual_mul_f32 v11, v10, v9
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_fma_f32 v28, -v7, v11, v10
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v11, v28, v9
-	v_fma_f32 v7, -v7, v11, v10
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v7, v7, v9, v11
-	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
-	v_mul_f32_e32 v9, 0xbfb8aa3b, v8
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v9
-	v_cndmask_b32_e64 v9, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v10, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v9, 0xbfb8aa3b, v8
-	v_exp_f32_e32 v9, v9
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v9, v9, v10
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v9, 1.0, v9
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v10, null, v9, v9, v8
-	v_rcp_f32_e32 v11, v10
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v28, -v10, v11, 1.0
-	v_fmac_f32_e32 v11, v28, v11
-	v_div_scale_f32 v28, vcc_lo, v8, v9, v8
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v40, v28, v11
-	v_fma_f32 v51, -v10, v40, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v40, v51, v11
-	v_fma_f32 v10, -v10, v40, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v10, v10, v11, v40
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v11, 0xbfb8aa3b, v15
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v11
-	v_cndmask_b32_e64 v11, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v28, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_fmac_f32_e32 v11, 0xbfb8aa3b, v15
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v6, v7, v6, v45
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v7, 0xbfb8aa3b, v16
-	v_exp_f32_e32 v11, v11
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v11, v11, v28
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v11, 1.0, v11
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v28, null, v11, v11, v15
-	v_rcp_f32_e32 v40, v28
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v28, v40, 1.0
-	v_fmac_f32_e32 v40, v51, v40
-	v_div_scale_f32 v51, vcc_lo, v15, v11, v15
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v51, v40
-	v_fma_f32 v68, -v28, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v68, v40
-	v_fma_f32 v28, -v28, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v28, v28, v40, v65
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v7
-	v_cndmask_b32_e64 v7, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v40, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v7, 0xbfb8aa3b, v16
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v7, v7
-	v_ldexp_f32 v7, v7, v40
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v40, 1.0, v7
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v7, null, v40, v40, v16
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v45, v7
-	v_fma_f32 v51, -v7, v45, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v45, v51, v45
-	v_div_scale_f32 v51, vcc_lo, v16, v40, v16
-	v_mul_f32_e32 v65, v51, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v68, -v7, v65, v51
-	v_fmac_f32_e32 v65, v68, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v7, -v7, v65, v51
-	v_div_fmas_f32 v45, v7, v45, v65
-	v_div_fixup_f32 v7, v10, v9, v8
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v8, 0xbfb8aa3b, v148
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v8
-	v_cndmask_b32_e64 v8, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v9, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v8, 0xbfb8aa3b, v148
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v8, v8
-	v_ldexp_f32 v8, v8, v9
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v8, 1.0, v8
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v9, null, v8, v8, v148
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v10, v9
-	v_fma_f32 v51, -v9, v10, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v10, v51, v10
-	v_div_scale_f32 v51, vcc_lo, v148, v8, v148
-	v_mul_f32_e32 v65, v51, v10
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v68, -v9, v65, v51
-	v_fmac_f32_e32 v65, v68, v10
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v9, -v9, v65, v51
-	v_div_fmas_f32 v10, v9, v10, v65
-	v_div_fixup_f32 v9, v28, v11, v15
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v11, 0xbfb8aa3b, v17
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v8, v10, v8, v148
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v10, 0xbfb8aa3b, v19
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v11
-	v_cndmask_b32_e64 v11, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v15, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v11, 0xbfb8aa3b, v17
-	v_exp_f32_e32 v11, v11
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v11, v11, v15
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v15, 1.0, v11
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v11, null, v15, v15, v17
-	v_rcp_f32_e32 v28, v11
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v11, v28, 1.0
-	v_fmac_f32_e32 v28, v51, v28
-	v_div_scale_f32 v51, vcc_lo, v17, v15, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v51, v28
-	v_fma_f32 v68, -v11, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v68, v28
-	v_fma_f32 v11, -v11, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v28, v11, v28, v65
-	v_div_fixup_f32 v11, v45, v40, v16
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v16, 0xbfb8aa3b, v18
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v16
-	v_cndmask_b32_e64 v16, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v40, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v16, 0xbfb8aa3b, v18
-	v_exp_f32_e32 v16, v16
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v16, v16, v40
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v16, 1.0, v16
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v40, null, v16, v16, v18
-	v_rcp_f32_e32 v45, v40
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v40, v45, 1.0
-	v_fmac_f32_e32 v45, v51, v45
-	v_div_scale_f32 v51, vcc_lo, v18, v16, v18
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v51, v45
-	v_fma_f32 v68, -v40, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v68, v45
-	v_fma_f32 v40, -v40, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v40, v40, v45, v65
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v10
-	v_cndmask_b32_e64 v10, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v45, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v10, 0xbfb8aa3b, v19
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v10, v10
-	v_ldexp_f32 v10, v10, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v45, 1.0, v10
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v10, null, v45, v45, v19
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v51, v10
-	v_fma_f32 v65, -v10, v51, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v51, v65, v51
-	v_div_scale_f32 v65, vcc_lo, v19, v45, v19
-	v_mul_f32_e32 v68, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v10, v68, v65
-	v_fmac_f32_e32 v68, v72, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v10, -v10, v68, v65
-	v_div_fmas_f32 v51, v10, v51, v68
-	v_div_fixup_f32 v10, v28, v15, v17
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v15, 0xbfb8aa3b, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v15
-	v_cndmask_b32_e64 v15, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v17, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v15, 0xbfb8aa3b, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v15, v15
-	v_ldexp_f32 v15, v15, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v28, 1.0, v15
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v15, null, v28, v28, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v17, v15
-	v_fma_f32 v65, -v15, v17, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v17, v65, v17
-	v_div_scale_f32 v65, vcc_lo, v33, v28, v33
-	v_mul_f32_e32 v68, v65, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v15, v68, v65
-	v_fmac_f32_e32 v68, v72, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v15, -v15, v68, v65
-	v_div_fmas_f32 v65, v15, v17, v68
-	v_div_fixup_f32 v15, v40, v16, v18
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v16, 0xbfb8aa3b, v23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v16
-	v_cndmask_b32_e64 v16, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v17, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v16, 0xbfb8aa3b, v23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v16, v16
-	v_ldexp_f32 v16, v16, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v18, 1.0, v16
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v16, null, v18, v18, v23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v17, v16
-	v_fma_f32 v40, -v16, v17, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v17, v40, v17
-	v_div_scale_f32 v40, vcc_lo, v23, v18, v23
-	v_mul_f32_e32 v68, v40, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v16, v68, v40
-	v_fmac_f32_e32 v68, v72, v17
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v16, -v16, v68, v40
-	v_div_fmas_f32 v40, v16, v17, v68
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v16, 0xbfb8aa3b, v24
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v17, v51, v45, v19
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_div_fixup_f32 v18, v40, v18, v23
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v16
-	v_mul_f32_e32 v23, 0xbfb8aa3b, v149
-	v_cndmask_b32_e64 v16, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v19, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v16, 0xbfb8aa3b, v24
-	v_exp_f32_e32 v16, v16
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v16, v16, v19
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v19, 1.0, v16
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v16, null, v19, v19, v24
-	v_rcp_f32_e32 v45, v16
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v16, v45, 1.0
-	v_fmac_f32_e32 v45, v51, v45
-	v_div_scale_f32 v51, vcc_lo, v24, v19, v24
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v68, v51, v45
-	v_fma_f32 v72, -v16, v68, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v68, v72, v45
-	v_fma_f32 v16, -v16, v68, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_div_fmas_f32 v45, v16, v45, v68
-	v_div_fixup_f32 v16, v65, v28, v33
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v28, 0xbfb8aa3b, v27
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v19, v45, v19, v24
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v24, 0xbfb8aa3b, v29
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v28
-	v_cndmask_b32_e64 v28, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v33, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v28, 0xbfb8aa3b, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v28, v28
-	v_ldexp_f32 v28, v28, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v28, 1.0, v28
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v33, null, v28, v28, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v51, v33
-	v_fma_f32 v65, -v33, v51, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v51, v65, v51
-	v_div_scale_f32 v65, vcc_lo, v27, v28, v27
-	v_mul_f32_e32 v68, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v33, v68, v65
-	v_fmac_f32_e32 v68, v72, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v33, -v33, v68, v65
-	v_div_fmas_f32 v33, v33, v51, v68
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v23
-	v_cndmask_b32_e64 v23, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v40, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v23, 0xbfb8aa3b, v149
-	v_exp_f32_e32 v23, v23
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v23, v23, v40
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v23, 1.0, v23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v40, null, v23, v23, v149
-	v_rcp_f32_e32 v51, v40
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v40, v51, 1.0
-	v_fmac_f32_e32 v51, v65, v51
-	v_div_scale_f32 v65, vcc_lo, v149, v23, v149
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v68, v65, v51
-	v_fma_f32 v72, -v40, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v68, v72, v51
-	v_fma_f32 v40, -v40, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v51, v40, v51, v68
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v24
-	v_cndmask_b32_e64 v24, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v40, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v24, 0xbfb8aa3b, v29
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v24, v24
-	v_ldexp_f32 v24, v24, v40
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v24, 1.0, v24
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v40, null, v24, v24, v29
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v45, v40
-	v_fma_f32 v65, -v40, v45, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v45, v65, v45
-	v_div_scale_f32 v65, vcc_lo, v29, v24, v29
-	v_mul_f32_e32 v68, v65, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v40, v68, v65
-	v_fmac_f32_e32 v68, v72, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v40, -v40, v68, v65
-	v_div_fmas_f32 v45, v40, v45, v68
-	v_div_fixup_f32 v40, v33, v28, v27
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v49
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v28, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v49
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v27, v27
-	v_ldexp_f32 v27, v27, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v28, null, v27, v27, v49
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v33, v28
-	v_fma_f32 v65, -v28, v33, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v33, v65, v33
-	v_div_scale_f32 v65, vcc_lo, v49, v27, v49
-	v_mul_f32_e32 v68, v65, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v72, -v28, v68, v65
-	v_fmac_f32_e32 v68, v72, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v28, -v28, v68, v65
-	v_div_fmas_f32 v33, v28, v33, v68
-	v_div_fixup_f32 v28, v51, v23, v149
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v23, 0xbfb8aa3b, v50
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v23
-	v_cndmask_b32_e64 v23, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v51, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v23, 0xbfb8aa3b, v50
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v45, v45, v24, v29
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v24, 0xbfb8aa3b, v141
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v23, v23
-	v_ldexp_f32 v23, v23, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v23, 1.0, v23
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v51, null, v23, v23, v50
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v65, v51
-	v_fma_f32 v68, -v51, v65, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v68, v65
-	v_div_scale_f32 v68, vcc_lo, v50, v23, v50
-	v_mul_f32_e32 v72, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v74, -v51, v72, v68
-	v_fmac_f32_e32 v72, v74, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v51, v72, v68
-	v_div_fmas_f32 v51, v51, v65, v72
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v24
-	v_cndmask_b32_e64 v24, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v24, 0xbfb8aa3b, v141
-	v_exp_f32_e32 v24, v24
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v24, v24, v29
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v24, 1.0, v24
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v29, null, v24, v24, v141
-	v_rcp_f32_e32 v65, v29
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v68, -v29, v65, 1.0
-	v_fmac_f32_e32 v65, v68, v65
-	v_div_scale_f32 v68, vcc_lo, v141, v24, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v72, v68, v65
-	v_fma_f32 v74, -v29, v72, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v72, v74, v65
-	v_fma_f32 v29, -v29, v72, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v29, v29, v65, v72
-	v_div_fixup_f32 v72, v33, v27, v49
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v140
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v33, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v140
-	v_exp_f32_e32 v27, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v27, v27, v33
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v33, null, v27, v27, v140
-	v_rcp_f32_e32 v49, v33
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v33, v49, 1.0
-	v_fmac_f32_e32 v49, v65, v49
-	v_div_scale_f32 v65, vcc_lo, v140, v27, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v68, v65, v49
-	v_fma_f32 v74, -v33, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_fmac_f32_e32 v68, v74, v49
-	v_div_fixup_f32 v74, v51, v23, v50
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v23, 0xbfb8aa3b, v132
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_fma_f32 v33, -v33, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_div_fmas_f32 v33, v33, v49, v68
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v23
-	v_cndmask_b32_e64 v23, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v49, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v23, 0xbfb8aa3b, v132
-	v_exp_f32_e32 v23, v23
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v23, v23, v49
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v49, 1.0, v23
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v23, null, v49, v49, v132
-	v_rcp_f32_e32 v50, v23
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v23, v50, 1.0
-	v_fmac_f32_e32 v50, v51, v50
-	v_div_scale_f32 v51, vcc_lo, v132, v49, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v51, v50
-	v_fma_f32 v68, -v23, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v68, v50
-	v_fma_f32 v23, -v23, v65, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v50, v23, v50, v65
-	v_div_fixup_f32 v23, v29, v24, v141
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v24, 0xbfb8aa3b, v0
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v24
-	v_cndmask_b32_e64 v24, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v24, 0xbfb8aa3b, v0
-	v_exp_f32_e32 v24, v24
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v24, v24, v29
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v51, 1.0, v24
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v24, null, v51, v51, v0
-	v_rcp_f32_e32 v29, v24
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v24, v29, 1.0
-	v_fmac_f32_e32 v29, v65, v29
-	v_div_scale_f32 v65, vcc_lo, v0, v51, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v68, v65, v29
-	v_fma_f32 v141, -v24, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v68, v141, v29
-	v_fma_f32 v24, -v24, v68, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v65, v24, v29, v68
-	v_div_fixup_f32 v24, v33, v27, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v87
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v87
-	v_exp_f32_e32 v27, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v27, v27, v29
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v29, null, v27, v27, v87
-	v_rcp_f32_e32 v33, v29
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v68, -v29, v33, 1.0
-	v_fmac_f32_e32 v33, v68, v33
-	v_div_scale_f32 v68, vcc_lo, v87, v27, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v68, v33
-	v_fma_f32 v141, -v29, v140, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v33
-	v_fma_f32 v29, -v29, v140, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v68, v29, v33, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v33, 0xbfb8aa3b, v86
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v29, v50, v49, v132
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v33
-	v_cndmask_b32_e64 v33, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v49, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v33, 0xbfb8aa3b, v86
-	v_exp_f32_e32 v33, v33
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v33, v33, v49
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v50, 1.0, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v33, null, v50, v50, v86
-	v_rcp_f32_e32 v49, v33
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v132, -v33, v49, 1.0
-	v_fmac_f32_e32 v49, v132, v49
-	v_div_scale_f32 v132, vcc_lo, v86, v50, v86
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v132, v49
-	v_fma_f32 v141, -v33, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v49
-	v_fma_f32 v33, -v33, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v132, v33, v49, v140
-	v_div_fixup_f32 v33, v65, v51, v0
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v0, 0xbfb8aa3b, v73
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v0
-	v_cndmask_b32_e64 v0, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v49, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v0, 0xbfb8aa3b, v73
-	v_exp_f32_e32 v0, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v0, v0, v49
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v0, 1.0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v49, null, v0, v0, v73
-	v_rcp_f32_e32 v51, v49
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v49, v51, 1.0
-	v_fmac_f32_e32 v51, v65, v51
-	v_div_scale_f32 v65, vcc_lo, v73, v0, v73
-	v_div_fixup_f32 v50, v132, v50, v86
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v65, v51
-	v_fma_f32 v141, -v49, v140, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v51
-	v_fma_f32 v49, -v49, v140, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_div_fmas_f32 v51, v49, v51, v140
-	v_div_fixup_f32 v49, v68, v27, v87
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v75
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v51, v51, v0, v73
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v0, 0xbfb8aa3b, v76
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v65, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v75
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v27, v27
-	v_ldexp_f32 v27, v27, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v65, null, v27, v27, v75
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v68, v65
-	v_fma_f32 v87, -v65, v68, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v68, v87, v68
-	v_div_scale_f32 v87, vcc_lo, v75, v27, v75
-	v_mul_f32_e32 v140, v87, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v65, v140, v87
-	v_fmac_f32_e32 v140, v141, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v65, v140, v87
-	v_div_fmas_f32 v65, v65, v68, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v68, 0xbfb8aa3b, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v68
-	v_cndmask_b32_e64 v68, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v86, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v68, 0xbfb8aa3b, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v68, v68
-	v_ldexp_f32 v68, v68, v86
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v86, 1.0, v68
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v68, null, v86, v86, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v87, v68
-	v_fma_f32 v132, -v68, v87, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v87, v132, v87
-	v_div_scale_f32 v132, vcc_lo, v88, v86, v88
-	v_mul_f32_e32 v140, v132, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v68, v140, v132
-	v_fmac_f32_e32 v140, v141, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v68, -v68, v140, v132
-	v_div_fmas_f32 v87, v68, v87, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v0
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v68, v65, v27, v75
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v0, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v27, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v0, 0xbfb8aa3b, v76
-	v_exp_f32_e32 v0, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v0, v0, v27
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v0, 1.0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v27, null, v0, v0, v76
-	v_rcp_f32_e32 v65, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v27, v65, 1.0
-	v_fmac_f32_e32 v65, v73, v65
-	v_div_scale_f32 v73, vcc_lo, v76, v0, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v75, v73, v65
-	v_fma_f32 v132, -v27, v75, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v75, v132, v65
-	v_fma_f32 v27, -v27, v75, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_div_fmas_f32 v27, v27, v65, v75
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v65, 0xbfb8aa3b, v85
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v75, v87, v86, v88
-	v_div_fixup_f32 v76, v27, v0, v76
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v65
-	v_mul_f32_e32 v0, 0xbfb8aa3b, v81
-	v_cndmask_b32_e64 v65, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v73, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v65, 0xbfb8aa3b, v85
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v65, v65
-	v_ldexp_f32 v65, v65, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v65, 1.0, v65
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v73, null, v65, v65, v85
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v86, v73
-	v_fma_f32 v87, -v73, v86, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v86, v87, v86
-	v_div_scale_f32 v87, vcc_lo, v85, v65, v85
-	v_mul_f32_e32 v88, v87, v86
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v132, -v73, v88, v87
-	v_fmac_f32_e32 v88, v132, v86
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v73, v88, v87
-	v_div_fmas_f32 v73, v73, v86, v88
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v86, 0xbfb8aa3b, v26
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v85, v73, v65, v85
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v86
-	v_cndmask_b32_e64 v86, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v87, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v86, 0xbfb8aa3b, v26
-	v_exp_f32_e32 v86, v86
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v86, v86, v87
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v86, 1.0, v86
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v87, null, v86, v86, v26
-	v_rcp_f32_e32 v88, v87
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v132, -v87, v88, 1.0
-	v_fmac_f32_e32 v88, v132, v88
-	v_div_scale_f32 v132, vcc_lo, v26, v86, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v132, v88
-	v_fma_f32 v141, -v87, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v88
-	v_fma_f32 v87, -v87, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v87, v87, v88, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v0
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v86, v87, v86, v26
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v0, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v27, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v0, 0xbfb8aa3b, v81
-	v_exp_f32_e32 v0, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v0, v0, v27
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v0, 1.0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v27, null, v0, v0, v81
-	v_rcp_f32_e32 v65, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v27, v65, 1.0
-	v_fmac_f32_e32 v65, v73, v65
-	v_div_scale_f32 v73, vcc_lo, v81, v0, v81
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v88, v73, v65
-	v_fma_f32 v132, -v27, v88, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, v132, v65
-	v_fma_f32 v27, -v27, v88, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v27, v27, v65, v88
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v65, 0xbfb8aa3b, v82
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v81, v27, v0, v81
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v65
-	v_mul_f32_e32 v0, 0xbfb8aa3b, v46
-	v_cndmask_b32_e64 v65, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v73, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v65, 0xbfb8aa3b, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v65, v65
-	v_ldexp_f32 v65, v65, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v65, 1.0, v65
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v73, null, v65, v65, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v88, v73
-	v_fma_f32 v132, -v73, v88, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, v132, v88
-	v_div_scale_f32 v132, vcc_lo, v82, v65, v82
-	v_mul_f32_e32 v140, v132, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v73, v140, v132
-	v_fmac_f32_e32 v140, v141, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v73, v140, v132
-	v_div_fmas_f32 v73, v73, v88, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v88, 0xbfb8aa3b, v83
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v82, v73, v65, v82
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v88
-	v_cndmask_b32_e64 v88, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v132, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, 0xbfb8aa3b, v83
-	v_exp_f32_e32 v88, v88
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v88, v88, v132
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v88, 1.0, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v132, null, v88, v88, v83
-	v_rcp_f32_e32 v140, v132
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v132, v140, 1.0
-	v_fmac_f32_e32 v140, v141, v140
-	v_div_scale_f32 v141, vcc_lo, v83, v88, v83
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v142, v141, v140
-	v_fma_f32 v143, -v132, v142, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v142, v143, v140
-	v_fma_f32 v132, -v132, v142, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v132, v132, v140, v142
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v140, 0xbfb8aa3b, v84
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v83, v132, v88, v83
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v140
-	v_cndmask_b32_e64 v140, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v141, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v140, 0xbfb8aa3b, v84
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v140, v140
-	v_ldexp_f32 v140, v140, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v140, 1.0, v140
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v141, null, v140, v140, v84
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v142, v141
-	v_fma_f32 v143, -v141, v142, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v142, v143, v142
-	v_div_scale_f32 v143, vcc_lo, v84, v140, v84
-	v_mul_f32_e32 v144, v143, v142
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v145, -v141, v144, v143
-	v_fmac_f32_e32 v144, v145, v142
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v141, v144, v143
-	v_div_fmas_f32 v141, v141, v142, v144
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v84, v141, v140, v84
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v0, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v26, 0, 0xffffffc0, vcc_lo
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_dual_mul_f32 v59, v59, v84 :: v_dual_fmac_f32 v0, 0xbfb8aa3b, v46
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_exp_f32_e32 v0, v0
-	v_ldexp_f32 v0, v0, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v0, 1.0, v0
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v26, null, v0, v0, v46
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v27, v26
-	v_fma_f32 v65, -v26, v27, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, v65, v27
-	v_div_scale_f32 v65, vcc_lo, v46, v0, v46
-	v_mul_f32_e32 v73, v65, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v87, -v26, v73, v65
-	v_fmac_f32_e32 v73, v87, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v26, -v26, v73, v65
-	v_div_fmas_f32 v26, v26, v27, v73
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v47
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v46, v26, v0, v46
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_mul_f32_e32 v0, 0xbfb8aa3b, v66
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v65, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v47
-	v_exp_f32_e32 v27, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v27, v27, v65
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v65, null, v27, v27, v47
-	v_rcp_f32_e32 v73, v65
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v87, -v65, v73, 1.0
-	v_fmac_f32_e32 v73, v87, v73
-	v_div_scale_f32 v87, vcc_lo, v47, v27, v47
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v88, v87, v73
-	v_fma_f32 v132, -v65, v88, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, v132, v73
-	v_fma_f32 v65, -v65, v88, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v65, v65, v73, v88
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v73, 0xbfb8aa3b, v48
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v73
-	v_cndmask_b32_e64 v73, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v87, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v73, 0xbfb8aa3b, v48
-	v_exp_f32_e32 v73, v73
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v73, v73, v87
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v73, 1.0, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v87, null, v73, v73, v48
-	v_rcp_f32_e32 v88, v87
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v132, -v87, v88, 1.0
-	v_fmac_f32_e32 v88, v132, v88
-	v_div_scale_f32 v132, vcc_lo, v48, v73, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v132, v88
-	v_fma_f32 v141, -v87, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v88
-	v_fma_f32 v87, -v87, v140, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v88, v87, v88, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v87, 0xbfb8aa3b, v70
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v48, v88, v73, v48
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v87
-	v_cndmask_b32_e64 v87, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v132, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v87, 0xbfb8aa3b, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v87, v87
-	v_ldexp_f32 v87, v87, v132
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v132, 1.0, v87
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v87, null, v132, v132, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v140, v87
-	v_fma_f32 v141, -v87, v140, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v140
-	v_div_scale_f32 v141, vcc_lo, v70, v132, v70
-	v_mul_f32_e32 v142, v141, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v143, -v87, v142, v141
-	v_fmac_f32_e32 v142, v143, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v87, -v87, v142, v141
-	v_div_fmas_f32 v140, v87, v140, v142
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v87, 0xbfb8aa3b, v71
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v88, v140, v132, v70
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v87
-	v_cndmask_b32_e64 v87, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v141, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v87, 0xbfb8aa3b, v71
-	v_exp_f32_e32 v87, v87
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v87, v87, v141
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v141, 1.0, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v87, null, v141, v141, v71
-	v_rcp_f32_e32 v142, v87
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v143, -v87, v142, 1.0
-	v_fmac_f32_e32 v142, v143, v142
-	v_div_scale_f32 v143, vcc_lo, v71, v141, v71
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v144, v143, v142
-	v_fma_f32 v145, -v87, v144, v143
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v144, v145, v142
-	v_fma_f32 v87, -v87, v144, v143
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_div_fmas_f32 v142, v87, v142, v144
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v0
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v87, v65, v27, v47
-	v_div_fixup_f32 v47, v142, v141, v71
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v0, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v26, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v0, 0xbfb8aa3b, v66
-	v_exp_f32_e32 v0, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v0, v0, v26
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v0, 1.0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v26, null, v0, v0, v66
-	v_rcp_f32_e32 v27, v26
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v26, v27, 1.0
-	v_fmac_f32_e32 v27, v65, v27
-	v_div_scale_f32 v65, vcc_lo, v66, v0, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v70, v65, v27
-	v_fma_f32 v71, -v26, v70, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v70, v71, v27
-	v_fma_f32 v26, -v26, v70, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v26, v26, v27, v70
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v67
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v0, v26, v0, v66
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_mul_f32_e32 v26, 0xbfb8aa3b, v52
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v65, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v27, v27
-	v_ldexp_f32 v27, v27, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v65, null, v27, v27, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v70, v65
-	v_fma_f32 v71, -v65, v70, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v70, v71, v70
-	v_div_scale_f32 v71, vcc_lo, v67, v27, v67
-	v_mul_f32_e32 v73, v71, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v132, -v65, v73, v71
-	v_fmac_f32_e32 v73, v132, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v65, v73, v71
-	v_div_fmas_f32 v65, v65, v70, v73
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v70, 0xbfb8aa3b, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v70
-	v_cndmask_b32_e64 v70, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v71, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v70, 0xbfb8aa3b, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v70, v70
-	v_ldexp_f32 v70, v70, v71
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v70, 1.0, v70
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v71, null, v70, v70, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v73, v71
-	v_fma_f32 v132, -v71, v73, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v73, v132, v73
-	v_div_scale_f32 v132, vcc_lo, v25, v70, v25
-	v_mul_f32_e32 v140, v132, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v71, v140, v132
-	v_fmac_f32_e32 v140, v141, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_fma_f32 v71, -v71, v140, v132
-	v_div_fixup_f32 v132, v65, v27, v67
-	v_div_fmas_f32 v71, v71, v73, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v26
-	v_cndmask_b32_e64 v26, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v27, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v26, 0xbfb8aa3b, v52
-	v_exp_f32_e32 v26, v26
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v26, v26, v27
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v26, 1.0, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v27, null, v26, v26, v52
-	v_rcp_f32_e32 v65, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v66, -v27, v65, 1.0
-	v_fmac_f32_e32 v65, v66, v65
-	v_div_scale_f32 v66, vcc_lo, v52, v26, v52
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v67, v66, v65
-	v_fma_f32 v73, -v27, v67, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v67, v73, v65
-	v_fma_f32 v27, -v27, v67, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v27, v27, v65, v67
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v65, 0xbfb8aa3b, v53
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v65
-	v_cndmask_b32_e64 v65, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v66, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, 0xbfb8aa3b, v53
-	v_exp_f32_e32 v65, v65
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v65, v65, v66
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v65, 1.0, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v66, null, v65, v65, v53
-	v_rcp_f32_e32 v67, v66
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v66, v67, 1.0
-	v_fmac_f32_e32 v67, v73, v67
-	v_div_scale_f32 v73, vcc_lo, v53, v65, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v73, v67
-	v_fma_f32 v141, -v66, v140, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v67
-	v_fma_f32 v66, -v66, v140, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v66, v66, v67, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v67, 0xbfb8aa3b, v79
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v67
-	v_cndmask_b32_e64 v67, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v73, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v67, 0xbfb8aa3b, v79
-	v_exp_f32_e32 v67, v67
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v67, v67, v73
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v67, 1.0, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v73, null, v67, v67, v79
-	v_rcp_f32_e32 v140, v73
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v141, -v73, v140, 1.0
-	v_fmac_f32_e32 v140, v141, v140
-	v_div_scale_f32 v141, vcc_lo, v79, v67, v79
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v142, v141, v140
-	v_fma_f32 v143, -v73, v142, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v142, v143, v140
-	v_fma_f32 v73, -v73, v142, v141
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v73, v73, v140, v142
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v140, 0xbfb8aa3b, v80
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v140
-	v_cndmask_b32_e64 v140, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v141, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, 0xbfb8aa3b, v80
-	v_exp_f32_e32 v140, v140
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v140, v140, v141
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v140, 1.0, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v141, null, v140, v140, v80
-	v_rcp_f32_e32 v142, v141
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v143, -v141, v142, 1.0
-	v_fmac_f32_e32 v142, v143, v142
-	v_div_scale_f32 v143, vcc_lo, v80, v140, v80
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v144, v143, v142
-	v_fma_f32 v145, -v141, v144, v143
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v144, v145, v142
-	v_fma_f32 v141, -v141, v144, v143
-	v_div_fixup_f32 v143, v27, v26, v52
-	v_div_fixup_f32 v52, v66, v65, v53
-	v_div_fixup_f32 v53, v73, v67, v79
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	v_div_fmas_f32 v141, v141, v142, v144
-	v_div_fixup_f32 v142, v71, v70, v25
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v25, 0xbfb8aa3b, v36
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v52, v112, v52
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v79, v141, v140, v80
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v25
-	v_cndmask_b32_e64 v25, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v26, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v25, 0xbfb8aa3b, v36
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v25, v25
-	v_ldexp_f32 v25, v25, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v25, 1.0, v25
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v26, null, v25, v25, v36
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v27, v26
-	v_fma_f32 v65, -v26, v27, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, v65, v27
-	v_div_scale_f32 v65, vcc_lo, v36, v25, v36
-	v_mul_f32_e32 v66, v65, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v67, -v26, v66, v65
-	v_fmac_f32_e32 v66, v67, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v26, -v26, v66, v65
-	v_div_fmas_f32 v26, v26, v27, v66
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v65, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v27, v27
-	v_ldexp_f32 v27, v27, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v65, null, v27, v27, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v66, v65
-	v_fma_f32 v67, -v65, v66, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v66, v67, v66
-	v_div_scale_f32 v67, vcc_lo, v37, v27, v37
-	v_mul_f32_e32 v70, v67, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v71, -v65, v70, v67
-	v_fmac_f32_e32 v70, v71, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v65, v70, v67
-	v_div_fmas_f32 v65, v65, v66, v70
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v66, 0xbfb8aa3b, v43
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v66
-	v_cndmask_b32_e64 v66, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v67, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v66, 0xbfb8aa3b, v43
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v66, v66
-	v_ldexp_f32 v66, v66, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v66, 1.0, v66
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v67, null, v66, v66, v43
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v70, v67
-	v_fma_f32 v71, -v67, v70, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v70, v71, v70
-	v_div_scale_f32 v71, vcc_lo, v43, v66, v43
-	v_mul_f32_e32 v73, v71, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v80, -v67, v73, v71
-	v_fmac_f32_e32 v73, v80, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v67, -v67, v73, v71
-	v_div_fmas_f32 v67, v67, v70, v73
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v70, 0xbfb8aa3b, v44
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v43, v67, v66, v43
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v70
-	v_cndmask_b32_e64 v70, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v71, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v70, 0xbfb8aa3b, v44
-	v_exp_f32_e32 v70, v70
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v70, v70, v71
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v70, 1.0, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v71, null, v70, v70, v44
-	v_rcp_f32_e32 v73, v71
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v80, -v71, v73, 1.0
-	v_fmac_f32_e32 v73, v80, v73
-	v_div_scale_f32 v80, vcc_lo, v44, v70, v44
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v140, v80, v73
-	v_fma_f32 v141, -v71, v140, v80
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v73
-	v_fma_f32 v71, -v71, v140, v80
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v71, v71, v73, v140
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v73, 0xbfb8aa3b, v32
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v44, v71, v70, v44
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v73
-	v_cndmask_b32_e64 v73, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v80, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v73, 0xbfb8aa3b, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v73, v73
-	v_ldexp_f32 v73, v73, v80
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v73, 1.0, v73
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v80, null, v73, v73, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v140, v80
-	v_fma_f32 v141, -v80, v140, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v140, v141, v140
-	v_div_scale_f32 v141, vcc_lo, v32, v73, v32
-	v_mul_f32_e32 v144, v141, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v145, -v80, v144, v141
-	v_fmac_f32_e32 v144, v145, v140
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_fma_f32 v80, -v80, v144, v141
-	v_div_fixup_f32 v141, v65, v27, v37
-	v_div_fmas_f32 v80, v80, v140, v144
-	v_div_fixup_f32 v140, v26, v25, v36
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v25, 0xbfb8aa3b, v20
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v80, v80, v73, v32
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v25
-	v_cndmask_b32_e64 v25, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v26, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v25, 0xbfb8aa3b, v20
-	v_exp_f32_e32 v25, v25
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v25, v25, v26
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v25, 1.0, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v26, null, v25, v25, v20
-	v_rcp_f32_e32 v27, v26
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v32, -v26, v27, 1.0
-	v_fmac_f32_e32 v27, v32, v27
-	v_div_scale_f32 v32, vcc_lo, v20, v25, v20
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v36, v32, v27
-	v_fma_f32 v37, -v26, v36, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v36, v37, v27
-	v_fma_f32 v26, -v26, v36, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v26, v26, v27, v36
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v27, 0xbfb8aa3b, v22
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
-	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v32, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v27, 0xbfb8aa3b, v22
-	v_exp_f32_e32 v27, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v27, v27, v32
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v27, 1.0, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v32, null, v27, v27, v22
-	v_rcp_f32_e32 v36, v32
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v37, -v32, v36, 1.0
-	v_fmac_f32_e32 v36, v37, v36
-	v_div_scale_f32 v37, vcc_lo, v22, v27, v22
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v37, v36
-	v_fma_f32 v66, -v32, v65, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v66, v36
-	v_fma_f32 v32, -v32, v65, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v32, v32, v36, v65
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v36, 0xbfb8aa3b, v21
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v36
-	v_cndmask_b32_e64 v36, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v37, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v36, 0xbfb8aa3b, v21
-	v_exp_f32_e32 v36, v36
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v36, v36, v37
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v36, 1.0, v36
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v37, null, v36, v36, v21
-	v_rcp_f32_e32 v65, v37
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v66, -v37, v65, 1.0
-	v_fmac_f32_e32 v65, v66, v65
-	v_div_scale_f32 v66, vcc_lo, v21, v36, v21
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v67, v66, v65
-	v_fma_f32 v70, -v37, v67, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v67, v70, v65
-	v_fma_f32 v37, -v37, v67, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v37, v37, v65, v67
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v65, 0xbfb8aa3b, v41
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v146, v37, v36, v21
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v65
-	v_cndmask_b32_e64 v65, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v66, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v65, 0xbfb8aa3b, v41
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v65, v65
-	v_ldexp_f32 v65, v65, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v65, 1.0, v65
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v66, null, v65, v65, v41
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v67, v66
-	v_fma_f32 v70, -v66, v67, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v67, v70, v67
-	v_div_scale_f32 v70, vcc_lo, v41, v65, v41
-	v_mul_f32_e32 v71, v70, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v66, v71, v70
-	v_fmac_f32_e32 v71, v73, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v66, -v66, v71, v70
-	v_div_fmas_f32 v66, v66, v67, v71
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v67, 0xbfb8aa3b, v42
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v41, v66, v65, v41
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v67
-	v_cndmask_b32_e64 v67, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v70, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v67, 0xbfb8aa3b, v42
-	v_exp_f32_e32 v67, v67
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v67, v67, v70
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v67, 1.0, v67
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v70, null, v67, v67, v42
-	v_rcp_f32_e32 v71, v70
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v73, -v70, v71, 1.0
-	v_fmac_f32_e32 v71, v73, v71
-	v_div_scale_f32 v73, vcc_lo, v42, v67, v42
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v144, v73, v71
-	v_fma_f32 v145, -v70, v144, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_fmac_f32_e32 v144, v145, v71
-	v_div_fixup_f32 v145, v32, v27, v22
-	v_fma_f32 v70, -v70, v144, v73
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v73, v62, v33
-	v_dual_mul_f32 v33, v119, v46 :: v_dual_mul_f32 v62, v56, v81
-	v_mul_f32_e32 v56, v129, v132
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_4) | instid1(VALU_DEP_3)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fmas_f32 v70, v70, v71, v144
-	v_div_fixup_f32 v144, v26, v25, v20
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_dual_mul_f32 v20, 0xbfb8aa3b, v38 :: v_dual_mul_f32 v71, v60, v23
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v23, v130, v17
-	v_dual_mul_f32 v17, v116, v44 :: v_dual_mul_f32 v60, v58, v83
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v20
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_dual_mul_f32 v58, v127, v47 :: v_dual_mul_f32 v47, v104, v145
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v147, v70, v67, v42
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v46, v105, v16
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v20, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v16, v93, v146
-	v_mul_f32_e32 v44, v63, v147
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_fmac_f32_e32 v20, 0xbfb8aa3b, v38
-	v_exp_f32_e32 v20, v20
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v20, v20, v21
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v20, 1.0, v20
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v21, null, v20, v20, v38
-	v_rcp_f32_e32 v22, v21
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v25, -v21, v22, 1.0
-	v_fmac_f32_e32 v22, v25, v22
-	v_div_scale_f32 v25, vcc_lo, v38, v20, v38
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v26, v25, v22
-	v_fma_f32 v27, -v21, v26, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v26, v27, v22
-	v_fma_f32 v21, -v21, v26, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v21, v21, v22, v26
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v22, 0xbfb8aa3b, v39
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v22
-	v_cndmask_b32_e64 v22, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v25, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v22, 0xbfb8aa3b, v39
-	v_exp_f32_e32 v22, v22
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v22, v22, v25
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v22, 1.0, v22
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v25, null, v22, v22, v39
-	v_rcp_f32_e32 v26, v25
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v27, -v25, v26, 1.0
-	v_fmac_f32_e32 v26, v27, v26
-	v_div_scale_f32 v27, vcc_lo, v39, v22, v39
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v32, v27, v26
-	v_fma_f32 v36, -v25, v32, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v32, v36, v26
-	v_fma_f32 v25, -v25, v32, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v25, v25, v26, v32
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v26, 0xbfb8aa3b, v31
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v39, v25, v22, v39
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v26
-	v_cndmask_b32_e64 v26, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v27, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v26, 0xbfb8aa3b, v31
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v26, v26
-	v_ldexp_f32 v26, v26, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v26, 1.0, v26
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v27, null, v26, v26, v31
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v32, v27
-	v_fma_f32 v36, -v27, v32, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v32, v36, v32
-	v_div_scale_f32 v36, vcc_lo, v31, v26, v31
-	v_mul_f32_e32 v37, v36, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v42, -v27, v37, v36
-	v_fmac_f32_e32 v37, v42, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v27, -v27, v37, v36
-	v_div_fmas_f32 v27, v27, v32, v37
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v32, 0xbfb8aa3b, v34
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v149, v27, v26, v31
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v32
-	v_cndmask_b32_e64 v32, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v36, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v32, 0xbfb8aa3b, v34
-	v_exp_f32_e32 v32, v32
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v32, v32, v36
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v32, 1.0, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v36, null, v32, v32, v34
-	v_rcp_f32_e32 v37, v36
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v42, -v36, v37, 1.0
-	v_fmac_f32_e32 v37, v42, v37
-	v_div_scale_f32 v42, vcc_lo, v34, v32, v34
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v65, v42, v37
-	v_fma_f32 v66, -v36, v65, v42
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v66, v37
-	v_fma_f32 v36, -v36, v65, v42
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v36, v36, v37, v65
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v37, 0xbfb8aa3b, v35
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v150, v36, v32, v34
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v37
-	v_cndmask_b32_e64 v37, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v42, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v37, 0xbfb8aa3b, v35
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v37, v37
-	v_ldexp_f32 v37, v37, v42
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v37, 1.0, v37
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v42, null, v37, v37, v35
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v65, v42
-	v_fma_f32 v66, -v42, v65, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v65, v66, v65
-	v_div_scale_f32 v66, vcc_lo, v35, v37, v35
-	v_mul_f32_e32 v67, v66, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v70, -v42, v67, v66
-	v_dual_fmac_f32 v67, v70, v65 :: v_dual_mul_f32 v70, v61, v24
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v61, v57, v82
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v148, v21, v20, v38
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v20, 0xbfb8aa3b, v30
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_fma_f32 v42, -v42, v67, v66
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v66, v138, v85
-	v_dual_mul_f32 v24, v98, v142 :: v_dual_mul_f32 v57, v128, v0
-.Ltmp5:
-	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e64 v0, |v62|, |v61|
-.Ltmp6:
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fmas_f32 v42, v42, v65, v67
-	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v20
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v65, v139, v6
-	v_mul_f32_e32 v67, v137, v76
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v151, v42, v37, v35
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v20, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
-	v_fmac_f32_e32 v20, 0xbfb8aa3b, v30
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_exp_f32_e32 v20, v20
-	v_ldexp_f32 v20, v20, v21
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v20, 1.0, v20
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v21, null, v20, v20, v30
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v22, v21
-	v_fma_f32 v25, -v21, v22, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v22, v25, v22
-	v_div_scale_f32 v25, vcc_lo, v30, v20, v30
-	v_mul_f32_e32 v26, v25, v22
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v27, -v21, v26, v25
-	v_fmac_f32_e32 v26, v27, v22
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v21, -v21, v26, v25
-	v_div_fmas_f32 v21, v21, v22, v26
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v22, 0xbfb8aa3b, v12
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v152, v21, v20, v30
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v22
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_dual_mul_f32 v21, v99, v10 :: v_dual_mul_f32 v30, v121, v48
-	v_mul_f32_e32 v20, v107, v140
-	v_mul_f32_e32 v48, v103, v144
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v22, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v25, 0, 0xffffffc0, vcc_lo
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v22, 0xbfb8aa3b, v12
-	v_exp_f32_e32 v22, v22
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v22, v22, v25
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v22, 1.0, v22
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v25, null, v22, v22, v12
-	v_rcp_f32_e32 v26, v25
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v27, -v25, v26, 1.0
-	v_fmac_f32_e32 v26, v27, v26
-	v_div_scale_f32 v27, vcc_lo, v12, v22, v12
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v31, v27, v26
-	v_fma_f32 v32, -v25, v31, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v31, v32, v26
-	v_fma_f32 v25, -v25, v31, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v25, v25, v26, v31
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v26, 0xbfb8aa3b, v13
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v153, v25, v22, v12
-	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v26
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v25, v69, v7
-	v_dual_mul_f32 v69, v55, v29 :: v_dual_mul_f32 v22, v100, v15
-	v_mul_f32_e32 v55, v135, v8
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v26, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v27, 0, 0xffffffc0, vcc_lo
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v29, v122, v88
-	v_dual_mul_f32 v15, v97, v40 :: v_dual_mul_f32 v12, v106, v149
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_fmac_f32_e32 v26, 0xbfb8aa3b, v13
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v8, v118, v152
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_exp_f32_e32 v26, v26
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v26, v26, v27
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v26, 1.0, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v27, null, v26, v26, v13
-	v_rcp_f32_e32 v31, v27
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v32, -v27, v31, 1.0
-	v_fmac_f32_e32 v31, v32, v31
-	v_div_scale_f32 v32, vcc_lo, v13, v26, v13
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v34, v32, v31
-	v_fma_f32 v35, -v27, v34, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v34, v35, v31
-	v_fma_f32 v27, -v27, v34, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v27, v27, v31, v34
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v31, 0xbfb8aa3b, v14
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v154, v27, v26, v13
-	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v31
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_dual_mul_f32 v26, v131, v9 :: v_dual_mul_f32 v27, v133, v11
-	v_dual_mul_f32 v13, v95, v18 :: v_dual_mul_f32 v18, v109, v43
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v31, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v32, 0, 0xffffffc0, vcc_lo
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v43, v64, v148
-	v_mul_f32_e32 v11, v115, v150
-	v_mul_f32_e32 v40, v90, v154
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_fmac_f32_e32 v31, 0xbfb8aa3b, v14
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v9, v117, v151
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_exp_f32_e32 v31, v31
-	v_ldexp_f32 v31, v31, v32
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 32                       ; ragged.py:1232:32
-	v_add_f32_e32 v31, 1.0, v31
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v32, null, v31, v31, v14
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v34, v32
-	v_fma_f32 v35, -v32, v34, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v34, v35, v34
-	v_div_scale_f32 v35, vcc_lo, v14, v31, v14
-	v_mul_f32_e32 v36, v35, v34
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v37, -v32, v36, v35
-	v_fmac_f32_e32 v36, v37, v34
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v32, -v32, v36, v35
-	v_div_fmas_f32 v32, v32, v34, v36
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_mul_f32_e32 v34, 0xbfb8aa3b, v5
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v155, v32, v31, v14
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v34
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_dual_mul_f32 v32, v134, v86 :: v_dual_mul_f32 v31, v120, v87
-	v_mul_f32_e32 v14, v96, v19
-	v_mul_f32_e32 v19, v108, v141
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_cndmask_b32_e64 v34, 0, 0x42800000, vcc_lo
-	v_cndmask_b32_e64 v35, 0, 0xffffffc0, vcc_lo
-.Ltmp7:
-	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max3_f32 v7, |v32|, |v25|, |v26|
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp8:
-	.loc	1 1232 38                       ; ragged.py:1232:38
-	v_fmac_f32_e32 v34, 0xbfb8aa3b, v5
-	v_exp_f32_e32 v34, v34
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_ldexp_f32 v34, v34, v35
-	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
-	v_add_f32_e32 v34, 1.0, v34
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_scale_f32 v35, null, v34, v34, v5
-	v_rcp_f32_e32 v36, v35
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v37, -v35, v36, 1.0
-	v_fmac_f32_e32 v36, v37, v36
-	v_div_scale_f32 v37, vcc_lo, v5, v34, v5
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v38, v37, v36
-	v_fma_f32 v42, -v35, v38, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_fmac_f32_e32 v38, v42, v36
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v42, v110, v39
-	v_mul_f32_e32 v39, v94, v155
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_fma_f32 v35, -v35, v38, v37
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v37, v123, v49
-	v_mul_f32_e32 v49, v102, v80
+	v_mul_f32_e32 v115, v115, v28
+	v_dual_mul_f32 v109, v109, v27 :: v_dual_mul_f32 v38, v44, v6
+	v_dual_mul_f32 v41, v56, v13 :: v_dual_mul_f32 v44, v59, v12
+	v_dual_mul_f32 v39, v45, v11 :: v_dual_mul_f32 v40, v46, v12
 	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fmas_f32 v35, v35, v36, v38
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v36, v124, v50
-	v_mul_f32_e32 v50, v114, v79
-	v_dual_mul_f32 v38, v101, v28 :: v_dual_and_b32 v79, 0x60, v165
-	.loc	1 1232 20                       ; ragged.py:1232:20
-	v_div_fixup_f32 v156, v35, v34, v5
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v34, v126, v68
-	v_mul_f32_e32 v68, v136, v75
-.Ltmp9:
-	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e64 v5, |v71|, |v70|
-	v_max3_f32 v6, |v69|, |v37|, |v36|
-.Ltmp10:
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v35, v125, v51
-	v_mul_f32_e32 v51, v113, v53
-	v_dual_mul_f32 v53, v111, v143 :: v_dual_mul_f32 v10, v92, v156
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-.Ltmp11:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max3_f32 v5, v5, |v73|, v6
-	v_max3_f32 v6, |v68|, |v67|, |v66|
-	v_max3_f32 v6, v6, v7, |v27|
-	v_max3_f32 v7, |v35|, |v34|, |v65|
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_3)
-	v_max3_f32 v75, v5, v7, v6
-	v_max3_f32 v5, |v60|, |v33|, |v31|
-	v_max3_f32 v6, |v24|, |v21|, |v22|
-	v_max3_f32 v7, |v16|, |v13|, |v14|
-	v_max3_f32 v0, v0, |v59|, v5
-	v_max3_f32 v5, |v58|, |v57|, |v56|
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_max3_f32 v5, v5, v6, |v23|
-	v_max3_f32 v6, |v30|, |v29|, |v55|
-	v_max3_f32 v0, v0, v6, v5
-	v_max_f32_e64 v5, |v53|, |v52|
-	v_max3_f32 v6, |v51|, |v20|, |v19|
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_max3_f32 v5, v5, |v50|, v6
-	v_max3_f32 v6, |v49|, |v48|, |v47|
-	v_max3_f32 v6, v6, v7, |v15|
-	v_max3_f32 v7, |v18|, |v17|, |v46|
-	s_delay_alu instid0(VALU_DEP_1)
-	v_max3_f32 v76, v5, v7, v6
-.Ltmp12:
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v5, v77, v45
-	v_mul_f32_e32 v45, v54, v41
-	v_dual_mul_f32 v6, v78, v72 :: v_dual_mul_f32 v41, v89, v153
-.Ltmp13:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max3_f32 v54, |v43|, |v12|, |v11|
-.Ltmp14:
-	.loc	1 1232 13                       ; ragged.py:1232:13
-	v_mul_f32_e32 v7, v91, v74
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-.Ltmp15:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e64 v28, |v45|, |v44|
-	v_max3_f32 v63, |v10|, |v5|, |v6|
-.Ltmp16:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_lshlrev_b32_e32 v77, 1, v2
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-.Ltmp17:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max3_f32 v28, v28, |v42|, v54
-	v_max3_f32 v54, |v41|, |v40|, |v39|
-	v_max3_f32 v54, v54, v63, |v7|
-	v_max3_f32 v63, |v9|, |v8|, |v38|
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
-	v_max3_f32 v28, v28, v63, v54
-.Ltmp18:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_permlanex16_b32 v63, v0, s0, 0xfedcba98 op_sel:[1,0]
-	v_permlanex16_b32 v54, v75, s0, 0xfedcba98 op_sel:[1,0]
-.Ltmp19:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_dual_max_f32 v63, v63, v63 :: v_dual_max_f32 v54, v54, v54
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	v_max_f32_e32 v81, v0, v63
-.Ltmp20:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_permlanex16_b32 v0, v76, s0, 0xfedcba98 op_sel:[1,0]
-.Ltmp21:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_dual_max_f32 v80, v75, v54 :: v_dual_and_b32 v63, 8, v165
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v59, 0xbfb8aa3b, v38
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v42, v57, v6
+	v_mul_f32_e32 v46, v61, v6
+	v_dual_mul_f32 v6, v147, v6 :: v_dual_mul_f32 v45, v60, v13
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v59
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v56, v62, v11
+	v_dual_mul_f32 v43, v58, v11 :: v_dual_mul_f32 v58, v137, v13
+	v_mul_f32_e32 v13, v162, v13
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v59, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v60, 0, 0xffffffc0, vcc_lo
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v107, v107, v10
+	v_mul_f32_e32 v108, v108, v26
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_4)
+	v_dual_mul_f32 v110, v110, v29 :: v_dual_fmac_f32 v59, 0xbfb8aa3b, v38
+	v_mul_f32_e32 v117, v117, v19
+	v_mul_f32_e32 v119, v119, v21
+	v_dual_mul_f32 v111, v111, v7 :: v_dual_mul_f32 v116, v116, v18
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v59, v59
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v118, v118, v20 :: v_dual_mul_f32 v113, v113, v9
+	v_mul_f32_e32 v114, v114, v10
+	v_mul_f32_e32 v112, v112, v8
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v59, v59, v60
+	v_mul_f32_e32 v60, 0xbfb8aa3b, v39
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v59, 1.0, v59
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_4) | instid1(VALU_DEP_4)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v60
+	v_cndmask_b32_e64 v60, 0, 0x42800000, vcc_lo
+	.loc	1 1127 21 is_stmt 1             ; ragged.py:1127:21
+	v_mul_f32_e32 v57, v63, v12
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v61, 0, 0xffffffc0, vcc_lo
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v12, v161, v12 :: v_dual_mul_f32 v11, v148, v11
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_fmac_f32_e32 v60, 0xbfb8aa3b, v39
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_exp_f32_e32 v60, v60
+	v_ldexp_f32 v60, v60, v61
+	v_mul_f32_e32 v61, 0xbfb8aa3b, v40
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v60, 1.0, v60
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v61
+	v_cndmask_b32_e64 v61, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v62, 0, 0xffffffc0, vcc_lo
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_max_f32_e32 v0, v0, v0
-	v_max_f32_e32 v82, v76, v0
-.Ltmp22:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_permlanex16_b32 v0, v28, s0, 0xfedcba98 op_sel:[1,0]
-	s_mov_b32 s0, 0xc1000000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp23:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v0, v0, v0
-	v_dual_max_f32 v83, v28, v0 :: v_dual_and_b32 v0, 3, v165
-.Ltmp24:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_and_b32_e32 v28, 4, v165
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	v_lshl_add_u32 v54, v0, 9, 0
-	v_lshlrev_b32_e32 v75, 5, v0
-	v_lshl_add_u32 v72, v28, 6, 0
-	v_lshl_add_u32 v0, v0, 4, 0
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_lshl_add_u32 v54, v28, 2, v54
-	v_xor_b32_e32 v64, v75, v79
+	v_fmac_f32_e32 v61, 0xbfb8aa3b, v40
+	v_exp_f32_e32 v61, v61
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v61, v61, v62
+	v_mul_f32_e32 v62, 0xbfb8aa3b, v41
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v62
+	v_cndmask_b32_e64 v62, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v63, 0, 0xffffffc0, vcc_lo
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_lshl_add_u32 v54, v63, 4, v54
-	v_add3_u32 v54, v54, v77, v64
-	v_lshrrev_b32_e32 v64, 3, v2
-	v_add_nc_u32_e32 v2, 0, v2
-	ds_store_b128 v54, v[80:83]
-	v_lshlrev_b32_e32 v54, 4, v165
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_and_or_b32 v54, 0x680, v54, v75
-	v_xor_b32_e32 v54, v54, v79
-	s_delay_alu instid0(VALU_DEP_1)
-	v_add3_u32 v54, v72, v64, v54
-	ds_load_b128 v[80:83], v54
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	v_mov_b32_e32 v64, v80
-.Ltmp25:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v76, v80, v80
-.Ltmp26:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v72, v81
-.Ltmp27:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v78, v81, v81
-.Ltmp28:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v74, v82
-	v_mov_b32_dpp v64, v64 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp29:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v82, v82, v82
-.Ltmp30:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_dpp v72, v72 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp31:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v54, v83, v83
-.Ltmp32:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_dpp v74, v74 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp33:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v64, v64, v64
-.Ltmp34:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_dpp v83, v83 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp35:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v72, v72, v72
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_dual_max_f32 v64, v76, v64 :: v_dual_max_f32 v83, v83, v83
-	v_max_f32_e32 v72, v78, v72
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
-.Ltmp36:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v76, v64
-.Ltmp37:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v54, v54, v83
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp38:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_dpp v76, v76 row_xmask:2 row_mask:0xf bank_mask:0xf
-.Ltmp39:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v76, v76, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_max_f32_e32 v64, v64, v76
-.Ltmp40:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v76, v72
-	v_mov_b32_dpp v76, v76 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp41:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v76, v76, v76
-	v_max_f32_e32 v72, v72, v76
-.Ltmp42:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v76, v64
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_mov_b32_e32 v78, v72
-	v_mov_b32_dpp v76, v76 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_mov_b32_dpp v78, v78 row_xmask:1 row_mask:0xf bank_mask:0xf
-.Ltmp43:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v76, v76, v76
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_max_f32_e32 v78, v78, v78
-	v_max_f32_e32 v80, v64, v76
-	v_max_f32_e32 v64, v74, v74
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_max_f32 v81, v72, v78 :: v_dual_max_f32 v64, v82, v64
-.Ltmp44:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v72, v64
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mov_b32_dpp v72, v72 row_xmask:2 row_mask:0xf bank_mask:0xf
-.Ltmp45:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v72, v72, v72
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_max_f32_e32 v64, v64, v72
-.Ltmp46:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v72, v64
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mov_b32_dpp v72, v72 row_xmask:1 row_mask:0xf bank_mask:0xf
-.Ltmp47:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v72, v72, v72
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_max_f32_e32 v82, v64, v72
-.Ltmp48:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v64, v54
-	v_mov_b32_dpp v64, v64 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp49:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v64, v64, v64
-	v_max_f32_e32 v54, v54, v64
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp50:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_mov_b32_e32 v64, v54
-	v_mov_b32_dpp v64, v64 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-.Ltmp51:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
-	v_max_f32_e32 v64, v64, v64
-	v_dual_max_f32 v83, v54, v64 :: v_dual_lshlrev_b32 v54, 3, v63
-.Ltmp52:
-	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
-	v_lshrrev_b32_e32 v63, 1, v79
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_4) | instid1(VALU_DEP_1)
-	v_add3_u32 v2, v2, v63, v54
-	ds_store_b128 v2, v[80:83]
-	v_lshlrev_b32_e32 v2, 5, v28
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	v_add3_u32 v0, v0, v2, v54
-	ds_load_b128 v[80:83], v0
-.Ltmp53:
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1238 24                       ; ragged.py:1238:24
-	v_max_f32_e32 v0, v80, v80
-	v_max_f32_e32 v2, v82, v82
-	v_max_f32_e32 v28, v81, v81
-	v_max_f32_e32 v54, v83, v83
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_max_f32_e32 v0, 0x2b8cbccc, v0
-	v_div_scale_f32 v63, null, 0x40e00000, 0x40e00000, v0
+	v_fmac_f32_e32 v62, 0xbfb8aa3b, v41
+	v_exp_f32_e32 v62, v62
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v62, v62, v63
+	v_mul_f32_e32 v63, 0xbfb8aa3b, v42
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v62, 1.0, v62
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v63
+	v_cndmask_b32_e64 v63, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v63, 0xbfb8aa3b, v42
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v64, v63
-	v_fma_f32 v72, -v63, v64, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v64, v72, v64
-	v_div_scale_f32 v72, vcc_lo, v0, 0x40e00000, v0
-	v_mul_f32_e32 v74, v72, v64
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v76, -v63, v74, v72
-	v_fmac_f32_e32 v74, v76, v64
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_fma_f32 v63, -v63, v74, v72
-	v_max_f32_e32 v72, 0x2b8cbccc, v2
-	v_div_fmas_f32 v64, v63, v64, v74
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_scale_f32 v2, null, 0x40e00000, 0x40e00000, v72
-	v_div_fixup_f32 v0, v64, 0x40e00000, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v63, v2
-	.loc	1 1238 23 is_stmt 0             ; ragged.py:1238:23
-	v_mov_b16_e32 v64.h, 0
-	.loc	1 1238 24                       ; ragged.py:1238:24
-	v_fma_f32 v74, -v2, v63, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v63, v74, v63
-	v_div_scale_f32 v74, vcc_lo, v72, 0x40e00000, v72
-	v_mul_f32_e32 v76, v74, v63
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v78, -v2, v76, v74
-	v_fmac_f32_e32 v76, v78, v63
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v2, -v2, v76, v74
-	v_div_fmas_f32 v74, v2, v63, v76
-	v_max_f32_e32 v76, 0x2b8cbccc, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_div_scale_f32 v2, null, 0x40e00000, 0x40e00000, v76
-	v_rcp_f32_e32 v28, v2
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v63, -v2, v28, 1.0
-	v_fmac_f32_e32 v28, v63, v28
-	v_div_scale_f32 v63, vcc_lo, v76, 0x40e00000, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v78, v63, v28
-	v_fma_f32 v80, -v2, v78, v63
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v78, v80, v28
-	v_fma_f32 v2, -v2, v78, v63
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v78, v2, v28, v78
-	v_max_f32_e32 v2, 0x2b8cbccc, v54
-	v_div_scale_f32 v28, null, 0x40e00000, 0x40e00000, v2
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v54, v28
-	v_fma_f32 v63, -v28, v54, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v54, v63, v54
-	v_div_scale_f32 v63, vcc_lo, v2, 0x40e00000, v2
-	v_mul_f32_e32 v80, v63, v54
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v81, -v28, v80, v63
-	v_fmac_f32_e32 v80, v81, v54
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v28, -v28, v80, v63
-	v_div_fmas_f32 v63, v28, v54, v80
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_mov_b16_e32 v28.l, v0.h
-	v_mov_b16_e32 v28.h, v64.h
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1238 24                       ; ragged.py:1238:24
-	v_div_fixup_f32 v2, v63, 0x40e00000, v2
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_and_b32_e32 v28, 1, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_add3_u32 v28, v0, v28, 0x7fff
-	.loc	1 1240 39 is_stmt 1             ; ragged.py:1240:39
-	v_and_b32_e32 v54, 0xffff0000, v28
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v54, v54, v71
-	v_rcp_f32_e32 v80, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v81, -v0, v80, 1.0
-	v_fmac_f32_e32 v80, v81, v80
-	v_div_scale_f32 v81, vcc_lo, v71, v54, v71
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v82, v81, v80
-	v_fma_f32 v83, -v0, v82, v81
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v82, v83, v80
-	v_fma_f32 v0, -v0, v82, v81
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v80, v0, v80, v82
-	v_div_scale_f32 v0, null, v54, v54, v70
-	v_div_fixup_f32 v71, v80, v54, v71
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v81, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v71, v71
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v71, v71, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v82, -v0, v81, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v71, v71
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v81, v82, v81
-	v_div_scale_f32 v82, vcc_lo, v70, v54, v70
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v83, v82, v81 :: v_dual_and_b32 v80, 15, v71
-	v_fma_f32 v84, -v0, v83, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v83, v84, v81
-	v_fma_f32 v0, -v0, v83, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v81, v0, v81, v83
-	v_div_scale_f32 v0, null, v54, v54, v73
-	v_rcp_f32_e32 v82, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v83, -v0, v82, 1.0
-	v_fmac_f32_e32 v82, v83, v82
-	v_div_scale_f32 v83, vcc_lo, v73, v54, v73
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v84, v83, v82
-	v_fma_f32 v85, -v0, v84, v83
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v84, v85, v82
-	v_fma_f32 v0, -v0, v84, v83
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v82, v0, v82, v84
-	v_div_scale_f32 v0, null, v54, v54, v69
-	v_div_fixup_f32 v73, v82, v54, v73
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v83, v0
-	v_fma_f32 v84, -v0, v83, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v83, v84, v83
-	v_div_scale_f32 v84, vcc_lo, v69, v54, v69
-	v_mul_f32_e32 v85, v84, v83
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v86, -v0, v85, v84
-	v_fmac_f32_e32 v85, v86, v83
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v0, -v0, v85, v84
-	v_div_fmas_f32 v83, v0, v83, v85
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	v_lshlrev_b32_e32 v0, 4, v166
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v69, v83, v54, v69
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	v_xor_b32_e32 v0, v0, v79
-	v_lshlrev_b32_e32 v79, 10, v165
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_and_b32_e32 v84, 0x1800, v79
-	v_and_b32_e32 v79, 16, v165
-	v_lshlrev_b32_e32 v85, 6, v79
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_add3_u32 v84, 0, v84, v85
-	v_add3_u32 v77, v84, v0, v77
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v54, v54, v37
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v84, v0
-	v_fma_f32 v85, -v0, v84, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v84, v85, v84
-	v_div_scale_f32 v85, vcc_lo, v37, v54, v37
-	v_mul_f32_e32 v86, v85, v84
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v87, -v0, v86, v85
-	v_fmac_f32_e32 v86, v87, v84
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v0, -v0, v86, v85
-	v_div_fmas_f32 v84, v0, v84, v86
-	v_div_scale_f32 v0, null, v54, v54, v36
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v85, v0
-	v_fma_f32 v86, -v0, v85, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v85, v86, v85
-	v_div_scale_f32 v86, vcc_lo, v36, v54, v36
-	v_mul_f32_e32 v87, v86, v85
-	v_div_fixup_f32 v70, v81, v54, v70
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_fma_f32 v88, -v0, v87, v86
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v70, v70
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v87, v88, v85
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v70, v70, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v0, -v0, v87, v86
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v70, v70
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fmas_f32 v85, v0, v85, v87
-	v_div_scale_f32 v0, null, v54, v54, v35
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v81, 15, v70
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v70, v73
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_rcp_f32_e32 v86, v0
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v70, v70, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_cvt_i32_f32_e32 v70, v70
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v87, -v0, v86, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v82, 15, v70
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v86, v87, v86
-	v_div_scale_f32 v87, vcc_lo, v35, v54, v35
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v88, v87, v86
-	v_fma_f32 v89, -v0, v88, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, v89, v86
-	v_fma_f32 v0, -v0, v88, v87
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v86, v0, v86, v88
-	v_div_scale_f32 v0, null, v54, v54, v34
-	v_rcp_f32_e32 v87, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v88, -v0, v87, 1.0
-	v_fmac_f32_e32 v87, v88, v87
-	v_div_scale_f32 v88, vcc_lo, v34, v54, v34
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v89, v88, v87
-	v_fma_f32 v90, -v0, v89, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v89, v90, v87
-	v_fma_f32 v0, -v0, v89, v88
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v87, v0, v87, v89
-	v_div_scale_f32 v0, null, v54, v54, v65
-	v_rcp_f32_e32 v88, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v89, -v0, v88, 1.0
-	v_fmac_f32_e32 v88, v89, v88
-	v_div_scale_f32 v89, vcc_lo, v65, v54, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v90, v89, v88
-	v_fma_f32 v91, -v0, v90, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v90, v91, v88
-	v_fma_f32 v0, -v0, v90, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v0, v0, v88, v90
-	v_div_scale_f32 v88, null, v54, v54, v68
-	v_div_fixup_f32 v0, v0, v54, v65
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v89, v88
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v90, -v88, v89, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v89, v90, v89
-	v_div_scale_f32 v90, vcc_lo, v68, v54, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v91, v90, v89
-	v_fma_f32 v92, -v88, v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v91, v92, v89
-	v_fma_f32 v88, -v88, v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v88, v88, v89, v91
-	v_div_scale_f32 v89, null, v54, v54, v67
-	v_div_fixup_f32 v65, v88, v54, v68
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_rcp_f32_e32 v90, v89
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v68, v69
-	v_rndne_f32_e32 v65, v65
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v68, v68, s0, 0x40e00000
-	v_med3_f32 v65, v65, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v91, -v89, v90, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v68, v68
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v90, v91, v90
-	v_div_scale_f32 v91, vcc_lo, v67, v54, v67
-	v_dual_mul_f32 v92, v91, v90 :: v_dual_and_b32 v83, 15, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v93, -v89, v92, v91
-	v_fmac_f32_e32 v92, v93, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v89, -v89, v92, v91
-	v_div_fmas_f32 v89, v89, v90, v92
-	v_div_scale_f32 v90, null, v54, v54, v66
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v67, v89, v54, v67
-	v_rcp_f32_e32 v91, v90
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v92, -v90, v91, 1.0
-	v_fmac_f32_e32 v91, v92, v91
-	v_div_scale_f32 v92, vcc_lo, v66, v54, v66
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v93, v92, v91
-	v_fma_f32 v94, -v90, v93, v92
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v93, v94, v91
-	v_fma_f32 v90, -v90, v93, v92
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v90, v90, v91, v93
-	v_div_fixup_f32 v68, v90, v54, v66
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v66, v65
-	v_and_b32_e32 v65, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v67
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v66, 15, v66
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_cvt_i32_f32_e32 v0, v0
-	v_and_b32_e32 v67, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v68
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_and_b32_e32 v68, 15, v0
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	v_lshlrev_b32_e32 v0, 6, v165
-	ds_store_b128 v77, v[80:83]
-	ds_store_b128 v77, v[65:68] offset:512
-	s_waitcnt lgkmcnt(0)
-	v_and_or_b32 v0, 0x1b00, v0, v75
-	s_barrier
-	s_delay_alu instid0(VALU_DEP_1)
-	v_xad_u32 v66, v0, v1, 0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v54, v54, v32
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_load_b128 v[67:70], v66
-	ds_load_b128 v[80:83], v66 offset:1024
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_rcp_f32_e32 v1, v0
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v65, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v65, v1
-	v_div_scale_f32 v65, vcc_lo, v32, v54, v32
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v67, v80, 4, v67
-	v_lshl_or_b32 v68, v81, 4, v68
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v71, v65, v1
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v69, v82, 4, v69
-	v_lshl_or_b32 v70, v83, 4, v70
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v73, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v71, v73, v1
-	v_fma_f32 v0, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v73, v0, v1, v71
-	v_div_scale_f32 v0, null, v54, v54, v25
-	v_rcp_f32_e32 v1, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v65, v1
-	v_div_scale_f32 v65, vcc_lo, v25, v54, v25
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v71, v65, v1
-	v_fma_f32 v75, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v71, v75, v1
-	v_fma_f32 v0, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v75, v0, v1, v71
-	v_div_scale_f32 v0, null, v54, v54, v26
-	v_rcp_f32_e32 v1, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v65, v1
-	v_div_scale_f32 v65, vcc_lo, v26, v54, v26
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v71, v65, v1
-	v_fma_f32 v80, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v71, v80, v1
-	v_fma_f32 v0, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v80, v0, v1, v71
-	v_div_scale_f32 v0, null, v54, v54, v27
-	v_rcp_f32_e32 v1, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v65, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v65, v1
-	v_div_scale_f32 v65, vcc_lo, v27, v54, v27
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v71, v65, v1
-	v_fma_f32 v81, -v0, v71, v65
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v71, v81, v1
-	v_fma_f32 v0, -v0, v71, v65
+	v_exp_f32_e32 v63, v63
+	v_ldexp_f32 v63, v63, v137
+	v_mul_f32_e32 v137, 0xbfb8aa3b, v43
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v81, v0, v1, v71
-	.loc	1 1238 24                       ; ragged.py:1238:24
-	v_div_fixup_f32 v0, v78, 0x40e00000, v76
-	.loc	1 1238 23 is_stmt 0             ; ragged.py:1238:23
-	v_mov_b16_e32 v1.h, v64.h
-	v_mov_b16_e32 v1.l, v0.h
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_and_b32_e32 v1, 1, v1
-	v_add3_u32 v65, v0, v1, 0x7fff
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 39 is_stmt 1             ; ragged.py:1240:39
-	v_and_b32_e32 v71, 0xffff0000, v65
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v71, v71, v62
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v137
+	v_cndmask_b32_e64 v137, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v147, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v137, 0xbfb8aa3b, v43
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v1, v0
-	v_fma_f32 v76, -v0, v1, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v1, v76, v1
-	v_div_scale_f32 v76, vcc_lo, v62, v71, v62
-	v_mul_f32_e32 v78, v76, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v82, -v0, v78, v76
-	v_fmac_f32_e32 v78, v82, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v0, -v0, v78, v76
-	v_div_fmas_f32 v0, v0, v1, v78
-	v_div_scale_f32 v1, null, v71, v71, v61
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v0, v0, v71, v62
-	v_rcp_f32_e32 v76, v1
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v0
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v78, -v1, v76, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v76, v78, v76
-	v_div_scale_f32 v78, vcc_lo, v61, v71, v61
-	v_mul_f32_e32 v82, v78, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v83, -v1, v82, v78
-	v_fmac_f32_e32 v82, v83, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v1, -v1, v82, v78
-	v_div_fmas_f32 v1, v1, v76, v82
-	v_div_scale_f32 v76, null, v71, v71, v59
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v1, v1, v71, v61
-	v_rcp_f32_e32 v78, v76
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v1, v1
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v1, v1, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v82, -v76, v78, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v1, v1
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v78, v82, v78
-	v_div_scale_f32 v82, vcc_lo, v59, v71, v59
-	v_mul_f32_e32 v83, v82, v78
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v88, -v76, v83, v82
-	v_fmac_f32_e32 v83, v88, v78
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v76, -v76, v83, v82
-	v_div_fmas_f32 v88, v76, v78, v83
-	v_div_scale_f32 v76, null, v71, v71, v60
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v61, v88, v71, v59
-	v_rcp_f32_e32 v78, v76
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v59, 15, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v61
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v82, -v76, v78, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v78, v82, v78
-	v_div_scale_f32 v82, vcc_lo, v60, v71, v60
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v61, 15, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v83, v82, v78
-	v_fma_f32 v89, -v76, v83, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v83, v89, v78
-	v_fma_f32 v76, -v76, v83, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v89, v76, v78, v83
-	v_div_scale_f32 v76, null, v71, v71, v33
-	v_div_fixup_f32 v62, v89, v71, v60
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v78, v76
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v60, 15, v1
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v82, -v76, v78, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v78, v82, v78
-	v_div_scale_f32 v82, vcc_lo, v33, v71, v33
-	v_mul_f32_e32 v83, v82, v78
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v90, -v76, v83, v82
-	v_fmac_f32_e32 v83, v90, v78
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v76, -v76, v83, v82
-	v_div_fmas_f32 v76, v76, v78, v83
-	v_div_scale_f32 v78, null, v71, v71, v31
+	v_exp_f32_e32 v137, v137
+	v_ldexp_f32 v137, v137, v147
+	v_mul_f32_e32 v147, 0xbfb8aa3b, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v147
+	v_cndmask_b32_e64 v147, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v148, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v147, 0xbfb8aa3b, v44
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v82, v78
-	v_fma_f32 v83, -v78, v82, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v82, v83, v82
-	v_div_scale_f32 v83, vcc_lo, v31, v71, v31
-	v_mul_f32_e32 v90, v83, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v91, -v78, v90, v83
-	v_fmac_f32_e32 v90, v91, v82
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v78, -v78, v90, v83
-	v_div_fmas_f32 v78, v78, v82, v90
-	v_div_scale_f32 v82, null, v71, v71, v30
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v31, v78, v71, v31
-	v_rcp_f32_e32 v83, v82
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v90, -v82, v83, 1.0
-	v_fmac_f32_e32 v83, v90, v83
-	v_div_scale_f32 v90, vcc_lo, v30, v71, v30
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v91, v90, v83
-	v_fma_f32 v92, -v82, v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v91, v92, v83
-	v_fma_f32 v82, -v82, v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v82, v82, v83, v91
-	v_div_scale_f32 v83, null, v71, v71, v29
-	v_div_fixup_f32 v30, v82, v71, v30
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v90, v83
-	v_fma_f32 v91, -v83, v90, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v90, v91, v90
-	v_div_scale_f32 v91, vcc_lo, v29, v71, v29
-	v_mul_f32_e32 v92, v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v93, -v83, v92, v91
-	v_fmac_f32_e32 v92, v93, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v83, -v83, v92, v91
-	v_div_fmas_f32 v83, v83, v90, v92
-	v_div_scale_f32 v90, null, v71, v71, v55
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v29, v83, v71, v29
-	v_rcp_f32_e32 v91, v90
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v92, -v90, v91, 1.0
-	v_fmac_f32_e32 v91, v92, v91
-	v_div_scale_f32 v92, vcc_lo, v55, v71, v55
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v93, v92, v91
-	v_fma_f32 v94, -v90, v93, v92
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v93, v94, v91
-	v_fma_f32 v90, -v90, v93, v92
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v90, v90, v91, v93
-	v_div_scale_f32 v91, null, v71, v71, v58
-	v_div_fixup_f32 v0, v90, v71, v55
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_rcp_f32_e32 v92, v91
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v55, v62
-	v_rndne_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v55, v55, s0, 0x40e00000
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v93, -v91, v92, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v55, v55
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_cvt_i32_f32_e32 v0, v0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v92, v93, v92
-	v_div_scale_f32 v93, vcc_lo, v58, v71, v58
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v62, 15, v55
-	v_and_b32_e32 v55, 15, v0
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v94, v93, v92
-	v_fma_f32 v95, -v91, v94, v93
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v94, v95, v92
-	v_fma_f32 v91, -v91, v94, v93
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v91, v91, v92, v94
-	v_div_scale_f32 v92, null, v71, v71, v57
-	v_div_fixup_f32 v1, v91, v71, v58
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v93, v92
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v1, v1
+	v_exp_f32_e32 v147, v147
+	v_ldexp_f32 v147, v147, v148
+	v_mul_f32_e32 v148, 0xbfb8aa3b, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v148
+	v_cndmask_b32_e64 v148, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v161, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v148, 0xbfb8aa3b, v45
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v1, v1, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v94, -v92, v93, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v1, v1
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v93, v94, v93
-	v_div_scale_f32 v94, vcc_lo, v57, v71, v57
+	v_exp_f32_e32 v148, v148
+	v_ldexp_f32 v148, v148, v161
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v95, v94, v93
-	v_fma_f32 v96, -v92, v95, v94
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v95, v96, v93
-	v_fma_f32 v92, -v92, v95, v94
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v92, v92, v93, v95
-	v_div_scale_f32 v93, null, v71, v71, v56
-	v_div_fixup_f32 v57, v92, v71, v57
+	v_dual_mul_f32 v161, 0xbfb8aa3b, v46 :: v_dual_add_f32 v148, 1.0, v148
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v161
+	v_cndmask_b32_e64 v161, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v162, 0, 0xffffffc0, vcc_lo
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v94, v93
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v57
+	v_fmac_f32_e32 v161, 0xbfb8aa3b, v46
+	v_exp_f32_e32 v161, v161
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v161, v161, v162
+	v_mul_f32_e32 v162, 0xbfb8aa3b, v56
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v162
+	v_cndmask_b32_e64 v162, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v174, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v162, 0xbfb8aa3b, v56
+	v_exp_f32_e32 v162, v162
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v162, v162, v174
+	v_mul_f32_e32 v174, 0xbfb8aa3b, v57
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v162, 1.0, v162
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v174
+	v_cndmask_b32_e64 v174, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v175, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v174, 0xbfb8aa3b, v57
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v95, -v93, v94, 1.0
+	v_exp_f32_e32 v174, v174
+	v_ldexp_f32 v174, v174, v175
+	v_mul_f32_e32 v175, 0xbfb8aa3b, v58
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v94, v95, v94
-	v_div_scale_f32 v95, vcc_lo, v56, v71, v56
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v96, v95, v94 :: v_dual_and_b32 v57, 15, v0
-	v_fma_f32 v97, -v93, v96, v95
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v96, v97, v94
-	v_fma_f32 v93, -v93, v96, v95
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v93, v93, v94, v96
-	v_div_fixup_f32 v58, v93, v71, v56
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v56, 15, v1
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v174, 1.0, v174
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v175
+	v_cndmask_b32_e64 v175, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v176, 0, 0xffffffc0, vcc_lo
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v58
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_cvt_i32_f32_e32 v0, v0
-	v_and_b32_e32 v58, 15, v0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v71, v71, v24
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[59:62]
-	ds_store_b128 v77, v[55:58] offset:512
-	s_waitcnt lgkmcnt(0)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_rcp_f32_e32 v1, v0
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_barrier
+	v_fmac_f32_e32 v175, 0xbfb8aa3b, v58
+	v_exp_f32_e32 v175, v175
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v175, v175, v176
+	v_mul_f32_e32 v176, 0xbfb8aa3b, v6
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v176
+	v_cndmask_b32_e64 v176, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v177, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v176, 0xbfb8aa3b, v6
+	v_exp_f32_e32 v176, v176
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v55, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v55, v1
-	v_div_scale_f32 v55, vcc_lo, v24, v71, v24
+	v_ldexp_f32 v176, v176, v177
+	v_dual_mul_f32 v177, 0xbfb8aa3b, v11 :: v_dual_add_f32 v176, 1.0, v176
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v177
+	v_cndmask_b32_e64 v177, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v178, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v177, 0xbfb8aa3b, v11
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_exp_f32_e32 v177, v177
+	v_ldexp_f32 v177, v177, v178
+	v_mul_f32_e32 v178, 0xbfb8aa3b, v12
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v178
+	v_cndmask_b32_e64 v178, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v179, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v178, 0xbfb8aa3b, v12
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_exp_f32_e32 v178, v178
+	v_ldexp_f32 v178, v178, v179
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v56, v55, v1
-	v_fma_f32 v57, -v0, v56, v55
+	v_dual_mul_f32 v179, 0xbfb8aa3b, v13 :: v_dual_add_f32 v178, 1.0, v178
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v179
+	v_cndmask_b32_e64 v179, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v180, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v179, 0xbfb8aa3b, v13
+	v_exp_f32_e32 v179, v179
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v179, v179, v180
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v180, null, v59, v59, v38
+	v_rcp_f32_e32 v181, v180
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v182, -v180, v181, 1.0
+	v_fmac_f32_e32 v181, v182, v181
+	v_div_scale_f32 v182, vcc_lo, v38, v59, v38
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v56, v57, v1
-	v_fma_f32 v0, -v0, v56, v55
+	v_mul_f32_e32 v183, v182, v181
+	v_fma_f32 v184, -v180, v183, v182
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v183, v184, v181
+	v_fma_f32 v180, -v180, v183, v182
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v180, v180, v181, v183
+	v_div_fixup_f32 v38, v180, v59, v38
+	v_div_scale_f32 v59, null, v60, v60, v39
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v180, v59
+	v_fma_f32 v181, -v59, v180, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v56, v0, v1, v56
-	v_div_scale_f32 v0, null, v71, v71, v21
-	v_rcp_f32_e32 v1, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v55, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v55, v1
-	v_div_scale_f32 v55, vcc_lo, v21, v71, v21
+	v_fmac_f32_e32 v180, v181, v180
+	v_div_scale_f32 v181, vcc_lo, v39, v60, v39
+	v_mul_f32_e32 v182, v181, v180
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v57, v55, v1
-	v_fma_f32 v58, -v0, v57, v55
+	v_fma_f32 v183, -v59, v182, v181
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v61, 1.0, v61 :: v_dual_fmac_f32 v182, v183, v180
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v57, v58, v1
-	v_fma_f32 v0, -v0, v57, v55
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v59, -v59, v182, v181
+	v_div_fmas_f32 v59, v59, v180, v182
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_div_fixup_f32 v39, v59, v60, v39
+	v_div_scale_f32 v59, null, v61, v61, v40
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v60, v59
+	v_fma_f32 v180, -v59, v60, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v57, v0, v1, v57
-	v_div_scale_f32 v0, null, v71, v71, v22
-	v_rcp_f32_e32 v1, v0
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v55, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v55, v1
-	v_div_scale_f32 v55, vcc_lo, v22, v71, v22
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v63, 1.0, v63 :: v_dual_fmac_f32 v60, v180, v60
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v180, vcc_lo, v40, v61, v40
+	v_mul_f32_e32 v181, v180, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v58, v55, v1
-	v_fma_f32 v59, -v0, v58, v55
+	v_fma_f32 v182, -v59, v181, v180
+	v_fmac_f32_e32 v181, v182, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v58, v59, v1
-	v_fma_f32 v0, -v0, v58, v55
+	v_fma_f32 v59, -v59, v181, v180
+	v_div_fmas_f32 v59, v59, v60, v181
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v58, v0, v1, v58
-	v_div_scale_f32 v0, null, v71, v71, v23
-	v_rcp_f32_e32 v1, v0
+	v_div_fixup_f32 v40, v59, v61, v40
+	v_div_scale_f32 v59, null, v62, v62, v41
+	v_rcp_f32_e32 v60, v59
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v55, -v0, v1, 1.0
-	v_fmac_f32_e32 v1, v55, v1
-	v_div_scale_f32 v55, vcc_lo, v23, v71, v23
+	v_fma_f32 v61, -v59, v60, 1.0
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v137, 1.0, v137 :: v_dual_fmac_f32 v60, v61, v60
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v61, vcc_lo, v41, v62, v41
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v59, v55, v1
-	v_fma_f32 v60, -v0, v59, v55
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v147, 1.0, v147 :: v_dual_mul_f32 v180, v61, v60
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v181, -v59, v180, v61
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v59, v60, v1
-	v_fma_f32 v0, -v0, v59, v55
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v0, v0, v1, v59
-	.loc	1 1238 24                       ; ragged.py:1238:24
-	v_div_fixup_f32 v1, v74, 0x40e00000, v72
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v0, v0, v71, v23
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_mov_b16_e32 v64.l, v1.h
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v23, v30
-	v_rndne_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_and_b32_e32 v55, 1, v64
-	v_mov_b16_e32 v64.l, v2.h
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v23, v23, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_add3_u32 v1, v1, v55, 0x7fff
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v23, v23
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	.loc	1 1240 39                       ; ragged.py:1240:39
-	v_and_b32_e32 v55, 0xffff0000, v1
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_lshlrev_b16 v1.l, 8, v68.l
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v23, 15, v23
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v59, null, v55, v55, v53
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v161, 1.0, v161 :: v_dual_fmac_f32 v180, v181, v60
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v59, -v59, v180, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v59, v59, v60, v180
+	v_div_fixup_f32 v41, v59, v62, v41
+	v_div_scale_f32 v59, null, v63, v63, v42
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v60, v59
+	v_fma_f32 v61, -v59, v60, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v175, 1.0, v175 :: v_dual_fmac_f32 v60, v61, v60
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v61, vcc_lo, v42, v63, v42
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v177, 1.0, v177 :: v_dual_mul_f32 v62, v61, v60
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v180, -v59, v62, v61
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v179, 1.0, v179 :: v_dual_fmac_f32 v62, v180, v60
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v59, -v59, v62, v61
+	v_div_fmas_f32 v59, v59, v60, v62
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v42, v59, v63, v42
+	v_div_scale_f32 v59, null, v137, v137, v43
 	v_rcp_f32_e32 v60, v59
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v61, -v59, v60, 1.0
 	v_fmac_f32_e32 v60, v61, v60
-	v_div_scale_f32 v61, vcc_lo, v53, v55, v53
+	v_div_scale_f32 v61, vcc_lo, v43, v137, v43
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_mul_f32_e32 v62, v61, v60
-	v_fma_f32 v72, -v59, v62, v61
+	v_fma_f32 v63, -v59, v62, v61
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v62, v72, v60
+	v_fmac_f32_e32 v62, v63, v60
 	v_fma_f32 v59, -v59, v62, v61
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v62, v59, v60, v62
-	v_div_scale_f32 v59, null, v55, v55, v52
-	v_div_fixup_f32 v53, v62, v55, v53
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v60, v59
-	v_fma_f32 v61, -v59, v60, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v59, v59, v60, v62
+	v_div_fixup_f32 v59, v59, v137, v43
+	v_div_scale_f32 v43, null, v147, v147, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v60, v43
+	v_fma_f32 v61, -v43, v60, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
 	v_fmac_f32_e32 v60, v61, v60
-	v_div_scale_f32 v61, vcc_lo, v52, v55, v52
-	v_mul_f32_e32 v72, v61, v60
+	v_div_scale_f32 v61, vcc_lo, v44, v147, v44
+	v_mul_f32_e32 v62, v61, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v74, -v59, v72, v61
-	v_fmac_f32_e32 v72, v74, v60
+	v_fma_f32 v63, -v43, v62, v61
+	v_fmac_f32_e32 v62, v63, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v59, -v59, v72, v61
-	v_div_fmas_f32 v72, v59, v60, v72
-	v_div_scale_f32 v59, null, v55, v55, v50
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v52, v72, v55, v52
-	v_rcp_f32_e32 v60, v59
+	v_fma_f32 v43, -v43, v62, v61
+	v_div_fmas_f32 v43, v43, v60, v62
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v60, v43, v147, v44
+	v_div_scale_f32 v43, null, v148, v148, v45
+	v_rcp_f32_e32 v44, v43
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v61, -v59, v60, 1.0
-	v_fmac_f32_e32 v60, v61, v60
-	v_div_scale_f32 v61, vcc_lo, v50, v55, v50
+	v_fma_f32 v61, -v43, v44, 1.0
+	v_fmac_f32_e32 v44, v61, v44
+	v_div_scale_f32 v61, vcc_lo, v45, v148, v45
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v74, v61, v60
-	v_fma_f32 v88, -v59, v74, v61
+	v_mul_f32_e32 v62, v61, v44
+	v_fma_f32 v63, -v43, v62, v61
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v74, v88, v60
-	v_fma_f32 v59, -v59, v74, v61
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v74, v59, v60, v74
-	v_div_scale_f32 v59, null, v55, v55, v51
-	v_div_fixup_f32 v62, v74, v55, v50
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v60, v59
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v50, v53
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v50, v50, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v61, -v59, v60, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v50, v50
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v60, v61, v60
-	v_div_scale_f32 v61, vcc_lo, v51, v55, v51
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v50, 15, v50
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v88, v61, v60
-	v_fma_f32 v89, -v59, v88, v61
+	v_fmac_f32_e32 v62, v63, v44
+	v_fma_f32 v43, -v43, v62, v61
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v88, v89, v60
-	v_fma_f32 v59, -v59, v88, v61
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v88, v59, v60, v88
-	v_div_scale_f32 v59, null, v55, v55, v20
-	v_div_fixup_f32 v72, v88, v55, v51
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_rcp_f32_e32 v60, v59
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v51, v52
-	v_rndne_f32_e32 v52, v62
-	v_rndne_f32_e32 v53, v72
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v51, v51, s0, 0x40e00000
-	v_med3_f32 v52, v52, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_med3_f32 v53, v53, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v61, -v59, v60, 1.0
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v51, v51
-	v_cvt_i32_f32_e32 v52, v52
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_cvt_i32_f32_e32 v53, v53
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v60, v61, v60
-	v_div_scale_f32 v61, vcc_lo, v20, v55, v20
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v51, 15, v51
-	v_and_b32_e32 v52, 15, v52
-	v_and_b32_e32 v53, 15, v53
+	v_div_fmas_f32 v43, v43, v44, v62
+	v_div_fixup_f32 v61, v43, v148, v45
+	v_div_scale_f32 v43, null, v161, v161, v46
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v44, v43
+	v_fma_f32 v45, -v43, v44, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v46, v161, v46
+	v_mul_f32_e32 v62, v45, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v63, -v43, v62, v45
+	v_fmac_f32_e32 v62, v63, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v43, -v43, v62, v45
+	v_div_fmas_f32 v43, v43, v44, v62
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v62, v43, v161, v46
+	v_div_scale_f32 v43, null, v162, v162, v56
+	v_rcp_f32_e32 v44, v43
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v45, -v43, v44, 1.0
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v56, v162, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v46, v45, v44
+	v_fma_f32 v63, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v46, v63, v44
+	v_fma_f32 v43, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v43, v43, v44, v46
+	v_div_fixup_f32 v56, v43, v162, v56
+	v_div_scale_f32 v43, null, v174, v174, v57
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v42, v166, v42 :: v_dual_mul_f32 v37, v37, v56
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v44, v43
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v45, -v43, v44, 1.0
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v57, v174, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v46, v45, v44
+	v_fma_f32 v63, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v46, v63, v44
+	v_fma_f32 v43, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v43, v43, v44, v46
+	v_div_fixup_f32 v57, v43, v174, v57
+	v_div_scale_f32 v43, null, v175, v175, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v44, v43
+	v_fma_f32 v45, -v43, v44, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v58, v175, v58
+	v_mul_f32_e32 v46, v45, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v63, -v43, v46, v45
+	v_fmac_f32_e32 v46, v63, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v43, -v43, v46, v45
+	v_div_fmas_f32 v43, v43, v44, v46
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v58, v43, v175, v58
+	v_div_scale_f32 v43, null, v176, v176, v6
+	v_rcp_f32_e32 v44, v43
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v45, -v43, v44, 1.0
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v6, v176, v6
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v46, v45, v44
+	v_fma_f32 v63, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v46, v63, v44
+	v_fma_f32 v43, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v43, v43, v44, v46
+	v_div_fixup_f32 v6, v43, v176, v6
+	v_div_scale_f32 v43, null, v177, v177, v11
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v44, v43
+	v_fma_f32 v45, -v43, v44, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v11, v177, v11
+	v_mul_f32_e32 v46, v45, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v63, -v43, v46, v45
+	v_fmac_f32_e32 v46, v63, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v43, -v43, v46, v45
+	v_div_fmas_f32 v43, v43, v44, v46
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v11, v43, v177, v11
+	v_div_scale_f32 v43, null, v178, v178, v12
+	v_rcp_f32_e32 v44, v43
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v45, -v43, v44, 1.0
+	v_fmac_f32_e32 v44, v45, v44
+	v_div_scale_f32 v45, vcc_lo, v12, v178, v12
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v46, v45, v44
+	v_fma_f32 v63, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v46, v63, v44
+	v_fma_f32 v43, -v43, v46, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v43, v43, v44, v46
+	v_div_fixup_f32 v63, v43, v178, v12
+	v_div_scale_f32 v12, null, v179, v179, v13
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v43, v12
+	v_fma_f32 v44, -v12, v43, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v43, v44, v43
+	v_div_scale_f32 v44, vcc_lo, v13, v179, v13
+	v_mul_f32_e32 v45, v44, v43
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v46, -v12, v45, v44
+	v_fmac_f32_e32 v45, v46, v43
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v46, v146, v38
+	v_mul_f32_e32 v38, v36, v62
+	.loc	1 1117 21 is_stmt 1             ; ragged.py:1117:21
+	v_mul_f32_e32 v62, v126, v125
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v89, v61, v60
-	v_fma_f32 v90, -v59, v89, v61
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v12, -v12, v45, v44
+	v_div_fmas_f32 v12, v12, v43, v45
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v43, v165, v41
+	v_mul_f32_e32 v41, v167, v59
+	.loc	1 1117 21 is_stmt 1             ; ragged.py:1117:21
+	v_mul_f32_e32 v59, v160, v125
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v36, v169, v57
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v57, v157, v125
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v137, v12, v179, v13
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v45, v163, v39
+	v_mul_f32_e32 v39, v35, v61
+	v_mul_f32_e32 v13, v1, v6
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v1, v159, v125
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v12, v171, v11
+	v_mul_f32_e32 v11, v172, v63
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v61, v127, v125
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v63, v57, v23
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v57, v62, v26 :: v_dual_mul_f32 v44, v164, v40
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v40, v168, v60
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v60, v128, v125 :: v_dual_mul_f32 v61, v61, v27
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_dual_mul_f32 v128, 0xbfb8aa3b, v57 :: v_dual_mul_f32 v35, v170, v58
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v58, v156, v125
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v60, v60, v29
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v127, 0xbfb8aa3b, v61
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v128
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v59, v59, v28 :: v_dual_mul_f32 v58, v58, v22
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v6, v173, v137
+	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v60
+	v_cndmask_b32_e64 v128, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v127
+	v_dual_mul_f32 v62, 0xbfb8aa3b, v59 :: v_dual_mul_f32 v1, v1, v24
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fmac_f32_e32 v128, 0xbfb8aa3b, v57
+	v_cndmask_b32_e64 v127, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v128, v128
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v89, v90, v60
-	v_fma_f32 v59, -v59, v89, v61
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v59, v59, v60, v89
-	v_div_scale_f32 v60, null, v55, v55, v19
-	v_rcp_f32_e32 v61, v60
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v89, -v60, v61, 1.0
-	v_fmac_f32_e32 v61, v89, v61
-	v_div_scale_f32 v89, vcc_lo, v19, v55, v19
+	v_fmac_f32_e32 v127, 0xbfb8aa3b, v61
+	v_exp_f32_e32 v127, v127
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v128, v128, v137
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v128, 1.0, v128
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v127, v127, v137
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v62
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v127, 1.0, v127 :: v_dual_fmac_f32 v126, 0xbfb8aa3b, v60
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v62, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v126, v126
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v90, v89, v61
-	v_fma_f32 v91, -v60, v90, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v90, v91, v61
-	v_fma_f32 v60, -v60, v90, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v60, v60, v61, v90
-	v_div_scale_f32 v61, null, v55, v55, v18
-	v_div_fixup_f32 v19, v60, v55, v19
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v89, v61
-	v_fma_f32 v90, -v61, v89, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v89, v90, v89
-	v_div_scale_f32 v90, vcc_lo, v18, v55, v18
-	v_mul_f32_e32 v91, v90, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v92, -v61, v91, v90
-	v_fmac_f32_e32 v91, v92, v89
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v61, -v61, v91, v90
-	v_div_fmas_f32 v61, v61, v89, v91
-	v_div_scale_f32 v89, null, v55, v55, v17
+	v_fmac_f32_e32 v62, 0xbfb8aa3b, v59
+	v_exp_f32_e32 v62, v62
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v126, v126, v137
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v126, 1.0, v126
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v62, v62, v137
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v137, null, v128, v128, v57
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v18, v61, v55, v18
-	v_rcp_f32_e32 v90, v89
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v62, 1.0, v62
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v146, v137
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v91, -v89, v90, 1.0
-	v_fmac_f32_e32 v90, v91, v90
-	v_div_scale_f32 v91, vcc_lo, v17, v55, v17
+	v_fma_f32 v147, -v137, v146, 1.0
+	v_fmac_f32_e32 v146, v147, v146
+	v_div_scale_f32 v147, vcc_lo, v57, v128, v57
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v92, v91, v90
-	v_fma_f32 v93, -v89, v92, v91
+	v_mul_f32_e32 v148, v147, v146
+	v_fma_f32 v156, -v137, v148, v147
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v92, v93, v90
-	v_fma_f32 v89, -v89, v92, v91
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v100, v89, v90, v92
-	v_div_scale_f32 v89, null, v55, v55, v46
-	v_div_fixup_f32 v17, v100, v55, v17
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v90, v89
-	v_fma_f32 v91, -v89, v90, 1.0
+	v_fmac_f32_e32 v148, v156, v146
+	v_fma_f32 v137, -v137, v148, v147
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v137, v137, v146, v148
+	v_div_fixup_f32 v128, v137, v128, v57
+	v_div_scale_f32 v57, null, v127, v127, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v137, v57
+	v_fma_f32 v146, -v57, v137, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v90, v91, v90
-	v_div_scale_f32 v91, vcc_lo, v46, v55, v46
-	v_mul_f32_e32 v92, v91, v90
+	v_fmac_f32_e32 v137, v146, v137
+	v_div_scale_f32 v146, vcc_lo, v61, v127, v61
+	v_mul_f32_e32 v147, v146, v137
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v93, -v89, v92, v91
-	v_fmac_f32_e32 v92, v93, v90
+	v_fma_f32 v148, -v57, v147, v146
+	v_fmac_f32_e32 v147, v148, v137
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v89, -v89, v92, v91
-	v_div_fmas_f32 v89, v89, v90, v92
-	v_div_scale_f32 v90, null, v55, v55, v49
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v46, v89, v55, v46
-	v_rcp_f32_e32 v91, v90
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v46, v46
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v46, v46, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v92, -v90, v91, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v46, v46
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v91, v92, v91
-	v_div_scale_f32 v92, vcc_lo, v49, v55, v49
-	v_dual_mul_f32 v93, v92, v91 :: v_dual_and_b32 v46, 15, v46
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v94, -v90, v93, v92
-	v_fmac_f32_e32 v93, v94, v91
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v90, -v90, v93, v92
-	v_div_fmas_f32 v90, v90, v91, v93
-	v_div_scale_f32 v91, null, v55, v55, v48
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v49, v90, v55, v49
-	v_rcp_f32_e32 v92, v91
+	v_fma_f32 v57, -v57, v147, v146
+	v_div_fmas_f32 v57, v57, v137, v147
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v61, v57, v127, v61
+	v_div_scale_f32 v57, null, v126, v126, v60
+	v_rcp_f32_e32 v127, v57
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v93, -v91, v92, 1.0
-	v_fmac_f32_e32 v92, v93, v92
-	v_div_scale_f32 v93, vcc_lo, v48, v55, v48
+	v_fma_f32 v137, -v57, v127, 1.0
+	v_fmac_f32_e32 v127, v137, v127
+	v_div_scale_f32 v137, vcc_lo, v60, v126, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v94, v93, v92
-	v_fma_f32 v95, -v91, v94, v93
+	v_mul_f32_e32 v146, v137, v127
+	v_fma_f32 v147, -v57, v146, v137
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v94, v95, v92
-	v_fma_f32 v91, -v91, v94, v93
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v91, v91, v92, v94
-	v_div_scale_f32 v92, null, v55, v55, v47
-	v_div_fixup_f32 v48, v91, v55, v48
+	v_fmac_f32_e32 v146, v147, v127
+	v_fma_f32 v57, -v57, v146, v137
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v57, v57, v127, v146
+	v_div_fixup_f32 v60, v57, v126, v60
+	v_div_scale_f32 v57, null, v62, v62, v59
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v126, v57
+	v_fma_f32 v127, -v57, v126, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v126, v127, v126
+	v_div_scale_f32 v127, vcc_lo, v59, v62, v59
+	v_mul_f32_e32 v137, v127, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v146, -v57, v137, v127
+	v_fmac_f32_e32 v137, v146, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v57, -v57, v137, v127
+	v_div_fmas_f32 v57, v57, v126, v137
+	s_delay_alu instid0(VALU_DEP_1)
+	v_div_fixup_f32 v57, v57, v62, v59
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v59, v63, v61
+	.loc	1 1117 21 is_stmt 1             ; ragged.py:1117:21
+	v_mul_f32_e32 v63, v124, v125
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v61, v58, v128
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v58, v154, v125
+	v_mul_f32_e32 v62, v152, v125
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v57, v1, v57
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v63, v63, v21
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v56, v158, v125
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_dual_mul_f32 v1, v155, v125 :: v_dual_mul_f32 v124, v62, v14
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v56, v56, v25
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_dual_mul_f32 v1, v1, v17 :: v_dual_mul_f32 v56, v56, v60
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v60, v153, v125
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v62, v60, v15
+	v_mul_f32_e32 v60, v58, v16
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v58, v121, v18 :: v_dual_mul_f32 v121, v122, v19
+	v_dual_mul_f32 v122, v123, v20 :: v_dual_mul_f32 v123, 0xbfb8aa3b, v63
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_dual_mul_f32 v128, 0xbfb8aa3b, v58 :: v_dual_mul_f32 v127, 0xbfb8aa3b, v121
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v122
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_3)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v128
+	v_cndmask_b32_e64 v128, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v127
+	v_fmac_f32_e32 v128, 0xbfb8aa3b, v58
+	v_cndmask_b32_e64 v127, 0, 0x42800000, vcc_lo
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v93, v92
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v48, v48
+	v_exp_f32_e32 v128, v128
+	v_fmac_f32_e32 v127, 0xbfb8aa3b, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v127, v127
+	v_ldexp_f32 v128, v128, v137
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	s_delay_alu instid0(VALU_DEP_3)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v128, 1.0, v128
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v127, v127, v137
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v123
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v127, 1.0, v127 :: v_dual_fmac_f32 v126, 0xbfb8aa3b, v122
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v123, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v126, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v123, 0xbfb8aa3b, v63
+	v_exp_f32_e32 v123, v123
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v126, v126, v137
+	v_cndmask_b32_e64 v137, 0, 0xffffffc0, vcc_lo
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v126, 1.0, v126
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v123, v123, v137
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v137, null, v128, v128, v58
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v123, 1.0, v123
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v146, v137
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v147, -v137, v146, 1.0
+	v_fmac_f32_e32 v146, v147, v146
+	v_div_scale_f32 v147, vcc_lo, v58, v128, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v148, v147, v146
+	v_fma_f32 v152, -v137, v148, v147
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v148, v152, v146
+	v_fma_f32 v137, -v137, v148, v147
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v137, v137, v146, v148
+	v_div_fixup_f32 v128, v137, v128, v58
+	v_div_scale_f32 v58, null, v127, v127, v121
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v48, v48, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v94, -v92, v93, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v48, v48
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v93, v94, v93
-	v_div_scale_f32 v94, vcc_lo, v47, v55, v47
+	v_rcp_f32_e32 v137, v58
+	v_fma_f32 v146, -v58, v137, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v137, v146, v137
+	v_div_scale_f32 v146, vcc_lo, v121, v127, v121
+	v_mul_f32_e32 v147, v146, v137
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v95, v94, v93 :: v_dual_and_b32 v48, 15, v48
-	v_fma_f32 v96, -v92, v95, v94
+	v_fma_f32 v148, -v58, v147, v146
+	v_fmac_f32_e32 v147, v148, v137
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v95, v96, v93
-	v_fma_f32 v92, -v92, v95, v94
+	v_fma_f32 v58, -v58, v147, v146
+	v_div_fmas_f32 v58, v58, v137, v147
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v121, v58, v127, v121
+	v_div_scale_f32 v58, null, v126, v126, v122
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v62, v62, v121
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v127, v58
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v121, v151, v125
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v137, -v58, v127, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v127, v137, v127
+	v_div_scale_f32 v137, vcc_lo, v122, v126, v122
+	v_mul_f32_e32 v146, v137, v127
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v92, v92, v93, v95
-	v_div_fixup_f32 v62, v92, v55, v47
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v47, v49
-	.loc	1 1245 22 is_stmt 1             ; ragged.py:1245:22
-	ds_load_b128 v[88:91], v66
-	ds_load_b128 v[92:95], v66 offset:1024
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v49, v62
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v47, v47, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_med3_f32 v49, v49, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v47, v47
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_cvt_i32_f32_e32 v49, v49
-	v_and_b32_e32 v47, 15, v47
+	v_fma_f32 v147, -v58, v146, v137
+	v_fmac_f32_e32 v146, v147, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v58, -v58, v146, v137
+	v_div_fmas_f32 v58, v58, v127, v146
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v122, v58, v126, v122
+	v_div_scale_f32 v58, null, v123, v123, v63
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v60, v60, v122
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v126, v58
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v122, v150, v125
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v127, -v58, v126, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v126, v127, v126
+	v_div_scale_f32 v127, vcc_lo, v63, v123, v63
+	v_mul_f32_e32 v137, v127, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v146, -v58, v137, v127
+	v_fmac_f32_e32 v137, v146, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v58, -v58, v137, v127
+	v_div_fmas_f32 v58, v58, v126, v137
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v126, v105, v125 :: v_dual_mul_f32 v105, v122, v4
 	s_delay_alu instid0(VALU_DEP_2)
-	v_and_b32_e32 v49, 15, v49
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[50:53]
-	ds_store_b128 v77, v[46:49] offset:512
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_and_b32_e32 v46, 1, v64
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v58, v58, v123, v63
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v63, v124, v128
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v123, v149, v125
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v124, v106, v125
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v122, v126, v8
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v58, v1, v58 :: v_dual_mul_f32 v1, v143, v125
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v125, v104, v125 :: v_dual_mul_f32 v106, v123, v3
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v122
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v104, v121, v5
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v121, v124, v9
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_mul_f32_e32 v123, v125, v7
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_dual_mul_f32 v124, 0xbfb8aa3b, v107 :: v_dual_mul_f32 v1, v1, v2
+	v_mul_f32_e32 v125, 0xbfb8aa3b, v121
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v127, 0xbfb8aa3b, v123
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v127
+	v_cndmask_b32_e64 v127, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fmac_f32_e32 v127, 0xbfb8aa3b, v123
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v127, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v126, 0xbfb8aa3b, v122
+	v_exp_f32_e32 v126, v126
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v127, v127, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v125
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v127, 1.0, v127
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v126, v126, v128
+	v_cndmask_b32_e64 v125, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v124
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v126, 1.0, v126 :: v_dual_fmac_f32 v125, 0xbfb8aa3b, v121
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v124, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v125, v125
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v124, 0xbfb8aa3b, v107
+	v_exp_f32_e32 v124, v124
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v125, v125, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v125, 1.0, v125
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v124, v124, v128
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v128, null, v127, v127, v123
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v124, 1.0, v124
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v137, v128
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v143, -v128, v137, 1.0
+	v_fmac_f32_e32 v137, v143, v137
+	v_div_scale_f32 v143, vcc_lo, v123, v127, v123
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v146, v143, v137
+	v_fma_f32 v147, -v128, v146, v143
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v146, v147, v137
+	v_fma_f32 v128, -v128, v146, v143
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v128, v128, v137, v146
+	v_div_fixup_f32 v123, v128, v127, v123
+	v_div_scale_f32 v127, null, v126, v126, v122
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v128, v127
+	v_fma_f32 v137, -v127, v128, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v128, v137, v128
+	v_div_scale_f32 v137, vcc_lo, v122, v126, v122
+	v_mul_f32_e32 v143, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v146, -v127, v143, v137
+	v_fmac_f32_e32 v143, v146, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v127, -v127, v143, v137
+	v_div_fmas_f32 v127, v127, v128, v143
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v122, v127, v126, v122
+	v_div_scale_f32 v126, null, v125, v125, v121
+	v_rcp_f32_e32 v127, v126
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v128, -v126, v127, 1.0
+	v_fmac_f32_e32 v127, v128, v127
+	v_div_scale_f32 v128, vcc_lo, v121, v125, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v137, v128, v127
+	v_fma_f32 v143, -v126, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v137, v143, v127
+	v_fma_f32 v126, -v126, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v126, v126, v127, v137
+	v_div_fixup_f32 v121, v126, v125, v121
+	v_div_scale_f32 v125, null, v124, v124, v107
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v105, v105, v121
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v126, v125
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v121, v141, v120
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_dual_mul_f32 v121, v121, v25 :: v_dual_mul_f32 v106, v106, v122
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v127, -v125, v126, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v126, v127, v126
+	v_div_scale_f32 v127, vcc_lo, v107, v124, v107
+	v_mul_f32_e32 v128, v127, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v137, -v125, v128, v127
+	v_fmac_f32_e32 v128, v137, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fma_f32 v125, -v125, v128, v127
+	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
+	v_mul_f32_e32 v127, 0xbfb8aa3b, v108
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fmas_f32 v125, v125, v126, v128
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v109
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v127
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v107, v125, v124, v107
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v124, 0xbfb8aa3b, v115
+	v_cndmask_b32_e64 v127, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	v_dual_mul_f32 v125, 0xbfb8aa3b, v110 :: v_dual_mul_f32 v104, v104, v107
+	s_delay_alu instid0(VALU_DEP_4)
+	v_fmac_f32_e32 v127, 0xbfb8aa3b, v108
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v107, v1, v123
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v123, v139, v120
+	v_mul_f32_e32 v1, v142, v120
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v127, v127
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_dual_fmac_f32 v126, 0xbfb8aa3b, v109 :: v_dual_mul_f32 v123, v123, v22
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v122, v140, v120
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v24
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v126, v126
+	v_ldexp_f32 v127, v127, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v125
+	s_delay_alu instid0(VALU_DEP_3)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v127, 1.0, v127
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v126, v126, v128
+	v_cndmask_b32_e64 v125, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v124
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v126, 1.0, v126
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_fmac_f32_e32 v125, 0xbfb8aa3b, v110
+	v_cndmask_b32_e64 v124, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v125, v125
+	v_fmac_f32_e32 v124, 0xbfb8aa3b, v115
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v124, v124
+	v_ldexp_f32 v125, v125, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v125, 1.0, v125
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v124, v124, v128
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v128, null, v127, v127, v108
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v124, 1.0, v124
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v137, v128
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v139, -v128, v137, 1.0
+	v_fmac_f32_e32 v137, v139, v137
+	v_div_scale_f32 v139, vcc_lo, v108, v127, v108
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v140, v139, v137
+	v_fma_f32 v141, -v128, v140, v139
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v140, v141, v137
+	v_fma_f32 v128, -v128, v140, v139
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v128, v128, v137, v140
+	v_div_fixup_f32 v127, v128, v127, v108
+	v_div_scale_f32 v108, null, v126, v126, v109
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v128, v108
+	v_fma_f32 v137, -v108, v128, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v128, v137, v128
+	v_div_scale_f32 v137, vcc_lo, v109, v126, v109
+	v_mul_f32_e32 v139, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v140, -v108, v139, v137
+	v_fmac_f32_e32 v139, v140, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v108, -v108, v139, v137
+	v_div_fmas_f32 v108, v108, v128, v139
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v126, v108, v126, v109
+	v_div_scale_f32 v108, null, v125, v125, v110
+	v_rcp_f32_e32 v109, v108
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v128, -v108, v109, 1.0
+	v_fmac_f32_e32 v109, v128, v109
+	v_div_scale_f32 v128, vcc_lo, v110, v125, v110
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v137, v128, v109
+	v_fma_f32 v139, -v108, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v137, v139, v109
+	v_fma_f32 v108, -v108, v137, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v108, v108, v109, v137
+	v_div_scale_f32 v109, null, v124, v124, v115
+	v_div_fixup_f32 v108, v108, v125, v110
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_rcp_f32_e32 v110, v109
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v108, v121, v108
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v121, v136, v120
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v125, -v109, v110, 1.0
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v121, v121, v16
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fmac_f32_e32 v110, v125, v110
+	v_div_scale_f32 v125, vcc_lo, v115, v124, v115
+	v_mul_f32_e32 v128, v125, v110
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v137, -v109, v128, v125
+	v_fmac_f32_e32 v128, v137, v110
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fma_f32 v109, -v109, v128, v125
+	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
+	v_mul_f32_e32 v125, 0xbfb8aa3b, v118
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fmas_f32 v109, v109, v110, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_3) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v109, v109, v124, v115
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v115, v123, v127
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v122, v122, v23 :: v_dual_mul_f32 v127, 0xbfb8aa3b, v116
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_dual_mul_f32 v124, 0xbfb8aa3b, v119 :: v_dual_mul_f32 v123, v134, v120
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_dual_mul_f32 v109, v1, v109 :: v_dual_mul_f32 v110, v122, v126
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v117
+	s_delay_alu instid0(VALU_DEP_4)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v127
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v122, v135, v120
+	v_mul_f32_e32 v1, v138, v120
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v123, v123, v14
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v127, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v17
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_fmac_f32_e32 v127, 0xbfb8aa3b, v116
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v127, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v126, 0xbfb8aa3b, v117
+	v_exp_f32_e32 v126, v126
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v127, v127, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v125
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v127, 1.0, v127
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v126, v126, v128
+	v_cndmask_b32_e64 v125, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v124
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v126, 1.0, v126
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_fmac_f32_e32 v125, 0xbfb8aa3b, v118
+	v_cndmask_b32_e64 v124, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v125, v125
+	v_fmac_f32_e32 v124, 0xbfb8aa3b, v119
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v124, v124
+	v_ldexp_f32 v125, v125, v128
+	v_cndmask_b32_e64 v128, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v125, 1.0, v125
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v124, v124, v128
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v128, null, v127, v127, v116
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v124, 1.0, v124
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v134, v128
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v135, -v128, v134, 1.0
+	v_fmac_f32_e32 v134, v135, v134
+	v_div_scale_f32 v135, vcc_lo, v116, v127, v116
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v136, v135, v134
+	v_fma_f32 v137, -v128, v136, v135
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v136, v137, v134
+	v_fma_f32 v128, -v128, v136, v135
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v128, v128, v134, v136
+	v_div_fixup_f32 v127, v128, v127, v116
+	v_div_scale_f32 v116, null, v126, v126, v117
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v128, v116
+	v_fma_f32 v134, -v116, v128, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v128, v134, v128
+	v_div_scale_f32 v134, vcc_lo, v117, v126, v117
+	v_mul_f32_e32 v135, v134, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v136, -v116, v135, v134
+	v_fmac_f32_e32 v135, v136, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v116, -v116, v135, v134
+	v_div_fmas_f32 v116, v116, v128, v135
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v126, v116, v126, v117
+	v_div_scale_f32 v116, null, v125, v125, v118
+	v_rcp_f32_e32 v117, v116
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v128, -v116, v117, 1.0
+	v_fmac_f32_e32 v117, v128, v117
+	v_div_scale_f32 v128, vcc_lo, v118, v125, v118
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v134, v128, v117
+	v_fma_f32 v135, -v116, v134, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v134, v135, v117
+	v_fma_f32 v116, -v116, v134, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v116, v116, v117, v134
+	v_div_fixup_f32 v117, v116, v125, v118
+	v_div_scale_f32 v116, null, v124, v124, v119
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v117, v121, v117
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v118, v116
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v122, v122, v15 :: v_dual_mul_f32 v121, v132, v120
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_mul_f32_e32 v121, v121, v4
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v125, -v116, v118, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v118, v125, v118
+	v_div_scale_f32 v125, vcc_lo, v119, v124, v119
+	v_mul_f32_e32 v128, v125, v118
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v134, -v116, v128, v125
+	v_fmac_f32_e32 v128, v134, v118
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fma_f32 v116, -v116, v128, v125
+	.loc	1 1232 38 is_stmt 0             ; ragged.py:1232:38
+	v_mul_f32_e32 v125, 0xbfb8aa3b, v112
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fmas_f32 v116, v116, v118, v128
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_div_fixup_f32 v116, v116, v124, v119
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v119, v123, v127 :: v_dual_mul_f32 v124, 0xbfb8aa3b, v113
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v123, v130, v120
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v116, v1, v116
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_dual_mul_f32 v1, v133, v120 :: v_dual_mul_f32 v118, v122, v126
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v126, 0xbfb8aa3b, v111
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v122, v131, v120
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v120, v123, v2
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v123, 0xbfb8aa3b, v114
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v5
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v126
+	v_cndmask_b32_e64 v126, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v127, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v125
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fmac_f32_e32 v126, 0xbfb8aa3b, v111
+	v_cndmask_b32_e64 v125, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v126, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v125, 0xbfb8aa3b, v112
+	v_exp_f32_e32 v125, v125
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v126, v126, v127
+	v_cndmask_b32_e64 v127, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v124
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v126, 1.0, v126
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v125, v125, v127
+	v_cndmask_b32_e64 v124, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v127, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v123
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v125, 1.0, v125
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_fmac_f32_e32 v124, 0xbfb8aa3b, v113
+	v_cndmask_b32_e64 v123, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v124, v124
+	v_fmac_f32_e32 v123, 0xbfb8aa3b, v114
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v123, v123
+	v_ldexp_f32 v124, v124, v127
+	v_cndmask_b32_e64 v127, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v124, 1.0, v124
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v123, v123, v127
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v127, null, v126, v126, v111
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v123, 1.0, v123
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v128, v127
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v130, -v127, v128, 1.0
+	v_fmac_f32_e32 v128, v130, v128
+	v_div_scale_f32 v130, vcc_lo, v111, v126, v111
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v131, v130, v128
+	v_fma_f32 v132, -v127, v131, v130
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v131, v132, v128
+	v_fma_f32 v127, -v127, v131, v130
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v127, v127, v128, v131
+	v_div_fixup_f32 v126, v127, v126, v111
+	v_div_scale_f32 v111, null, v125, v125, v112
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v127, v111
+	v_fma_f32 v128, -v111, v127, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v127, v128, v127
+	v_div_scale_f32 v128, vcc_lo, v112, v125, v112
+	v_mul_f32_e32 v130, v128, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v131, -v111, v130, v128
+	v_fmac_f32_e32 v130, v131, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v111, -v111, v130, v128
+	v_div_fmas_f32 v111, v111, v127, v130
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v125, v111, v125, v112
+	v_div_scale_f32 v111, null, v124, v124, v113
+	v_rcp_f32_e32 v112, v111
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v127, -v111, v112, 1.0
+	v_fmac_f32_e32 v112, v127, v112
+	v_div_scale_f32 v127, vcc_lo, v113, v124, v113
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v128, v127, v112
+	v_fma_f32 v130, -v111, v128, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v128, v130, v112
+	v_fma_f32 v111, -v111, v128, v127
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v111, v111, v112, v128
+	v_div_fixup_f32 v112, v111, v124, v113
+	v_div_scale_f32 v111, null, v123, v123, v114
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v112, v121, v112
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v113, v111
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v121, v98, v23 :: v_dual_mul_f32 v98, v100, v26
+	v_mul_f32_e32 v122, v122, v3
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v100, v102, v29 :: v_dual_mul_f32 v23, v77, v26
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v124, -v111, v113, 1.0
+	v_fmac_f32_e32 v113, v124, v113
+	v_div_scale_f32 v124, vcc_lo, v114, v123, v114
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v127, v124, v113
+	v_fma_f32 v128, -v111, v127, v124
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v127, v128, v113
+	v_fma_f32 v111, -v111, v127, v124
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v111, v111, v113, v127
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v113, v122, v125
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v111, v111, v123, v114
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v114, v120, v126
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v120, v97, v22 :: v_dual_mul_f32 v97, v99, v25
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v99, v101, v27
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v123, 0xbfb8aa3b, v98
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v101, v103, v28
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v103, 0xbfb8aa3b, v100
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v111, v1, v111
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v122, 0xbfb8aa3b, v99
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v123
+	v_dual_mul_f32 v102, 0xbfb8aa3b, v101 :: v_dual_mul_f32 v1, v129, v64
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_mul_f32_e32 v22, v75, v25
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v25, v79, v29
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v123, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v124, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v122
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v24
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v75, 0xbfb8aa3b, v23
+	v_fmac_f32_e32 v123, 0xbfb8aa3b, v98
+	v_cndmask_b32_e64 v122, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v123, v123
+	v_fmac_f32_e32 v122, 0xbfb8aa3b, v99
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v122, v122
+	v_ldexp_f32 v123, v123, v124
+	v_cndmask_b32_e64 v124, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v103
+	s_delay_alu instid0(VALU_DEP_3)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v123, 1.0, v123
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v122, v122, v124
+	v_cndmask_b32_e64 v103, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v124, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v102
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v122, 1.0, v122 :: v_dual_fmac_f32 v103, 0xbfb8aa3b, v100
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v102, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v103, v103
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v102, 0xbfb8aa3b, v101
+	v_exp_f32_e32 v102, v102
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v103, v103, v124
+	v_cndmask_b32_e64 v124, 0, 0xffffffc0, vcc_lo
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v103, 1.0, v103
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_2)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v102, v102, v124
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v124, null, v123, v123, v98
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v102, 1.0, v102
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v125, v124
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v126, -v124, v125, 1.0
+	v_fmac_f32_e32 v125, v126, v125
+	v_div_scale_f32 v126, vcc_lo, v98, v123, v98
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v127, v126, v125
+	v_fma_f32 v128, -v124, v127, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v127, v128, v125
+	v_fma_f32 v124, -v124, v127, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v124, v124, v125, v127
+	v_div_fixup_f32 v123, v124, v123, v98
+	v_div_scale_f32 v98, null, v122, v122, v99
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v124, v98
+	v_fma_f32 v125, -v98, v124, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v124, v125, v124
+	v_div_scale_f32 v125, vcc_lo, v99, v122, v99
+	v_mul_f32_e32 v126, v125, v124
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v127, -v98, v126, v125
+	v_fmac_f32_e32 v126, v127, v124
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v98, -v98, v126, v125
+	v_div_fmas_f32 v98, v98, v124, v126
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v99, v98, v122, v99
+	v_div_scale_f32 v98, null, v103, v103, v100
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v99, v121, v99
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v122, v98
+	v_fma_f32 v124, -v98, v122, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v122, v124, v122
+	v_div_scale_f32 v124, vcc_lo, v100, v103, v100
+	v_mul_f32_e32 v125, v124, v122
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v126, -v98, v125, v124
+	v_fmac_f32_e32 v125, v126, v122
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v98, -v98, v125, v124
+	v_div_fmas_f32 v98, v98, v122, v125
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v100, v98, v103, v100
+	v_div_scale_f32 v98, null, v102, v102, v101
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v97, v97, v100
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v103, v98
+	v_fma_f32 v122, -v98, v103, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v103, v122, v103
+	v_div_scale_f32 v122, vcc_lo, v101, v102, v101
+	v_mul_f32_e32 v124, v122, v103
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v125, -v98, v124, v122
+	v_fmac_f32_e32 v124, v125, v103
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v98, -v98, v124, v122
+	v_div_fmas_f32 v98, v98, v103, v124
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v98, v98, v102, v101
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v98, v1, v98 :: v_dual_mul_f32 v1, v92, v64
+	.loc	1 1117 21 is_stmt 1             ; ragged.py:1117:21
+	v_mul_f32_e32 v92, v96, v64
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v96, v89, v14
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v89, v93, v18 :: v_dual_mul_f32 v100, v120, v123
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_dual_mul_f32 v93, v95, v20 :: v_dual_mul_f32 v92, v92, v21
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v17
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v103, 0xbfb8aa3b, v89
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_mul_f32_e32 v95, 0xbfb8aa3b, v93
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v103
+	v_cndmask_b32_e64 v103, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v120, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v103, 0xbfb8aa3b, v89
+	v_exp_f32_e32 v103, v103
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v103, v103, v120
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v103, 1.0, v103
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v101, v90, v15 :: v_dual_mul_f32 v90, v91, v16
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v91, v94, v19 :: v_dual_mul_f32 v94, 0xbfb8aa3b, v92
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v102, 0xbfb8aa3b, v91
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v102
+	v_cndmask_b32_e64 v102, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v120, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v95
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fmac_f32_e32 v102, 0xbfb8aa3b, v91
+	v_cndmask_b32_e64 v95, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v102, v102
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v95, 0xbfb8aa3b, v93
+	v_exp_f32_e32 v95, v95
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v102, v102, v120
+	v_cndmask_b32_e64 v120, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v94
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v102, 1.0, v102
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v94, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_4)
+	v_ldexp_f32 v95, v95, v120
+	v_cndmask_b32_e64 v120, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_dual_fmac_f32 v94, 0xbfb8aa3b, v92 :: v_dual_add_f32 v95, 1.0, v95
+	v_exp_f32_e32 v94, v94
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v94, v94, v120
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v120, null, v103, v103, v89
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v94, 1.0, v94
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v121, v120
+	v_fma_f32 v122, -v120, v121, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v121, v122, v121
+	v_div_scale_f32 v122, vcc_lo, v89, v103, v89
+	v_mul_f32_e32 v123, v122, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v124, -v120, v123, v122
+	v_fmac_f32_e32 v123, v124, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v120, -v120, v123, v122
+	v_div_fmas_f32 v120, v120, v121, v123
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v103, v120, v103, v89
+	v_div_scale_f32 v89, null, v102, v102, v91
+	v_rcp_f32_e32 v120, v89
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v121, -v89, v120, 1.0
+	v_fmac_f32_e32 v120, v121, v120
+	v_div_scale_f32 v121, vcc_lo, v91, v102, v91
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v122, v121, v120
+	v_fma_f32 v123, -v89, v122, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v122, v123, v120
+	v_fma_f32 v89, -v89, v122, v121
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v89, v89, v120, v122
+	v_div_fixup_f32 v91, v89, v102, v91
+	v_div_scale_f32 v89, null, v95, v95, v93
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v91, v101, v91
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v102, v89
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v120, -v89, v102, 1.0
+	v_fmac_f32_e32 v102, v120, v102
+	v_div_scale_f32 v120, vcc_lo, v93, v95, v93
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v121, v120, v102
+	v_fma_f32 v122, -v89, v121, v120
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v121, v122, v102
+	v_fma_f32 v89, -v89, v121, v120
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v89, v89, v102, v121
+	v_div_fixup_f32 v93, v89, v95, v93
+	v_div_scale_f32 v89, null, v94, v94, v92
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v95, v89
+	v_fma_f32 v102, -v89, v95, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v95, v102, v95
+	v_div_scale_f32 v102, vcc_lo, v92, v94, v92
+	v_mul_f32_e32 v120, v102, v95
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v121, -v89, v120, v102
+	v_fmac_f32_e32 v120, v121, v95
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v89, -v89, v120, v102
+	v_div_fmas_f32 v89, v89, v95, v120
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v89, v89, v94, v92
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v89, v1, v89
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v1, v84, v64
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v84, v88, v64
+	v_mul_f32_e32 v64, v85, v64
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v85, v81, v2
+	v_mul_f32_e32 v81, v83, v4
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v83, v86, v8 :: v_dual_mul_f32 v84, v84, v10
+	v_mul_f32_e32 v64, v64, v7
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v90, v90, v93
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v86, v87, v9 :: v_dual_mul_f32 v93, 0xbfb8aa3b, v83
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v87, 0xbfb8aa3b, v84
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_dual_mul_f32 v94, 0xbfb8aa3b, v64 :: v_dual_mul_f32 v1, v1, v5
+	v_mul_f32_e32 v88, 0xbfb8aa3b, v86
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_3)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v94
+	v_cndmask_b32_e64 v94, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v95, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v93
+	v_fmac_f32_e32 v94, 0xbfb8aa3b, v64
+	v_cndmask_b32_e64 v93, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v94, v94
+	v_fmac_f32_e32 v93, 0xbfb8aa3b, v83
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_2)
+	v_exp_f32_e32 v93, v93
+	v_ldexp_f32 v94, v94, v95
+	v_cndmask_b32_e64 v95, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v88
+	s_delay_alu instid0(VALU_DEP_3)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v94, 1.0, v94
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v93, v93, v95
+	v_cndmask_b32_e64 v88, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v95, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v87
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v93, 1.0, v93 :: v_dual_fmac_f32 v88, 0xbfb8aa3b, v86
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v87, 0, 0x42800000, vcc_lo
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v92, v96, v103
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v88, v88
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v87, 0xbfb8aa3b, v84
+	v_exp_f32_e32 v87, v87
+	s_delay_alu instid0(TRANS32_DEP_2)
+	v_ldexp_f32 v88, v88, v95
+	v_cndmask_b32_e64 v95, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v87, v87, v95
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v95, null, v94, v94, v64
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v87, 1.0, v87
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v96, v95
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v101, -v95, v96, 1.0
+	v_fmac_f32_e32 v96, v101, v96
+	v_div_scale_f32 v101, vcc_lo, v64, v94, v64
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v102, v101, v96
+	v_fma_f32 v103, -v95, v102, v101
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v102, v103, v96
+	v_fma_f32 v95, -v95, v102, v101
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v95, v95, v96, v102
+	v_div_fixup_f32 v94, v95, v94, v64
+	v_div_scale_f32 v64, null, v93, v93, v83
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v88, 1.0, v88
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v95, v64
+	v_fma_f32 v96, -v64, v95, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v95, v96, v95
+	v_div_scale_f32 v96, vcc_lo, v83, v93, v83
+	v_mul_f32_e32 v101, v96, v95
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v102, -v64, v101, v96
+	v_fmac_f32_e32 v101, v102, v95
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v64, -v64, v101, v96
+	v_div_fmas_f32 v64, v64, v95, v101
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v83, v64, v93, v83
+	v_div_scale_f32 v64, null, v88, v88, v86
+	v_rcp_f32_e32 v93, v64
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v95, -v64, v93, 1.0
+	.loc	1 1122 17 is_stmt 1             ; ragged.py:1122:17
+	v_dual_mul_f32 v82, v82, v3 :: v_dual_fmac_f32 v93, v95, v93
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v82, v82, v83 :: v_dual_mul_f32 v83, v85, v94
+	.loc	1 1232 20 is_stmt 0             ; ragged.py:1232:20
+	v_div_scale_f32 v95, vcc_lo, v86, v88, v86
+	v_mul_f32_e32 v96, v95, v93
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v101, -v64, v96, v95
+	v_fmac_f32_e32 v96, v101, v93
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v64, -v64, v96, v95
+	v_div_fmas_f32 v64, v64, v93, v96
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v86, v64, v88, v86
+	v_div_scale_f32 v64, null, v87, v87, v84
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v81, v81, v86
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v88, v64
+	v_fma_f32 v93, -v64, v88, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v88, v93, v88
+	v_div_scale_f32 v93, vcc_lo, v84, v87, v84
+	v_mul_f32_e32 v95, v93, v88
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v96, -v64, v95, v93
+	v_fmac_f32_e32 v95, v96, v88
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v64, -v64, v95, v93
+	v_div_fmas_f32 v64, v64, v88, v95
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v75
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v64, v64, v87, v84
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v75, 0, 0x42800000, vcc_lo
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v64, v1, v64 :: v_dual_fmac_f32 v75, 0xbfb8aa3b, v23
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v1, v76, v55
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v75, v75
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_dual_mul_f32 v1, v1, v24 :: v_dual_mul_f32 v24, v78, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v76, v80, v55 :: v_dual_mul_f32 v29, 0xbfb8aa3b, v24
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v26, v76, v28
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v76, 0, 0xffffffc0, vcc_lo
+	v_mul_f32_e32 v28, 0xbfb8aa3b, v25
+	s_delay_alu instid0(VALU_DEP_4)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v29
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v75, v75, v76
+	v_cndmask_b32_e64 v29, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v76, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v28
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_2)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v75, 1.0, v75
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v27, 0xbfb8aa3b, v26
+	v_fmac_f32_e32 v29, 0xbfb8aa3b, v24
+	v_cndmask_b32_e64 v28, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v29, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v28, 0xbfb8aa3b, v25
+	v_exp_f32_e32 v28, v28
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v29, v29, v76
+	v_cndmask_b32_e64 v76, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v27
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v29, 1.0, v29
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v27, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_4)
+	v_ldexp_f32 v28, v28, v76
+	v_cndmask_b32_e64 v76, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v27, 0xbfb8aa3b, v26
+	v_exp_f32_e32 v27, v27
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_ldexp_f32 v27, v27, v76
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v76, null, v75, v75, v23
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v27, 1.0, v27
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v77, v76
+	v_fma_f32 v78, -v76, v77, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v28, 1.0, v28 :: v_dual_fmac_f32 v77, v78, v77
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v78, vcc_lo, v23, v75, v23
+	v_mul_f32_e32 v79, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v80, -v76, v79, v78
+	v_fmac_f32_e32 v79, v80, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v76, -v76, v79, v78
+	v_div_fmas_f32 v76, v76, v77, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v75, v76, v75, v23
+	v_div_scale_f32 v23, null, v29, v29, v24
+	v_rcp_f32_e32 v76, v23
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v77, -v23, v76, 1.0
+	v_fmac_f32_e32 v76, v77, v76
+	v_div_scale_f32 v77, vcc_lo, v24, v29, v24
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v78, v77, v76
+	v_fma_f32 v79, -v23, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v78, v79, v76
+	v_fma_f32 v23, -v23, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v23, v23, v76, v78
+	v_div_fixup_f32 v24, v23, v29, v24
+	v_div_scale_f32 v23, null, v28, v28, v25
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v24, v74, v24
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v29, v23
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v76, -v23, v29, 1.0
+	v_fmac_f32_e32 v29, v76, v29
+	v_div_scale_f32 v76, vcc_lo, v25, v28, v25
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v77, v76, v29
+	v_fma_f32 v78, -v23, v77, v76
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v77, v78, v29
+	v_fma_f32 v23, -v23, v77, v76
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v23, v23, v29, v77
+	v_div_fixup_f32 v25, v23, v28, v25
+	v_div_scale_f32 v23, null, v27, v27, v26
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v22, v22, v25
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v28, v23
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v25, v73, v75
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v29, -v23, v28, 1.0
+	v_fmac_f32_e32 v28, v29, v28
+	v_div_scale_f32 v29, vcc_lo, v26, v27, v26
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v76, v29, v28
+	v_fma_f32 v77, -v23, v76, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v76, v77, v28
+	v_fma_f32 v23, -v23, v76, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v23, v23, v28, v76
+	v_div_fixup_f32 v23, v23, v27, v26
+	.loc	1 1115 17 is_stmt 1             ; ragged.py:1115:17
+	v_mul_f32_e32 v27, v70, v55
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_4)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v23, v1, v23
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v1, v72, v55
+	v_mul_f32_e32 v26, v71, v55
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v27, v27, v15
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_mul_f32_e32 v1, v1, v17
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_dual_mul_f32 v28, v69, v55 :: v_dual_mul_f32 v15, v26, v16
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v29, v54, v55
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_dual_mul_f32 v17, v53, v20 :: v_dual_mul_f32 v16, v52, v19
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v28, v28, v14
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v14, v51, v18
+	v_mul_f32_e32 v18, v29, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_mul_f32_e32 v19, 0xbfb8aa3b, v18
+	v_dual_mul_f32 v21, 0xbfb8aa3b, v16 :: v_dual_mul_f32 v26, 0xbfb8aa3b, v14
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_4)
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v26
+	v_cndmask_b32_e64 v26, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v21
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_fmac_f32_e32 v26, 0xbfb8aa3b, v14
+	v_cndmask_b32_e64 v21, 0, 0x42800000, vcc_lo
+	v_mul_f32_e32 v20, 0xbfb8aa3b, v17
+	v_exp_f32_e32 v26, v26
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v21, 0xbfb8aa3b, v16
+	v_exp_f32_e32 v21, v21
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v26, v26, v29
+	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v20
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_add_f32_e32 v26, 1.0, v26
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_ldexp_f32 v21, v21, v29
+	v_cndmask_b32_e64 v20, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v19
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v21, 1.0, v21
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v19, 0, 0x42800000, vcc_lo
+	v_dual_fmac_f32 v20, 0xbfb8aa3b, v17 :: v_dual_fmac_f32 v19, 0xbfb8aa3b, v18
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_exp_f32_e32 v20, v20
+	v_exp_f32_e32 v19, v19
+	s_delay_alu instid0(TRANS32_DEP_2)
+	v_ldexp_f32 v20, v20, v29
+	v_cndmask_b32_e64 v29, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_1)
+	v_ldexp_f32 v19, v19, v29
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v29, null, v26, v26, v14
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v19, 1.0, v19
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v51, v29
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v52, -v29, v51, 1.0
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_dual_add_f32 v20, 1.0, v20 :: v_dual_fmac_f32 v51, v52, v51
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v52, vcc_lo, v14, v26, v14
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v53, v52, v51
+	v_fma_f32 v54, -v29, v53, v52
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v53, v54, v51
+	v_fma_f32 v29, -v29, v53, v52
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v29, v29, v51, v53
+	v_div_fixup_f32 v26, v29, v26, v14
+	v_div_scale_f32 v14, null, v21, v21, v16
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v29, v14
+	v_fma_f32 v51, -v14, v29, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v29, v51, v29
+	v_div_scale_f32 v51, vcc_lo, v16, v21, v16
+	v_mul_f32_e32 v52, v51, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v53, -v14, v52, v51
+	v_fmac_f32_e32 v52, v53, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v14, -v14, v52, v51
+	v_div_fmas_f32 v14, v14, v29, v52
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v16, v14, v21, v16
+	v_div_scale_f32 v14, null, v20, v20, v17
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v16, v27, v16
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v21, v14
+	v_fma_f32 v29, -v14, v21, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v21, v29, v21
+	v_div_scale_f32 v29, vcc_lo, v17, v20, v17
+	v_mul_f32_e32 v51, v29, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v52, -v14, v51, v29
+	v_fmac_f32_e32 v51, v52, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v14, -v14, v51, v29
+	v_div_fmas_f32 v14, v14, v21, v51
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v17, v14, v20, v17
+	v_div_scale_f32 v14, null, v19, v19, v18
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v15, v15, v17
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v20, v14
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_dual_mul_f32 v17, v28, v26 :: v_dual_mul_f32 v28, v47, v55
+	.loc	1 1117 21 is_stmt 1             ; ragged.py:1117:21
+	v_mul_f32_e32 v26, v49, v55
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_fma_f32 v21, -v14, v20, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v20, v21, v20
+	v_div_scale_f32 v21, vcc_lo, v18, v19, v18
+	v_mul_f32_e32 v29, v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v51, -v14, v29, v21
+	v_fmac_f32_e32 v29, v51, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v14, -v14, v29, v21
+	v_div_fmas_f32 v14, v14, v20, v29
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v20, v67, v55
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_4)
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v14, v14, v19, v18
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v18, v68, v55
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_mul_f32_e32 v27, v48, v55
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v2, v20, v2
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v14, v1, v14
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_dual_mul_f32 v1, v65, v55 :: v_dual_mul_f32 v4, v18, v4
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	.loc	1 1122 17                       ; ragged.py:1122:17
+	v_mul_f32_e32 v1, v1, v5
+	.loc	1 1127 21                       ; ragged.py:1127:21
+	v_mul_f32_e32 v5, v28, v7
+	v_dual_mul_f32 v7, v27, v8 :: v_dual_mul_f32 v8, v26, v9
+	.loc	1 1117 21                       ; ragged.py:1117:21
+	v_dual_mul_f32 v21, v50, v55 :: v_dual_mul_f32 v20, 0xbfb8aa3b, v5
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_dual_mul_f32 v18, 0xbfb8aa3b, v8 :: v_dual_mul_f32 v9, v21, v10
+	.loc	1 1115 17                       ; ragged.py:1115:17
+	v_mul_f32_e32 v19, v66, v55
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v20
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_dual_mul_f32 v10, 0xbfb8aa3b, v9 :: v_dual_mul_f32 v3, v19, v3
+	v_cndmask_b32_e64 v20, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
+	v_fmac_f32_e32 v20, 0xbfb8aa3b, v5
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_exp_f32_e32 v20, v20
+	v_ldexp_f32 v20, v20, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1232 32 is_stmt 0             ; ragged.py:1232:32
+	v_dual_add_f32 v20, 1.0, v20 :: v_dual_mul_f32 v19, 0xbfb8aa3b, v7
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v19
+	v_cndmask_b32_e64 v19, 0, 0x42800000, vcc_lo
+	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v18
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_fmac_f32_e32 v19, 0xbfb8aa3b, v7
+	v_cndmask_b32_e64 v18, 0, 0x42800000, vcc_lo
+	v_exp_f32_e32 v19, v19
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v18, 0xbfb8aa3b, v8
+	v_exp_f32_e32 v18, v18
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_ldexp_f32 v19, v19, v21
+	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
+	v_cmp_gt_f32_e32 vcc_lo, 0xc2fc0000, v10
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v19, 1.0, v19
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_cndmask_b32_e64 v10, 0, 0x42800000, vcc_lo
+	s_delay_alu instid0(TRANS32_DEP_1) | instid1(VALU_DEP_4)
+	v_ldexp_f32 v18, v18, v21
+	v_cndmask_b32_e64 v21, 0, 0xffffffc0, vcc_lo
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_fmac_f32_e32 v10, 0xbfb8aa3b, v9
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v18, 1.0, v18
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1232 38                       ; ragged.py:1232:38
+	v_exp_f32_e32 v10, v10
+	v_ldexp_f32 v10, v10, v21
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_scale_f32 v21, null, v20, v20, v5
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1232 32                       ; ragged.py:1232:32
+	v_add_f32_e32 v10, 1.0, v10
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_rcp_f32_e32 v26, v21
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v27, -v21, v26, 1.0
+	v_fmac_f32_e32 v26, v27, v26
+	v_div_scale_f32 v27, vcc_lo, v5, v20, v5
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v28, v27, v26
+	v_fma_f32 v29, -v21, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v28, v29, v26
+	v_fma_f32 v21, -v21, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v21, v21, v26, v28
+	v_div_fixup_f32 v5, v21, v20, v5
+	v_div_scale_f32 v20, null, v19, v19, v7
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v21, v20
+	v_fma_f32 v26, -v20, v21, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v21, v26, v21
+	v_div_scale_f32 v26, vcc_lo, v7, v19, v7
+	v_mul_f32_e32 v27, v26, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v28, -v20, v27, v26
+	v_fmac_f32_e32 v27, v28, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v20, -v20, v27, v26
+	v_div_fmas_f32 v20, v20, v21, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v7, v20, v19, v7
+	v_div_scale_f32 v19, null, v18, v18, v8
+	v_rcp_f32_e32 v20, v19
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v21, -v19, v20, 1.0
+	v_fmac_f32_e32 v20, v21, v20
+	v_div_scale_f32 v21, vcc_lo, v8, v18, v8
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v26, v21, v20
+	v_fma_f32 v27, -v19, v26, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v26, v27, v20
+	v_fma_f32 v19, -v19, v26, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v19, v19, v20, v26
+	v_div_fixup_f32 v8, v19, v18, v8
+	v_div_scale_f32 v18, null, v10, v10, v9
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v19, v18
+	v_fma_f32 v20, -v18, v19, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v19, v20, v19
+	v_div_scale_f32 v20, vcc_lo, v9, v10, v9
+	v_mul_f32_e32 v21, v20, v19
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v26, -v18, v21, v20
+	v_fmac_f32_e32 v21, v26, v19
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v18, -v18, v21, v20
+	v_div_fmas_f32 v18, v18, v19, v21
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v19, v2, v5
+.Ltmp5:
+	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max3_f32 v2, |v56|, |v63|, |v62|
+	v_max3_f32 v5, |v104|, |v45|, |v44|
+	s_delay_alu instid0(VALU_DEP_4)
+.Ltmp6:
+	.loc	1 1232 20                       ; ragged.py:1232:20
+	v_div_fixup_f32 v9, v18, v10, v9
+	.loc	1 1232 13 is_stmt 0             ; ragged.py:1232:13
+	v_mul_f32_e32 v10, v4, v8
+	v_mul_f32_e32 v18, v3, v7
+.Ltmp7:
+	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max3_f32 v4, |v107|, |v106|, |v105|
+	v_max3_f32 v3, |v60|, |v58|, |v46|
+.Ltmp8:
+	.loc	1 1232 13                       ; ragged.py:1232:13
+	v_mul_f32_e32 v9, v1, v9
+.Ltmp9:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e64 v1, |v61|, |v59|
+	v_max3_f32 v7, |v111|, |v41|, |v40|
+	v_max3_f32 v8, |v64|, |v37|, |v36|
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_max3_f32 v20, |v9|, |v12|, |v11|
+	v_max3_f32 v1, v1, |v57|, v2
+	v_max3_f32 v2, v4, v5, |v43|
+	v_max3_f32 v5, |v114|, |v113|, |v112|
+	v_max3_f32 v4, |v117|, |v116|, |v42|
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_max3_f32 v1, v1, v3, v2
+	v_max_f32_e64 v2, |v115|, |v110|
+	v_max3_f32 v3, |v108|, |v119|, |v118|
+	v_max3_f32 v2, v2, |v109|, v3
+	v_max3_f32 v3, v5, v7, |v39|
+	v_max3_f32 v7, |v83|, |v82|, |v81|
+	v_max3_f32 v5, |v90|, |v89|, |v38|
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_max3_f32 v2, v2, v4, v3
+	v_max_f32_e64 v3, |v100|, |v99|
+	v_max3_f32 v4, |v97|, |v92|, |v91|
+	v_max3_f32 v3, v3, |v98|, v4
+	v_max3_f32 v4, v7, v8, |v35|
+	v_max3_f32 v8, |v19|, |v18|, |v10|
+	v_max3_f32 v7, |v15|, |v14|, |v13|
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_max3_f32 v3, v3, v5, v4
+	v_max_f32_e64 v4, |v25|, |v24|
+	v_max3_f32 v5, |v22|, |v17|, |v16|
+	v_max3_f32 v4, v4, |v23|, v5
+	v_max3_f32 v5, v8, v20, |v6|
+.Ltmp10:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_and_b32_e32 v8, 0x80, v0
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+.Ltmp11:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max3_f32 v4, v4, v7, v5
+.Ltmp12:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_permlanex16_b32 v5, v1, s5, 0xfedcba98 op_sel:[1,0]
+	v_and_b32_e32 v7, 8, v0
+.Ltmp13:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v5, v5, v5
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_max_f32_e32 v26, v1, v5
+.Ltmp14:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_permlanex16_b32 v1, v2, s5, 0xfedcba98 op_sel:[1,0]
+	v_lshlrev_b32_e32 v5, 1, v8
+.Ltmp15:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v1, v1, v1
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_dual_max_f32 v27, v2, v1 :: v_dual_and_b32 v2, 4, v0
+.Ltmp16:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_permlanex16_b32 v1, v3, s5, 0xfedcba98 op_sel:[1,0]
+.Ltmp17:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v1, v1, v1
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v28, v3, v1
+.Ltmp18:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_permlanex16_b32 v1, v4, s5, 0xfedcba98 op_sel:[1,0]
+	s_mov_b32 s5, 0xc1000000
+.Ltmp19:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v1, v1, v1
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
+	v_max_f32_e32 v29, v4, v1
+.Ltmp20:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_and_b32_e32 v1, 3, v0
+	v_and_b32_e32 v4, 0x60, v0
+	v_lshl_add_u32 v21, v1, 9, 0
+	v_lshlrev_b32_e32 v3, 5, v1
+	v_lshl_add_u32 v1, v1, 4, 0
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_lshl_add_u32 v21, v2, 2, v21
+	v_xor_b32_e32 v20, v3, v4
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_lshl_add_u32 v21, v7, 4, v21
+	v_lshlrev_b32_e32 v7, 3, v7
+	v_add3_u32 v20, v21, v5, v20
+	v_lshrrev_b32_e32 v21, 3, v8
+	v_add_nc_u32_e32 v8, 0, v8
+	ds_store_b128 v20, v[26:29]
+	v_lshlrev_b32_e32 v20, 4, v0
+	v_lshl_add_u32 v26, v2, 6, 0
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	v_lshlrev_b32_e32 v2, 5, v2
+	v_and_or_b32 v20, 0x680, v20, v3
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_add3_u32 v1, v1, v2, v7
+	v_xor_b32_e32 v20, v20, v4
+	s_delay_alu instid0(VALU_DEP_1)
+	v_add3_u32 v20, v26, v21, v20
+	ds_load_b128 v[26:29], v20
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	v_mov_b32_e32 v20, v26
+.Ltmp21:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v26, v26
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp22:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_dpp v20, v20 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp23:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v20, v20, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v21, v20
+.Ltmp24:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp25:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v20, v21
+.Ltmp26:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:1 row_mask:0xf bank_mask:0xf
+.Ltmp27:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_dual_max_f32 v26, v20, v21 :: v_dual_max_f32 v21, v27, v27
+.Ltmp28:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v20, v27
+	v_mov_b32_dpp v20, v20 row_xmask:4 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp29:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v20, v20, v20
+	v_max_f32_e32 v20, v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp30:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	v_mov_b32_dpp v21, v21 row_xmask:2 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp31:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	v_max_f32_e32 v20, v20, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp32:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	v_mov_b32_dpp v21, v21 row_xmask:1 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp33:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	v_max_f32_e32 v27, v20, v21
+.Ltmp34:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v20, v28
+.Ltmp35:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v28, v28
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp36:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_dpp v20, v20 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp37:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v20, v20, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v21, v20
+.Ltmp38:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp39:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v20, v21
+.Ltmp40:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:1 row_mask:0xf bank_mask:0xf
+.Ltmp41:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v28, v20, v21
+	v_max_f32_e32 v20, v29, v29
+.Ltmp42:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_dpp v29, v29 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp43:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v29, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v20, v21
+.Ltmp44:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp45:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v20, v20, v21
+.Ltmp46:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_mov_b32_e32 v21, v20
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_dpp v21, v21 row_xmask:1 row_mask:0xf bank_mask:0xf
+.Ltmp47:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ ragged.py:1237:20 ] ]
+	v_max_f32_e32 v21, v21, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_max_f32_e32 v29, v20, v21
+.Ltmp48:
+	.loc	2 191 16                        ; standard.py:191:16 @[ ragged.py:1237:20 ]
+	v_lshrrev_b32_e32 v20, 1, v4
+	v_add3_u32 v8, v8, v20, v7
+	ds_store_b128 v8, v[26:29]
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[26:29], v1
+.Ltmp49:
 	.loc	1 1245 22                       ; ragged.py:1245:22
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1238 23                       ; ragged.py:1238:23
-	v_add3_u32 v2, v2, v46, 0x7fff
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v46, null, v55, v55, v16
-	v_rcp_f32_e32 v47, v46
+	.loc	1 1238 24                       ; ragged.py:1238:24
+	v_dual_max_f32 v1, v26, v26 :: v_dual_max_f32 v2, v27, v27
+	v_dual_max_f32 v7, v28, v28 :: v_dual_max_f32 v8, v29, v29
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_dual_max_f32 v1, 0x2b8cbccc, v1 :: v_dual_max_f32 v2, 0x2b8cbccc, v2
+	v_dual_max_f32 v7, 0x2b8cbccc, v7 :: v_dual_max_f32 v8, 0x2b8cbccc, v8
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_scale_f32 v20, null, 0x40e00000, 0x40e00000, v1
+	v_rcp_f32_e32 v21, v20
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v48, -v46, v47, 1.0
-	v_fmac_f32_e32 v47, v48, v47
-	v_div_scale_f32 v48, vcc_lo, v16, v55, v16
+	v_fma_f32 v26, -v20, v21, 1.0
+	v_fmac_f32_e32 v21, v26, v21
+	v_div_scale_f32 v26, vcc_lo, v1, 0x40e00000, v1
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v49, v48, v47
-	v_fma_f32 v50, -v46, v49, v48
+	v_mul_f32_e32 v27, v26, v21
+	v_fma_f32 v28, -v20, v27, v26
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v49, v50, v47
-	v_fma_f32 v46, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v62, v46, v47, v49
-	v_div_scale_f32 v46, null, v55, v55, v13
-	v_rcp_f32_e32 v47, v46
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v48, -v46, v47, 1.0
-	v_fmac_f32_e32 v47, v48, v47
-	v_div_scale_f32 v48, vcc_lo, v13, v55, v13
+	v_fmac_f32_e32 v27, v28, v21
+	v_fma_f32 v20, -v20, v27, v26
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v49, v48, v47
-	v_fma_f32 v50, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v49, v50, v47
-	v_fma_f32 v46, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v63, v46, v47, v49
-	v_div_scale_f32 v46, null, v55, v55, v14
-	v_rcp_f32_e32 v47, v46
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v48, -v46, v47, 1.0
-	v_fmac_f32_e32 v47, v48, v47
-	v_div_scale_f32 v48, vcc_lo, v14, v55, v14
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v49, v48, v47
-	v_fma_f32 v50, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v49, v50, v47
-	v_fma_f32 v46, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_div_fmas_f32 v64, v46, v47, v49
-	v_div_scale_f32 v46, null, v55, v55, v15
-	v_rcp_f32_e32 v47, v46
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v48, -v46, v47, 1.0
-	v_fmac_f32_e32 v47, v48, v47
-	v_div_scale_f32 v48, vcc_lo, v15, v55, v15
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v49, v48, v47
-	v_fma_f32 v50, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v49, v50, v47
-	v_fma_f32 v46, -v46, v49, v48
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v72, v46, v47, v49
-	.loc	1 1240 39 is_stmt 0             ; ragged.py:1240:39
-	v_and_b32_e32 v46, 0xffff0000, v2
-	.loc	1 1248 9 is_stmt 1              ; ragged.py:1248:9
-	v_and_b16 v2.l, 0xff, v67.l
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v47, null, v46, v46, v45
+	v_div_fmas_f32 v20, v20, v21, v27
+	v_div_fixup_f32 v1, v20, 0x40e00000, v1
+	v_div_scale_f32 v20, null, 0x40e00000, 0x40e00000, v7
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v21, v20
+	v_fma_f32 v26, -v20, v21, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v21, v26, v21
+	v_div_scale_f32 v26, vcc_lo, v7, 0x40e00000, v7
+	v_mul_f32_e32 v27, v26, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v28, -v20, v27, v26
+	v_fmac_f32_e32 v27, v28, v21
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v20, -v20, v27, v26
+	v_div_fmas_f32 v20, v20, v21, v27
+	.loc	1 1238 23 is_stmt 0             ; ragged.py:1238:23
+	v_mov_b16_e32 v21.h, 0
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	.loc	1 1238 24                       ; ragged.py:1238:24
+	v_div_fixup_f32 v20, v20, 0x40e00000, v7
+	.loc	1 1238 23                       ; ragged.py:1238:23
+	v_mov_b16_e32 v7.l, v1.h
+	v_mov_b16_e32 v7.h, v21.h
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_mov_b16_e32 v21.l, v20.h
+	v_and_b32_e32 v7, 1, v7
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_and_b32_e32 v26, 1, v21
+	v_add3_u32 v7, v1, v7, 0x7fff
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_add3_u32 v1, v20, v26, 0x7fff
+	.loc	1 1238 24                       ; ragged.py:1238:24
+	v_div_scale_f32 v20, null, 0x40e00000, 0x40e00000, v2
+	.loc	1 1240 39 is_stmt 1             ; ragged.py:1240:39
+	v_and_b32_e32 v54, 0xffff0000, v7
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1238 24                       ; ragged.py:1238:24
+	v_rcp_f32_e32 v26, v20
+	v_fma_f32 v27, -v20, v26, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v26, v27, v26
+	v_div_scale_f32 v27, vcc_lo, v2, 0x40e00000, v2
+	v_mul_f32_e32 v28, v27, v26
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v29, -v20, v28, v27
+	v_fmac_f32_e32 v28, v29, v26
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v20, -v20, v28, v27
+	v_div_fmas_f32 v20, v20, v26, v28
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v2, v20, 0x40e00000, v2
+	v_div_scale_f32 v20, null, 0x40e00000, 0x40e00000, v8
+	v_rcp_f32_e32 v26, v20
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v27, -v20, v26, 1.0
+	v_fmac_f32_e32 v26, v27, v26
+	v_div_scale_f32 v27, vcc_lo, v8, 0x40e00000, v8
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v28, v27, v26
+	v_fma_f32 v29, -v20, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v28, v29, v26
+	v_fma_f32 v20, -v20, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v20, v20, v26, v28
+	v_div_fixup_f32 v20, v20, 0x40e00000, v8
+	.loc	1 1238 23 is_stmt 0             ; ragged.py:1238:23
+	v_mov_b16_e32 v8.l, v2.h
+	v_mov_b16_e32 v8.h, v21.h
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_mov_b16_e32 v21.l, v20.h
+	v_and_b32_e32 v8, 1, v8
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_and_b32_e32 v21, 1, v21
+	v_add3_u32 v8, v2, v8, 0x7fff
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_add3_u32 v2, v20, v21, 0x7fff
+	.loc	1 1240 33 is_stmt 1             ; ragged.py:1240:33
+	v_div_scale_f32 v21, null, v54, v54, v61
+	.loc	1 1240 39 is_stmt 0             ; ragged.py:1240:39
+	v_and_b32_e32 v68, 0xffff0000, v8
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_and_b32_e32 v20, 0xffff0000, v2
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v26, v21
+	.loc	1 1253 9 is_stmt 1              ; ragged.py:1253:9
+	v_mov_b16_e32 v2.l, v8.h
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v27, -v21, v26, 1.0
+	v_fmac_f32_e32 v26, v27, v26
+	v_div_scale_f32 v27, vcc_lo, v61, v54, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v28, v27, v26
+	v_fma_f32 v29, -v21, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v28, v29, v26
+	v_fma_f32 v21, -v21, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v21, v21, v26, v28
+	v_div_scale_f32 v26, null, v54, v54, v59
+	v_div_fixup_f32 v21, v21, v54, v61
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v27, v26
+	v_fma_f32 v28, -v26, v27, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v27, v28, v27
+	v_div_scale_f32 v28, vcc_lo, v59, v54, v59
+	v_mul_f32_e32 v29, v28, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v47, -v26, v29, v28
+	v_fmac_f32_e32 v29, v47, v27
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v26, -v26, v29, v28
+	v_div_fmas_f32 v26, v26, v27, v29
+	v_div_scale_f32 v27, null, v54, v54, v57
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v26, v26, v54, v59
+	v_rcp_f32_e32 v28, v27
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v29, -v27, v28, 1.0
+	v_fmac_f32_e32 v28, v29, v28
+	v_div_scale_f32 v29, vcc_lo, v57, v54, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v47, v29, v28
+	v_fma_f32 v48, -v27, v47, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v47, v48, v28
+	v_fma_f32 v27, -v27, v47, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v27, v27, v28, v47
+	v_div_scale_f32 v28, null, v54, v54, v56
+	v_div_fixup_f32 v27, v27, v54, v57
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v29, v28
+	v_fma_f32 v47, -v28, v29, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v29, v47, v29
+	v_div_scale_f32 v47, vcc_lo, v56, v54, v56
+	v_mul_f32_e32 v48, v47, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v49, -v28, v48, v47
+	v_fmac_f32_e32 v48, v49, v29
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v28, -v28, v48, v47
+	v_div_fmas_f32 v28, v28, v29, v48
+	v_div_scale_f32 v29, null, v54, v54, v63
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v28, v28, v54, v56
+	v_rcp_f32_e32 v47, v29
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v48, -v29, v47, 1.0
+	v_fmac_f32_e32 v47, v48, v47
+	v_div_scale_f32 v48, vcc_lo, v63, v54, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v49, v48, v47
+	v_fma_f32 v50, -v29, v49, v48
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v49, v50, v47
+	v_fma_f32 v29, -v29, v49, v48
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v29, v29, v47, v49
+	v_div_scale_f32 v47, null, v54, v54, v62
+	v_div_fixup_f32 v29, v29, v54, v63
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
 	v_rcp_f32_e32 v48, v47
 	v_fma_f32 v49, -v47, v48, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
 	v_fmac_f32_e32 v48, v49, v48
-	v_div_scale_f32 v49, vcc_lo, v45, v46, v45
+	v_div_scale_f32 v49, vcc_lo, v62, v54, v62
 	v_mul_f32_e32 v50, v49, v48
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v51, -v47, v50, v49
@@ -5778,14 +4118,14 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v47, -v47, v50, v49
 	v_div_fmas_f32 v47, v47, v48, v50
-	v_div_scale_f32 v48, null, v46, v46, v44
+	v_div_scale_f32 v48, null, v54, v54, v60
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v45, v47, v46, v45
+	v_div_fixup_f32 v47, v47, v54, v62
 	v_rcp_f32_e32 v49, v48
 	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v50, -v48, v49, 1.0
 	v_fmac_f32_e32 v49, v50, v49
-	v_div_scale_f32 v50, vcc_lo, v44, v46, v44
+	v_div_scale_f32 v50, vcc_lo, v60, v54, v60
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_mul_f32_e32 v51, v50, v49
 	v_fma_f32 v52, -v48, v51, v50
@@ -5794,14 +4134,14 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	v_fma_f32 v48, -v48, v51, v50
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
 	v_div_fmas_f32 v48, v48, v49, v51
-	v_div_scale_f32 v49, null, v46, v46, v42
-	v_div_fixup_f32 v44, v48, v46, v44
+	v_div_scale_f32 v49, null, v54, v54, v58
+	v_div_fixup_f32 v48, v48, v54, v60
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
 	v_rcp_f32_e32 v50, v49
 	v_fma_f32 v51, -v49, v50, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v50, v51, v50
-	v_div_scale_f32 v51, vcc_lo, v42, v46, v42
+	v_dual_fmac_f32 v50, v51, v50 :: v_dual_and_b32 v55, 0xffff0000, v1
+	v_div_scale_f32 v51, vcc_lo, v58, v54, v58
 	v_mul_f32_e32 v52, v51, v50
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v53, -v49, v52, v51
@@ -5809,799 +4149,1570 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	v_fma_f32 v49, -v49, v52, v51
 	v_div_fmas_f32 v49, v49, v50, v52
-	v_div_scale_f32 v50, null, v46, v46, v43
+	v_div_scale_f32 v50, null, v54, v54, v46
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v47, v49, v46, v42
+	v_div_fixup_f32 v49, v49, v54, v58
 	v_rcp_f32_e32 v51, v50
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v52, -v50, v51, 1.0
+	v_fmac_f32_e32 v51, v52, v51
+	v_div_scale_f32 v52, vcc_lo, v46, v54, v46
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v53, v52, v51
+	v_fma_f32 v56, -v50, v53, v52
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v53, v56, v51
+	v_fma_f32 v50, -v50, v53, v52
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v50, v50, v51, v53
+	v_div_fixup_f32 v46, v50, v54, v46
+	v_div_scale_f32 v50, null, v54, v54, v107
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v42, v45
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rndne_f32_e32 v46, v46
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v51, v50
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v42, v42, s0, 0x40e00000
+	v_med3_f32 v46, v46, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v46, v46
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1240 33                       ; ragged.py:1240:33
 	v_fma_f32 v52, -v50, v51, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v42, v42
-	.loc	1 1240 33                       ; ragged.py:1240:33
 	v_fmac_f32_e32 v51, v52, v51
-	v_div_scale_f32 v52, vcc_lo, v43, v46, v43
+	v_div_scale_f32 v52, vcc_lo, v107, v54, v107
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v53, v52, v51 :: v_dual_and_b32 v42, 15, v42
-	v_fma_f32 v74, -v50, v53, v52
+	v_mul_f32_e32 v53, v52, v51
+	v_fma_f32 v56, -v50, v53, v52
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v53, v74, v51
+	v_fmac_f32_e32 v53, v56, v51
 	v_fma_f32 v50, -v50, v53, v52
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
 	v_div_fmas_f32 v50, v50, v51, v53
-	v_div_scale_f32 v51, null, v46, v46, v12
-	v_div_fixup_f32 v48, v50, v46, v43
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_rcp_f32_e32 v52, v51
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v43, v44
-	v_rndne_f32_e32 v44, v47
-	v_rndne_f32_e32 v45, v48
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v43, v43, s0, 0x40e00000
-	v_med3_f32 v44, v44, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_med3_f32 v45, v45, s0, 0x40e00000
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v53, -v51, v52, 1.0
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v43, v43
-	v_cvt_i32_f32_e32 v44, v44
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_cvt_i32_f32_e32 v45, v45
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v52, v53, v52
-	v_div_scale_f32 v53, vcc_lo, v12, v46, v12
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v43, 15, v43
-	v_and_b32_e32 v44, 15, v44
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_dual_mul_f32 v74, v53, v52 :: v_dual_and_b32 v45, 15, v45
-	v_fma_f32 v96, -v51, v74, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v74, v96, v52
-	v_fma_f32 v51, -v51, v74, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v74, v51, v52, v74
-	v_div_scale_f32 v51, null, v46, v46, v11
-	v_div_fixup_f32 v12, v74, v46, v12
+	v_div_scale_f32 v51, null, v54, v54, v106
+	v_div_fixup_f32 v50, v50, v54, v107
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
 	v_rcp_f32_e32 v52, v51
 	v_fma_f32 v53, -v51, v52, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
 	v_fmac_f32_e32 v52, v53, v52
-	v_div_scale_f32 v53, vcc_lo, v11, v46, v11
-	v_mul_f32_e32 v96, v53, v52
+	v_div_scale_f32 v53, vcc_lo, v106, v54, v106
+	v_mul_f32_e32 v56, v53, v52
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v97, -v51, v96, v53
-	v_fmac_f32_e32 v96, v97, v52
+	v_fma_f32 v57, -v51, v56, v53
+	v_fmac_f32_e32 v56, v57, v52
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v51, v96, v53
-	v_div_fmas_f32 v101, v51, v52, v96
-	v_div_scale_f32 v51, null, v46, v46, v9
+	v_fma_f32 v51, -v51, v56, v53
+	v_div_fmas_f32 v51, v51, v52, v56
+	v_div_scale_f32 v52, null, v54, v54, v105
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v11, v101, v46, v11
-	v_rcp_f32_e32 v52, v51
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v53, -v51, v52, 1.0
-	v_fmac_f32_e32 v52, v53, v52
-	v_div_scale_f32 v53, vcc_lo, v9, v46, v9
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_mul_f32_e32 v96, v53, v52
-	v_fma_f32 v97, -v51, v96, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v96, v97, v52
-	v_fma_f32 v51, -v51, v96, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v102, v51, v52, v96
-	v_div_scale_f32 v51, null, v46, v46, v8
-	v_div_fixup_f32 v9, v102, v46, v9
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v52, v51
-	v_fma_f32 v53, -v51, v52, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v52, v53, v52
-	v_div_scale_f32 v53, vcc_lo, v8, v46, v8
-	v_mul_f32_e32 v96, v53, v52
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v97, -v51, v96, v53
-	v_fmac_f32_e32 v96, v97, v52
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v51, -v51, v96, v53
-	v_div_fmas_f32 v103, v51, v52, v96
-	v_div_scale_f32 v51, null, v46, v46, v38
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v8, v103, v46, v8
-	v_rcp_f32_e32 v52, v51
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v8, v8
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v8, v8, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v53, -v51, v52, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v8, v8
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v52, v53, v52
-	v_div_scale_f32 v53, vcc_lo, v38, v46, v38
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v8, 15, v8
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_mul_f32_e32 v96, v53, v52
-	v_fma_f32 v97, -v51, v96, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v96, v97, v52
-	v_fma_f32 v51, -v51, v96, v53
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v51, v51, v52, v96
-	v_div_scale_f32 v52, null, v46, v46, v41
-	v_div_fixup_f32 v38, v51, v46, v38
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fixup_f32 v51, v51, v54, v106
 	v_rcp_f32_e32 v53, v52
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v56, -v52, v53, 1.0
+	v_fmac_f32_e32 v53, v56, v53
+	v_div_scale_f32 v56, vcc_lo, v105, v54, v105
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v57, v56, v53
+	v_fma_f32 v58, -v52, v57, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v57, v58, v53
+	v_fma_f32 v52, -v52, v57, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v52, v52, v53, v57
+	v_div_scale_f32 v53, null, v54, v54, v104
+	v_div_fixup_f32 v52, v52, v54, v105
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v56, v53
+	v_fma_f32 v57, -v53, v56, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v56, v57, v56
+	v_div_scale_f32 v57, vcc_lo, v104, v54, v104
+	v_mul_f32_e32 v58, v57, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v59, -v53, v58, v57
+	v_fmac_f32_e32 v58, v59, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v53, -v53, v58, v57
+	v_div_fmas_f32 v53, v53, v56, v58
+	v_div_scale_f32 v56, null, v54, v54, v45
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v53, v53, v54, v104
+	v_rcp_f32_e32 v57, v56
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v58, -v56, v57, 1.0
+	v_fmac_f32_e32 v57, v58, v57
+	v_div_scale_f32 v58, vcc_lo, v45, v54, v45
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v59, v58, v57
+	v_fma_f32 v60, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v59, v60, v57
+	v_fma_f32 v56, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v56, v56, v57, v59
+	v_div_fixup_f32 v45, v56, v54, v45
+	v_div_scale_f32 v56, null, v54, v54, v44
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v38, v38
+	v_rndne_f32_e32 v45, v45
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v57, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v45, v45, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v45, v45
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v58, -v56, v57, 1.0
+	v_fmac_f32_e32 v57, v58, v57
+	v_div_scale_f32 v58, vcc_lo, v44, v54, v44
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v59, v58, v57
+	v_fma_f32 v60, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v59, v60, v57
+	v_fma_f32 v56, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v56, v56, v57, v59
+	v_div_fixup_f32 v44, v56, v54, v44
+	v_div_scale_f32 v56, null, v54, v54, v43
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v44, v44
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v57, v56
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v44, v44, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v44, v44
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v58, -v56, v57, 1.0
+	v_fmac_f32_e32 v57, v58, v57
+	v_div_scale_f32 v58, vcc_lo, v43, v54, v43
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v59, v58, v57
+	v_fma_f32 v60, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v59, v60, v57
+	v_fma_f32 v56, -v56, v59, v58
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v56, v56, v57, v59
+	v_div_fixup_f32 v43, v56, v54, v43
+	v_div_scale_f32 v54, null, v68, v68, v115
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v43, v43
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v56, v54
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v43, v43, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v43, v43
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v57, -v54, v56, 1.0
+	v_fmac_f32_e32 v56, v57, v56
+	v_div_scale_f32 v57, vcc_lo, v115, v68, v115
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v58, v57, v56
+	v_fma_f32 v59, -v54, v58, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v58, v59, v56
+	v_fma_f32 v54, -v54, v58, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v54, v54, v56, v58
+	v_div_scale_f32 v56, null, v68, v68, v110
+	v_div_fixup_f32 v54, v54, v68, v115
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v57, v56
+	v_fma_f32 v58, -v56, v57, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v57, v58, v57
+	v_div_scale_f32 v58, vcc_lo, v110, v68, v110
+	v_mul_f32_e32 v59, v58, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v60, -v56, v59, v58
+	v_fmac_f32_e32 v59, v60, v57
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v56, -v56, v59, v58
+	v_div_fmas_f32 v56, v56, v57, v59
+	v_div_scale_f32 v57, null, v68, v68, v109
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v56, v56, v68, v110
+	v_rcp_f32_e32 v58, v57
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v59, -v57, v58, 1.0
+	v_fmac_f32_e32 v58, v59, v58
+	v_div_scale_f32 v59, vcc_lo, v109, v68, v109
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v60, v59, v58
+	v_fma_f32 v61, -v57, v60, v59
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v60, v61, v58
+	v_fma_f32 v57, -v57, v60, v59
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v57, v57, v58, v60
+	v_div_scale_f32 v58, null, v68, v68, v108
+	v_div_fixup_f32 v57, v57, v68, v109
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v59, v58
+	v_fma_f32 v60, -v58, v59, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v59, v60, v59
+	v_div_scale_f32 v60, vcc_lo, v108, v68, v108
+	v_mul_f32_e32 v61, v60, v59
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v62, -v58, v61, v60
+	v_fmac_f32_e32 v61, v62, v59
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v58, -v58, v61, v60
+	v_div_fmas_f32 v58, v58, v59, v61
+	v_div_scale_f32 v59, null, v68, v68, v119
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v58, v58, v68, v108
+	v_rcp_f32_e32 v60, v59
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v61, -v59, v60, 1.0
+	v_fmac_f32_e32 v60, v61, v60
+	v_div_scale_f32 v61, vcc_lo, v119, v68, v119
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v62, v61, v60
+	v_fma_f32 v63, -v59, v62, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v62, v63, v60
+	v_fma_f32 v59, -v59, v62, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v59, v59, v60, v62
+	v_div_scale_f32 v60, null, v68, v68, v118
+	v_div_fixup_f32 v59, v59, v68, v119
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v61, v60
+	v_fma_f32 v62, -v60, v61, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v61, v62, v61
+	v_div_scale_f32 v62, vcc_lo, v118, v68, v118
+	v_mul_f32_e32 v63, v62, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v65, -v60, v63, v62
+	v_fmac_f32_e32 v63, v65, v61
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v60, -v60, v63, v62
+	v_div_fmas_f32 v60, v60, v61, v63
+	v_div_scale_f32 v61, null, v68, v68, v117
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v60, v60, v68, v118
+	v_rcp_f32_e32 v62, v61
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v63, -v61, v62, 1.0
+	v_fmac_f32_e32 v62, v63, v62
+	v_div_scale_f32 v63, vcc_lo, v117, v68, v117
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v65, v63, v62
+	v_fma_f32 v66, -v61, v65, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v65, v66, v62
+	v_fma_f32 v61, -v61, v65, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v61, v61, v62, v65
+	v_div_scale_f32 v62, null, v68, v68, v116
+	v_div_fixup_f32 v61, v61, v68, v117
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v63, v62
+	v_fma_f32 v65, -v62, v63, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v63, v65, v63
+	v_div_scale_f32 v65, vcc_lo, v116, v68, v116
+	v_mul_f32_e32 v66, v65, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v67, -v62, v66, v65
+	v_fmac_f32_e32 v66, v67, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v62, -v62, v66, v65
+	v_div_fmas_f32 v62, v62, v63, v66
+	v_div_scale_f32 v63, null, v68, v68, v42
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v62, v62, v68, v116
+	v_rcp_f32_e32 v65, v63
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v66, -v63, v65, 1.0
+	v_fmac_f32_e32 v65, v66, v65
+	v_div_scale_f32 v66, vcc_lo, v42, v68, v42
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v67, v66, v65
+	v_fma_f32 v69, -v63, v67, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v67, v69, v65
+	v_fma_f32 v63, -v63, v67, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v63, v63, v65, v67
+	v_div_fixup_f32 v42, v63, v68, v42
+	v_div_scale_f32 v63, null, v68, v68, v114
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v42, v42
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v65, v63
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v42, v42, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v42, v42
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v66, -v63, v65, 1.0
+	v_fmac_f32_e32 v65, v66, v65
+	v_div_scale_f32 v66, vcc_lo, v114, v68, v114
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v67, v66, v65
+	v_fma_f32 v69, -v63, v67, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v67, v69, v65
+	v_fma_f32 v63, -v63, v67, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v63, v63, v65, v67
+	v_div_scale_f32 v65, null, v68, v68, v113
+	v_div_fixup_f32 v63, v63, v68, v114
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v66, v65
+	v_fma_f32 v67, -v65, v66, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v66, v67, v66
+	v_div_scale_f32 v67, vcc_lo, v113, v68, v113
+	v_mul_f32_e32 v69, v67, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v70, -v65, v69, v67
+	v_fmac_f32_e32 v69, v70, v66
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v65, -v65, v69, v67
+	v_div_fmas_f32 v65, v65, v66, v69
+	v_div_scale_f32 v66, null, v68, v68, v112
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v65, v65, v68, v113
+	v_rcp_f32_e32 v67, v66
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v69, -v66, v67, 1.0
+	v_fmac_f32_e32 v67, v69, v67
+	v_div_scale_f32 v69, vcc_lo, v112, v68, v112
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v70, v69, v67
+	v_fma_f32 v71, -v66, v70, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v70, v71, v67
+	v_fma_f32 v66, -v66, v70, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v66, v66, v67, v70
+	v_div_scale_f32 v67, null, v68, v68, v111
+	v_div_fixup_f32 v66, v66, v68, v112
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v69, v67
+	v_fma_f32 v70, -v67, v69, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v69, v70, v69
+	v_div_scale_f32 v70, vcc_lo, v111, v68, v111
+	v_mul_f32_e32 v71, v70, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v72, -v67, v71, v70
+	v_fmac_f32_e32 v71, v72, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v67, -v67, v71, v70
+	v_div_fmas_f32 v67, v67, v69, v71
+	v_div_scale_f32 v69, null, v68, v68, v41
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v67, v67, v68, v111
+	v_rcp_f32_e32 v70, v69
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v71, -v69, v70, 1.0
+	v_fmac_f32_e32 v70, v71, v70
+	v_div_scale_f32 v71, vcc_lo, v41, v68, v41
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v72, v71, v70
+	v_fma_f32 v73, -v69, v72, v71
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v72, v73, v70
+	v_fma_f32 v69, -v69, v72, v71
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v69, v69, v70, v72
+	v_div_fixup_f32 v41, v69, v68, v41
+	v_div_scale_f32 v69, null, v68, v68, v40
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v41, v41
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v70, v69
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
 	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v38, v38, s0, 0x40e00000
+	v_med3_f32 v41, v41, s5, 0x40e00000
 	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v96, -v52, v53, 1.0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v38, v38
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v53, v96, v53
-	v_div_scale_f32 v96, vcc_lo, v41, v46, v41
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v97, v96, v53 :: v_dual_and_b32 v38, 15, v38
-	v_fma_f32 v98, -v52, v97, v96
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v97, v98, v53
-	v_fma_f32 v52, -v52, v97, v96
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v52, v52, v53, v97
-	v_div_scale_f32 v53, null, v46, v46, v40
-	v_div_fixup_f32 v41, v52, v46, v41
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	v_rcp_f32_e32 v96, v53
-	v_fma_f32 v97, -v53, v96, 1.0
+	v_fma_f32 v71, -v69, v70, 1.0
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v96, v97, v96
-	v_div_scale_f32 v97, vcc_lo, v40, v46, v40
-	v_mul_f32_e32 v98, v97, v96
+	v_fmac_f32_e32 v70, v71, v70
+	v_div_scale_f32 v71, vcc_lo, v40, v68, v40
+	v_mul_f32_e32 v72, v71, v70
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v99, -v53, v98, v97
-	v_fmac_f32_e32 v98, v99, v96
+	v_fma_f32 v73, -v69, v72, v71
+	v_fmac_f32_e32 v72, v73, v70
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v53, -v53, v98, v97
-	v_div_fmas_f32 v53, v53, v96, v98
-	v_div_scale_f32 v96, null, v46, v46, v39
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v40, v53, v46, v40
-	v_rcp_f32_e32 v97, v96
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v69, -v69, v72, v71
+	v_div_fmas_f32 v69, v69, v70, v72
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v40, v69, v68, v40
+	v_div_scale_f32 v69, null, v68, v68, v39
 	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
 	v_rndne_f32_e32 v40, v40
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v40, v40, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v98, -v96, v97, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v40, v40
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v97, v98, v97
-	v_div_scale_f32 v98, vcc_lo, v39, v46, v39
-	v_dual_mul_f32 v99, v98, v97 :: v_dual_and_b32 v40, 15, v40
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v104, -v96, v99, v98
-	v_fmac_f32_e32 v99, v104, v97
-	v_div_fixup_f32 v25, v75, v54, v25
-	v_div_fixup_f32 v37, v84, v54, v37
-	v_div_fixup_f32 v26, v80, v54, v26
-	v_div_fixup_f32 v36, v85, v54, v36
-	v_fma_f32 v96, -v96, v99, v98
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v25, v25
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v32, v73, v54, v32
-	v_div_fixup_f32 v27, v81, v54, v27
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_div_fmas_f32 v96, v96, v97, v99
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v25, v25, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v32, v32
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_fixup_f32 v47, v96, v46, v39
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v39, v41
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v25, v25
-	v_med3_f32 v32, v32, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v41, v47
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v39, v39, s0, 0x40e00000
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_load_b128 v[47:50], v66
-	ds_load_b128 v[96:99], v66 offset:1024
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v41, v41, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v39, v39
-	v_cvt_i32_f32_e32 v32, v32
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_cvt_i32_f32_e32 v41, v41
-	v_and_b32_e32 v39, 15, v39
-	s_delay_alu instid0(VALU_DEP_2)
-	v_and_b32_e32 v41, 15, v41
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[42:45]
-	ds_store_b128 v77, v[38:41] offset:512
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v39, v87, v54, v34
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v34, v37
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v38, v86, v54, v35
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v35, v36
-	.loc	1 1245 22 is_stmt 1             ; ragged.py:1245:22
-	s_waitcnt lgkmcnt(0)
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v37, v39
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v39, 15, v25
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v25, v26
-	v_rndne_f32_e32 v36, v38
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v34, v34, s0, 0x40e00000
-	v_med3_f32 v35, v35, s0, 0x40e00000
-	v_med3_f32 v37, v37, s0, 0x40e00000
-	v_med3_f32 v25, v25, s0, 0x40e00000
-	v_med3_f32 v36, v36, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v34, v34
-	v_cvt_i32_f32_e32 v35, v35
-	v_cvt_i32_f32_e32 v37, v37
-	v_cvt_i32_f32_e32 v25, v25
-	v_cvt_i32_f32_e32 v36, v36
-	v_and_b32_e32 v34, 15, v34
-	v_and_b32_e32 v35, 15, v35
-	v_and_b32_e32 v37, 15, v37
-	v_and_b32_e32 v40, 15, v25
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v25, v27
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v36, 15, v36
-	v_and_b32_e32 v38, 15, v32
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_barrier
-	ds_load_b128 v[42:45], v66
-	ds_load_b128 v[51:54], v66 offset:1024
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v25, v25, s0, 0x40e00000
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v32, v76, v71, v33
-	v_div_fixup_f32 v33, v56, v71, v24
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v25, v25
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v24, v29
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_rndne_f32_e32 v29, v33
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v41, 15, v25
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[34:37]
-	ds_store_b128 v77, v[38:41] offset:512
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	ds_load_b128 v[34:37], v66
-	ds_load_b128 v[38:41], v66 offset:1024
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v33, v63, v55, v13
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v13, v19
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v24, v24, s0, 0x40e00000
-	v_med3_f32 v29, v29, s0, 0x40e00000
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v13, v13, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v24, v24
-	v_cvt_i32_f32_e32 v29, v29
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_and_b32_e32 v24, 15, v24
-	v_and_b32_e32 v29, 15, v29
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v26, v39, 4, v35
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v39, v57, v71, v21
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v21, v32
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_and_b32_e32 v32, 15, v0
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v0, v59, v55, v20
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v27, v40, 4, v36
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v30, v39
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_fixup_f32 v39, v64, v55, v14
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v14, v13
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v0
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_fixup_f32 v40, v58, v71, v22
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v22, v31
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v20, v62, v55, v16
-	.loc	1 1246 19 is_stmt 1             ; ragged.py:1246:19
-	v_lshl_or_b32 v25, v38, 4, v34
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v31, v40
-	.loc	1 1240 33 is_stmt 0             ; ragged.py:1240:33
-	v_div_fixup_f32 v40, v72, v55, v15
-	.loc	1 1246 19 is_stmt 1             ; ragged.py:1246:19
-	v_lshl_or_b32 v34, v41, 4, v37
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v21, v21, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v0, v0
-	v_med3_f32 v22, v22, s0, 0x40e00000
-	v_med3_f32 v30, v30, s0, 0x40e00000
-	v_med3_f32 v31, v31, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v21, v21
-	v_and_b32_e32 v13, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v18
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v22, v22
-	v_cvt_i32_f32_e32 v30, v30
-	v_cvt_i32_f32_e32 v31, v31
-	v_and_b32_e32 v21, 15, v21
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	v_and_b32_e32 v22, 15, v22
-	v_and_b32_e32 v14, 15, v14
-	v_and_b32_e32 v30, 15, v30
-	v_and_b32_e32 v31, 15, v31
-	v_cvt_i32_f32_e32 v0, v0
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[21:24]
-	ds_store_b128 v77, v[29:32] offset:512
-	s_waitcnt lgkmcnt(0)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v15, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v17
-	v_rndne_f32_e32 v17, v33
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_barrier
-	ds_load_b128 v[21:24], v66
-	ds_load_b128 v[29:32], v66 offset:1024
-	s_waitcnt lgkmcnt(0)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	v_med3_f32 v17, v17, s0, 0x40e00000
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_barrier
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v35, v92, 4, v88
-	v_lshl_or_b32 v36, v93, 4, v89
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	v_cvt_i32_f32_e32 v18, v17
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v37, v94, 4, v90
-	v_lshl_or_b32 v38, v95, 4, v91
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v16, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v20
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v18, 15, v18
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v21, v29, 4, v21
-	v_lshl_or_b32 v22, v30, 4, v22
-	v_lshl_or_b32 v23, v31, 4, v23
-	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v24, v32, 4, v24
-	v_lshl_or_b32 v29, v96, 4, v47
-	v_lshl_or_b32 v30, v97, 4, v48
-	v_lshl_or_b32 v31, v98, 4, v49
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v17, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v39
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v32, v99, 4, v50
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_and_b32_e32 v19, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v40
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_cvt_i32_f32_e32 v0, v0
-	v_and_b32_e32 v20, 15, v0
 	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_scale_f32 v0, null, v46, v46, v10
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[13:16]
-	ds_store_b128 v77, v[17:20] offset:512
-	s_waitcnt lgkmcnt(0)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_rcp_f32_e32 v33, v0
-	.loc	1 1245 22                       ; ragged.py:1245:22
-	s_barrier
-	ds_load_b128 v[13:16], v66
-	ds_load_b128 v[17:20], v66 offset:1024
-	s_waitcnt lgkmcnt(0)
-	s_barrier
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v39, -v0, v33, 1.0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v33, v39, v33
-	v_div_scale_f32 v39, vcc_lo, v10, v46, v10
-	v_mul_f32_e32 v40, v39, v33
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v13, v17, 4, v13
-	v_lshl_or_b32 v17, v51, 4, v42
-	v_lshl_or_b32 v14, v18, 4, v14
-	v_lshl_or_b32 v18, v52, 4, v43
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v41, -v0, v40, v39
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v15, v19, 4, v15
-	v_lshl_or_b32 v19, v53, 4, v44
-	v_lshl_or_b32 v16, v20, 4, v16
-	v_lshl_or_b32 v20, v54, 4, v45
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v40, v41, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v0, -v0, v40, v39
-	v_div_fmas_f32 v0, v0, v33, v40
-	v_div_scale_f32 v33, null, v46, v46, v5
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v0, v0, v46, v10
-	v_rcp_f32_e32 v39, v33
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v0
+	v_rcp_f32_e32 v70, v69
 	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_med3_f32 v40, v40, s5, 0x40e00000
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v40, -v33, v39, 1.0
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v39, v40, v39
-	v_div_scale_f32 v40, vcc_lo, v5, v46, v5
-	v_mul_f32_e32 v41, v40, v39
+	v_fma_f32 v71, -v69, v70, 1.0
+	v_fmac_f32_e32 v70, v71, v70
+	v_div_scale_f32 v71, vcc_lo, v39, v68, v39
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v42, -v33, v41, v40
-	v_fmac_f32_e32 v41, v42, v39
+	v_mul_f32_e32 v72, v71, v70
+	v_fma_f32 v73, -v69, v72, v71
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v33, -v33, v41, v40
-	v_div_fmas_f32 v33, v33, v39, v41
-	v_div_scale_f32 v39, null, v46, v46, v6
+	v_fmac_f32_e32 v72, v73, v70
+	v_fma_f32 v69, -v69, v72, v71
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v69, v69, v70, v72
+	v_div_fixup_f32 v39, v69, v68, v39
+	v_div_scale_f32 v68, null, v55, v55, v100
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_div_fixup_f32 v10, v33, v46, v5
-	v_rcp_f32_e32 v40, v39
 	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v5, v12
+	v_rndne_f32_e32 v39, v39
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v69, v68
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
 	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v5, v5, s0, 0x40e00000
+	v_med3_f32 v39, v39, s5, 0x40e00000
 	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v41, -v39, v40, 1.0
+	v_fma_f32 v70, -v68, v69, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v69, v70, v69
+	v_div_scale_f32 v70, vcc_lo, v100, v55, v100
+	v_mul_f32_e32 v71, v70, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v72, -v68, v71, v70
+	v_fmac_f32_e32 v71, v72, v69
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v68, -v68, v71, v70
+	v_div_fmas_f32 v68, v68, v69, v71
+	v_div_scale_f32 v69, null, v55, v55, v99
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_cvt_i32_f32_e32 v5, v5
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v40, v41, v40
-	v_div_scale_f32 v41, vcc_lo, v6, v46, v6
+	v_div_fixup_f32 v68, v68, v55, v100
+	v_rcp_f32_e32 v70, v69
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v71, -v69, v70, 1.0
+	v_fmac_f32_e32 v70, v71, v70
+	v_div_scale_f32 v71, vcc_lo, v99, v55, v99
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_dual_mul_f32 v42, v41, v40 :: v_dual_and_b32 v5, 15, v5
-	v_fma_f32 v43, -v39, v42, v41
+	v_mul_f32_e32 v72, v71, v70
+	v_fma_f32 v73, -v69, v72, v71
 	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fmac_f32_e32 v42, v43, v40
-	v_fma_f32 v39, -v39, v42, v41
+	v_fmac_f32_e32 v72, v73, v70
+	v_fma_f32 v69, -v69, v72, v71
 	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_div_fmas_f32 v39, v39, v40, v42
-	v_div_scale_f32 v40, null, v46, v46, v7
-	v_div_fixup_f32 v33, v39, v46, v6
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_rcp_f32_e32 v41, v40
+	v_div_fmas_f32 v69, v69, v70, v72
+	v_div_scale_f32 v70, null, v55, v55, v98
+	v_div_fixup_f32 v69, v69, v55, v99
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v71, v70
+	v_fma_f32 v72, -v70, v71, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v71, v72, v71
+	v_div_scale_f32 v72, vcc_lo, v98, v55, v98
+	v_mul_f32_e32 v73, v72, v71
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v74, -v70, v73, v72
+	v_fmac_f32_e32 v73, v74, v71
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v70, -v70, v73, v72
+	v_div_fmas_f32 v70, v70, v71, v73
+	v_div_scale_f32 v71, null, v55, v55, v97
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v70, v70, v55, v98
+	v_rcp_f32_e32 v72, v71
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v73, -v71, v72, 1.0
+	v_fmac_f32_e32 v72, v73, v72
+	v_div_scale_f32 v73, vcc_lo, v97, v55, v97
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v74, v73, v72
+	v_fma_f32 v75, -v71, v74, v73
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v74, v75, v72
+	v_fma_f32 v71, -v71, v74, v73
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v71, v71, v72, v74
+	v_div_scale_f32 v72, null, v55, v55, v92
+	v_div_fixup_f32 v71, v71, v55, v97
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v73, v72
+	v_fma_f32 v74, -v72, v73, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v73, v74, v73
+	v_div_scale_f32 v74, vcc_lo, v92, v55, v92
+	v_mul_f32_e32 v75, v74, v73
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v76, -v72, v75, v74
+	v_fmac_f32_e32 v75, v76, v73
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v72, -v72, v75, v74
+	v_div_fmas_f32 v72, v72, v73, v75
+	v_div_scale_f32 v73, null, v55, v55, v91
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v72, v72, v55, v92
+	v_rcp_f32_e32 v74, v73
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v75, -v73, v74, 1.0
+	v_fmac_f32_e32 v74, v75, v74
+	v_div_scale_f32 v75, vcc_lo, v91, v55, v91
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v76, v75, v74
+	v_fma_f32 v77, -v73, v76, v75
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v76, v77, v74
+	v_fma_f32 v73, -v73, v76, v75
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v73, v73, v74, v76
+	v_div_scale_f32 v74, null, v55, v55, v90
+	v_div_fixup_f32 v73, v73, v55, v91
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v75, v74
+	v_fma_f32 v76, -v74, v75, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v75, v76, v75
+	v_div_scale_f32 v76, vcc_lo, v90, v55, v90
+	v_mul_f32_e32 v77, v76, v75
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v78, -v74, v77, v76
+	v_fmac_f32_e32 v77, v78, v75
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v74, -v74, v77, v76
+	v_div_fmas_f32 v74, v74, v75, v77
+	v_div_scale_f32 v75, null, v55, v55, v89
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v74, v74, v55, v90
+	v_rcp_f32_e32 v76, v75
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v77, -v75, v76, 1.0
+	v_fmac_f32_e32 v76, v77, v76
+	v_div_scale_f32 v77, vcc_lo, v89, v55, v89
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v78, v77, v76
+	v_fma_f32 v79, -v75, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v78, v79, v76
+	v_fma_f32 v75, -v75, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v75, v75, v76, v78
+	v_div_scale_f32 v76, null, v55, v55, v38
+	v_div_fixup_f32 v75, v75, v55, v89
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v77, v76
+	v_fma_f32 v78, -v76, v77, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v77, v78, v77
+	v_div_scale_f32 v78, vcc_lo, v38, v55, v38
+	v_mul_f32_e32 v79, v78, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v80, -v76, v79, v78
+	v_fmac_f32_e32 v79, v80, v77
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v76, -v76, v79, v78
+	v_div_fmas_f32 v76, v76, v77, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v38, v76, v55, v38
+	v_div_scale_f32 v76, null, v55, v55, v83
 	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v6, v11
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v6, v6, s0, 0x40e00000
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_rndne_f32_e32 v38, v38
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
 	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fma_f32 v42, -v40, v41, 1.0
+	v_rcp_f32_e32 v77, v76
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v38, v38, s5, 0x40e00000
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v78, -v76, v77, 1.0
+	v_fmac_f32_e32 v77, v78, v77
+	v_div_scale_f32 v78, vcc_lo, v83, v55, v83
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v79, v78, v77
+	v_fma_f32 v80, -v76, v79, v78
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v77
+	v_fma_f32 v76, -v76, v79, v78
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v76, v76, v77, v79
+	v_div_scale_f32 v77, null, v55, v55, v82
+	v_div_fixup_f32 v76, v76, v55, v83
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v78, v77
+	v_fma_f32 v79, -v77, v78, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v78, v79, v78
+	v_div_scale_f32 v79, vcc_lo, v82, v55, v82
+	v_mul_f32_e32 v80, v79, v78
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v83, -v77, v80, v79
+	v_fmac_f32_e32 v80, v83, v78
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v77, -v77, v80, v79
+	v_div_fmas_f32 v77, v77, v78, v80
+	v_div_scale_f32 v78, null, v55, v55, v81
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v77, v77, v55, v82
+	v_rcp_f32_e32 v79, v78
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v80, -v78, v79, 1.0
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v81, v55, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v82, v80, v79
+	v_fma_f32 v83, -v78, v82, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v82, v83, v79
+	v_fma_f32 v78, -v78, v82, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fmas_f32 v78, v78, v79, v82
+	v_div_scale_f32 v79, null, v55, v55, v64
+	v_div_fixup_f32 v78, v78, v55, v81
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_rcp_f32_e32 v80, v79
+	v_fma_f32 v81, -v79, v80, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v80, v81, v80
+	v_div_scale_f32 v81, vcc_lo, v64, v55, v64
+	v_mul_f32_e32 v82, v81, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v83, -v79, v82, v81
+	v_fmac_f32_e32 v82, v83, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v79, -v79, v82, v81
+	v_div_fmas_f32 v79, v79, v80, v82
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v64, v79, v55, v64
+	v_div_scale_f32 v79, null, v55, v55, v37
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v64, v64
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v80, v79
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v64, v64, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v64, v64
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v81, -v79, v80, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v80, v81, v80
+	v_div_scale_f32 v81, vcc_lo, v37, v55, v37
+	v_mul_f32_e32 v82, v81, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v83, -v79, v82, v81
+	v_fmac_f32_e32 v82, v83, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v79, -v79, v82, v81
+	v_div_fmas_f32 v79, v79, v80, v82
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v37, v79, v55, v37
+	v_div_scale_f32 v79, null, v55, v55, v36
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v37, v37
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v80, v79
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v37, v37, s5, 0x40e00000
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v81, -v79, v80, 1.0
+	v_fmac_f32_e32 v80, v81, v80
+	v_div_scale_f32 v81, vcc_lo, v36, v55, v36
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mul_f32_e32 v82, v81, v80
+	v_fma_f32 v83, -v79, v82, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v82, v83, v80
+	v_fma_f32 v79, -v79, v82, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_div_fmas_f32 v79, v79, v80, v82
+	v_div_fixup_f32 v36, v79, v55, v36
+	v_div_scale_f32 v79, null, v55, v55, v35
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v36, v36
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v36, v36, s5, 0x40e00000
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v81, -v79, v80, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v80, v81, v80
+	v_div_scale_f32 v81, vcc_lo, v35, v55, v35
+	v_mul_f32_e32 v82, v81, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v83, -v79, v82, v81
+	v_fmac_f32_e32 v82, v83, v80
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v79, -v79, v82, v81
+	v_div_fmas_f32 v79, v79, v80, v82
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v35, v79, v55, v35
+	v_div_scale_f32 v55, null, v20, v20, v25
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v35, v35
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v35, v35, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v83, v35
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v25, v20, v25
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v25, v55, v20, v25
+	v_div_scale_f32 v55, null, v20, v20, v24
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v25, v25
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v25, v25, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v84, v25
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v24, v20, v24
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v24, v55, v20, v24
+	v_div_scale_f32 v55, null, v20, v20, v23
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v24, v24
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v24, v24, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v85, v24
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
 	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_and_b32_e32 v24, 15, v43
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v23, v20, v23
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v23, v55, v20, v23
+	v_div_scale_f32 v55, null, v20, v20, v22
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v23, v23
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v23, v23, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v86, v23
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_and_b32_e32 v23, 15, v44
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v22, v20, v22
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v22, v55, v20, v22
+	v_div_scale_f32 v55, null, v20, v20, v17
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v22, v22
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v22, v22, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v87, v22
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_dual_fmac_f32 v79, v80, v79 :: v_dual_and_b32 v22, 15, v45
+	v_div_scale_f32 v80, vcc_lo, v17, v20, v17
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v17, v55, v20, v17
+	v_div_scale_f32 v55, null, v20, v20, v16
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v17, v17
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v17, v17, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v88, v17
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_and_b32_e32 v17, 15, v46
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v16, v20, v16
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v16, v55, v20, v16
+	v_div_scale_f32 v55, null, v20, v20, v15
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v16, v16
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v16, v16, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v89, v16
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v15, v20, v15
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v15, v55, v20, v15
+	v_div_scale_f32 v55, null, v20, v20, v14
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v15, v15
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v15, v15, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v90, v15
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v14, v20, v14
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v14, v55, v20, v14
+	v_div_scale_f32 v55, null, v20, v20, v13
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v14, v14
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v14, v14, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v91, v14
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v13, v20, v13
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v13, v55, v20, v13
+	v_div_scale_f32 v55, null, v20, v20, v19
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v13, v13
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v13, v13, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v92, v13
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v19, v20, v19
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v19, v55, v20, v19
+	v_div_scale_f32 v55, null, v20, v20, v18
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v19, v19
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v19, v19, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v93, v19
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v18, v20, v18
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v18, v55, v20, v18
+	v_div_scale_f32 v55, null, v20, v20, v10
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v18, v18
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v18, v18, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v94, v18
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v10, v20, v10
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v10, v55, v20, v10
+	v_div_scale_f32 v55, null, v20, v20, v9
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v10, v10
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v10, v10, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v95, v10
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v9, v20, v9
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v9, v55, v20, v9
+	v_div_scale_f32 v55, null, v20, v20, v12
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v9, v9
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v9, v9, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v96, v9
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v12, v20, v12
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v12, v55, v20, v12
+	v_div_scale_f32 v55, null, v20, v20, v11
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v12, v12
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v12, v12, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v97, v12
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v11, v20, v11
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v55, -v55, v81, v80
+	v_div_fmas_f32 v55, v55, v79, v81
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	v_div_fixup_f32 v11, v55, v20, v11
+	v_div_scale_f32 v55, null, v20, v20, v6
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v11, v11
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_rcp_f32_e32 v79, v55
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v11, v11, s5, 0x40e00000
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
+	v_cvt_i32_f32_e32 v98, v11
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v80, -v55, v79, 1.0
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
+	v_fmac_f32_e32 v79, v80, v79
+	v_div_scale_f32 v80, vcc_lo, v6, v20, v6
+	v_mul_f32_e32 v81, v80, v79
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_fma_f32 v82, -v55, v81, v80
+	v_fmac_f32_e32 v81, v82, v79
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_cvt_i32_f32_e32 v82, v36
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_fma_f32 v55, -v55, v81, v80
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_cvt_i32_f32_e32 v80, v38
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_div_fmas_f32 v55, v55, v79, v81
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_cvt_i32_f32_e32 v79, v39
+	v_and_b32_e32 v39, 15, v42
+	v_cvt_i32_f32_e32 v81, v37
+	.loc	1 1253 9                        ; ragged.py:1253:9
+	v_cmp_eq_u32_e32 vcc_lo, 0, v144
+	.loc	1 1240 33                       ; ragged.py:1240:33
+	v_div_fixup_f32 v6, v55, v20, v6
+	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
+	v_rndne_f32_e32 v20, v21
+	v_rndne_f32_e32 v21, v26
+	v_rndne_f32_e32 v26, v27
+	v_rndne_f32_e32 v27, v28
+	v_rndne_f32_e32 v6, v6
+	v_rndne_f32_e32 v28, v29
+	v_rndne_f32_e32 v29, v47
+	v_rndne_f32_e32 v55, v57
+	v_rndne_f32_e32 v57, v59
+	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
+	v_med3_f32 v6, v6, s5, 0x40e00000
+	.loc	1 1240 13                       ; ragged.py:1240:13
+	v_rndne_f32_e32 v59, v61
+	v_rndne_f32_e32 v61, v63
+	v_rndne_f32_e32 v63, v66
+	v_rndne_f32_e32 v66, v68
+	v_rndne_f32_e32 v68, v70
+	v_rndne_f32_e32 v70, v72
+	v_rndne_f32_e32 v72, v74
+	v_rndne_f32_e32 v74, v76
+	v_rndne_f32_e32 v76, v78
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_med3_f32 v29, v29, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v78, v40
 	v_cvt_i32_f32_e32 v6, v6
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_fmac_f32_e32 v41, v42, v41
-	v_div_scale_f32 v42, vcc_lo, v7, v46, v7
-	v_dual_mul_f32 v43, v42, v41 :: v_dual_and_b32 v6, 15, v6
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_fma_f32 v44, -v40, v43, v42
-	v_fmac_f32_e32 v43, v44, v41
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_fma_f32 v40, -v40, v43, v42
-	.loc	1 1247 50                       ; ragged.py:1247:50
-	v_lshlrev_b32_e32 v42, 3, v166
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fmas_f32 v40, v40, v41, v43
-	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_lshrrev_b32_e32 v41, 4, v165
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_2)
-	.loc	1 1240 33                       ; ragged.py:1240:33
-	v_div_fixup_f32 v39, v40, v46, v7
-	.loc	1 1240 13 is_stmt 0             ; ragged.py:1240:13
-	v_rndne_f32_e32 v7, v9
-	v_rndne_f32_e32 v9, v10
-	.loc	1 1239 13 is_stmt 1             ; ragged.py:1239:13
-	v_med3_f32 v7, v7, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_med3_f32 v9, v9, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v7, v7
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_2) | instid1(VALU_DEP_4)
-	v_cvt_i32_f32_e32 v10, v9
-	v_and_b32_e32 v9, 15, v0
 	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v33
+	v_rndne_f32_e32 v47, v48
+	v_rndne_f32_e32 v48, v49
+	v_rndne_f32_e32 v49, v50
+	v_rndne_f32_e32 v50, v51
+	v_rndne_f32_e32 v51, v52
+	v_rndne_f32_e32 v52, v53
+	v_rndne_f32_e32 v53, v54
+	v_rndne_f32_e32 v54, v56
+	v_rndne_f32_e32 v56, v58
+	v_rndne_f32_e32 v58, v60
+	v_rndne_f32_e32 v60, v62
+	v_rndne_f32_e32 v62, v65
+	v_rndne_f32_e32 v65, v67
+	v_rndne_f32_e32 v67, v69
+	v_rndne_f32_e32 v69, v71
 	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_and_b32_e32 v7, 15, v7
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_and_b32_e32 v10, 15, v10
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_cvt_i32_f32_e32 v0, v0
-	v_and_b32_e32 v11, 15, v0
-	.loc	1 1240 13                       ; ragged.py:1240:13
-	v_rndne_f32_e32 v0, v39
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 1239 13                       ; ragged.py:1239:13
-	v_med3_f32 v0, v0, s0, 0x40e00000
-	v_cvt_i32_f32_e32 v0, v0
-	s_delay_alu instid0(VALU_DEP_1)
-	v_and_b32_e32 v12, 15, v0
+	v_cvt_i32_f32_e32 v29, v29
+	v_and_b32_e32 v45, 15, v78
+	v_and_b32_e32 v78, 15, v6
 	.loc	1 1245 22                       ; ragged.py:1245:22
-	ds_store_b128 v77, v[5:8]
-	ds_store_b128 v77, v[9:12] offset:512
+	v_lshlrev_b32_e32 v6, 10, v0
+	.loc	1 1240 13                       ; ragged.py:1240:13
+	v_rndne_f32_e32 v71, v73
+	v_rndne_f32_e32 v73, v75
+	v_rndne_f32_e32 v75, v77
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_med3_f32 v20, v20, s5, 0x40e00000
+	v_med3_f32 v21, v21, s5, 0x40e00000
+	v_med3_f32 v26, v26, s5, 0x40e00000
+	v_med3_f32 v27, v27, s5, 0x40e00000
+	v_med3_f32 v28, v28, s5, 0x40e00000
+	v_med3_f32 v47, v47, s5, 0x40e00000
+	v_med3_f32 v48, v48, s5, 0x40e00000
+	v_med3_f32 v49, v49, s5, 0x40e00000
+	v_med3_f32 v50, v50, s5, 0x40e00000
+	v_med3_f32 v53, v53, s5, 0x40e00000
+	v_med3_f32 v54, v54, s5, 0x40e00000
+	v_med3_f32 v55, v55, s5, 0x40e00000
+	v_med3_f32 v56, v56, s5, 0x40e00000
+	v_med3_f32 v66, v66, s5, 0x40e00000
+	v_med3_f32 v67, v67, s5, 0x40e00000
+	v_med3_f32 v68, v68, s5, 0x40e00000
+	v_med3_f32 v69, v69, s5, 0x40e00000
+	v_and_b32_e32 v14, 15, v29
+	v_and_b32_e32 v46, 15, v79
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	v_and_b32_e32 v6, 0x1800, v6
+	v_lshlrev_b32_e32 v29, 4, v145
+	v_lshlrev_b32_e32 v79, 6, v30
+	v_lshlrev_b32_e32 v0, 6, v0
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_med3_f32 v51, v51, s5, 0x40e00000
+	v_med3_f32 v57, v57, s5, 0x40e00000
+	v_med3_f32 v58, v58, s5, 0x40e00000
+	v_med3_f32 v61, v61, s5, 0x40e00000
+	v_med3_f32 v62, v62, s5, 0x40e00000
+	v_med3_f32 v63, v63, s5, 0x40e00000
+	v_med3_f32 v74, v74, s5, 0x40e00000
+	v_med3_f32 v75, v75, s5, 0x40e00000
+	v_med3_f32 v76, v76, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v20, v20
+	v_cvt_i32_f32_e32 v21, v21
+	v_cvt_i32_f32_e32 v26, v26
+	v_cvt_i32_f32_e32 v27, v27
+	v_cvt_i32_f32_e32 v28, v28
+	v_cvt_i32_f32_e32 v47, v47
+	v_cvt_i32_f32_e32 v48, v48
+	v_cvt_i32_f32_e32 v49, v49
+	v_cvt_i32_f32_e32 v50, v50
+	v_cvt_i32_f32_e32 v53, v53
+	v_cvt_i32_f32_e32 v54, v54
+	v_cvt_i32_f32_e32 v55, v55
+	v_cvt_i32_f32_e32 v56, v56
+	v_cvt_i32_f32_e32 v66, v66
+	v_cvt_i32_f32_e32 v67, v67
+	v_cvt_i32_f32_e32 v68, v68
+	v_cvt_i32_f32_e32 v69, v69
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	v_xor_b32_e32 v4, v29, v4
+	v_add3_u32 v6, 0, v6, v79
+	v_and_or_b32 v0, 0x1b00, v0, v3
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_cvt_i32_f32_e32 v51, v51
+	v_cvt_i32_f32_e32 v57, v57
+	v_cvt_i32_f32_e32 v58, v58
+	v_cvt_i32_f32_e32 v61, v61
+	v_cvt_i32_f32_e32 v62, v62
+	v_cvt_i32_f32_e32 v63, v63
+	v_cvt_i32_f32_e32 v74, v74
+	v_cvt_i32_f32_e32 v75, v75
+	v_cvt_i32_f32_e32 v76, v76
+	v_and_b32_e32 v9, 15, v20
+	v_and_b32_e32 v10, 15, v21
+	v_and_b32_e32 v11, 15, v26
+	v_and_b32_e32 v12, 15, v27
+	v_and_b32_e32 v13, 15, v28
+	v_and_b32_e32 v15, 15, v47
+	v_and_b32_e32 v16, 15, v48
+	v_and_b32_e32 v18, 15, v49
+	v_and_b32_e32 v19, 15, v50
+	v_and_b32_e32 v25, 15, v53
+	v_and_b32_e32 v26, 15, v54
+	v_and_b32_e32 v27, 15, v55
+	v_and_b32_e32 v28, 15, v56
+	v_and_b32_e32 v47, 15, v66
+	v_and_b32_e32 v48, 15, v67
+	v_and_b32_e32 v49, 15, v68
+	v_and_b32_e32 v50, 15, v69
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	v_add3_u32 v29, v6, v4, v5
+	v_xad_u32 v0, v0, v34, 0
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_cvt_i32_f32_e32 v77, v41
+	v_and_b32_e32 v20, 15, v51
+	v_and_b32_e32 v35, 15, v57
+	v_and_b32_e32 v36, 15, v58
+	v_and_b32_e32 v40, 15, v61
+	v_and_b32_e32 v41, 15, v62
+	v_and_b32_e32 v42, 15, v63
+	v_and_b32_e32 v55, 15, v80
+	v_and_b32_e32 v56, 15, v74
+	v_and_b32_e32 v57, 15, v75
+	v_and_b32_e32 v58, 15, v76
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	ds_store_b128 v29, v[9:12]
+	ds_store_b128 v29, v[17:20] offset:512
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b128 v[5:8], v66
-	ds_load_b128 v[9:12], v66 offset:1024
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_lshlrev_b16 v0.l, 8, v70.l
-	v_and_b16 v0.h, 0xff, v69.l
-	.loc	1 1246 19                       ; ragged.py:1246:19
+	ds_load_b128 v[3:6], v0
+	ds_load_b128 v[9:12], v0 offset:1024
 	s_waitcnt lgkmcnt(0)
-	v_lshl_or_b32 v33, v9, 4, v5
-	.loc	1 1044 18                       ; ragged.py:1044:18
-	v_add_co_u32 v5, s0, s22, v41
+	s_barrier
+	ds_store_b128 v29, v[25:28]
+	ds_store_b128 v29, v[39:42] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[17:20], v0
+	ds_load_b128 v[25:28], v0 offset:1024
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[47:50]
+	ds_store_b128 v29, v[55:58] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[39:42], v0
+	ds_load_b128 v[47:50], v0 offset:1024
+	.loc	1 1239 13                       ; ragged.py:1239:13
+	v_med3_f32 v59, v59, s5, 0x40e00000
+	v_med3_f32 v65, v65, s5, 0x40e00000
+	v_med3_f32 v52, v52, s5, 0x40e00000
+	v_med3_f32 v71, v71, s5, 0x40e00000
+	v_med3_f32 v72, v72, s5, 0x40e00000
+	v_med3_f32 v73, v73, s5, 0x40e00000
+	v_med3_f32 v60, v60, s5, 0x40e00000
+	v_med3_f32 v70, v70, s5, 0x40e00000
+	v_cvt_i32_f32_e32 v59, v59
+	v_cvt_i32_f32_e32 v65, v65
+	v_cvt_i32_f32_e32 v52, v52
+	v_cvt_i32_f32_e32 v71, v71
+	v_cvt_i32_f32_e32 v72, v72
+	v_cvt_i32_f32_e32 v73, v73
+	v_cvt_i32_f32_e32 v60, v60
+	v_cvt_i32_f32_e32 v70, v70
+	v_and_b32_e32 v37, 15, v59
+	v_and_b32_e32 v43, 15, v65
+	v_and_b32_e32 v59, 15, v64
+	v_and_b32_e32 v63, 15, v84
+	v_and_b32_e32 v64, 15, v85
+	v_and_b32_e32 v65, 15, v86
+	v_and_b32_e32 v66, 15, v87
+	v_and_b32_e32 v21, 15, v52
+	v_and_b32_e32 v52, 15, v71
+	v_and_b32_e32 v53, 15, v72
+	v_and_b32_e32 v54, 15, v73
+	v_and_b32_e32 v71, 15, v92
+	v_and_b32_e32 v72, 15, v93
+	v_and_b32_e32 v73, 15, v94
+	v_and_b32_e32 v74, 15, v95
+	v_and_b32_e32 v38, 15, v60
+	v_and_b32_e32 v51, 15, v70
+	v_and_b32_e32 v67, 15, v88
+	v_and_b32_e32 v68, 15, v89
+	v_and_b32_e32 v69, 15, v90
+	v_and_b32_e32 v70, 15, v91
+	v_and_b32_e32 v44, 15, v77
+	v_and_b32_e32 v60, 15, v81
+	v_and_b32_e32 v61, 15, v82
+	v_and_b32_e32 v62, 15, v83
+	v_and_b32_e32 v75, 15, v96
+	v_and_b32_e32 v76, 15, v97
+	v_and_b32_e32 v77, 15, v98
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[63:66]
+	ds_store_b128 v29, v[71:74] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[55:58], v0
+	ds_load_b128 v[63:66], v0 offset:1024
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[13:16]
+	ds_store_b128 v29, v[21:24] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[13:16], v0
+	ds_load_b128 v[21:24], v0 offset:1024
 	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v39, v10, 4, v6
-	.loc	1 1044 18                       ; ragged.py:1044:18
-	v_add_co_ci_u32_e64 v6, null, s23, 0, s0
+	v_lshl_or_b32 v17, v25, 4, v17
+	v_lshl_or_b32 v25, v47, 4, v39
+	.loc	1 1247 50                       ; ragged.py:1247:50
+	v_lshlrev_b32_e32 v47, 3, v145
+	.loc	1 1245 22                       ; ragged.py:1245:22
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[35:38]
+	ds_store_b128 v29, v[43:46] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[34:37], v0
+	ds_load_b128 v[43:46], v0 offset:1024
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[51:54]
+	ds_store_b128 v29, v[59:62] offset:512
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[51:54], v0
+	ds_load_b128 v[59:62], v0 offset:1024
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_store_b128 v29, v[67:70]
+	ds_store_b128 v29, v[75:78] offset:512
 	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v40, v11, 4, v7
+	v_lshl_or_b32 v29, v9, 4, v3
 	.loc	1 1249 13                       ; ragged.py:1249:13
-	v_add_nc_u32_e32 v11, v41, v4
-	v_lshl_or_b32 v4, s28, 7, v42
-	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e32 vcc_lo, s[24:25], v[5:6]
-	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s0, s[26:27], v[5:6]
-	.loc	1 1248 9 is_stmt 1              ; ragged.py:1248:9
-	v_or_b16 v5.h, v0.h, v0.l
-	v_or_b16 v5.l, v2.l, v1.l
-	.loc	1 1246 19                       ; ragged.py:1246:19
-	v_lshl_or_b32 v12, v12, 4, v8
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_lshlrev_b16 v0.l, 8, v34.l
-	v_and_b16 v0.h, 0xff, v27.l
-	v_lshlrev_b16 v1.l, 8, v26.l
+	v_add_nc_u32_e32 v3, v33, v32
+	.loc	1 1249 38 is_stmt 0             ; ragged.py:1249:38
+	s_lshr_b32 s5, s20, 31
+	.loc	1 1245 22 is_stmt 1             ; ragged.py:1245:22
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[67:70], v0
+	ds_load_b128 v[71:74], v0 offset:1024
 	.loc	1 1249 13                       ; ragged.py:1249:13
-	v_mad_u64_u32 v[7:8], null, v11, s6, v[4:5]
+	v_lshl_or_b32 v0, s28, 7, v47
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v11, v11, 4, v5
+	.loc	1 1249 38                       ; ragged.py:1249:38
+	s_add_i32 s5, s20, s5
+	.loc	1 1249 13 is_stmt 0             ; ragged.py:1249:13
+	v_add_nc_u32_e32 v5, 16, v3
+	.loc	1 1246 19 is_stmt 1             ; ragged.py:1246:19
+	v_lshl_or_b32 v12, v12, 4, v6
+	.loc	1 1249 13                       ; ragged.py:1249:13
+	v_add_nc_u32_e32 v6, 32, v3
+	v_add_nc_u32_e32 v9, 48, v3
+	.loc	1 1249 38 is_stmt 0             ; ragged.py:1249:38
+	s_ashr_i32 s5, s5, 1
+	.loc	1 1246 19 is_stmt 1             ; ragged.py:1246:19
+	v_lshl_or_b32 v38, v10, 4, v4
+	.loc	1 1249 13                       ; ragged.py:1249:13
+	v_mad_u64_u32 v[3:4], null, v3, s5, v[0:1]
+	v_mad_u64_u32 v[4:5], null, v5, s5, v[0:1]
+	v_mad_u64_u32 v[5:6], null, v6, s5, v[0:1]
+	v_mad_u64_u32 v[9:10], null, v9, s5, v[0:1]
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_and_b16 v2.l, 0xff, v25.l
-	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 vcc_lo, vcc_lo, s0
+	v_lshlrev_b16 v0.l, 8, v12.l
+	v_and_b16 v0.h, 0xff, v11.l
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v15, v23, 4, v15
+	v_lshl_or_b32 v16, v24, 4, v16
+	v_lshl_or_b32 v13, v21, 4, v13
+	v_lshl_or_b32 v14, v22, 4, v14
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v6.h, v0.h, v0.l
-	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_or_b32_e32 v9, 32, v41
-	s_delay_alu instid0(VALU_DEP_3)
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v6.l, v2.l, v1.l
-	v_cndmask_b32_e32 v0, 0x80000000, v7, vcc_lo
-	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_or_b32_e32 v7, 48, v41
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_lshlrev_b16 v1.l, 8, v36.l
-	v_and_b16 v2.l, 0xff, v35.l
-	buffer_store_b64 v[5:6], v0, s[12:15], 0 offen
-	.loc	1 1044 32                       ; ragged.py:1044:32
-	v_or_b32_e32 v0, 16, v41
-	.loc	1 1044 18 is_stmt 0             ; ragged.py:1044:18
-	v_add_co_u32 v7, s0, s22, v7
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_add_co_ci_u32_e64 v8, null, s23, 0, s0
-	v_add_co_u32 v5, s4, s22, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-	v_add_co_ci_u32_e64 v6, null, s23, 0, s4
-	v_add_co_u32 v9, s0, s22, v9
-	v_add_co_ci_u32_e64 v10, null, s23, 0, s0
-	s_delay_alu instid0(VALU_DEP_3)
-	.loc	1 1046 21 is_stmt 1             ; ragged.py:1046:21
-	v_cmp_le_i64_e64 s4, s[24:25], v[5:6]
-	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s5, s[26:27], v[5:6]
-	.loc	1 1249 13 is_stmt 1             ; ragged.py:1249:13
-	v_add_nc_u32_e32 v5, 16, v11
-	.loc	1 1248 9                        ; ragged.py:1248:9
+	v_or_b16 v10.h, v0.h, v0.l
 	v_lshlrev_b16 v0.l, 8, v38.l
-	v_and_b16 v0.h, 0xff, v37.l
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e32 vcc_lo, s[24:25], v[7:8]
-	.loc	1 1046 48 is_stmt 0             ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s0, s[26:27], v[7:8]
-	.loc	1 1046 21                       ; ragged.py:1046:21
-	v_cmp_le_i64_e64 s1, s[24:25], v[9:10]
-	.loc	1 1046 48                       ; ragged.py:1046:48
-	v_cmp_gt_i64_e64 s3, s[26:27], v[9:10]
-	.loc	1 1249 13 is_stmt 1             ; ragged.py:1249:13
-	v_mad_u64_u32 v[8:9], null, v5, s6, v[4:5]
-	v_add_nc_u32_e32 v7, 32, v11
+	v_and_b16 v0.h, 0xff, v29.l
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v19, v27, 4, v19
+	v_lshl_or_b32 v20, v28, 4, v20
+	v_lshl_or_b32 v18, v26, 4, v18
+	v_lshl_or_b32 v23, v45, 4, v36
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v6.h, v0.h, v0.l
-	v_or_b16 v6.l, v2.l, v1.l
-	.loc	1 1249 13                       ; ragged.py:1249:13
-	v_add_nc_u32_e32 v11, 48, v11
+	v_or_b16 v10.l, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v16.l
+	v_and_b16 v0.h, 0xff, v15.l
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v24, v46, 4, v37
+	v_lshl_or_b32 v21, v43, 4, v34
+	v_lshl_or_b32 v22, v44, 4, v35
+	v_lshl_or_b32 v27, v49, 4, v41
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_lshlrev_b16 v0.l, 8, v24.l
-	v_and_b16 v0.h, 0xff, v23.l
-	v_lshlrev_b16 v1.l, 8, v22.l
-	v_and_b16 v2.l, 0xff, v21.l
-	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 s4, s4, s5
-	.loc	1 1249 13                       ; ragged.py:1249:13
-	v_mad_u64_u32 v[9:10], null, v7, s6, v[4:5]
-	v_mad_u64_u32 v[10:11], null, v11, s6, v[4:5]
+	v_or_b16 v11.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v14.l
+	v_and_b16 v0.h, 0xff, v13.l
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v28, v50, 4, v42
+	v_lshl_or_b32 v26, v48, 4, v40
+	v_lshl_or_b32 v36, v61, 4, v53
+	v_lshl_or_b32 v37, v62, 4, v54
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v7.h, v0.h, v0.l
-	v_or_b16 v7.l, v2.l, v1.l
-	v_cndmask_b32_e64 v8, 0x80000000, v8, s4
-	v_lshlrev_b16 v4.l, 8, v16.l
-	v_and_b16 v4.h, 0xff, v15.l
-	v_lshlrev_b16 v0.l, 8, v32.l
-	v_and_b16 v0.h, 0xff, v31.l
-	v_lshlrev_b16 v1.l, 8, v30.l
-	v_and_b16 v2.l, 0xff, v29.l
-	v_lshlrev_b16 v5.l, 8, v14.l
-	v_and_b16 v5.h, 0xff, v13.l
-	buffer_store_b64 v[6:7], v8, s[12:15], 0 offen
-	v_or_b16 v7.h, v4.h, v4.l
-	v_lshlrev_b16 v4.l, 8, v12.l
-	v_and_b16 v4.h, 0xff, v40.l
-	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 s1, s1, s3
+	v_or_b16 v11.l, v0.h, v0.l
+	v_cndmask_b32_e64 v0, 0x80000000, v3, s4
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v34, v59, 4, v51
+	v_lshl_or_b32 v35, v60, 4, v52
+	v_lshl_or_b32 v41, v65, 4, v57
+	v_lshl_or_b32 v42, v66, 4, v58
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v6.h, v0.h, v0.l
-	v_or_b16 v6.l, v2.l, v1.l
-	v_or_b16 v7.l, v5.h, v5.l
+	buffer_store_b64 v[10:11], v0, s[8:11], 0 offen
 	v_lshlrev_b16 v0.l, 8, v20.l
 	v_and_b16 v0.h, 0xff, v19.l
-	v_lshlrev_b16 v1.l, 8, v18.l
-	v_and_b16 v2.l, 0xff, v17.l
-	v_lshlrev_b16 v5.l, 8, v39.l
-	v_and_b16 v5.h, 0xff, v33.l
-	v_cndmask_b32_e64 v11, 0x80000000, v9, s1
-	v_or_b16 v9.h, v4.h, v4.l
-	.loc	1 1253 9                        ; ragged.py:1253:9
-	v_lshrrev_b32_e32 v4, 2, v79
-	.loc	1 1046 20                       ; ragged.py:1046:20
-	s_and_b32 vcc_lo, vcc_lo, s0
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v39, v63, 4, v55
+	v_lshl_or_b32 v40, v64, 4, v56
+	s_waitcnt lgkmcnt(0)
+	v_lshl_or_b32 v45, v73, 4, v69
+	v_lshl_or_b32 v46, v74, 4, v70
 	.loc	1 1248 9                        ; ragged.py:1248:9
-	v_or_b16 v8.h, v0.h, v0.l
-	v_or_b16 v8.l, v2.l, v1.l
-	v_or_b16 v9.l, v5.h, v5.l
-	v_dual_cndmask_b32 v0, 0x80000000, v10 :: v_dual_and_b32 v5, 2, v41
+	v_or_b16 v10.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v18.l
+	v_and_b16 v0.h, 0xff, v17.l
+	.loc	1 1246 19                       ; ragged.py:1246:19
+	v_lshl_or_b32 v43, v71, 4, v67
+	v_lshl_or_b32 v44, v72, 4, v68
 	.loc	1 1253 9                        ; ragged.py:1253:9
-	v_add_nc_u32_e32 v4, 0, v4
+	v_mov_b16_e32 v1.l, v7.h
+	s_and_b32 vcc_lo, vcc_lo, s2
+	.loc	1 1248 9                        ; ragged.py:1248:9
+	v_or_b16 v10.l, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v24.l
+	v_and_b16 v0.h, 0xff, v23.l
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_or_b16 v11.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v22.l
+	v_and_b16 v0.h, 0xff, v21.l
+	v_or_b16 v11.l, v0.h, v0.l
+	v_cndmask_b32_e64 v0, 0x80000000, v4, s3
+	buffer_store_b64 v[10:11], v0, s[8:11], 0 offen
+	v_lshlrev_b16 v0.l, 8, v28.l
+	v_and_b16 v0.h, 0xff, v27.l
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_or_b16 v3.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v26.l
+	v_and_b16 v0.h, 0xff, v25.l
+	v_or_b16 v3.l, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v37.l
+	v_and_b16 v0.h, 0xff, v36.l
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_or_b16 v4.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v35.l
+	v_and_b16 v0.h, 0xff, v34.l
+	v_or_b16 v4.l, v0.h, v0.l
+	v_cndmask_b32_e64 v0, 0x80000000, v5, s1
+	buffer_store_b64 v[3:4], v0, s[8:11], 0 offen
+	v_lshlrev_b16 v0.l, 8, v42.l
+	v_and_b16 v0.h, 0xff, v41.l
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_or_b16 v3.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v40.l
+	v_and_b16 v0.h, 0xff, v39.l
+	v_or_b16 v3.l, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v46.l
+	v_and_b16 v0.h, 0xff, v45.l
+	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_1)
+	v_or_b16 v4.h, v0.h, v0.l
+	v_lshlrev_b16 v0.l, 8, v44.l
+	v_and_b16 v0.h, 0xff, v43.l
+	v_or_b16 v4.l, v0.h, v0.l
+	v_cndmask_b32_e64 v0, 0x80000000, v9, s0
 	.loc	1 1249 38                       ; ragged.py:1249:38
 	s_ashr_i32 s0, s20, 31
-	.loc	1 1248 9                        ; ragged.py:1248:9
-	s_clause 0x1
-	buffer_store_b64 v[6:7], v11, s[12:15], 0 offen
-	buffer_store_b64 v[8:9], v0, s[12:15], 0 offen
-	.loc	1 1253 9                        ; ragged.py:1253:9
-	v_add_nc_u32_e32 v0, 0, v42
-	v_mov_b16_e32 v2.l, v65.h
-	v_mov_b16_e32 v1.l, v28.h
-	v_add3_u32 v4, v4, v5, v42
+	s_delay_alu instid0(SALU_CYCLE_1)
 	.loc	1 1254 35                       ; ragged.py:1254:35
 	s_lshr_b32 s0, s0, 24
+	.loc	1 1248 9                        ; ragged.py:1248:9
+	buffer_store_b64 v[3:4], v0, s[8:11], 0 offen
 	.loc	1 1253 9                        ; ragged.py:1253:9
+	v_add_nc_u32_e32 v3, 0, v47
 	s_waitcnt lgkmcnt(0)
+	s_barrier
 	.loc	1 1254 35                       ; ragged.py:1254:35
 	s_add_i32 s0, s20, s0
 	.loc	1 1253 9                        ; ragged.py:1253:9
-	s_barrier
+	s_and_b32 s9, s15, 0xffff
+	ds_store_b64 v3, v[1:2]
+	v_lshrrev_b32_e32 v1, 2, v30
+	v_and_b32_e32 v2, 2, v33
 	.loc	1 1254 35                       ; ragged.py:1254:35
 	s_ashr_i32 s0, s0, 8
 	.loc	1 1253 9                        ; ragged.py:1253:9
-	ds_store_b64 v0, v[1:2]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_u16 v0, v4
+	v_add_nc_u32_e32 v1, 0, v1
 	.loc	1 1254 13                       ; ragged.py:1254:13
-	v_mul_lo_u32 v1, v3, s0
+	v_mul_lo_u32 v0, v31, s0
 	.loc	1 1253 9                        ; ragged.py:1253:9
-	v_and_b32_e32 v2, 0xc0, v165
-	s_and_b32 s13, s11, 0xffff
-	s_mov_b32 s12, s10
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_cmp_eq_u32_e32 vcc_lo, 0, v2
-	v_add_lshl_u32 v1, v1, s28, 1
-	s_and_b32 vcc_lo, vcc_lo, s2
-	s_delay_alu instid0(VALU_DEP_1)
-	v_cndmask_b32_e32 v1, 0x80000000, v1, vcc_lo
+	s_mov_b32 s8, s14
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_add3_u32 v1, v1, v2, v47
+	v_add_lshl_u32 v0, v0, s28, 1
+	ds_load_u16 v1, v1
+	v_cndmask_b32_e32 v0, 0x80000000, v0, vcc_lo
 	s_waitcnt lgkmcnt(0)
-	buffer_store_b16 v0, v1, s[12:15], 0 offen
+	buffer_store_b16 v1, v0, s[8:11], 0 offen
 	.loc	1 1001 5                        ; ragged.py:1001:5
+	s_nop 0
+	s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)
 	s_endpgm
-.Ltmp54:
+.Ltmp50:
 	.section	.rodata,"a",@progbits
 	.p2align	6, 0x0
 	.amdhsa_kernel amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3
 		.amdhsa_group_segment_fixed_size 0
-		.amdhsa_private_segment_fixed_size 772
+		.amdhsa_private_segment_fixed_size 0
 		.amdhsa_kernarg_size 120
 		.amdhsa_user_sgpr_count 2
 		.amdhsa_user_sgpr_dispatch_ptr 0
@@ -6611,13 +5722,13 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 		.amdhsa_user_sgpr_private_segment_size 0
 		.amdhsa_wavefront_size32 1
 		.amdhsa_uses_dynamic_stack 0
-		.amdhsa_enable_private_segment 1
+		.amdhsa_enable_private_segment 0
 		.amdhsa_system_sgpr_workgroup_id_x 1
 		.amdhsa_system_sgpr_workgroup_id_y 0
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 256
+		.amdhsa_next_free_vgpr 204
 		.amdhsa_next_free_sgpr 30
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
@@ -6645,33 +5756,33 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	.size	amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3, .Lfunc_end0-amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3
 	.cfi_endproc
                                         ; -- End function
-	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.num_vgpr, 256
+	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.num_vgpr, 204
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.num_agpr, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.numbered_sgpr, 30
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.num_named_barrier, 0
-	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.private_seg_size, 772
+	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.private_seg_size, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.uses_vcc, 1
-	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.uses_flat_scratch, 1
+	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.uses_flat_scratch, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.has_dyn_sized_stack, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.has_recursion, 0
 	.set amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 34400
+; codeLenInByte = 29712
 ; TotalNumSgprs: 32
-; NumVgprs: 256
-; ScratchSize: 772
+; NumVgprs: 204
+; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
 ; IeeeMode: 1
 ; LDSByteSize: 0 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
-; VGPRBlocks: 31
+; VGPRBlocks: 25
 ; NumSGPRsForWavesPerEU: 32
-; NumVGPRsForWavesPerEU: 256
-; Occupancy: 5
+; NumVGPRsForWavesPerEU: 204
+; Occupancy: 7
 ; WaveLimiterHint : 0
-; COMPUTE_PGM_RSRC2:SCRATCH_EN: 1
+; COMPUTE_PGM_RSRC2:SCRATCH_EN: 0
 ; COMPUTE_PGM_RSRC2:USER_SGPR: 2
 ; COMPUTE_PGM_RSRC2:TRAP_HANDLER: 0
 ; COMPUTE_PGM_RSRC2:TGID_X_EN: 1
@@ -6829,13 +5940,7 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	.quad	.Ltmp7-.Lfunc_begin0
 	.quad	.Ltmp8-.Lfunc_begin0
 	.quad	.Ltmp9-.Lfunc_begin0
-	.quad	.Ltmp10-.Lfunc_begin0
-	.quad	.Ltmp11-.Lfunc_begin0
-	.quad	.Ltmp12-.Lfunc_begin0
-	.quad	.Ltmp13-.Lfunc_begin0
-	.quad	.Ltmp14-.Lfunc_begin0
-	.quad	.Ltmp15-.Lfunc_begin0
-	.quad	.Ltmp53-.Lfunc_begin0
+	.quad	.Ltmp49-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges1:
@@ -6883,10 +5988,6 @@ amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn2
 	.quad	.Ltmp46-.Lfunc_begin0
 	.quad	.Ltmp47-.Lfunc_begin0
 	.quad	.Ltmp48-.Lfunc_begin0
-	.quad	.Ltmp49-.Lfunc_begin0
-	.quad	.Ltmp50-.Lfunc_begin0
-	.quad	.Ltmp51-.Lfunc_begin0
-	.quad	.Ltmp52-.Lfunc_begin0
 	.quad	0
 	.quad	0
 	.section	.debug_str,"MS",@progbits,1
@@ -6971,14 +6072,14 @@ amdhsa.kernels:
     .kernarg_segment_size: 120
     .max_flat_workgroup_size: 256
     .name:           amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3
-    .private_segment_fixed_size: 772
+    .private_segment_fixed_size: 0
     .sgpr_count:     32
     .sgpr_spill_count: 0
     .symbol:         amd_strix_halo_gfx1151_ragged_int4_fwd_tt_pc_evenk_int4_swiglu_outsc256_bm64_bn256_bk64_gst1_w8_s3.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     256
-    .vgpr_spill_count: 280
+    .vgpr_count:     204
+    .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1
 amdhsa.target:   amdgcn-amd-amdhsa--gfx1151

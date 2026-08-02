@@ -1,6 +1,6 @@
 #blocked = #ttg.blocked<{sizePerThread = [1, 8], threadsPerWarp = [2, 16], warpsPerCTA = [16, 1], order = [1, 0]}>
 #blocked1 = #ttg.blocked<{sizePerThread = [1, 8], threadsPerWarp = [4, 8], warpsPerCTA = [16, 1], order = [1, 0]}>
-#blocked2 = #ttg.blocked<{sizePerThread = [8, 1], threadsPerWarp = [8, 4], warpsPerCTA = [1, 16], order = [0, 1]}>
+#blocked2 = #ttg.blocked<{sizePerThread = [16, 1], threadsPerWarp = [4, 8], warpsPerCTA = [1, 16], order = [0, 1]}>
 #blocked3 = #ttg.blocked<{sizePerThread = [1], threadsPerWarp = [32], warpsPerCTA = [16], order = [0]}>
 #blocked4 = #ttg.blocked<{sizePerThread = [1, 8, 2], threadsPerWarp = [2, 16, 1], warpsPerCTA = [16, 1, 1], order = [2, 1, 0]}>
 #linear = #ttg.linear<{register = [[0, 1, 0], [0, 2, 0], [0, 4, 0], [0, 64, 0], [32, 0, 0]], lane = [[1, 0, 0], [2, 0, 0], [4, 0, 0], [8, 0, 0], [0, 0, 1]], warp = [[0, 8, 0], [0, 16, 0], [0, 32, 0], [16, 0, 0]], block = []}>
@@ -99,7 +99,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 16 : i32, ttg.tar
     %pb_41 = tt.splat %pb_39 : i32 -> tensor<64x256xi32, #blocked2> loc(#loc98)
     %pb_42 = arith.addi %pb_41, %pb_40 : tensor<64x256xi32, #blocked2> loc(#loc98)
     %acc_i32_43 = tt.splat %acc_i32 : i1 -> tensor<64x256xi1, #blocked2> loc(#loc101)
-    %pb_44 = amdg.buffer_load %b[%pb_42], %acc_i32_43 {contiguity = 8 : i32} : tensor<64x256xi8, #blocked2> loc(#loc100)
+    %pb_44 = amdg.buffer_load %b[%pb_42], %acc_i32_43 {contiguity = 16 : i32} : tensor<64x256xi8, #blocked2> loc(#loc100)
     %pa_45 = ttg.memdesc_index %pa_19[%c0_i32] : !ttg.memdesc<1x64x64xi8, #shared, #smem, mutable> -> !ttg.memdesc<64x64xi8, #shared, #smem, mutable> loc(#loc99)
     ttg.local_store %pa_32, %pa_45 : tensor<64x64xi8, #blocked1> -> !ttg.memdesc<64x64xi8, #shared, #smem, mutable> loc(#loc99)
     %pb_46 = ttg.memdesc_index %pb_20[%c0_i32] : !ttg.memdesc<1x64x256xi8, #shared1, #smem, mutable> -> !ttg.memdesc<64x256xi8, #shared1, #smem, mutable> loc(#loc100)
@@ -117,7 +117,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 16 : i32, ttg.tar
       %pb_94 = arith.addi %pb, %kp_88 : i32 loc(#loc98)
       %pb_95 = tt.splat %pb_94 : i32 -> tensor<64x256xi32, #blocked2> loc(#loc98)
       %pb_96 = arith.addi %pb_95, %pb_40 : tensor<64x256xi32, #blocked2> loc(#loc98)
-      %pb_97 = amdg.buffer_load %b[%pb_96] {contiguity = 8 : i32} : tensor<64x256xi8, #blocked2> loc(#loc100)
+      %pb_97 = amdg.buffer_load %b[%pb_96] {contiguity = 16 : i32} : tensor<64x256xi8, #blocked2> loc(#loc100)
       %pb_98 = ttg.local_load %pb_86 : !ttg.memdesc<64x256xi8, #shared1, #smem, mutable> -> tensor<64x256xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> loc(#loc100)
       %acc_i32_99 = tt.dot_scaled %pa_93, %pb_98, %arg10 lhs = int4 rhs = int4 {fastMath = false} : tensor<64x64xi8, #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 8}>> * tensor<64x256xi8, #ttg.dot_op<{opIdx = 1, parent = #mma, kWidth = 8}>> -> tensor<64x256xi32, #mma> loc(#loc104)
       %acc_i32_100 = arith.addi %acc_i32_84, %c1_i32 : i32 loc(#loc101)
@@ -214,9 +214,9 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 16 : i32, ttg.tar
 #loc7 = loc("<repo>/scripts/generate_amdgcn.py":178:19)
 #loc8 = loc("<repo>/scripts/generate_amdgcn.py":112:11)
 #loc9 = loc("<repo>/scripts/generate_amdgcn.py":113:13)
-#loc10 = loc("<triton>/python/triton/language/standard.py":43:13)
+#loc10 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:13)
 #loc11 = loc("<repo>/scripts/generate_amdgcn.py":114:17)
-#loc12 = loc("<triton>/python/triton/language/standard.py":43:12)
+#loc12 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":43:12)
 #loc13 = loc("<repo>/scripts/generate_amdgcn.py":117:16)
 #loc14 = loc("<repo>/scripts/generate_amdgcn.py":119:31)
 #loc15 = loc("<repo>/scripts/generate_amdgcn.py":119:20)
@@ -249,8 +249,8 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 16 : i32, ttg.tar
 #loc42 = loc("<repo>/scripts/generate_amdgcn.py":171:9)
 #loc43 = loc("<repo>/scripts/generate_amdgcn.py":179:19)
 #loc44 = loc("<repo>/scripts/generate_amdgcn.py":75:23)
-#loc45 = loc("<triton>/python/triton/language/standard.py":191:16)
-#loc47 = loc("<triton>/python/triton/language/standard.py":170:12)
+#loc45 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":191:16)
+#loc47 = loc("<repo>/.venv/lib/python3.12/site-packages/triton/language/standard.py":170:12)
 #loc48 = loc("<repo>/scripts/generate_amdgcn.py":76:13)
 #loc49 = loc("<repo>/scripts/generate_amdgcn.py":78:35)
 #loc50 = loc("<repo>/scripts/generate_amdgcn.py":78:29)

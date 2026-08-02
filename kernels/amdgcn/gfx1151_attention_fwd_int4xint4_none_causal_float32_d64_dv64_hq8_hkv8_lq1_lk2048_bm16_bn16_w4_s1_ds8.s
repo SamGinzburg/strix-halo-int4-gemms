@@ -512,7 +512,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xint4_none_causal_float32_d64_dv64_hq8_
 	.loc	1 978 32                        ; attention.py:978:32
 	v_lshrrev_b32_e32 v87, 24, v88
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:968:29 ] ]
 	v_max_f32_e32 v69, v73, v71
 	v_max3_f32 v80, v77, v76, v74

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +24,7 @@ from triton.language.extra import libdevice
 
 from amd_strix_halo_kernels.artifacts import (
     display_path,
+    installed_triton_commit,
     scrub_local_debug_paths,
     uniquify_amdgcn_symbols,
     write_triton_text_artifacts,
@@ -598,19 +598,7 @@ def compile_kernel_with_metadata(kernel: KernelMetadata, shape: LaunchShape) -> 
 
 
 def triton_commit() -> str | None:
-    checkout = triton_checkout_root()
-    if checkout is None:
-        return None
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(checkout), "rev-parse", "HEAD"],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except Exception:
-        return None
-    return result.stdout.strip()
+    return installed_triton_commit()
 
 
 def main() -> int:

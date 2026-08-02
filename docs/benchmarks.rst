@@ -15,6 +15,10 @@ outputs. TOPS is computed as:
 For fused SwiGLU, the count doubles because the kernel computes both up and
 gate projections.
 
+Every checked-in benchmark payload records ``triton_git_revision``. The
+current dense, ragged, attention, projection, and KDA files all identify
+``28d04c3f9f23db9a7f9c80906d00667b53e7a7d7``.
+
 Autotuning APIs
 ---------------
 
@@ -91,26 +95,24 @@ public tuner and adds multi-case sweeps plus PyTorch SDPA baseline reporting.
 Backend selection follows ``use_precompiled``: ``None`` uses packaged D64
 coverage (preferring an exact measured workload profile) and JIT fallback,
 ``True`` restricts successful candidates to installed artifacts, and ``False``
-forces JIT. On the packaged BF16 512-prefill profile, ``BM64_BN64_W4_S1``
-measured 0.036228 ms / 14.819 effective TOPS versus 0.039234 ms / 13.684 TOPS
-for matched JIT, a 7.7% native latency reduction. FP32 validation maximum
-absolute error was ``6.07e-5`` at ``rtol=atol=1e-3``; timed BF16 maximum
-absolute error was ``2.45e-4``.
+forces JIT. On the current packaged BF16 512-prefill profile,
+``BM64_BN64_W4_S1`` measured 0.033903 ms / 15.835 effective TOPS. FP32
+validation maximum absolute error was ``6.06e-5`` at ``rtol=atol=1e-3``;
+timed BF16 maximum absolute error was ``2.44e-4``.
 
 Peak 4096^3 Results
 -------------------
 
 The rows are averages of two matched current-wheel runs. The artifact matrix
 is now regenerated with Triton
-``0da3c5a751b2d03461e961b62dc3598f85884617``. Its unaligned gfx1151 byte-store
-vectorization specifically changes packed INT4 output epilogues: a
-representative masked ragged subchannel-256 SwiGLU output changed from 31
-``buffer_store_b8`` instructions to four ``buffer_store_b64`` instructions,
-while code size fell from 34,260 to 32,624 bytes and reported private scratch
-from 560 to 448 bytes. BF16/FP32 output kernels are outside that compiler
-change. The refreshed subchannel-256 SwiGLU snapshot is 13.4% lower than the
-older table, but that non-packed-output kernel is byte-identical, so the
-difference cannot be attributed to this compiler update.
+``28d04c3f9f23db9a7f9c80906d00667b53e7a7d7``. This revision adds gfx1151
+vectorization for unaligned INT8 buffer loads. Across all 302 ragged artifacts,
+scalar ``buffer_load_ubyte`` instructions fell from 12,212 to 7,060, while
+``buffer_load_b128`` rose from 54 to 374, ``buffer_load_b64`` from 8 to 84,
+and ``buffer_load_b32`` from 5 to 25. Dense codegen moved only slightly;
+attention and KDA aggregate load-width counts were unchanged. The measured
+performance changes follow that distribution: ragged packed-output improves,
+dense and KDA are flat, and attention varies by case.
 
 .. list-table::
    :header-rows: 1
@@ -173,7 +175,7 @@ Ragged Dot Results
 
 The ragged-dot rows below are shape-specialized Triton-JIT tuning records for
 the automatic generic-shape path, not separate native dispatch timings. The
-full Triton ``ec4a2c64`` sweep used 25 ms warmup and 100 ms repetition windows
+full Triton ``28d04c3f`` sweep used 25 ms warmup and 100 ms repetition windows
 and completed all 1,104 records with zero failures. Timings
 use 8 RHS groups, prepacked operands, BF16 scales, preallocated outputs, and
 exclude quantization/packing. The sweep covers 3 runtime shapes,
@@ -206,99 +208,99 @@ block, and block+1 runtime shapes.
    * - fwd
      - NN
      - per-channel
-     - ``BM64_BN256_BK64_GST2_W8_S3``
-     - 2.190327 ms
-     - 62.748
+     - ``BM64_BN256_BK128_GST1_W8_S3``
+     - 2.014642 ms
+     - 68.220
    * - fwd
      - NN
-     - subchannel-256
-     - ``BM64_BN256_BK128_GST1_W8_S3``
-     - 2.683613 ms
-     - 51.214
-   * - fwd
-     - NT
-     - per-channel
-     - ``BM64_BN256_BK128_GST1_W8_S3``
-     - 4.072952 ms
-     - 33.744
-   * - fwd
-     - NT
-     - subchannel-256
-     - ``BM64_BN128_BK64_GST2_W8_S3``
-     - 4.142994 ms
-     - 33.174
-   * - fwd
-     - TN
-     - per-channel
-     - ``BM64_BN256_BK64_GST2_W8_S3``
-     - 3.263838 ms
-     - 42.110
-   * - fwd
-     - TN
      - subchannel-256
      - ``BM32_BN128_BK64_GST1_W4_S3``
-     - 4.059512 ms
-     - 33.856
+     - 2.351775 ms
+     - 58.441
    * - fwd
-     - TT
+     - NT
      - per-channel
-     - ``BM64_BN128_BK64_GST1_W8_S3``
-     - 5.337606 ms
-     - 25.749
+     - ``BM64_BN256_BK128_GST1_W8_S3``
+     - 3.839608 ms
+     - 35.795
    * - fwd
-     - TT
+     - NT
      - subchannel-256
      - ``BM64_BN128_BK64_GST2_W8_S3``
-     - 4.697210 ms
-     - 29.260
+     - 3.980373 ms
+     - 34.529
+   * - fwd
+     - TN
+     - per-channel
+     - ``BM64_BN256_BK64_GST2_W8_S3``
+     - 2.352417 ms
+     - 58.425
+   * - fwd
+     - TN
+     - subchannel-256
+     - ``BM64_BN256_BK64_GST2_W8_S3``
+     - 2.780420 ms
+     - 49.431
+   * - fwd
+     - TT
+     - per-channel
+     - ``BM64_BN256_BK128_GST1_W8_S3``
+     - 4.604664 ms
+     - 29.848
+   * - fwd
+     - TT
+     - subchannel-256
+     - ``BM64_BN256_BK64_GST2_W8_S3``
+     - 4.433864 ms
+     - 30.998
    * - bwd
      - NN
      - per-channel
-     - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 2.402290 ms
-     - 57.212
+     - ``BM32_BN128_BK64_W4_S3_SK1``
+     - 2.346164 ms
+     - 58.580
    * - bwd
      - NN
      - subchannel-256
-     - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 2.704137 ms
-     - 50.825
+     - ``BM32_BN128_BK64_W4_S3_SK1``
+     - 2.560006 ms
+     - 53.687
    * - bwd
      - NT
      - per-channel
      - ``BM128_BN64_BK64_W8_S3_SK1``
-     - 2.252268 ms
-     - 61.022
+     - 2.247179 ms
+     - 61.161
    * - bwd
      - NT
      - subchannel-256
-     - ``BM128_BN64_BK64_W8_S3_SK1``
-     - 2.432567 ms
-     - 56.500
+     - ``BM64_BN64_BK64_W4_S3_SK1``
+     - 2.447033 ms
+     - 56.166
    * - bwd
      - TN
      - per-channel
-     - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 3.072168 ms
-     - 44.737
+     - ``BM32_BN128_BK64_W4_S3_SK1``
+     - 2.938316 ms
+     - 46.775
    * - bwd
      - TN
      - subchannel-256
-     - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 3.456449 ms
-     - 39.763
+     - ``BM32_BN128_BK64_W4_S3_SK1``
+     - 3.128874 ms
+     - 43.926
    * - bwd
      - TT
      - per-channel
      - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 2.725918 ms
-     - 50.419
+     - 2.737259 ms
+     - 50.210
    * - bwd
      - TT
      - subchannel-256
      - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 2.908761 ms
-     - 47.250
+     - 2.903531 ms
+     - 47.335
 
 Backward Output Precision and Scaling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -326,22 +328,22 @@ must not be used as a lower bound for the BF16 implementation.
      - 2.918216 ms
      - 47.096901
    * - Current BF16 complete sweep
-     - ``BM64_BN64_BK64_W4_S3_SK1``
-     - 2.402290 ms
-     - 57.211641
+     - ``BM32_BN128_BK64_W4_S3_SK1``
+     - 2.346164 ms
+     - 58.580
 
-The current NN/per-channel result is 21.5% above the immediately preceding
-BF16 row and 59.8% above the historical FP32 row. The TOPS numerator remains
+The current NN/per-channel result is 24.4% above the original preceding
+BF16 row and 63.6% above the historical FP32 row. The TOPS numerator remains
 ``2*M*N*K``, rather than scaling with ``G``, because the group K extents sum
 to the fixed total K.
 Consumers that maintain FP32 master gradients should pass
 ``output_dtype=torch.float32`` or supply an FP32 ``out``; ``split_k>1`` always
 requires FP32 for atomic accumulation.
 
-Compared with the immediately preceding 912-record BF16 table, backward gains
-are 21.5%/30.5% (NN per-channel/subchannel-256), 22.8%/17.5% (NT),
-20.5%/28.7% (TN), and 26.3%/34.0% (TT). These JIT comparisons include newly
-selected measured configs.
+Across all 1,104 matched old/new JIT records, median latency improved 2.91%:
+39.75% for forward and 0.95% for backward. The selected backward winners are
+all within 0.5% of the preceding sweep, while the much larger forward-record
+median aligns with the new wide-load codegen.
 
 Exact 4096-Capacity Native Specialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -389,7 +391,7 @@ BF16/FP32 output and aligned fast-path rows from fully masked ragged-K rows.
 Fused Attention Results
 -----------------------
 
-``benchmarks/gfx1151_attention.json`` contains 156 Triton-JIT tuning records,
+``benchmarks/gfx1151_attention.json`` contains 156 automatic-dispatch tuning records,
 12 selected winners, three PyTorch baselines, and zero failures. The sweep used
 25 ms warmup and 100 ms repetition windows on gfx1151. Inputs were already
 packed, outputs were preallocated, and quantization/packing was excluded from
@@ -415,79 +417,83 @@ inclusive window ``(127,0)``. Effective TOPS is
    * - BF16, BF16
      - prefill
      - ``BM64_BN64_W4_S1_DS1``
-     - 0.037370 ms
-     - 14.366
-     - 1.51x
+     - 0.033903 ms
+     - 15.835
+     - 1.66x
    * - BF16, BF16
      - decode
-     - ``BM16_BN64_W4_S1_DS4``
-     - 0.047249 ms
-     - 0.0888
-     - 3.14x
+     - ``BM16_BN64_W8_S1_DS4``
+     - 0.047168 ms
+     - 0.0889
+     - 3.11x
    * - BF16, BF16
      - local
      - ``BM64_BN32_W4_S1_DS1``
-     - 0.026690 ms
-     - 4.405
-     - 3.40x
+     - 0.024847 ms
+     - 4.732
+     - 3.60x
    * - INT4, BF16
      - prefill
      - ``BM64_BN64_W4_S1_DS1``
-     - 0.029615 ms
-     - 18.128
-     - 1.91x
+     - 0.027612 ms
+     - 19.443
+     - 2.04x
    * - INT4, BF16
      - decode
-     - ``BM16_BN64_W8_S1_DS4``
-     - 0.037451 ms
-     - 0.1120
-     - 3.96x
+     - ``BM16_BN32_W4_S1_DS8``
+     - 0.038352 ms
+     - 0.1094
+     - 3.83x
    * - INT4, BF16
      - local
      - ``BM64_BN64_W4_S1_DS1``
-     - 0.020678 ms
-     - 5.686
-     - 4.39x
+     - 0.020037 ms
+     - 5.868
+     - 4.47x
    * - BF16, INT4
      - prefill
      - ``BM32_BN16_W4_S1_DS1``
-     - 0.057588 ms
-     - 9.323
-     - 0.98x
+     - 0.056266 ms
+     - 9.542
+     - 1.00x
    * - BF16, INT4
      - decode
      - ``BM16_BN16_W8_S1_DS8``
-     - 0.050434 ms
-     - 0.0832
+     - 0.049974 ms
+     - 0.0839
      - 2.94x
    * - BF16, INT4
      - local
      - ``BM32_BN16_W4_S1_DS1``
-     - 0.032301 ms
-     - 3.640
-     - 2.81x
+     - 0.031259 ms
+     - 3.761
+     - 2.87x
    * - INT4, INT4
      - prefill
      - ``BM64_BN16_W4_S1_DS1``
-     - 0.041758 ms
-     - 12.857
-     - 1.35x
+     - 0.041278 ms
+     - 13.006
+     - 1.37x
    * - INT4, INT4
      - decode
-     - ``BM16_BN16_W4_S1_DS8``
-     - 0.037470 ms
-     - 0.1119
-     - 3.96x
+     - ``BM16_BN16_W8_S1_DS8``
+     - 0.038853 ms
+     - 0.1080
+     - 3.78x
    * - INT4, INT4
      - local
-     - ``BM64_BN16_W4_S1_DS1``
-     - 0.023524 ms
-     - 4.998
-     - 3.86x
+     - ``BM32_BN16_W4_S1_DS1``
+     - 0.023845 ms
+     - 4.931
+     - 3.76x
 
-The matching PyTorch BF16 baselines were 0.056506/0.148278/0.090811 ms and
-9.5011/0.02829/1.2947 TOPS for prefill/decode/local. The BF16-QK/INT4-V
-prefill row remains just below 1x and is retained rather than hidden.
+The matching PyTorch BF16 baselines were 0.056426/0.146755/0.089569 ms and
+9.5146/0.02858/1.3126 TOPS for prefill/decode/local. The BF16-QK/INT4-V
+prefill row is effectively tied; its small margin should be treated as
+noise-scale rather than a categorical advantage. Across all 156 candidates,
+the new compiler reduced median latency by 1.73% against the preserved
+prior-pin sweep. Winner changes range from +10.23% for BF16 prefill to -3.56%
+for fully INT4 decode, so the per-case table is the authoritative summary.
 
 Mode-specific prefill tile selection reduced latency by about 38--42% for
 BF16-PV modes. The corrected packed-V path does not quantize online-softmax
@@ -660,7 +666,7 @@ Projection Training Results
 ``benchmarks/gfx1151_projection_training.json`` records exact
 INT4-by-INT4, subchannel-256, BF16-output projection kernels at the
 ``M=14336`` model microbatch. Timings are median
-``triton.testing.do_bench`` results with 25 ms warmup, 100 ms repetition,
+``triton.testing.do_bench`` results with 100 ms warmup, 400 ms repetition,
 prepacked operands, BF16 scales, and preallocated output.
 
 Every row uses packed signed INT4 for both operands and independent BF16
@@ -679,44 +685,44 @@ subchannel results accumulate in FP32, followed by one BF16 output rounding.
    * - combined fwd
      - NT / ``(14336,3072,1024)``
      - ``BM64_BN128_BK128_GM4``
-     - 1.395418 ms
-     - 64.636
+     - 1.395540 ms
+     - 64.630
      - --
    * - combined dX
      - NN / ``(14336,1024,3072)``
      - ``BM64_BN128_BK128_GM1``
-     - 1.387102 ms
-     - 65.024
+     - 1.384520 ms
+     - 65.145
      - --
    * - combined dW
      - TN / ``(3072,1024,14336)``
      - ``BM16_BN512_BK32_GM4``
-     - 2.184580 ms
-     - 41.287
-     - 2.383031 ms; latency -8.33%, TOPS +9.08%
+     - 2.177528 ms
+     - 41.421
+     - 2.383031 ms; latency -8.62%
    * - output fwd
      - NT / ``(14336,1024,1024)``
      - ``BM64_BN128_BK128_GM4``
-     - 0.488196 ms
-     - 61.583
+     - 0.486714 ms
+     - 61.771
      - --
    * - output dX
      - NN / ``(14336,1024,1024)``
      - ``BM64_BN128_BK128_GM1``
-     - 0.498215 ms
-     - 60.345
+     - 0.499317 ms
+     - 60.212
      - --
    * - output dW
      - TN / ``(1024,1024,14336)``
      - ``BM64_BN512_BK32_GM4``
-     - 0.767280 ms
-     - 39.184
-     - 0.916079 ms; latency -16.24%, TOPS +19.39%
+     - 0.767883 ms
+     - 39.153
+     - 0.916079 ms; latency -16.18%
    * - fallback packed QKV fwd
      - NT / ``(14336,2048,1024)``
      - ``BM64_BN128_BK128_GM1``
-     - 0.969299 ms
-     - 62.034
+     - 0.964892 ms
+     - 62.317
      - --
 
 Every selected winner was separately validated on gfx1151 using model-like
@@ -754,23 +760,23 @@ preallocated buffers.
      - Fused INT4 producer + down
      - Chain speedup
    * - dense SwiGLU
-     - 1.138743 ms
-     - 7.669192 ms
-     - 1.673244 ms
-     - 4.583x
+     - 1.139996 ms
+     - 7.671266 ms
+     - 1.709751 ms
+     - 4.487x
    * - ragged SwiGLU, 8 balanced groups
-     - 2.220436 ms
-     - 9.998160 ms
-     - 2.816951 ms
-     - 3.549x
+     - 1.871740 ms
+     - 9.722673 ms
+     - 2.447001 ms
+     - 3.973x
 
-These are averages of two current-wheel runs with 10 warmups and 50 timed
-iterations. Against two identically configured old-compiler runs, the ragged
-packed-output producer improved from 2.287215 to 2.220436 ms (2.9%), while the
-producer-plus-down chain improved from 2.967869 to 2.816951 ms (5.1%). The
-dense producer assembly was already vectorized; its small timing movement is
-measurement variation. Clocks were not pinned, so the same snapshot
-qualification as the README tables applies.
+The absolute table is one current-wheel run with 20 warmups and 100 timed
+iterations. Three matched old/new pairs isolate the compiler update: median
+ragged packed-output producer latency improved from 1.986689 to 1.716029 ms
+(13.62%), and producer-plus-down latency improved from 2.576571 to 2.318002 ms
+(10.04%). Dense chain latency was flat (1.658267 to 1.657391 ms). Clocks were
+not pinned, so the absolute snapshot and paired medians differ; the paired
+comparison is the compiler signal.
 
 Native dense and ragged tests compare against a representation-matched
 quantizer. Packed codes and BF16 scales are exact; dequantized results pass
@@ -783,96 +789,151 @@ These quality figures are not kernel-fidelity tolerances.
 Kimi Delta Attention Results
 ----------------------------
 
-``benchmarks/gfx1151_kda.json`` records the exact Kimi-Linear-sized
-``B=4,T=2048,H=32,D=Dv=128`` workload. Timings use 25 ms warmup and 100 ms
-repetition windows, prepacked inputs, preallocated timed outputs, and the
-Triton 3.7.0 Strix Halo fork at
-``0da3c5a751b2d03461e961b62dc3598f85884617``. PyTorch SDPA was run with
+``benchmarks/gfx1151_kda.json`` records packaged execution of the exact
+Kimi-Linear-sized ``B=4,T=2048,H=32,D=Dv=128`` workload. Matched packaged
+timings use 100 ms warmup and 400 ms repetition windows, prepacked inputs,
+preallocated timed outputs, and Triton 3.7.0 at
+``28d04c3f9f23db9a7f9c80906d00667b53e7a7d7``. PyTorch SDPA was run with
 ``TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1``; its output allocation is
 included. Package SDPA and KDA timings use preallocated outputs.
 
 .. list-table:: KDA B4/T2048/H32/D128 results
    :header-rows: 1
 
-   * - Storage / phase
-     - Config
-     - Runtime
+   * - Storage
+     - Packaged Gluon forward
      - Effective TOPS
-     - Comparison
-   * - BF16 forward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 8.798917 ms
-     - 3.4169
-     - 1.79x faster than PyTorch BF16 SDPA; 2.06x slower than package BF16 SDPA
-   * - INT4 Q/K + BF16 V forward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 8.770863 ms
-     - 3.4278
-     - 1.80x faster than PyTorch BF16 SDPA; 2.39x slower than package INT4-QK SDPA
-   * - BF16 Q/K + INT4 V forward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 8.919062 ms
-     - 3.3708
-     - 1.77x faster than PyTorch BF16 SDPA; 1.34x slower than package INT4-V SDPA
-   * - INT4 Q/K/V forward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 8.771866 ms
-     - 3.4274
-     - 1.80x faster than PyTorch BF16 SDPA; 1.51x slower than package INT4 SDPA
-   * - BF16 backward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 143.881088 ms
-     - --
-     - 2.10x slower than package BF16 SDPA backward
-   * - INT4 Q/K + BF16 V backward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 141.705826 ms
-     - --
-     - logical FP32 gradients
-   * - BF16 Q/K + INT4 V backward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 142.595901 ms
-     - --
-     - logical FP32 gradients
-   * - INT4 Q/K/V backward
-     - ``VB64_BVB16_CI4_W4_S2``
-     - 141.747955 ms
-     - --
-     - logical FP32 gradients
+     - Packaged Gluon backward
+   * - BF16
+     - 5.057695 ms
+     - 5.9444
+     - 70.988396 ms
+   * - INT4 Q/K + BF16 V
+     - 4.743104 ms
+     - 6.3386
+     - 70.326424 ms
+   * - BF16 Q/K + INT4 V
+     - 4.965041 ms
+     - 6.0553
+     - 73.436302 ms
+   * - INT4 Q/K/V
+     - 5.270335 ms
+     - 5.7045
+     - 74.157379 ms
+
+Against the preceding packaged sweep, forward changed by less than 0.9% in
+every mode and backward changed by less than 0.4% except INT4-V, which improved
+3.6%. This is consistent with unchanged KDA aggregate AMDGCN load-width counts.
+Gluon uses internal ``VB64_W2`` forward and
+``BVB64_W4`` backward mappings at this shape. The public configuration retains
+``CI4``; Triton's ``backward_value_block``, ``num_warps``, and ``num_stages``
+do not override Gluon's explicit layouts.
 
 The BF16 PyTorch, package-BF16, package-INT4-QK, package-INT4-V, and
-package-all-INT4 forward baselines were 15.787434, 4.267651, 3.673255,
-6.643951, and 5.800488 ms. Package BF16 SDPA backward was 67.928741 ms with
-forward excluded. The recurrent algorithm
-is linear in sequence length, but at 2K its per-head ``D*Dv`` state update is
-not yet faster than this repository's tuned quadratic SDPA. Ratios across
-different algorithms are latency comparisons, not equivalent-operation TOPS
-comparisons. KDA effective TOPS counts seven state-sized operations per token.
+package-all-INT4 forward baselines were 15.737305, 5.688960, 3.367322,
+6.583079, and 5.839563 ms. Package BF16 SDPA backward was 50.063908 ms with
+forward excluded. Packaged Gluon KDA is 2.99--3.32x faster than the
+allocation-including PyTorch baseline. INT4-QK KDA is 1.20x faster than
+package BF16 SDPA, 1.41x slower than package INT4-QK SDPA, and 1.39x/1.23x
+faster than package INT4-V/all-INT4 SDPA. The recurrent algorithm
+is linear in sequence length; ratios to quadratic attention are latency
+comparisons, not equivalent-operation TOPS comparisons. KDA effective TOPS
+counts seven state-sized operations per token.
+
+The runtime-profile forward sweep holds ``B=4,H=32,D=Dv=128`` fixed and uses
+the same 100/400 ms measurement windows, prepacked inputs, and preallocated
+outputs. Package SDPA is the custom Triton-JIT path because its native D64
+objects do not cover D128.
+
+.. list-table:: Fastest KDA versus fastest package SDPA by context
+   :header-rows: 1
+
+   * - T
+     - Fastest KDA
+     - Fastest package SDPA
+     - KDA / SDPA
+   * - 128
+     - 0.300684 ms
+     - 0.088887 ms
+     - 3.38x slower
+   * - 256
+     - 0.607901 ms
+     - 0.168516 ms
+     - 3.61x slower
+   * - 512
+     - 1.176328 ms
+     - 0.332224 ms
+     - 3.54x slower
+   * - 1024
+     - 2.361673 ms
+     - 0.929865 ms
+     - 2.54x slower
+   * - 2048
+     - 4.743104 ms
+     - 3.367322 ms
+     - 1.41x slower
+   * - 4096
+     - 9.842795 ms (Gluon JIT)
+     - 13.593515 ms
+     - 1.38x faster
+   * - 8192
+     - 20.165771 ms (Gluon JIT)
+     - 53.162548 ms
+     - 2.64x faster
+
+KDA overtakes the fastest quantized SDPA mode between 2K and 4K. BF16 KDA
+crosses package BF16 SDPA between 1K and 2K, and it crosses the
+allocation-including PyTorch BF16 baseline between T=128 and T=256, but those
+are different comparisons. All context-sweep records have zero failures and
+the reduced all-mode numerical gate observed at most ``1.43e-6`` absolute
+error under ``rtol=atol=1e-3``. The 4K/8K KDA rows are forward-only Gluon JIT
+because the packaged checkpoint-cache profile stops at 2K; the 8K value is a
+confirmation repeat. See
+``benchmarks/gfx1151_kda_context_sweep.json``. That historical 128--8192 sweep
+retains its recorded ``90b278e6`` provenance; only the packaged 2K row above
+was refreshed here. The 4K/8K rows are JIT-only and are not part of the
+prebuilt-HSACO comparison.
 
 Every mode first runs a reduced representation-matched numerical gate. The
 largest observed absolute differences were ``8.95e-8`` for output,
-``2.39e-7`` for final state, and ``1.32e-6`` over dQ/dK/dV/dLogDecay/dBeta,
+``2.39e-7`` for final state, and ``1.43e-6`` over
+dQ/dK/dV/dLogDecay/dBeta/dInitialState,
 all passing ``rtol=atol=1e-3``. Separate tests cover initial-state gradients,
 nonmultiple-of-16 tails, zero-norm Q/K, and CUDAGraph replay in all four
-BF16/INT4 QK-by-V combinations.
+BF16/INT4 QK-by-V combinations. On the full target shape, Gluon and Triton
+differ by at most ``2.45e-4`` forward and ``1.79e-7`` over all backward
+gradients.
 
-Compared with the preceding checked-in run, two-stage recurrent load
-pipelining and the 64-wide forward tile reduce forward latency by
-13.8--18.6% over the prior three-mode records. One-time normalized-Q/K
-preprocessing plus relaxed FP32 atomics reduce backward latency by
-13.7--15.1%. Checkpoint interval 4 remains the
-measured backward choice, at the cost of an FP32 state cache of about 4 GiB
-for this shape. The compact-WY chunk experiment is opt-in: its
-per-dimension exponential preparation measured slower on gfx1151 and is not
-used by default.
+Checkpoint interval 4 remains the measured backward choice. Its target FP32
+cache is 4.008 GiB, beyond one RDNA buffer descriptor's 32-bit byte-offset
+range. The Gluon wrapper partitions it over two descriptors while retaining
+one recurrent launch; a flat-pointer fallback covers a pathological single
+batch/head segment at or above 4 GiB. Target eager execution and reduced
+all-mode graph replay both pass the numerical gates.
 
-The dumped target recurrent AMDGCN uses per-lane ``buffer_load_u16`` for BF16
-Q/K/V and ``buffer_store_b16`` for BF16 output, with scalar ``b32`` state/gate
-traffic; it contains no ``b64`` or ``b128`` memory operation. Thus the current
-compiler's wider unaligned byte-store optimization benefits packed GEMM
-epilogues but does not widen this recurrent KDA mapping. The remaining KDA
-gap is dominated by repeated state arithmetic and backward replay rather than
-an obvious missed wide-store transformation.
+The 14 packaged objects comprise eight forward variants (four BF16/INT4
+QK-by-V modes, with and without cache writes) and BF16/INT4 variants of the
+backward preprocess, recurrent, and normalization phases. Positive B/H and
+``1 <= T <= 2048`` are runtime; the object IDs retain B4/T2048/H32 only as the
+generation profile. Packaged dispatch requires ``D=Dv=128``,
+``value_block=64``, normalized Q/K, BF16 output/upstream gradient, FP32 gates,
+and no initial/final-state path. The RDNA 3.5 two-descriptor cache split also
+requires each cache page to fit its 32-bit byte-offset span (at T=2048,
+``B*H <= 254``). Other shapes or options remain available through JIT.
+
+The Gluon kernels force RDNA buffer operations for recurrent operands and
+outputs, and use independent one-dimensional vector and two-dimensional state
+layouts. WMMA is available in the pinned compiler, but the exact token update
+is a rank-one recurrent update rather than a dense matrix product. The tested
+compact-WY/WMMA transformation added factor construction and reduction work
+and remained slower, so the winning implementation uses vector FP32 FMA for
+the state while reducing register pressure through its explicit wave mapping.
+Representative target AMDGCN reports 212 VGPRs, no spills, and occupancy 7
+for the timed BF16 forward kernel. Backward reaches 256 VGPRs, 10 VGPR spills,
+44 bytes of private storage, and occupancy 5, but its checkpoint replay is
+widened to ``buffer_load_b128``. Smaller backward tiles avoid those spills but
+require more value-tile programs and measured slower; the 64-wide mapping is
+the latency winner.
 
 Correctness Notes
 -----------------
@@ -926,12 +987,12 @@ comparison (the command defaults to ``B=4,T=2048,H=32,D=Dv=128``):
 
    TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
      uv run --extra rocm-triton-fork python scripts/benchmark_kda.py \
+       --backend gluon \
+       --precompiled require \
        --value-block 64 \
-       --backward-value-block 16 \
        --checkpoint-interval 4 \
-       --num-stages 2 \
-       --warmup-ms 25 \
-       --rep-ms 100
+       --warmup-ms 100 \
+       --rep-ms 400
 
 Use ``--dtype bf16`` with any of those commands to tune the development-only
 BF16×INT4 path with on-the-fly activation quantization. All three tuners check

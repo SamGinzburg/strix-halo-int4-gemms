@@ -21,20 +21,15 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_abs_i32 s7, s2
 	.loc	1 759 31                        ; attention.py:759:31
 	v_and_b32_e32 v36, 15, v0
-	v_lshrrev_b32_e32 v3, 4, v0
+	v_lshrrev_b32_e32 v2, 4, v0
 	s_mov_b32 s59, 0x31027000
 	s_mov_b32 s58, 0x7ffffffe
 	.loc	1 774 26                        ; attention.py:774:26
 	v_and_b32_e32 v31, 0xc0, v0
-	.loc	1 773 86                        ; attention.py:773:86
-	v_lshlrev_b32_e32 v2, 1, v36
-	.loc	1 774 26                        ; attention.py:774:26
 	v_lshlrev_b32_e32 v32, 1, v0
 	.loc	1 759 31                        ; attention.py:759:31
 	v_and_b32_e32 v35, 31, v0
 	v_and_b32_e32 v38, 0xf0, v0
-	.loc	1 760 21                        ; attention.py:760:21
-	v_lshrrev_b32_e32 v39, 3, v0
 	.loc	1 889 86                        ; attention.py:889:86
 	v_and_b32_e32 v37, 7, v0
 	v_lshlrev_b32_e32 v34, 2, v0
@@ -54,6 +49,9 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.loc	1 798 32                        ; attention.py:798:32
 	v_rcp_iflag_f32_e32 v1, s4
 	v_readfirstlane_b32 s4, v1
+	.loc	1 773 86                        ; attention.py:773:86
+	v_lshlrev_b32_e32 v1, 1, v36
+	.loc	1 798 32                        ; attention.py:798:32
 	s_mul_f32 s4, s4, 0x4f7ffffe
 	s_delay_alu instid0(SALU_CYCLE_3) | instskip(NEXT) | instid1(SALU_CYCLE_3)
 	s_cvt_u32_f32 s4, s4
@@ -82,7 +80,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_delay_alu instid0(SALU_CYCLE_1)
 	s_sub_i32 s7, s4, s8
 	.loc	1 776 61                        ; attention.py:776:61
-	v_cmp_gt_i32_e64 s4, s42, v2
+	v_cmp_gt_i32_e64 s4, s42, v1
 	.loc	1 753 19                        ; attention.py:753:19
 	s_lshl_b32 s13, s7, 4
 	.loc	1 749 27                        ; attention.py:749:27
@@ -90,25 +88,25 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.loc	1 773 26                        ; attention.py:773:26
 	s_add_i32 s12, s13, s3
 	.loc	1 759 21                        ; attention.py:759:21
-	v_or_b32_e32 v9, s13, v3
+	v_or_b32_e32 v9, s13, v2
 	.loc	1 773 26                        ; attention.py:773:26
-	v_add_nc_u32_e32 v1, s12, v3
+	v_add_nc_u32_e32 v3, s12, v2
 	.loc	1 749 27                        ; attention.py:749:27
 	s_sub_i32 s41, s2, s7
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 776 23                        ; attention.py:776:23
 	v_cmp_gt_i32_e32 vcc_lo, 1, v9
 	.loc	1 773 26                        ; attention.py:773:26
-	v_mad_u64_u32 v[4:5], null, v1, s42, v[2:3]
+	v_mad_u64_u32 v[3:4], null, v3, s42, v[1:2]
 	.loc	1 776 22                        ; attention.py:776:22
 	s_and_b32 s4, s4, vcc_lo
 	s_delay_alu instid0(SALU_CYCLE_1)
 	.loc	1 774 26                        ; attention.py:774:26
-	v_cndmask_b32_e64 v1, 0x80000000, v4, s4
+	v_cndmask_b32_e64 v1, 0x80000000, v3, s4
 	.loc	1 0 0 is_stmt 0                 ; attention.py:0
 	s_add_i32 s4, s54, 31
 	.loc	1 774 26                        ; attention.py:774:26
-	v_lshrrev_b32_e32 v4, 3, v31
+	v_lshrrev_b32_e32 v3, 3, v31
 	.loc	1 798 32 is_stmt 1              ; attention.py:798:32
 	s_xor_b32 s8, s4, s54
 	s_abs_i32 s4, s4
@@ -121,7 +119,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_add_i32 s10, s6, 1
 	s_sub_i32 s4, s4, s9
 	.loc	1 774 26                        ; attention.py:774:26
-	v_xad_u32 v4, v32, v4, 0
+	v_xad_u32 v3, v32, v3, 0
 	.loc	1 798 32                        ; attention.py:798:32
 	s_sub_i32 s2, s4, s5
 	s_cmp_ge_u32 s4, s5
@@ -149,7 +147,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_cmp_ge_i32 s55, s72
 	.loc	1 774 26                        ; attention.py:774:26
 	s_waitcnt vmcnt(0)
-	ds_store_b16 v4, v1
+	ds_store_b16 v3, v1
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 818 13                        ; attention.py:818:13
@@ -160,176 +158,176 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.loc	1 759 21 is_stmt 1              ; attention.py:759:21
 	v_or_b32_e32 v1, s13, v36
 	.loc	1 779 31                        ; attention.py:779:31
-	v_add_lshl_u32 v4, s12, v36, 1
-	v_dual_mov_b32 v25, 0x7632 :: v_dual_and_b32 v6, 24, v32
-	.loc	1 822 49                        ; attention.py:822:49
-	v_lshlrev_b32_e32 v12, 3, v0
-	s_delay_alu instid0(VALU_DEP_4)
+	v_add_lshl_u32 v3, s12, v36, 1
+	v_lshrrev_b32_e32 v6, 1, v0
+	.loc	1 760 21                        ; attention.py:760:21
+	v_bfe_u32 v4, v0, 4, 1
+	v_dual_mov_b32 v24, 0x7632 :: v_dual_and_b32 v5, 24, v32
 	.loc	1 781 22                        ; attention.py:781:22
 	v_cmp_gt_i32_e64 s2, 1, v1
-	v_dual_mov_b32 v116, 0xff800000 :: v_dual_and_b32 v13, 30, v0
+	.loc	1 889 86                        ; attention.py:889:86
+	v_lshlrev_b32_e32 v12, 3, v37
+	v_dual_mov_b32 v139, 0xff800000 :: v_dual_and_b32 v14, 30, v0
 	.loc	1 821 32                        ; attention.py:821:32
 	s_lshl_b32 s73, s3, 11
-	.loc	1 760 21                        ; attention.py:760:21
-	v_bfe_u32 v5, v0, 4, 1
 	.loc	1 779 31                        ; attention.py:779:31
-	v_cndmask_b32_e64 v1, 0x80000000, v4, s2
-	v_dual_mov_b32 v115, 0xff800000 :: v_dual_lshlrev_b32 v4, 3, v37
-	v_dual_mov_b32 v24, 0x5410 :: v_dual_lshlrev_b32 v11, 2, v36
-	v_lshrrev_b32_e32 v7, 1, v0
-	v_lshlrev_b32_e32 v26, 4, v0
-	v_or3_b32 v41, s73, v3, 62
+	v_cndmask_b32_e64 v1, 0x80000000, v3, s2
+	v_dual_mov_b32 v140, 0xff800000 :: v_dual_lshlrev_b32 v13, 3, v0
+	v_dual_mov_b32 v18, 0xff800000 :: v_dual_lshlrev_b32 v17, 3, v35
+	v_lshlrev_b32_e32 v25, 4, v37
+	v_bfe_i32 v27, v0, 3, 1
 	.loc	1 774 26                        ; attention.py:774:26
-	v_lshl_or_b32 v28, v36, 5, v6
+	v_lshl_or_b32 v29, v36, 5, v5
 	.loc	1 779 31                        ; attention.py:779:31
 	s_waitcnt lgkmcnt(0)
 	s_and_b32 s57, s9, 0xffff
 	s_mov_b32 s56, s8
-	v_lshlrev_b32_e32 v50, 1, v13
-	buffer_load_u16 v10, v1, s[56:59], 0 offen
-	v_dual_mov_b32 v1, 0 :: v_dual_and_b32 v8, 0xe0, v0
-	v_lshlrev_b32_e32 v17, 3, v35
-	v_lshlrev_b32_e32 v18, 3, v36
+	.loc	1 818 13                        ; attention.py:818:13
+	v_sub_nc_u32_e32 v42, 0x800, v4
+	.loc	1 779 31                        ; attention.py:779:31
+	buffer_load_u16 v11, v1, s[56:59], 0 offen
+	v_mov_b32_e32 v1, 0
+	v_and_b32_e32 v7, 0xe0, v0
+	.loc	1 760 21                        ; attention.py:760:21
+	v_and_b32_e32 v3, 0xf8, v0
+	v_and_b32_e32 v22, 16, v0
+	v_lshlrev_b32_e32 v8, 1, v31
+	v_lshlrev_b32_e32 v19, 3, v36
+	v_and_b32_e32 v26, 0x60, v0
+	v_or_b32_e32 v43, s73, v4
+	v_lshlrev_b32_e32 v48, 1, v14
+	v_mov_b32_e32 v4, v1
+	v_lshrrev_b32_e32 v47, 3, v7
+	v_dual_mov_b32 v23, 0x5410 :: v_dual_lshlrev_b32 v10, 2, v36
+	v_or3_b32 v40, s73, v2, 62
+	.loc	1 822 49                        ; attention.py:822:49
+	v_and_b32_e32 v21, 24, v13
+	v_lshrrev_b32_e32 v49, 4, v7
+	v_mov_b32_e32 v2, v1
+	.loc	1 760 21                        ; attention.py:760:21
+	v_lshrrev_b32_e32 v28, 2, v3
+	v_mov_b32_e32 v7, v1
+	v_cmp_eq_u32_e64 s2, 0, v22
 	s_clause 0x1
 	s_load_b128 s[12:15], s[0:1], 0x68
 	s_load_b64 s[60:61], s[0:1], 0x30
+	v_lshl_or_b32 v44, v36, 8, v17
+	v_lshrrev_b32_e32 v52, 1, v3
 	v_mov_b32_e32 v3, v1
-	v_lshrrev_b32_e32 v30, 3, v8
+	v_lshl_or_b32 v50, v35, 2, v8
+	v_mov_b32_e32 v8, v1
+	v_lshl_or_b32 v17, v38, 4, v19
+	v_mov_b32_e32 v19, v1
+	v_lshl_or_b32 v53, v26, 6, v25
+	v_and_or_b32 v26, 0x410, v27, v26
+	.loc	1 774 26                        ; attention.py:774:26
+	v_add_nc_u32_e32 v45, 0, v29
+	v_xor_b32_e32 v27, 8, v29
+	v_xor_b32_e32 v75, 16, v29
+	v_xor_b32_e32 v29, 24, v29
+	v_xor_b32_e32 v47, v34, v47
+	v_lshl_or_b32 v48, v35, 6, v48
 	.loc	1 755 23                        ; attention.py:755:23
 	s_ashr_i32 s0, s3, 31
-	.loc	1 818 13                        ; attention.py:818:13
-	v_mad_u64_u32 v[22:23], null, s43, v39, v[4:5]
-	.loc	1 755 23                        ; attention.py:755:23
+	v_cndmask_b32_e64 v51, 0x1054, v23, s2
 	s_lshr_b32 s0, s0, 29
-	v_lshrrev_b32_e32 v19, 1, v38
-	v_dual_mov_b32 v6, v1 :: v_dual_and_b32 v27, 0x60, v0
+	.loc	1 818 13                        ; attention.py:818:13
+	v_sub_nc_u32_e32 v46, 0x800, v28
+	.loc	1 755 23                        ; attention.py:755:23
 	s_add_i32 s1, s3, s0
 	.loc	1 892 65                        ; attention.py:892:65
-	v_cmp_gt_i32_e64 s0, s43, v4
-	v_and_b32_e32 v29, 24, v7
-	v_dual_mov_b32 v4, v1 :: v_dual_add_nc_u32 v47, 0, v26
-	v_lshl_or_b32 v45, v36, 8, v17
-	v_mov_b32_e32 v7, v1
-	v_lshl_or_b32 v17, v38, 4, v18
+	v_cmp_gt_i32_e64 s0, s43, v12
 	.loc	1 774 26                        ; attention.py:774:26
-	v_xor_b32_e32 v23, 8, v28
-	v_xor_b32_e32 v26, 24, v28
-	v_xor_b32_e32 v49, v34, v30
-	v_lshl_or_b32 v50, v35, 6, v50
-	v_lshlrev_b32_e32 v16, 6, v0
-	.loc	1 822 49                        ; attention.py:822:49
-	v_and_b32_e32 v21, 24, v12
-	v_add3_u32 v46, 0, v2, v27
-	v_mov_b32_e32 v18, v1
-	.loc	1 774 26                        ; attention.py:774:26
-	v_add_nc_u32_e32 v48, 0, v28
-	v_xor_b32_e32 v12, v12, v29
-	v_xor_b32_e32 v27, 40, v45
-	v_xor_b32_e32 v29, 56, v45
-	v_xor_b32_e32 v30, 64, v45
-	v_xor_b32_e32 v17, v17, v19
-	v_add_nc_u32_e32 v66, 0, v23
-	v_add_nc_u32_e32 v68, 0, v26
-	v_xor_b32_e32 v23, 0x420, v49
-	v_xor_b32_e32 v26, 12, v50
-	v_dual_mov_b32 v117, 0xff800000 :: v_dual_lshlrev_b32 v14, 1, v31
-	v_dual_mov_b32 v2, v1 :: v_dual_and_b32 v15, 0x380, v33
-	.loc	1 818 13                        ; attention.py:818:13
-	v_sub_nc_u32_e32 v43, 0x800, v5
-	v_or_b32_e32 v44, s73, v5
-	v_dual_mov_b32 v5, v1 :: v_dual_and_b32 v16, 64, v16
 	v_add_nc_u32_e32 v74, 0, v27
 	v_add_nc_u32_e32 v76, 0, v29
-	v_add_nc_u32_e32 v77, 0, v30
-	v_add_nc_u32_e32 v86, 0, v23
-	v_add_nc_u32_e32 v89, 0, v26
-	v_lshrrev_b32_e32 v51, 4, v8
-	v_lshl_or_b32 v14, v35, 2, v14
-	v_or3_b32 v52, v16, v15, v13
-	v_xor_b32_e32 v13, 8, v45
+	v_xor_b32_e32 v27, 8, v48
+	v_xor_b32_e32 v29, 16, v48
+	v_dual_mov_b32 v5, v1 :: v_dual_lshlrev_b32 v16, 6, v0
+	v_lshrrev_b32_e32 v20, 1, v38
+	v_add_nc_u32_e32 v75, 0, v75
+	v_add_nc_u32_e32 v98, 0, v27
+	v_add_nc_u32_e32 v100, 0, v29
+	v_and_b32_e32 v15, 0x380, v33
+	v_and_b32_e32 v16, 64, v16
+	v_xor_b32_e32 v17, v17, v20
+	v_lshl_or_b32 v20, v51, 8, v51
+	v_xor_b32_e32 v49, v50, v49
 	.loc	1 756 22                        ; attention.py:756:22
 	s_and_b32 s8, s1, -8
 	s_waitcnt lgkmcnt(0)
 	v_mul_lo_u32 v9, v9, s15
-	v_xor_b32_e32 v51, v14, v51
 	.loc	1 755 23                        ; attention.py:755:23
 	s_ashr_i32 s9, s1, 3
-	v_add_nc_u32_e32 v70, 0, v13
+	v_and_b32_e32 v20, 0x540054, v20
 	.loc	1 756 22                        ; attention.py:756:22
 	s_sub_i32 s8, s3, s8
-	v_xor_b32_e32 v14, 16, v45
-	v_xor_b32_e32 v15, 24, v45
-	v_xor_b32_e32 v16, 32, v45
-	v_xor_b32_e32 v78, 0x48, v45
-	v_xor_b32_e32 v79, 0x50, v45
-	v_xor_b32_e32 v80, 0x58, v45
-	v_xor_b32_e32 v81, 0x60, v45
-	v_xor_b32_e32 v82, 0x68, v45
-	v_xor_b32_e32 v83, 0x70, v45
-	v_xor_b32_e32 v84, 0x78, v45
-	v_xor_b32_e32 v90, 16, v50
-	v_xor_b32_e32 v91, 20, v50
-	v_xor_b32_e32 v92, 24, v50
-	v_xor_b32_e32 v93, 28, v50
-	v_xor_b32_e32 v94, 32, v50
-	v_xor_b32_e32 v95, 36, v50
-	v_xor_b32_e32 v96, 40, v50
-	v_xor_b32_e32 v97, 44, v50
-	v_xor_b32_e32 v98, 48, v50
-	v_xor_b32_e32 v99, 52, v50
-	v_xor_b32_e32 v100, 56, v50
-	v_xor_b32_e32 v101, 60, v50
-	v_xor_b32_e32 v102, 0x210, v51
-	v_xor_b32_e32 v103, 4, v52
-	v_xor_b32_e32 v104, 8, v52
-	v_xor_b32_e32 v105, 12, v52
-	v_xor_b32_e32 v106, 16, v52
-	v_xor_b32_e32 v107, 20, v52
-	v_xor_b32_e32 v108, 24, v52
-	v_xor_b32_e32 v109, 28, v52
-	v_add_nc_u32_e32 v69, 0, v12
+	v_xor_b32_e32 v84, 40, v44
+	v_xor_b32_e32 v85, 48, v44
+	v_xor_b32_e32 v86, 56, v44
+	v_xor_b32_e32 v87, 64, v44
+	v_xor_b32_e32 v88, 0x48, v44
+	v_xor_b32_e32 v89, 0x50, v44
+	v_xor_b32_e32 v90, 0x58, v44
+	v_xor_b32_e32 v91, 0x60, v44
+	v_xor_b32_e32 v92, 0x68, v44
+	v_xor_b32_e32 v93, 0x70, v44
+	v_xor_b32_e32 v94, 0x78, v44
+	v_xor_b32_e32 v101, 20, v48
+	v_xor_b32_e32 v102, 24, v48
+	v_xor_b32_e32 v103, 28, v48
+	v_xor_b32_e32 v104, 32, v48
+	v_xor_b32_e32 v105, 36, v48
+	v_xor_b32_e32 v106, 40, v48
+	v_xor_b32_e32 v107, 44, v48
+	v_xor_b32_e32 v108, 48, v48
+	v_xor_b32_e32 v109, 52, v48
+	v_xor_b32_e32 v110, 56, v48
+	v_xor_b32_e32 v111, 60, v48
+	v_xor_b32_e32 v112, 0x210, v49
+	v_add_nc_u32_e32 v95, 0, v17
+	.loc	1 872 27                        ; attention.py:872:27
+	s_mul_i32 s8, s14, s8
+	.loc	1 871 27                        ; attention.py:871:27
+	s_mul_i32 s9, s13, s9
 	.loc	1 760 21                        ; attention.py:760:21
-	v_lshrrev_b32_e32 v40, 2, v0
+	v_lshrrev_b32_e32 v39, 2, v0
+	s_add_i32 s8, s8, s9
 	.loc	1 818 13                        ; attention.py:818:13
-	v_sub_nc_u32_e32 v42, 0x800, v11
-	v_mov_b32_e32 v8, v1
+	v_sub_nc_u32_e32 v41, 0x800, v10
 	.loc	1 825 31                        ; attention.py:825:31
 	v_cmp_gt_i32_e64 s1, s42, v21
-	v_or_b32_e32 v53, 34, v44
-	v_or_b32_e32 v54, 36, v44
-	v_or_b32_e32 v55, 38, v44
-	v_or_b32_e32 v56, 40, v44
-	v_or_b32_e32 v57, 42, v44
-	v_or_b32_e32 v58, 44, v44
-	v_or_b32_e32 v59, 46, v44
-	v_or_b32_e32 v60, 48, v44
-	v_or_b32_e32 v61, 50, v44
-	v_or_b32_e32 v62, 52, v44
-	v_or_b32_e32 v63, 54, v44
-	v_or_b32_e32 v64, 56, v44
-	v_or_b32_e32 v65, 58, v44
-	v_add_nc_u32_e32 v71, 0, v14
-	v_add_nc_u32_e32 v72, 0, v15
-	v_add_nc_u32_e32 v73, 0, v16
-	v_add_nc_u32_e32 v78, 0, v78
-	v_add_nc_u32_e32 v79, 0, v79
-	v_add_nc_u32_e32 v80, 0, v80
-	v_add_nc_u32_e32 v81, 0, v81
-	v_add_nc_u32_e32 v82, 0, v82
-	v_add_nc_u32_e32 v83, 0, v83
+	v_or_b32_e32 v51, 14, v43
+	v_or_b32_e32 v54, 20, v43
+	v_or_b32_e32 v55, 22, v43
+	v_or_b32_e32 v56, 24, v43
+	v_or_b32_e32 v57, 26, v43
+	v_or_b32_e32 v58, 28, v43
+	v_or_b32_e32 v59, 30, v43
+	v_or_b32_e32 v60, 32, v43
+	v_or_b32_e32 v61, 34, v43
+	v_or_b32_e32 v62, 36, v43
+	v_or_b32_e32 v63, 38, v43
+	v_or_b32_e32 v64, 40, v43
+	v_or_b32_e32 v65, 42, v43
+	v_or_b32_e32 v66, 44, v43
+	v_or_b32_e32 v67, 46, v43
+	v_or_b32_e32 v68, 48, v43
+	v_or_b32_e32 v69, 50, v43
+	v_or_b32_e32 v70, 52, v43
+	v_or_b32_e32 v71, 54, v43
+	v_or_b32_e32 v72, 56, v43
+	v_or_b32_e32 v73, 58, v43
 	v_add_nc_u32_e32 v84, 0, v84
-	v_add_nc_u32_e32 v85, 0, v17
+	v_add_nc_u32_e32 v85, 0, v85
+	v_add_nc_u32_e32 v86, 0, v86
+	v_add_nc_u32_e32 v87, 0, v87
+	v_add_nc_u32_e32 v88, 0, v88
+	v_add_nc_u32_e32 v89, 0, v89
 	v_add_nc_u32_e32 v90, 0, v90
 	v_add_nc_u32_e32 v91, 0, v91
 	v_add_nc_u32_e32 v92, 0, v92
 	v_add_nc_u32_e32 v93, 0, v93
 	v_add_nc_u32_e32 v94, 0, v94
-	v_add_nc_u32_e32 v95, 0, v95
-	v_add_nc_u32_e32 v96, 0, v96
-	v_add_nc_u32_e32 v97, 0, v97
-	v_add_nc_u32_e32 v98, 0, v98
-	v_add_nc_u32_e32 v99, 0, v99
-	v_add_nc_u32_e32 v100, 0, v100
 	v_add_nc_u32_e32 v101, 0, v101
 	v_add_nc_u32_e32 v102, 0, v102
 	v_add_nc_u32_e32 v103, 0, v103
@@ -339,10 +337,13 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	v_add_nc_u32_e32 v107, 0, v107
 	v_add_nc_u32_e32 v108, 0, v108
 	v_add_nc_u32_e32 v109, 0, v109
-	v_or_b32_e32 v114, 60, v44
+	v_add_nc_u32_e32 v110, 0, v110
+	v_add_nc_u32_e32 v111, 0, v111
+	v_add_nc_u32_e32 v112, 0, v112
+	v_add3_u32 v135, s8, v10, v9
+	v_or_b32_e32 v138, 60, v43
 	s_and_b32 s5, s5, 0xffff
 	s_and_b32 s11, s11, 0xffff
-	s_lshl_b32 s74, s43, 5
 	s_mov_b32 s45, s44
 	s_mov_b32 s46, s44
 	s_mov_b32 s47, s44
@@ -350,7 +351,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_mov_b32 s49, s44
 	s_mov_b32 s50, s44
 	s_mov_b32 s51, s44
-	s_mov_b32 s75, 0x76543210
+	s_mov_b32 s74, 0x76543210
 	s_mov_b32 s66, s58
 	s_mov_b32 s67, s59
 	s_mov_b32 s62, s58
@@ -366,1684 +367,1660 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_mov_b32 s65, s11
 	.loc	1 779 31                        ; attention.py:779:31
 	s_waitcnt vmcnt(0)
-	v_lshlrev_b32_e32 v10, 16, v10
-	v_and_b32_e32 v20, 16, v0
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	v_cmp_eq_u32_e64 s2, 0, v20
-	v_cndmask_b32_e64 v20, 0x1054, v24, s2
+	v_lshlrev_b32_e32 v11, 16, v11
+	v_and_b32_e32 v30, 24, v6
+	v_mov_b32_e32 v6, v1
+	v_or3_b32 v50, v16, v15, v14
+	v_xor_b32_e32 v14, 8, v44
+	v_xor_b32_e32 v15, 16, v44
+	v_xor_b32_e32 v13, v13, v30
+	v_xor_b32_e32 v30, 32, v44
+	v_xor_b32_e32 v16, 24, v44
+	v_xor_b32_e32 v113, 4, v50
+	v_xor_b32_e32 v114, 8, v50
+	.loc	1 818 13                        ; attention.py:818:13
+	v_mad_u64_u32 v[22:23], null, s43, v28, v[12:13]
+	v_cndmask_b32_e64 v12, 0x3276, v24, s2
+	v_xor_b32_e32 v23, v25, v52
+	v_xor_b32_e32 v24, v26, v53
+	v_xor_b32_e32 v25, 0x420, v47
+	v_xor_b32_e32 v26, 4, v48
+	v_xor_b32_e32 v28, 12, v48
+	v_lshl_or_b32 v77, v37, 10, v23
+	v_lshl_or_b32 v78, v37, 7, v24
+	v_add_nc_u32_e32 v83, 0, v30
+	v_add_nc_u32_e32 v96, 0, v25
+	v_add_nc_u32_e32 v97, 0, v26
+	v_add_nc_u32_e32 v99, 0, v28
 	.loc	1 774 26                        ; attention.py:774:26
-	v_xor_b32_e32 v24, 16, v28
-	v_xor_b32_e32 v28, 48, v45
-	v_cndmask_b32_e64 v19, 0x3276, v25, s2
-	v_xor_b32_e32 v25, 8, v50
-	v_lshl_or_b32 v20, v20, 8, v20
-	v_add_nc_u32_e32 v67, 0, v24
-	v_xor_b32_e32 v24, 4, v50
-	v_add_nc_u32_e32 v75, 0, v28
-	v_add_nc_u32_e32 v88, 0, v25
-	v_lshl_or_b32 v19, v19, 8, v19
-	v_and_b32_e32 v20, 0x540054, v20
-	v_add_nc_u32_e32 v87, 0, v24
-	ds_load_b64 v[23:24], v48
-	ds_load_b64 v[25:26], v66
-	ds_load_b64 v[27:28], v67
-	ds_load_b64 v[29:30], v68
-	.loc	1 872 27                        ; attention.py:872:27
-	s_mul_i32 s2, s14, s8
-	v_and_b32_e32 v13, 0x760076, v19
-	v_lshl_or_b32 v12, v20, 4, v20
-	.loc	1 871 27                        ; attention.py:871:27
-	s_mul_i32 s8, s13, s9
+	ds_load_b64 v[23:24], v45
+	ds_load_b64 v[25:26], v74
+	ds_load_b64 v[27:28], v75
+	ds_load_b64 v[29:30], v76
+	v_lshl_or_b32 v12, v12, 8, v12
+	v_xor_b32_e32 v115, 12, v50
+	v_xor_b32_e32 v116, 16, v50
+	v_xor_b32_e32 v117, 20, v50
+	v_xor_b32_e32 v118, 24, v50
+	v_and_b32_e32 v12, 0x760076, v12
+	v_xor_b32_e32 v119, 28, v50
+	v_add_nc_u32_e32 v79, 0, v13
+	v_add_nc_u32_e32 v80, 0, v14
+	v_add_nc_u32_e32 v81, 0, v15
+	v_add_nc_u32_e32 v82, 0, v16
+	v_lshl_or_b32 v13, v20, 4, v20
+	v_xor_b32_e32 v14, 0x90, v77
+	v_xor_b32_e32 v15, 0x120, v77
+	v_xor_b32_e32 v16, 0x1b0, v77
+	v_xor_b32_e32 v17, 0x240, v77
+	v_xor_b32_e32 v20, 0x2d0, v77
+	v_xor_b32_e32 v126, 0x360, v77
+	v_xor_b32_e32 v127, 0x3f0, v77
+	v_xor_b32_e32 v128, 16, v78
+	v_xor_b32_e32 v129, 32, v78
+	v_xor_b32_e32 v130, 48, v78
+	v_xor_b32_e32 v131, 64, v78
+	v_xor_b32_e32 v132, 0x50, v78
+	v_xor_b32_e32 v133, 0x60, v78
+	v_xor_b32_e32 v134, 0x70, v78
+	v_lshl_or_b32 v12, v12, 4, v12
 	.loc	1 844 25                        ; attention.py:844:25
-	s_mul_f32 s9, s12, 0x3fb8aa3b
-	s_add_i32 s2, s2, s8
-	v_lshl_or_b32 v13, v13, 4, v13
-	v_and_b32_e32 v110, 0x5040504, v12
-	v_add3_u32 v111, s2, v11, v9
-	s_delay_alu instid0(VALU_DEP_3)
+	s_mul_f32 s2, s12, 0x3fb8aa3b
+	v_or_b32_e32 v52, 16, v43
+	v_or_b32_e32 v53, 18, v43
+	v_add_nc_u32_e32 v113, 0, v113
+	v_add_nc_u32_e32 v114, 0, v114
+	v_add_nc_u32_e32 v115, 0, v115
+	v_add_nc_u32_e32 v116, 0, v116
+	v_add_nc_u32_e32 v117, 0, v117
+	v_add_nc_u32_e32 v118, 0, v118
+	v_add_nc_u32_e32 v119, 0, v119
+	v_and_b32_e32 v120, 0x5040504, v13
+	v_add_nc_u32_e32 v121, 0, v14
+	v_add_nc_u32_e32 v122, 0, v15
+	v_add_nc_u32_e32 v123, 0, v16
+	v_add_nc_u32_e32 v124, 0, v17
+	v_add_nc_u32_e32 v125, 0, v20
+	v_add_nc_u32_e32 v126, 0, v126
+	v_add_nc_u32_e32 v127, 0, v127
+	v_add_nc_u32_e32 v128, 0, v128
+	v_add_nc_u32_e32 v129, 0, v129
+	v_add_nc_u32_e32 v130, 0, v130
+	v_add_nc_u32_e32 v131, 0, v131
+	v_add_nc_u32_e32 v132, 0, v132
+	v_add_nc_u32_e32 v133, 0, v133
+	v_add_nc_u32_e32 v134, 0, v134
 	.loc	1 843 41                        ; attention.py:843:41
-	v_dual_mul_f32 v113, s9, v10 :: v_dual_and_b32 v112, 0x7060706, v13
+	v_dual_mul_f32 v137, s2, v11 :: v_dual_and_b32 v136, 0x7060706, v12
 .LBB0_2:                                ; =>This Inner Loop Header: Depth=1
 	.loc	1 822 32                        ; attention.py:822:32
-	s_add_i32 s8, s55, s73
-	.loc	1 825 73                        ; attention.py:825:73
-	v_cmp_lt_i32_e64 s2, s55, v42
+	s_add_i32 s9, s55, s73
+	v_dual_mov_b32 v144, v18 :: v_dual_add_nc_u32 v149, 0, v48
+	v_or_b32_e32 v18, s9, v39
 	.loc	1 818 13                        ; attention.py:818:13
-	v_sub_nc_u32_e32 v120, 0x800, v40
-	.loc	1 879 36                        ; attention.py:879:36
-	v_add_lshl_u32 v122, v111, s55, 1
-	.loc	1 838 37                        ; attention.py:838:37
-	v_add_lshl_u32 v123, s55, v44, 1
-	.loc	1 840 30                        ; attention.py:840:30
-	v_cmp_lt_i32_e64 s4, s55, v43
-	v_or_b32_e32 v124, 2, v44
-	v_or_b32_e32 v125, 4, v44
-	v_or_b32_e32 v126, 6, v44
-	v_or_b32_e32 v127, 8, v44
-	v_or_b32_e32 v128, 10, v44
-	v_or_b32_e32 v129, 12, v44
-	v_or_b32_e32 v130, 14, v44
-	v_or_b32_e32 v131, 16, v44
-	v_or_b32_e32 v132, 18, v44
-	v_or_b32_e32 v133, 20, v44
-	v_or_b32_e32 v134, 22, v44
-	v_or_b32_e32 v135, 24, v44
-	v_or_b32_e32 v136, 26, v44
-	v_or_b32_e32 v137, 28, v44
-	v_or_b32_e32 v138, 30, v44
-	v_or_b32_e32 v140, 32, v44
-	v_dual_mov_b32 v118, v18 :: v_dual_add_nc_u32 v121, 0, v49
-	.loc	1 822 32                        ; attention.py:822:32
-	v_or_b32_e32 v18, s8, v40
-	.loc	1 861 25                        ; attention.py:861:25
-	s_and_b32 s5, vcc_lo, s2
-	v_dual_mov_b32 v119, v116 :: v_dual_add_nc_u32 v154, 0, v50
-	.loc	1 884 24                        ; attention.py:884:24
-	v_dual_max_f32 v116, v117, v117 :: v_dual_add_nc_u32 v147, 0, v51
+	v_sub_nc_u32_e32 v145, 0x800, v39
+	v_dual_mov_b32 v143, v19 :: v_dual_add_nc_u32 v20, 0, v47
 	.loc	1 825 73                        ; attention.py:825:73
-	v_cmp_lt_i32_e64 s6, s55, v120
-	.loc	1 838 37                        ; attention.py:838:37
-	v_add_lshl_u32 v117, v124, s55, 1
-	v_add_lshl_u32 v120, v125, s55, 1
-	v_add_lshl_u32 v124, v126, s55, 1
-	v_add_lshl_u32 v125, v127, s55, 1
-	v_add_lshl_u32 v126, v128, s55, 1
-	v_add_lshl_u32 v127, v129, s55, 1
-	v_add_lshl_u32 v128, v130, s55, 1
-	v_add_lshl_u32 v129, v131, s55, 1
-	v_add_lshl_u32 v130, v132, s55, 1
-	v_add_lshl_u32 v131, v133, s55, 1
-	v_add_lshl_u32 v132, v134, s55, 1
-	v_add_lshl_u32 v133, v135, s55, 1
-	v_add_lshl_u32 v134, v136, s55, 1
-	v_add_lshl_u32 v135, v137, s55, 1
-	v_add_lshl_u32 v136, v138, s55, 1
-	v_add_lshl_u32 v137, v140, s55, 1
-	.loc	1 879 36                        ; attention.py:879:36
-	v_cndmask_b32_e64 v138, 0x80000000, v122, s5
-	.loc	1 838 37                        ; attention.py:838:37
-	v_cndmask_b32_e64 v140, 0x80000000, v123, s4
+	v_cmp_lt_i32_e64 s2, s55, v41
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
 	.loc	1 822 32                        ; attention.py:822:32
-	v_mad_u64_u32 v[122:123], null, v18, s42, v[21:22]
+	v_mad_u64_u32 v[18:19], null, v18, s42, v[21:22]
+	.loc	1 825 73                        ; attention.py:825:73
+	v_cmp_lt_i32_e64 s7, s55, v145
+	v_or_b32_e32 v151, 2, v43
+	.loc	1 861 25                        ; attention.py:861:25
+	s_and_b32 s6, vcc_lo, s2
+	v_or_b32_e32 v152, 4, v43
+	v_or_b32_e32 v153, 6, v43
 	.loc	1 825 30                        ; attention.py:825:30
-	s_and_b32 s2, s1, s6
-	.loc	1 838 37                        ; attention.py:838:37
-	v_cndmask_b32_e64 v18, 0x80000000, v117, s4
-	v_cndmask_b32_e64 v117, 0x80000000, v120, s4
-	v_cndmask_b32_e64 v120, 0x80000000, v124, s4
-	v_cndmask_b32_e64 v124, 0x80000000, v125, s4
-	v_cndmask_b32_e64 v125, 0x80000000, v126, s4
+	s_and_b32 s2, s1, s7
+	v_or_b32_e32 v154, 8, v43
 	.loc	1 823 32                        ; attention.py:823:32
-	v_cndmask_b32_e64 v122, 0x80000000, v122, s2
+	v_cndmask_b32_e64 v18, 0x80000000, v18, s2
+	v_or_b32_e32 v155, 10, v43
+	.loc	1 879 36                        ; attention.py:879:36
+	v_add_lshl_u32 v148, v135, s55, 1
+	v_or_b32_e32 v156, 12, v43
 	.loc	1 838 37                        ; attention.py:838:37
-	v_cndmask_b32_e64 v126, 0x80000000, v127, s4
-	v_cndmask_b32_e64 v127, 0x80000000, v128, s4
-	v_cndmask_b32_e64 v128, 0x80000000, v129, s4
-	v_add_lshl_u32 v139, v53, s55, 1
+	v_add_lshl_u32 v150, s55, v43, 1
 	.loc	1 823 32                        ; attention.py:823:32
-	buffer_load_b64 v[122:123], v122, s[56:59], 0 offen
+	buffer_load_b64 v[18:19], v18, s[56:59], 0 offen
+	.loc	1 840 30                        ; attention.py:840:30
+	v_cmp_lt_i32_e64 s4, s55, v42
+	.loc	1 838 37                        ; attention.py:838:37
+	v_add_lshl_u32 v145, v151, s55, 1
+	v_add_lshl_u32 v151, v152, s55, 1
+	v_add_lshl_u32 v152, v153, s55, 1
+	v_add_lshl_u32 v153, v154, s55, 1
+	v_add_lshl_u32 v154, v155, s55, 1
+	v_add_lshl_u32 v157, v51, s55, 1
+	v_add_lshl_u32 v158, v52, s55, 1
+	v_add_lshl_u32 v159, v53, s55, 1
+	v_add_lshl_u32 v155, v156, s55, 1
+	.loc	1 879 36                        ; attention.py:879:36
+	v_cndmask_b32_e64 v148, 0x80000000, v148, s6
+	.loc	1 838 37                        ; attention.py:838:37
+	v_cndmask_b32_e64 v150, 0x80000000, v150, s4
+	v_cndmask_b32_e64 v145, 0x80000000, v145, s4
+	v_cndmask_b32_e64 v151, 0x80000000, v151, s4
+	v_cndmask_b32_e64 v152, 0x80000000, v152, s4
+	v_cndmask_b32_e64 v153, 0x80000000, v153, s4
+	v_cndmask_b32_e64 v154, 0x80000000, v154, s4
+	v_cndmask_b32_e64 v157, 0x80000000, v157, s4
+	v_cndmask_b32_e64 v158, 0x80000000, v158, s4
+	v_cndmask_b32_e64 v159, 0x80000000, v159, s4
+	v_cndmask_b32_e64 v155, 0x80000000, v155, s4
+	.loc	1 823 32                        ; attention.py:823:32
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 838 37                        ; attention.py:838:37
-	v_add_lshl_u32 v143, v56, s55, 1
-	v_add_lshl_u32 v156, s55, v41, 1
-	v_cndmask_b32_e64 v158, 0x80000000, v139, s4
-	v_cndmask_b32_e64 v130, 0x80000000, v130, s4
-	v_cndmask_b32_e64 v139, 0x80000000, v131, s4
-	v_cndmask_b32_e64 v160, 0x80000000, v143, s4
-	v_cndmask_b32_e64 v208, 0x80000000, v156, s4
-	v_cndmask_b32_e64 v143, 0x80000000, v132, s4
-	v_cndmask_b32_e64 v156, 0x80000000, v133, s4
+	v_add_lshl_u32 v160, v54, s55, 1
+	v_add_lshl_u32 v161, v55, s55, 1
+	v_add_lshl_u32 v162, v56, s55, 1
+	v_add_lshl_u32 v163, v57, s55, 1
+	v_add_lshl_u32 v164, v58, s55, 1
+	v_cndmask_b32_e64 v183, 0x80000000, v160, s4
+	v_cndmask_b32_e64 v184, 0x80000000, v161, s4
+	v_cndmask_b32_e64 v185, 0x80000000, v162, s4
+	v_cndmask_b32_e64 v186, 0x80000000, v163, s4
+	v_cndmask_b32_e64 v190, 0x80000000, v164, s4
+	v_add_lshl_u32 v174, v68, s55, 1
+	v_add_lshl_u32 v175, v69, s55, 1
+	v_add_lshl_u32 v176, v70, s55, 1
+	v_add_lshl_u32 v177, v71, s55, 1
+	v_add_lshl_u32 v178, v72, s55, 1
+	v_add_lshl_u32 v179, v73, s55, 1
+	v_add_lshl_u32 v180, v138, s55, 1
+	v_add_lshl_u32 v181, s55, v40, 1
 	.loc	1 828 33                        ; attention.py:828:33
 	v_dual_mov_b32 v9, s44 :: v_dual_mov_b32 v10, s45
-	.loc	1 838 37                        ; attention.py:838:37
-	v_add_lshl_u32 v141, v54, s55, 1
-	.loc	1 828 33                        ; attention.py:828:33
 	v_dual_mov_b32 v11, s46 :: v_dual_mov_b32 v12, s47
 	v_dual_mov_b32 v13, s48 :: v_dual_mov_b32 v14, s49
 	v_dual_mov_b32 v15, s50 :: v_dual_mov_b32 v16, s51
-	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 838 37                        ; attention.py:838:37
-	v_cndmask_b32_e64 v159, 0x80000000, v141, s4
-	v_cndmask_b32_e64 v177, 0x80000000, v134, s4
-	v_cndmask_b32_e64 v210, 0x80000000, v135, s4
-	v_cndmask_b32_e64 v211, 0x80000000, v136, s4
-	v_cndmask_b32_e64 v212, 0x80000000, v137, s4
-	v_add_lshl_u32 v142, v55, s55, 1
-	v_add_lshl_u32 v144, v57, s55, 1
-	v_add_lshl_u32 v145, v58, s55, 1
-	v_add_lshl_u32 v146, v59, s55, 1
-	v_add_lshl_u32 v148, v60, s55, 1
-	v_add_lshl_u32 v149, v61, s55, 1
-	v_add_lshl_u32 v150, v62, s55, 1
-	v_add_lshl_u32 v151, v63, s55, 1
-	v_add_lshl_u32 v152, v64, s55, 1
-	v_add_lshl_u32 v153, v65, s55, 1
-	v_add_lshl_u32 v155, v114, s55, 1
-	v_cndmask_b32_e64 v142, 0x80000000, v142, s4
-	v_cndmask_b32_e64 v144, 0x80000000, v144, s4
-	v_cndmask_b32_e64 v145, 0x80000000, v145, s4
-	v_cndmask_b32_e64 v146, 0x80000000, v146, s4
-	v_cndmask_b32_e64 v188, 0x80000000, v148, s4
-	v_cndmask_b32_e64 v205, 0x80000000, v149, s4
-	v_cndmask_b32_e64 v206, 0x80000000, v150, s4
-	v_cndmask_b32_e64 v207, 0x80000000, v151, s4
-	v_cndmask_b32_e64 v152, 0x80000000, v152, s4
-	v_cndmask_b32_e64 v153, 0x80000000, v153, s4
-	v_cndmask_b32_e64 v155, 0x80000000, v155, s4
+	v_add_lshl_u32 v166, v60, s55, 1
+	v_add_lshl_u32 v167, v61, s55, 1
+	v_add_lshl_u32 v168, v62, s55, 1
+	v_add_lshl_u32 v169, v63, s55, 1
+	v_add_lshl_u32 v170, v64, s55, 1
+	v_add_lshl_u32 v171, v65, s55, 1
+	v_add_lshl_u32 v172, v66, s55, 1
+	v_add_lshl_u32 v173, v67, s55, 1
+	v_cndmask_b32_e64 v238, 0x80000000, v174, s4
+	v_cndmask_b32_e64 v239, 0x80000000, v175, s4
+	v_cndmask_b32_e64 v240, 0x80000000, v176, s4
+	v_cndmask_b32_e64 v241, 0x80000000, v177, s4
+	v_cndmask_b32_e64 v242, 0x80000000, v178, s4
+	v_cndmask_b32_e64 v243, 0x80000000, v179, s4
+	v_cndmask_b32_e64 v244, 0x80000000, v180, s4
+	v_cndmask_b32_e64 v245, 0x80000000, v181, s4
+	v_cndmask_b32_e64 v196, 0x80000000, v166, s4
+	v_cndmask_b32_e64 v197, 0x80000000, v167, s4
+	v_cndmask_b32_e64 v232, 0x80000000, v168, s4
+	v_cndmask_b32_e64 v233, 0x80000000, v169, s4
+	v_cndmask_b32_e64 v234, 0x80000000, v170, s4
+	v_cndmask_b32_e64 v235, 0x80000000, v171, s4
+	v_cndmask_b32_e64 v236, 0x80000000, v172, s4
+	v_cndmask_b32_e64 v237, 0x80000000, v173, s4
+	v_add_lshl_u32 v165, v59, s55, 1
 	.loc	1 880 35                        ; attention.py:880:35
 	v_mov_b16_e32 v17.l, 0
-	.loc	1 818 13                        ; attention.py:818:13
-	v_sub_nc_u32_e32 v157, 0x800, v39
+	.loc	1 892 27                        ; attention.py:892:27
+	v_cmp_lt_i32_e64 s5, s55, v46
 	.loc	1 885 25                        ; attention.py:885:25
-	v_cmp_neq_f32_e64 s40, 0xff800000, v115
-	.loc	1 881 25                        ; attention.py:881:25
-	s_delay_alu instid0(VALU_DEP_3)
+	v_cmp_neq_f32_e64 s40, 0xff800000, v139
+	.loc	1 884 24                        ; attention.py:884:24
+	v_dual_max_f32 v140, v140, v140 :: v_dual_add_nc_u32 v141, 0, v77
+	.loc	1 838 37                        ; attention.py:838:37
+	v_cndmask_b32_e64 v165, 0x80000000, v165, s4
 	.loc	1 879 36                        ; attention.py:879:36
-	v_mov_b16_e64 v209.l, v17.l
+	v_mov_b16_e64 v246.l, v17.l
+	.loc	1 892 26                        ; attention.py:892:26
+	s_and_b32 s5, s0, s5
+	.loc	1 818 13                        ; attention.py:818:13
+	s_add_i32 s55, s55, 64
 	.loc	1 881 25                        ; attention.py:881:25
 	.loc	1 823 32                        ; attention.py:823:32
 	s_waitcnt vmcnt(0)
-	ds_store_b64 v69, v[122:123]
+	ds_store_b64 v79, v[18:19]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 879 36                        ; attention.py:879:36
-	buffer_load_b64 v[186:187], v138, s[60:63], 0 offen
+	buffer_load_b64 v[230:231], v148, s[60:63], 0 offen
 	.loc	1 838 37                        ; attention.py:838:37
-	s_clause 0x8
-	buffer_load_u16 v122, v140, s[64:67], 0 offen
-	buffer_load_u16 v213, v18, s[64:67], 0 offen
-	buffer_load_u16 v117, v117, s[64:67], 0 offen
-	buffer_load_u16 v120, v120, s[64:67], 0 offen
-	buffer_load_u16 v124, v124, s[64:67], 0 offen
-	buffer_load_u16 v214, v125, s[64:67], 0 offen
-	buffer_load_u16 v215, v126, s[64:67], 0 offen
-	buffer_load_u16 v216, v127, s[64:67], 0 offen
-	buffer_load_u16 v217, v128, s[64:67], 0 offen
+	s_clause 0x9
+	buffer_load_u16 v191, v150, s[64:67], 0 offen
+	buffer_load_u16 v189, v145, s[64:67], 0 offen
+	buffer_load_u16 v188, v151, s[64:67], 0 offen
+	buffer_load_u16 v187, v152, s[64:67], 0 offen
+	buffer_load_u16 v156, v153, s[64:67], 0 offen
+	buffer_load_u16 v154, v154, s[64:67], 0 offen
+	buffer_load_u16 v153, v155, s[64:67], 0 offen
+	buffer_load_u16 v148, v157, s[64:67], 0 offen
+	buffer_load_u16 v145, v158, s[64:67], 0 offen
+	buffer_load_u16 v150, v159, s[64:67], 0 offen
 	.loc	1 823 32                        ; attention.py:823:32
-	ds_load_2addr_stride64_b64 v[126:129], v48 offset1:1
+	ds_load_2addr_stride64_b64 v[157:160], v45 offset1:1
+	ds_load_2addr_stride64_b64 v[161:164], v45 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[174:177], v74 offset1:1
+	ds_load_2addr_stride64_b64 v[178:181], v74 offset0:2 offset1:3
 	.loc	1 838 37                        ; attention.py:838:37
-	s_clause 0x1
-	buffer_load_u16 v123, v130, s[64:67], 0 offen
-	buffer_load_u16 v125, v139, s[64:67], 0 offen
+	s_clause 0x2
+	buffer_load_u16 v151, v183, s[64:67], 0 offen
+	buffer_load_u16 v152, v184, s[64:67], 0 offen
+	buffer_load_u16 v155, v185, s[64:67], 0 offen
 	.loc	1 823 32                        ; attention.py:823:32
-	ds_load_2addr_stride64_b64 v[130:133], v48 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[134:137], v66 offset1:1
-	ds_load_2addr_stride64_b64 v[138:141], v66 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[148:151], v67 offset0:2 offset1:3
-	ds_load_2addr_stride64_b64 v[197:200], v68 offset1:1
-	ds_load_2addr_stride64_b64 v[201:204], v68 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[222:225], v76 offset1:1
+	ds_load_2addr_stride64_b64 v[226:229], v76 offset0:2 offset1:3
+	ds_load_2addr_stride64_b64 v[192:195], v75 offset0:2 offset1:3
 	.loc	1 828 33                        ; attention.py:828:33
 	s_waitcnt lgkmcnt(6)
-	v_wmma_i32_16x16x16_iu4 v[161:168], v[126:127], v[23:24], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[169:176], v[128:129], v[23:24], v[9:16] neg_lo:[1,1,0]
-	.loc	1 838 37                        ; attention.py:838:37
-	s_clause 0x1
-	buffer_load_u16 v127, v143, s[64:67], 0 offen
-	buffer_load_u16 v129, v156, s[64:67], 0 offen
-	.loc	1 828 33                        ; attention.py:828:33
+	v_wmma_i32_16x16x16_iu4 v[166:173], v[157:158], v[23:24], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[198:205], v[159:160], v[23:24], v[9:16] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(5)
-	v_wmma_i32_16x16x16_iu4 v[178:185], v[130:131], v[23:24], v[9:16] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[189:196], v[132:133], v[23:24], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[206:213], v[161:162], v[23:24], v[9:16] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[214:221], v[163:164], v[23:24], v[9:16] neg_lo:[1,1,0]
 	.loc	1 823 32                        ; attention.py:823:32
-	ds_load_2addr_stride64_b64 v[9:12], v67 offset1:1
+	ds_load_2addr_stride64_b64 v[9:12], v75 offset1:1
 	.loc	1 828 33                        ; attention.py:828:33
 	s_waitcnt lgkmcnt(5)
-	v_wmma_i32_16x16x16_iu4 v[169:176], v[136:137], v[25:26], v[169:176] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[161:168], v[134:135], v[25:26], v[161:168] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[198:205], v[176:177], v[25:26], v[198:205] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[166:173], v[174:175], v[25:26], v[166:173] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(4)
-	v_wmma_i32_16x16x16_iu4 v[178:185], v[138:139], v[25:26], v[178:185] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[189:196], v[140:141], v[25:26], v[189:196] neg_lo:[1,1,0]
-	s_waitcnt lgkmcnt(3)
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_wmma_i32_16x16x16_iu4 v[178:185], v[148:149], v[27:28], v[178:185] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[189:196], v[150:151], v[27:28], v[189:196] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[206:213], v[178:179], v[25:26], v[206:213] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[214:221], v[180:181], v[25:26], v[214:221] neg_lo:[1,1,0]
 	s_waitcnt lgkmcnt(1)
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_wmma_i32_16x16x16_iu4 v[178:185], v[201:202], v[29:30], v[178:185] neg_lo:[1,1,0]
-	v_wmma_i32_16x16x16_iu4 v[189:196], v[203:204], v[29:30], v[189:196] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[206:213], v[192:193], v[27:28], v[206:213] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[214:221], v[194:195], v[27:28], v[214:221] neg_lo:[1,1,0]
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	v_wmma_i32_16x16x16_iu4 v[206:213], v[226:227], v[29:30], v[206:213] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[214:221], v[228:229], v[29:30], v[214:221] neg_lo:[1,1,0]
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v141, v178
-	v_cvt_f32_i32_e32 v148, v190
+	v_cvt_f32_i32_e32 v164, v206
+	v_cvt_f32_i32_e32 v185, v212
 	.loc	1 828 33                        ; attention.py:828:33
 	s_waitcnt lgkmcnt(0)
-	v_wmma_i32_16x16x16_iu4 v[169:176], v[11:12], v[27:28], v[169:176] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[198:205], v[11:12], v[27:28], v[198:205] neg_lo:[1,1,0]
 	.loc	1 838 37                        ; attention.py:838:37
 	s_clause 0x12
-	buffer_load_u16 v131, v177, s[64:67], 0 offen
-	buffer_load_u16 v132, v210, s[64:67], 0 offen
-	buffer_load_u16 v135, v211, s[64:67], 0 offen
-	buffer_load_u16 v140, v212, s[64:67], 0 offen
-	buffer_load_u16 v143, v158, s[64:67], 0 offen
-	buffer_load_u16 v177, v159, s[64:67], 0 offen
-	buffer_load_u16 v142, v142, s[64:67], 0 offen
-	buffer_load_u16 v160, v160, s[64:67], 0 offen
-	buffer_load_u16 v158, v144, s[64:67], 0 offen
-	buffer_load_u16 v156, v145, s[64:67], 0 offen
-	buffer_load_u16 v12, v146, s[64:67], 0 offen
-	buffer_load_u16 v13, v188, s[64:67], 0 offen
-	buffer_load_u16 v14, v205, s[64:67], 0 offen
-	buffer_load_u16 v15, v206, s[64:67], 0 offen
-	buffer_load_u16 v16, v207, s[64:67], 0 offen
-	buffer_load_u16 v18, v152, s[64:67], 0 offen
-	buffer_load_u16 v137, v153, s[64:67], 0 offen
-	buffer_load_u16 v138, v155, s[64:67], 0 offen
-	buffer_load_u16 v139, v208, s[64:67], 0 offen
+	buffer_load_u16 v157, v186, s[64:67], 0 offen
+	buffer_load_u16 v159, v190, s[64:67], 0 offen
+	buffer_load_u16 v161, v165, s[64:67], 0 offen
+	buffer_load_u16 v163, v196, s[64:67], 0 offen
+	buffer_load_u16 v165, v197, s[64:67], 0 offen
+	buffer_load_u16 v175, v232, s[64:67], 0 offen
+	buffer_load_u16 v177, v233, s[64:67], 0 offen
+	buffer_load_u16 v180, v234, s[64:67], 0 offen
+	buffer_load_u16 v183, v235, s[64:67], 0 offen
+	buffer_load_u16 v184, v236, s[64:67], 0 offen
+	buffer_load_u16 v179, v237, s[64:67], 0 offen
+	buffer_load_u16 v11, v238, s[64:67], 0 offen
+	buffer_load_u16 v12, v239, s[64:67], 0 offen
+	buffer_load_u16 v13, v240, s[64:67], 0 offen
+	buffer_load_u16 v14, v241, s[64:67], 0 offen
+	buffer_load_u16 v15, v242, s[64:67], 0 offen
+	buffer_load_u16 v16, v243, s[64:67], 0 offen
+	buffer_load_u16 v18, v244, s[64:67], 0 offen
+	buffer_load_u16 v19, v245, s[64:67], 0 offen
 	.loc	1 828 33                        ; attention.py:828:33
-	v_wmma_i32_16x16x16_iu4 v[161:168], v[9:10], v[27:28], v[161:168] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[166:173], v[9:10], v[27:28], v[166:173] neg_lo:[1,1,0]
 	.loc	1 880 35                        ; attention.py:880:35
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 828 33                        ; attention.py:828:33
-	v_wmma_i32_16x16x16_iu4 v[169:176], v[199:200], v[29:30], v[169:176] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[198:205], v[224:225], v[29:30], v[198:205] neg_lo:[1,1,0]
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v159, v184
+	v_cvt_f32_i32_e32 v190, v211
 	.loc	1 828 33                        ; attention.py:828:33
-	v_wmma_i32_16x16x16_iu4 v[161:168], v[197:198], v[29:30], v[161:168] neg_lo:[1,1,0]
+	v_wmma_i32_16x16x16_iu4 v[166:173], v[222:223], v[29:30], v[166:173] neg_lo:[1,1,0]
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v151, v193
-	v_cvt_f32_i32_e32 v146, v189
-	v_cvt_f32_i32_e32 v201, v169
-	v_cvt_f32_i32_e32 v202, v170
-	v_cvt_f32_i32_e32 v128, v162
-	v_cvt_f32_i32_e32 v198, v164
-	v_cvt_f32_i32_e32 v126, v161
-	v_cvt_f32_i32_e32 v200, v168
-	v_cvt_f32_i32_e32 v203, v171
-	v_cvt_f32_i32_e32 v204, v172
-	v_cvt_f32_i32_e32 v130, v173
-	v_cvt_f32_i32_e32 v133, v174
-	v_cvt_f32_i32_e32 v136, v176
-	v_cvt_f32_i32_e32 v161, v183
-	v_dual_mul_f32 v126, v113, v126 :: v_dual_add_nc_u32 v19, 0, v52
-	v_cvt_f32_i32_e32 v165, v165
-	v_cvt_f32_i32_e32 v197, v163
-	v_cvt_f32_i32_e32 v199, v166
-	v_cvt_f32_i32_e32 v167, v167
-	v_cvt_f32_i32_e32 v134, v175
+	v_cvt_f32_i32_e32 v186, v213
+	v_cvt_f32_i32_e32 v174, v207
+	v_cvt_f32_i32_e32 v197, v199
+	v_cvt_f32_i32_e32 v199, v201
+	v_cvt_f32_i32_e32 v196, v166
+	v_cvt_f32_i32_e32 v222, v167
+	v_cvt_f32_i32_e32 v223, v168
+	v_cvt_f32_i32_e32 v224, v169
+	v_cvt_f32_i32_e32 v225, v170
+	v_cvt_f32_i32_e32 v201, v202
+	v_cvt_f32_i32_e32 v158, v203
+	v_cvt_f32_i32_e32 v160, v204
+	v_cvt_f32_i32_e32 v166, v214
+	v_cvt_f32_i32_e32 v167, v215
+	v_cvt_f32_i32_e32 v168, v216
+	v_cvt_f32_i32_e32 v169, v217
+	v_cvt_f32_i32_e32 v170, v218
+	v_cvt_f32_i32_e32 v226, v171
+	.loc	1 881 25                        ; attention.py:881:25
+	v_add_nc_u32_e32 v182, 0, v49
+	.loc	1 847 25                        ; attention.py:847:25
+	v_cvt_f32_i32_e32 v162, v205
+	.loc	1 881 25                        ; attention.py:881:25
+	v_add_nc_u32_e32 v146, 0, v50
+	.loc	1 890 30                        ; attention.py:890:30
+	v_add_nc_u32_e32 v142, 0, v78
+	.loc	1 847 25                        ; attention.py:847:25
+	v_cvt_f32_i32_e32 v192, v173
+	v_cvt_f32_i32_e32 v227, v172
+	v_cvt_f32_i32_e32 v200, v200
+	v_cvt_f32_i32_e32 v176, v208
+	v_cvt_f32_i32_e32 v173, v221
 	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v178.l, v17.l
-	v_mov_b16_e64 v189.l, v17.l
+	v_mov_b16_e64 v221.l, v17.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v150, v192
+	v_mul_f32_e32 v158, v137, v158
+	v_cvt_f32_i32_e32 v198, v198
+	v_cvt_f32_i32_e32 v172, v220
 	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v192.l, v17.l
+	v_mov_b16_e64 v220.l, v17.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v136, v113, v136
-	v_mul_f32_e32 v141, v113, v141
-	v_cvt_f32_i32_e32 v144, v179
-	v_cvt_f32_i32_e32 v163, v181
-	v_cvt_f32_i32_e32 v188, v180
-	v_cvt_f32_i32_e32 v152, v194
+	v_mul_f32_e32 v162, v137, v162
+	v_mul_f32_e32 v160, v137, v160
+	v_cvt_f32_i32_e32 v181, v210
+	v_cvt_f32_i32_e32 v171, v219
 	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v194.l, v17.l
+	v_mov_b16_e64 v219.l, v17.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v162, v182
-	v_cvt_f32_i32_e32 v145, v185
-	v_cvt_f32_i32_e32 v149, v191
+	v_cvt_f32_i32_e32 v178, v209
+	v_mul_f32_e32 v186, v137, v186
 	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v191.l, v17.l
-	v_mov_b16_e64 v185.l, v17.l
+	v_mov_b16_e64 v208.l, v17.l
+	v_mov_b16_e64 v210.l, v17.l
+	v_mov_b16_e64 v209.l, v17.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_cvt_f32_i32_e32 v153, v195
-	v_cvt_f32_i32_e32 v155, v196
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v180.l, v17.l
-	v_mov_b16_e64 v179.l, v17.l
-	v_mov_b16_e64 v182.l, v17.l
-	v_mov_b16_e64 v181.l, v17.l
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v128, v113, v128
-	v_mul_f32_e32 v134, v113, v134
-	v_mul_f32_e32 v159, v113, v159
-	v_mul_f32_e32 v166, v113, v197
-	v_mul_f32_e32 v133, v113, v133
-	v_mul_f32_e32 v161, v113, v161
+	v_mul_f32_e32 v178, v137, v178
+	v_mul_f32_e32 v185, v137, v185
+	v_mul_f32_e32 v171, v137, v171
+	v_mul_f32_e32 v181, v137, v181
+	v_mul_f32_e32 v169, v137, v169
+	v_mul_f32_e32 v173, v137, v173
+	v_mul_f32_e32 v167, v137, v167
 	.loc	1 879 36                        ; attention.py:879:36
 	s_waitcnt vmcnt(32)
-	v_cndmask_b32_e64 v9, 0xff80ff80, v186, s5
-	v_cndmask_b32_e64 v10, 0xff80ff80, v187, s5
+	v_cndmask_b32_e64 v9, 0xff80ff80, v230, s6
+	v_cndmask_b32_e64 v10, 0xff80ff80, v231, s6
 	.loc	1 838 37                        ; attention.py:838:37
+	s_waitcnt vmcnt(30)
+	v_lshlrev_b32_e32 v189, 16, v189
 	s_waitcnt vmcnt(28)
-	v_lshlrev_b32_e32 v120, 16, v120
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_lshlrev_b32_e32 v207, 16, v187
 	.loc	1 880 35                        ; attention.py:880:35
-	v_mov_b16_e32 v11.l, v9.l
-	v_mov_b16_e32 v11.h, v10.l
+	v_mov_b16_e64 v193.l, v9.l
+	v_mov_b16_e64 v193.h, v10.l
+	v_mov_b16_e64 v194.l, v9.h
+	v_mov_b16_e64 v194.h, v10.h
+	ds_store_b32 v20, v193
+	ds_store_b32 v96, v194
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b32 v202, v149
+	ds_load_b32 v203, v97
+	ds_load_b32 v204, v98
+	ds_load_b32 v206, v99
+	ds_load_b32 v211, v100
+	ds_load_b32 v213, v101
+	ds_load_b32 v214, v102
+	ds_load_b32 v216, v103
+	ds_load_b32 v217, v104
+	ds_load_b32 v218, v105
+	ds_load_b32 v215, v106
+	ds_load_b32 v212, v107
+	ds_load_b32 v195, v108
+	ds_load_b32 v194, v109
+	ds_load_b32 v193, v110
 	.loc	1 879 36                        ; attention.py:879:36
-	v_mov_b16_e64 v209.h, v10.l
-	.loc	1 880 35                        ; attention.py:880:35
-	v_mov_b16_e64 v164.l, v9.h
-	v_mov_b16_e64 v164.h, v10.h
-	.loc	1 879 36                        ; attention.py:879:36
+	v_mov_b16_e64 v246.h, v10.l
 	v_mov_b16_e32 v17.h, v9.l
 	v_and_b32_e32 v9, 0xffff0000, v9
-	.loc	1 880 35                        ; attention.py:880:35
-	ds_store_b32 v121, v11
-	ds_store_b32 v86, v164
-	.loc	1 881 34                        ; attention.py:881:34
-	v_cmp_neq_f32_e64 s2, 0xff800000, v209
 	.loc	1 838 37                        ; attention.py:838:37
-	v_lshlrev_b32_e32 v164, 16, v213
+	s_waitcnt vmcnt(27)
+	v_lshlrev_b32_e32 v156, 16, v156
+	.loc	1 880 35                        ; attention.py:880:35
+	ds_load_b32 v205, v111
+	.loc	1 881 34                        ; attention.py:881:34
+	v_cmp_neq_f32_e64 s2, 0xff800000, v246
 	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v10, 0xffff0000, v10
+	s_waitcnt lgkmcnt(14)
+	v_and_b32_e32 v187, 0xffff0000, v203
 	.loc	1 881 34                        ; attention.py:881:34
 	v_cmp_neq_f32_e64 s4, 0xff800000, v17
-	v_cmp_neq_f32_e64 s6, 0xff800000, v9
+	v_cmp_neq_f32_e64 s7, 0xff800000, v9
 	.loc	1 881 25 is_stmt 0              ; attention.py:881:25
-	s_and_b32 s2, s5, s2
-	.loc	1 880 35 is_stmt 1              ; attention.py:880:35
 	s_waitcnt lgkmcnt(0)
-	.loc	1 881 34                        ; attention.py:881:34
-	v_cmp_neq_f32_e64 s7, 0xff800000, v10
-	.loc	1 881 25 is_stmt 0              ; attention.py:881:25
-	v_cndmask_b32_e64 v9, 0, 1, s2
-	s_and_b32 s4, s5, s4
-	s_and_b32 s6, s5, s6
-	v_cndmask_b32_e64 v10, 0, 1, s4
-	s_and_b32 s5, s5, s7
-	v_lshlrev_b16 v9.l, 8, v9.l
-	v_cndmask_b32_e64 v11, 0, 1, s5
+	s_and_b32 s2, s6, s2
 	.loc	1 880 35 is_stmt 1              ; attention.py:880:35
-	s_barrier
-	ds_load_b32 v121, v154
-	ds_load_b32 v154, v87
-	ds_load_b32 v173, v88
-	ds_load_b32 v174, v89
-	ds_load_b32 v176, v90
-	ds_load_b32 v183, v91
-	ds_load_b32 v187, v92
-	ds_load_b32 v190, v93
-	ds_load_b32 v193, v94
-	ds_load_b32 v186, v95
-	ds_load_b32 v184, v96
-	ds_load_b32 v172, v97
-	ds_load_b32 v171, v98
-	ds_load_b32 v170, v99
-	ds_load_b32 v169, v100
-	ds_load_b32 v168, v101
-	.loc	1 881 25                        ; attention.py:881:25
-	s_waitcnt lgkmcnt(0)
-	v_or_b16 v9.h, v10.l, v9.l
-	v_mov_b16_e32 v9.l, v11.l
-	v_cndmask_b32_e64 v10, 0, 1, s6
-	s_barrier
-	.loc	1 847 25                        ; attention.py:847:25
-	s_waitcnt vmcnt(21)
-	v_dual_mul_f32 v130, v113, v130 :: v_dual_lshlrev_b32 v125, 16, v125
-	.loc	1 881 25                        ; attention.py:881:25
-	v_lshlrev_b16 v9.l, 8, v9.l
-	.loc	1 838 37                        ; attention.py:838:37
-	s_waitcnt vmcnt(19)
-	v_lshlrev_b32_e32 v129, 16, v129
-	v_mov_b16_e64 v178.h, v183.l
-	v_mov_b16_e64 v189.h, v187.l
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v187, 0xffff0000, v187
-	.loc	1 881 25                        ; attention.py:881:25
-	v_or_b16 v9.l, v10.l, v9.l
-	v_mad_u64_u32 v[10:11], null, s8, s43, v[22:23]
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e32 v11.l, v17.l
-	v_mov_b16_e32 v11.h, v121.l
-	.loc	1 882 26                        ; attention.py:882:26
-	v_add_nc_u32_e32 v20, 0, v45
-	.loc	1 881 25                        ; attention.py:881:25
-	ds_store_b16_d16_hi v147, v9
-	ds_store_b16 v102, v9
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v178, 0x3fb8aa3b, v178 :: v_dual_lshlrev_b32 v127, 16, v127
-	v_mul_f32_e32 v147, 0x3fb8aa3b, v11
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v11, 0xffff0000, v121
-	.loc	1 838 37                        ; attention.py:838:37
-	v_lshlrev_b32_e32 v122, 16, v122
-	v_mov_b16_e32 v121.l, v17.l
-	v_mov_b16_e64 v121.h, v174.l
-	.loc	1 892 27                        ; attention.py:892:27
-	v_cmp_lt_i32_e64 s7, s55, v157
-	.loc	1 880 35                        ; attention.py:880:35
-	v_mul_f32_e32 v11, 0x3fb8aa3b, v11
-	.loc	1 880 25 is_stmt 0              ; attention.py:880:25
-	v_fmac_f32_e32 v147, v126, v122
-	.loc	1 838 37 is_stmt 1              ; attention.py:838:37
-	v_mov_b16_e32 v122.l, v17.l
-	v_mov_b16_e64 v122.h, v154.l
-	v_lshlrev_b32_e32 v117, 16, v117
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v11, v128, v164
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e32 v126.l, v17.l
-	v_mov_b16_e64 v126.h, v173.l
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v164, 0x3fb8aa3b, v122
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v122, 0xffff0000, v154
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v128.l, v17.l
-	v_mov_b16_e64 v128.h, v176.l
-	v_mov_b16_e64 v157.l, v17.l
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v164, v166, v117 :: v_dual_mul_f32 v117, v113, v198
-	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
-	v_mul_f32_e32 v154, 0x3fb8aa3b, v122
-	.loc	1 847 25 is_stmt 1              ; attention.py:847:25
-	v_mul_f32_e32 v166, 0x3fb8aa3b, v126
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v122, 0xffff0000, v173
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v173, 0x3fb8aa3b, v121
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v154, v117, v120 :: v_dual_and_b32 v121, 0xffff0000, v174
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v117, v113, v165 :: v_dual_lshlrev_b32 v120, 16, v124
-	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v165, 0x3fb8aa3b, v122 :: v_dual_lshlrev_b32 v122, 16, v217
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v175, 0x3fb8aa3b, v128 :: v_dual_mul_f32 v124, v113, v202
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_3)
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v166, v117, v120
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v117, v113, v199 :: v_dual_lshlrev_b32 v120, 16, v214
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v126, 0xffff0000, v176
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v128, v113, v204 :: v_dual_lshlrev_b32 v123, 16, v123
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v165, v117, v120 :: v_dual_and_b32 v176, 0xffff0000, v183
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v117, v113, v167
-	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v167, 0x3fb8aa3b, v121 :: v_dual_lshlrev_b32 v120, 16, v215
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v121, v113, v201 :: v_dual_mul_f32 v174, 0x3fb8aa3b, v126
-	v_mul_f32_e32 v126, v113, v203
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v173, v117, v120
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v117, v113, v200
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v175, v121, v122 :: v_dual_lshlrev_b32 v120, 16, v216
-	v_dual_fmac_f32 v174, v124, v123 :: v_dual_mul_f32 v183, 0x3fb8aa3b, v189
-	s_waitcnt vmcnt(18)
-	v_dual_fmac_f32 v178, v126, v125 :: v_dual_lshlrev_b32 v131, 16, v131
-	s_delay_alu instid0(VALU_DEP_3)
-	v_fmac_f32_e32 v167, v117, v120
-	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
 	v_mul_f32_e32 v187, 0x3fb8aa3b, v187
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v183, v130, v129 :: v_dual_mul_f32 v176, 0x3fb8aa3b, v176
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v10, 0xffff0000, v10
+	.loc	1 881 25                        ; attention.py:881:25
+	v_cndmask_b32_e64 v9, 0, 1, s2
+	s_and_b32 s4, s6, s4
+	s_and_b32 s7, s6, s7
+	s_barrier
+	.loc	1 881 34 is_stmt 0              ; attention.py:881:34
+	v_cmp_neq_f32_e64 s8, 0xff800000, v10
+	.loc	1 881 25                        ; attention.py:881:25
+	v_cndmask_b32_e64 v10, 0, 1, s4
+	v_lshlrev_b16 v9.l, 8, v9.l
+	v_cndmask_b32_e64 v149, 0, 1, s7
 	.loc	1 838 37 is_stmt 1              ; attention.py:838:37
-	v_mov_b16_e64 v157.h, v190.l
-	v_mov_b16_e64 v192.h, v193.l
-	.loc	1 880 25                        ; attention.py:880:25
-	s_waitcnt vmcnt(17)
-	v_dual_fmac_f32 v187, v133, v131 :: v_dual_lshlrev_b32 v132, 16, v132
+	s_waitcnt vmcnt(25)
+	v_lshlrev_b32_e32 v153, 16, v153
+	.loc	1 881 25                        ; attention.py:881:25
+	s_and_b32 s6, s6, s8
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v154, 16, v154
+	.loc	1 881 25                        ; attention.py:881:25
+	v_cndmask_b32_e64 v20, 0, 1, s6
+	v_or_b16 v9.l, v10.l, v9.l
+	.loc	1 838 37                        ; attention.py:838:37
+	s_waitcnt vmcnt(23)
+	v_lshlrev_b32_e32 v145, 16, v145
+	s_waitcnt vmcnt(18)
+	v_lshlrev_b32_e32 v157, 16, v157
+	v_lshlrev_b32_e32 v150, 16, v150
+	.loc	1 881 25                        ; attention.py:881:25
+	v_mov_b16_e32 v10.l, v20.l
+	v_mov_b16_e64 v20.l, v149.l
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v221.h, v218.l
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v164, v137, v164 :: v_dual_lshlrev_b32 v151, 16, v151
+	s_delay_alu instid0(VALU_DEP_4)
+	.loc	1 881 25                        ; attention.py:881:25
+	v_lshlrev_b16 v9.h, 8, v10.l
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v10, v137, v196
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v196.l, v17.l
+	v_mov_b16_e64 v196.h, v206.l
+	v_mov_b16_e64 v220.h, v217.l
+	.loc	1 881 25                        ; attention.py:881:25
+	v_or_b16 v149.l, v20.l, v9.h
+	ds_store_b16 v182, v9
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e32 v9.l, v17.l
+	v_mov_b16_e64 v9.h, v202.l
+	.loc	1 882 26                        ; attention.py:882:26
+	v_add_nc_u32_e32 v147, 0, v44
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v182, 16, v191
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v191, v137, v222 :: v_dual_mul_f32 v196, 0x3fb8aa3b, v196
+	s_waitcnt vmcnt(13)
+	v_dual_mul_f32 v20, 0x3fb8aa3b, v9 :: v_dual_lshlrev_b32 v175, 16, v175
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v165, 16, v165
+	.loc	1 847 25                        ; attention.py:847:25
+	s_waitcnt vmcnt(10)
+	v_dual_mul_f32 v174, v137, v174 :: v_dual_lshlrev_b32 v183, 16, v183
 	s_delay_alu instid0(VALU_DEP_3)
-	v_dual_fmac_f32 v176, v128, v127 :: v_dual_mul_f32 v189, 0x3fb8aa3b, v157
-	.loc	1 838 37                        ; attention.py:838:37
-	s_waitcnt vmcnt(16)
-	v_lshlrev_b32_e32 v135, 16, v135
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v157, 0xffff0000, v190
-	.loc	1 838 37                        ; attention.py:838:37
-	s_waitcnt vmcnt(15)
-	v_lshlrev_b32_e32 v140, 16, v140
-	.loc	1 847 25                        ; attention.py:847:25
-	s_waitcnt vmcnt(14)
-	v_dual_mul_f32 v192, 0x3fb8aa3b, v192 :: v_dual_lshlrev_b32 v143, 16, v143
 	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v189, v134, v132 :: v_dual_mul_f32 v190, 0x3fb8aa3b, v157
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	v_dual_fmac_f32 v192, v141, v140 :: v_dual_and_b32 v157, 0xffff0000, v193
-	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v144, v113, v144
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v194.h, v186.l
-	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v163, v113, v163 :: v_dual_and_b32 v186, 0xffff0000, v186
-	.loc	1 880 35                        ; attention.py:880:35
-	v_mul_f32_e32 v193, 0x3fb8aa3b, v157
-	.loc	1 847 25                        ; attention.py:847:25
-	s_waitcnt vmcnt(12)
-	v_dual_mul_f32 v157, v113, v188 :: v_dual_lshlrev_b32 v142, 16, v142
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v186, 0x3fb8aa3b, v186 :: v_dual_lshlrev_b32 v177, 16, v177
-	.loc	1 880 25 is_stmt 0              ; attention.py:880:25
-	v_dual_fmac_f32 v193, v144, v143 :: v_dual_mul_f32 v188, 0x3fb8aa3b, v194
-	.loc	1 838 37 is_stmt 1              ; attention.py:838:37
-	v_mov_b16_e64 v191.h, v184.l
+	v_fmac_f32_e32 v20, v10, v182
+	v_mad_u64_u32 v[9:10], null, s9, s43, v[22:23]
 	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v184, 0xffff0000, v184
+	v_and_b32_e32 v10, 0xffff0000, v202
 	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v185.h, v172.l
+	v_mov_b16_e64 v182.l, v17.l
+	v_mov_b16_e64 v182.h, v203.l
+	v_lshlrev_b32_e32 v202, 16, v188
+	v_mov_b16_e64 v203.l, v17.l
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v10, 0x3fb8aa3b, v10
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v203.h, v214.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_mul_f32_e32 v162, v113, v162
+	v_mul_f32_e32 v188, 0x3fb8aa3b, v182
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v182.h, v211.l
 	s_delay_alu instid0(VALU_DEP_4)
 	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v188, v157, v177 :: v_dual_mul_f32 v191, 0x3fb8aa3b, v191
+	v_dual_fmac_f32 v10, v191, v189 :: v_dual_lshlrev_b32 v159, 16, v159
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v191, v137, v223
 	.loc	1 838 37                        ; attention.py:838:37
-	s_waitcnt vmcnt(11)
-	v_lshlrev_b32_e32 v160, 16, v160
-	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v194, 0x3fb8aa3b, v184 :: v_dual_lshlrev_b32 v195, 1, v10
+	v_mov_b16_e64 v189.l, v17.l
+	v_mov_b16_e64 v189.h, v204.l
+	v_mov_b16_e64 v223.l, v17.l
+	v_mov_b16_e64 v223.h, v212.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v188, v191, v202 :: v_dual_mul_f32 v191, v137, v224
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v202.l, v17.l
+	v_mov_b16_e64 v202.h, v213.l
 	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v176, v137, v176
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v219.h, v216.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v187, v191, v207
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v207, v137, v225
+	v_mul_f32_e32 v191, 0x3fb8aa3b, v189
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v189, 0xffff0000, v204
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v180, 16, v180
 	s_waitcnt vmcnt(9)
-	v_dual_mul_f32 v185, 0x3fb8aa3b, v185 :: v_dual_lshlrev_b32 v156, 16, v156
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_lshlrev_b32_e32 v184, 16, v184
+	v_mov_b16_e64 v222.l, v17.l
 	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v186, v163, v142 :: v_dual_fmac_f32 v191, v162, v160
-	.loc	1 884 24                        ; attention.py:884:24
-	v_max_f32_e32 v142, v119, v119
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v185, v159, v156 :: v_dual_lshlrev_b32 v158, 16, v158
-	.loc	1 890 30                        ; attention.py:890:30
-	v_add_lshl_u32 v10, v10, s74, 1
-	.loc	1 892 26                        ; attention.py:892:26
-	s_and_b32 s7, s0, s7
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e32 v117.h, v17.l
-	v_mov_b16_e32 v120.h, v17.l
-	v_mov_b16_e32 v121.h, v17.l
-	v_mov_b16_e32 v122.h, v17.l
-	v_mov_b16_e32 v123.h, v17.l
-	v_mov_b16_e32 v124.h, v17.l
-	v_mov_b16_e32 v125.h, v17.l
-	v_mov_b16_e32 v126.h, v17.l
-	v_mov_b16_e32 v127.h, v17.l
-	v_mov_b16_e64 v128.h, v17.l
-	v_mov_b16_e64 v129.h, v17.l
-	v_mov_b16_e64 v130.h, v17.l
-	v_mov_b16_e64 v131.h, v17.l
-	v_mov_b16_e64 v133.h, v17.l
-	v_mov_b16_e64 v132.h, v17.l
-	v_mov_b16_e64 v134.h, v17.l
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v190, v136, v135
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v135.h, v17.l
-	v_mov_b16_e64 v136.h, v17.l
-	v_mov_b16_e64 v140.h, v17.l
-	v_mov_b16_e64 v141.h, v17.l
-	v_mov_b16_e64 v143.h, v17.l
-	v_mov_b16_e64 v144.h, v17.l
-	v_mov_b16_e64 v157.h, v17.l
-	v_mov_b16_e64 v177.h, v17.l
-	v_mov_b16_e64 v163.h, v17.l
-	v_mov_b16_e64 v160.h, v17.l
-	v_mov_b16_e64 v162.h, v17.l
-	.loc	1 880 25                        ; attention.py:880:25
-	s_waitcnt vmcnt(7)
-	v_dual_fmac_f32 v194, v161, v158 :: v_dual_lshlrev_b32 v13, 16, v13
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v158.h, v17.l
-	v_mov_b16_e64 v161.h, v17.l
-	v_mov_b16_e64 v156.h, v17.l
-	v_mov_b16_e64 v159.h, v17.l
-	v_mov_b16_e64 v184.h, v17.l
-	.loc	1 890 30                        ; attention.py:890:30
-	v_cndmask_b32_e64 v196, 0x80000000, v10, s7
+	v_dual_fmac_f32 v191, v207, v156 :: v_dual_mul_f32 v156, v137, v226
+	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
+	v_mul_f32_e32 v189, 0x3fb8aa3b, v189
+	.loc	1 838 37 is_stmt 1              ; attention.py:838:37
+	v_mov_b16_e64 v222.h, v215.l
 	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v166, v137, v166 :: v_dual_lshlrev_b32 v163, 16, v163
+	.loc	1 838 37                        ; attention.py:838:37
+	s_waitcnt vmcnt(7)
+	v_lshlrev_b32_e32 v11, 16, v11
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v189, v156, v154 :: v_dual_mul_f32 v154, v137, v227
+	.loc	1 838 37                        ; attention.py:838:37
+	v_and_b32_e32 v156, 0xffff0000, v213
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v213, 0x3fb8aa3b, v221
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v155, 16, v155
+	v_lshlrev_b32_e32 v161, 16, v161
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v196, v154, v153
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v153, v137, v192 :: v_dual_and_b32 v154, 0xffff0000, v206
+	v_dual_mul_f32 v206, 0x3fb8aa3b, v220 :: v_dual_fmac_f32 v213, v176, v175
+	s_delay_alu instid0(VALU_DEP_2)
+	.loc	1 880 35                        ; attention.py:880:35
+	v_dual_mul_f32 v192, 0x3fb8aa3b, v154 :: v_dual_lshlrev_b32 v177, 16, v177
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v154, 0xffff0000, v211
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v148, 16, v148
+	v_lshlrev_b32_e32 v179, 16, v179
+	v_mov_b16_e64 v207.l, v17.l
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v149.h, v17.l
+	v_mov_b16_e64 v175.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v192, v153, v148
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v153, v137, v197
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v197, 0x3fb8aa3b, v154
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v148, v137, v198
+	v_mul_f32_e32 v198, 0x3fb8aa3b, v182
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v182, 0xffff0000, v214
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v154.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v197, v153, v150
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v153, v137, v200 :: v_dual_mul_f32 v200, 0x3fb8aa3b, v202
+	v_mul_f32_e32 v202, 0x3fb8aa3b, v203
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v150.h, v17.l
+	v_mov_b16_e64 v176.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
 	s_waitcnt vmcnt(5)
-	v_dual_mul_f32 v10, v113, v145 :: v_dual_lshlrev_b32 v15, 16, v15
-	v_mul_f32_e32 v17, v113, v146
-	v_dual_mul_f32 v145, v113, v148 :: v_dual_lshlrev_b32 v14, 16, v14
+	v_dual_fmac_f32 v200, v153, v151 :: v_dual_lshlrev_b32 v13, 16, v13
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v151, v137, v199
+	v_dual_mul_f32 v199, 0x3fb8aa3b, v156 :: v_dual_mul_f32 v156, v137, v201
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v201, 0x3fb8aa3b, v182
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v182, 0xffff0000, v216
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v152, 16, v152
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v216, 0x3fb8aa3b, v222
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v153.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v201, v158, v157
+	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
+	v_mul_f32_e32 v203, 0x3fb8aa3b, v182
+	.loc	1 879 36 is_stmt 1              ; attention.py:879:36
+	v_and_b32_e32 v182, 0xffff0000, v217
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v217, 0x3fb8aa3b, v223 :: v_dual_fmac_f32 v216, v181, v180
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v198, v148, v145 :: v_dual_fmac_f32 v199, v151, v152
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v145.h, v17.l
+	s_delay_alu instid0(VALU_DEP_3)
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v217, v185, v184 :: v_dual_mul_f32 v204, 0x3fb8aa3b, v219
+	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
+	v_mul_f32_e32 v211, 0x3fb8aa3b, v182
+	.loc	1 879 36 is_stmt 1              ; attention.py:879:36
+	v_and_b32_e32 v182, 0xffff0000, v218
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v148.h, v17.l
+	v_mov_b16_e64 v151.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v204, v160, v159
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v152.h, v17.l
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v214, 0x3fb8aa3b, v182
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v182, v137, v190
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v190, 0xffff0000, v215
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v206, v164, v163
+	v_dual_fmac_f32 v202, v156, v155 :: v_dual_fmac_f32 v203, v162, v161
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v155.h, v17.l
+	s_delay_alu instid0(VALU_DEP_4)
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v215, 0x3fb8aa3b, v190
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v190, 0xffff0000, v212
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v156.h, v17.l
+	v_mov_b16_e64 v157.h, v17.l
+	v_mov_b16_e64 v158.h, v17.l
+	v_mov_b16_e64 v159.h, v17.l
+	.loc	1 880 35                        ; attention.py:880:35
 	s_waitcnt vmcnt(0)
-	v_dual_mul_f32 v146, v113, v149 :: v_dual_lshlrev_b32 v139, 16, v139
-	v_dual_mul_f32 v148, v113, v150 :: v_dual_lshlrev_b32 v137, 16, v137
-	v_mul_f32_e32 v149, v113, v151
-	v_mul_f32_e32 v150, v113, v152
-	v_dual_mul_f32 v151, v113, v153 :: v_dual_lshlrev_b32 v12, 16, v12
-	v_dual_mul_f32 v152, v113, v155 :: v_dual_and_b32 v153, 0xffff0000, v172
+	v_dual_mul_f32 v218, 0x3fb8aa3b, v190 :: v_dual_lshlrev_b32 v19, 16, v19
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v160.h, v17.l
+	v_mov_b16_e64 v161.h, v17.l
+	v_mov_b16_e64 v162.h, v17.l
+	v_mov_b16_e64 v163.h, v17.l
+	v_mov_b16_e64 v164.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v214, v178, v177
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v177.h, v17.l
+	v_mov_b16_e64 v178.h, v17.l
+	v_mov_b16_e64 v180.h, v17.l
+	v_mov_b16_e64 v181.h, v17.l
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v215, v182, v183
+	v_fmac_f32_e32 v211, v174, v165
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v165.h, v17.l
+	v_mov_b16_e64 v174.h, v17.l
+	v_mov_b16_e64 v182.h, v17.l
+	v_mov_b16_e64 v183.h, v17.l
+	v_mov_b16_e64 v184.h, v17.l
+	v_mov_b16_e64 v185.h, v17.l
+	v_mov_b16_e64 v190.h, v17.l
+	.loc	1 838 37                        ; attention.py:838:37
+	v_lshlrev_b32_e32 v15, 16, v15
+	.loc	1 880 25                        ; attention.py:880:25
+	v_fmac_f32_e32 v218, v186, v179
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v186.h, v17.l
+	.loc	1 890 30                        ; attention.py:890:30
+	v_lshlrev_b32_e32 v17, 1, v9
+	v_add_lshl_u32 v9, v9, s43, 1
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v168, v137, v168
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v208.h, v195.l
+	.loc	1 847 25                        ; attention.py:847:25
+	v_mul_f32_e32 v170, v137, v170
+	.loc	1 890 30                        ; attention.py:890:30
+	v_cndmask_b32_e64 v219, 0x80000000, v17, s5
+	v_cndmask_b32_e64 v17, 0x80000000, v9, s5
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v9, 0xffff0000, v195
+	v_and_b32_e32 v195, 0xffff0000, v205
 	.loc	1 838 37                        ; attention.py:838:37
 	v_lshlrev_b32_e32 v16, 16, v16
-	v_mov_b16_e64 v180.h, v171.l
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v155, 0xffff0000, v171
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v179.h, v170.l
-	.loc	1 880 35                        ; attention.py:880:35
-	v_mul_f32_e32 v197, 0x3fb8aa3b, v153
-	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v170, 0xffff0000, v170
+	v_mov_b16_e64 v207.h, v194.l
+	v_mov_b16_e64 v209.h, v205.l
 	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v171, 0x3fb8aa3b, v180 :: v_dual_lshlrev_b32 v18, 16, v18
+	v_mul_f32_e32 v205, 0x3fb8aa3b, v208
 	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v155, 0x3fb8aa3b, v155 :: v_dual_lshlrev_b32 v138, 16, v138
-	.loc	1 838 37                        ; attention.py:838:37
-	v_mov_b16_e64 v182.h, v169.l
-	v_mov_b16_e64 v181.h, v168.l
+	v_mul_f32_e32 v223, 0x3fb8aa3b, v195
+	.loc	1 879 36                        ; attention.py:879:36
+	v_and_b32_e32 v194, 0xffff0000, v194
 	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 880 25                        ; attention.py:880:25
-	v_dual_fmac_f32 v171, v17, v13 :: v_dual_and_b32 v168, 0xffff0000, v168
+	.loc	1 847 25                        ; attention.py:847:25
+	v_dual_mul_f32 v209, 0x3fb8aa3b, v209 :: v_dual_lshlrev_b32 v14, 16, v14
 	.loc	1 881 25                        ; attention.py:881:25
+	ds_store_b16 v112, v149
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_u16_d16 v9, v19
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v9, v19 offset:32
 	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v197, v10, v12
+	v_fmac_f32_e32 v205, v166, v11
+	.loc	1 881 25                        ; attention.py:881:25
+	ds_load_u16_d16 v11, v113
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v11, v113 offset:32
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v223, v173, v19 :: v_dual_lshlrev_b32 v12, 16, v12
+	.loc	1 880 35 is_stmt 0              ; attention.py:880:35
+	v_dual_mul_f32 v221, 0x3fb8aa3b, v194 :: v_dual_mul_f32 v220, 0x3fb8aa3b, v9
+	.loc	1 881 25 is_stmt 1              ; attention.py:881:25
+	ds_load_u16_d16 v9, v146
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v9, v146 offset:32
 	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v179, 0x3fb8aa3b, v179 :: v_dual_mul_f32 v198, 0x3fb8aa3b, v170
+	v_dual_mul_f32 v172, v137, v172 :: v_dual_mul_f32 v207, 0x3fb8aa3b, v207
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v221, v169, v14 :: v_dual_fmac_f32 v220, v167, v12
+	.loc	1 881 25                        ; attention.py:881:25
+	ds_load_u16_d16 v12, v114
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v12, v114 offset:32
+	.loc	1 880 25                        ; attention.py:880:25
+	v_dual_fmac_f32 v207, v168, v13 :: v_dual_lshlrev_b32 v18, 16, v18
+	.loc	1 838 37                        ; attention.py:838:37
+	v_mov_b16_e64 v210.h, v193.l
+	.loc	1 881 25                        ; attention.py:881:25
+	ds_load_u16_d16 v13, v115
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v13, v115 offset:32
 	.loc	1 879 36                        ; attention.py:879:36
-	v_and_b32_e32 v169, 0xffff0000, v169
+	v_and_b32_e32 v193, 0xffff0000, v193
 	.loc	1 881 25                        ; attention.py:881:25
-	ds_load_u16_d16 v10, v103
+	ds_load_u16_d16 v14, v116
 	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v10, v103 offset:32
-	ds_load_u16_d16 v12, v104
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v12, v104 offset:32
-	.loc	1 880 35                        ; attention.py:880:35
-	v_dual_mul_f32 v200, 0x3fb8aa3b, v168 :: v_dual_fmac_f32 v155, v145, v14
-	.loc	1 881 25                        ; attention.py:881:25
-	ds_load_u16_d16 v13, v105
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v13, v105 offset:32
-	ds_load_u16_d16 v14, v106
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v14, v106 offset:32
+	ds_load_u16_d16_hi v14, v116 offset:32
 	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v198, v148, v16
+	v_fmac_f32_e32 v209, v172, v18
 	.loc	1 847 25                        ; attention.py:847:25
-	v_dual_mul_f32 v182, 0x3fb8aa3b, v182 :: v_dual_mul_f32 v199, 0x3fb8aa3b, v169
-	v_mul_f32_e32 v169, 0x3fb8aa3b, v181
+	v_mul_f32_e32 v194, 0x3fb8aa3b, v210
+	.loc	1 881 25                        ; attention.py:881:25
+	ds_load_u16_d16 v18, v119
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v18, v119 offset:32
+	.loc	1 880 35                        ; attention.py:880:35
+	v_mul_f32_e32 v222, 0x3fb8aa3b, v193
+	.loc	1 881 25                        ; attention.py:881:25
+	v_and_b16 v19.h, 1, v11.h
+	v_lshrrev_b16 v11.h, 8, v11.h
 	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v179, v146, v15
+	v_fmac_f32_e32 v194, v170, v15
 	.loc	1 881 25                        ; attention.py:881:25
-	ds_load_u16_d16 v15, v107
+	ds_load_u16_d16 v15, v117
 	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v15, v107 offset:32
-	ds_load_u16_d16 v16, v108
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v16, v108 offset:32
-	ds_load_u16_d16 v17, v109
-	s_waitcnt lgkmcnt(0)
-	ds_load_u16_d16_hi v17, v109 offset:32
+	ds_load_u16_d16_hi v15, v117 offset:32
+	v_and_b16 v19.l, 1, v9.h
 	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v182, v149, v18
+	v_fmac_f32_e32 v222, v171, v16
 	.loc	1 881 25                        ; attention.py:881:25
-	v_and_b16 v18.l, 1, v9.h
-	.loc	1 890 30                        ; attention.py:890:30
-	v_cndmask_b32_e64 v195, 0x80000000, v195, s7
-	.loc	1 881 25                        ; attention.py:881:25
-	v_and_b16 v19.l, 1, v9.l
-	v_lshrrev_b16 v9.l, 8, v9.l
+	ds_load_u16_d16 v16, v118
+	s_waitcnt lgkmcnt(0)
+	ds_load_u16_d16_hi v16, v118 offset:32
+	v_cmp_eq_u16_e64 s8, 1, v19.h
 	v_lshrrev_b16 v9.h, 8, v9.h
-	v_and_b16 v18.h, 1, v10.h
+	v_cmp_eq_u16_e64 s5, 1, v19.l
+	v_and_b16 v19.l, 1, v12.l
 	v_and_b16 v19.h, 1, v12.h
-	v_cmp_eq_u16_e64 s7, 1, v18.l
-	v_lshrrev_b16 v10.h, 8, v10.h
-	v_and_b16 v18.l, 1, v13.h
-	v_cmp_eq_u16_e64 s8, 1, v18.h
-	v_and_b16 v18.h, 1, v14.l
-	v_cmp_eq_u16_e64 s9, 1, v19.h
-	v_and_b16 v19.h, 1, v14.h
-	v_cmp_eq_u16_e64 s10, 1, v18.l
-	v_and_b16 v18.l, 1, v15.l
-	v_cmp_eq_u16_e64 s16, 1, v18.h
-	v_and_b16 v18.h, 1, v15.h
-	v_cmp_eq_u16_e64 s11, 1, v19.h
-	v_and_b16 v19.h, 1, v16.l
-	v_cmp_eq_u16_e64 s17, 1, v18.l
-	v_and_b16 v18.l, 1, v16.h
-	v_cmp_eq_u16_e64 s12, 1, v18.h
-	s_waitcnt lgkmcnt(0)
-	v_and_b16 v18.h, 1, v17.l
-	v_cmp_eq_u16_e64 s18, 1, v19.h
-	v_and_b16 v19.h, 1, v17.h
-	v_cmp_eq_u16_e64 s13, 1, v18.l
-	v_and_b16 v18.l, 1, v10.l
-	v_cmp_eq_u16_e64 s15, 1, v18.h
-	v_and_b16 v18.h, 1, v12.l
-	v_cmp_eq_u16_e64 s14, 1, v19.h
-	v_and_b16 v19.h, 1, v13.l
-	v_lshrrev_b16 v10.l, 8, v10.l
 	v_lshrrev_b16 v12.l, 8, v12.l
-	v_lshrrev_b16 v13.l, 8, v13.l
-	v_lshrrev_b16 v14.l, 8, v14.l
-	v_lshrrev_b16 v15.l, 8, v15.l
-	v_lshrrev_b16 v16.l, 8, v16.l
-	v_lshrrev_b16 v17.l, 8, v17.l
-	v_lshrrev_b16 v17.h, 8, v17.h
-	v_and_b16 v9.l, 1, v9.l
+	v_and_b16 v9.h, 1, v9.h
 	v_lshrrev_b16 v12.h, 8, v12.h
+	v_cmp_eq_u16_e64 s19, 1, v19.l
+	v_and_b16 v19.l, 1, v13.l
+	v_cmp_eq_u16_e64 s9, 1, v19.h
+	v_and_b16 v19.h, 1, v13.h
+	v_lshrrev_b16 v13.l, 8, v13.l
+	v_and_b16 v12.l, 1, v12.l
+	v_cmp_eq_u16_e64 s15, 1, v19.l
+	v_and_b16 v19.l, 1, v14.l
+	v_cmp_eq_u16_e64 s10, 1, v19.h
+	v_and_b16 v19.h, 1, v14.h
+	v_lshrrev_b16 v14.l, 8, v14.l
+	v_and_b16 v13.l, 1, v13.l
+	v_cmp_eq_u16_e64 s16, 1, v19.l
+	v_and_b16 v19.l, 1, v15.l
+	v_cmp_eq_u16_e64 s11, 1, v19.h
+	v_and_b16 v19.h, 1, v15.h
+	v_lshrrev_b16 v15.l, 8, v15.l
+	v_and_b16 v14.l, 1, v14.l
+	v_cmp_eq_u16_e64 s17, 1, v19.l
+	s_waitcnt lgkmcnt(0)
+	v_and_b16 v19.l, 1, v16.l
+	v_cmp_eq_u16_e64 s12, 1, v19.h
+	v_and_b16 v19.h, 1, v16.h
+	v_lshrrev_b16 v16.l, 8, v16.l
+	v_and_b16 v15.l, 1, v15.l
+	v_cmp_eq_u16_e64 s18, 1, v19.l
+	v_and_b16 v19.l, 1, v18.l
+	v_cmp_eq_u16_e64 s13, 1, v19.h
+	v_and_b16 v19.h, 1, v18.h
+	v_lshrrev_b16 v18.l, 8, v18.l
+	v_lshrrev_b16 v18.h, 8, v18.h
+	v_cmp_eq_u16_e64 s20, 1, v19.l
+	v_and_b16 v19.l, 1, v9.l
+	v_cmp_eq_u16_e64 s14, 1, v19.h
+	v_and_b16 v19.h, 1, v11.l
+	v_lshrrev_b16 v9.l, 8, v9.l
+	v_and_b16 v16.l, 1, v16.l
+	v_and_b16 v18.l, 1, v18.l
+	v_lshrrev_b16 v11.l, 8, v11.l
 	v_lshrrev_b16 v13.h, 8, v13.h
 	v_lshrrev_b16 v14.h, 8, v14.h
 	v_lshrrev_b16 v15.h, 8, v15.h
-	v_and_b16 v9.h, 1, v9.h
-	v_and_b16 v10.l, 1, v10.l
-	v_and_b16 v10.h, 1, v10.h
-	v_and_b16 v12.l, 1, v12.l
-	v_and_b16 v13.l, 1, v13.l
-	v_and_b16 v14.l, 1, v14.l
-	v_and_b16 v15.l, 1, v15.l
-	v_and_b16 v16.l, 1, v16.l
-	v_and_b16 v17.l, 1, v17.l
-	v_and_b16 v17.h, 1, v17.h
-	v_cmp_eq_u16_e64 s33, 1, v9.l
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v200, v152, v139
-	.loc	1 881 25                        ; attention.py:881:25
 	v_lshrrev_b16 v16.h, 8, v16.h
+	v_and_b16 v9.l, 1, v9.l
+	v_and_b16 v18.h, 1, v18.h
+	v_cmp_eq_u16_e64 s26, 1, v19.h
+	v_cmp_eq_u16_e64 s29, 1, v12.l
+	v_cmp_eq_u16_e64 s21, 1, v13.l
+	v_cmp_eq_u16_e64 s22, 1, v14.l
+	v_cmp_eq_u16_e64 s23, 1, v15.l
+	v_cmp_eq_u16_e64 s24, 1, v16.l
+	v_cmp_eq_u16_e64 s38, 1, v18.l
+	v_cmp_eq_u16_e64 s30, 1, v9.h
+	v_and_b16 v11.l, 1, v11.l
+	v_and_b16 v11.h, 1, v11.h
 	v_and_b16 v12.h, 1, v12.h
 	v_and_b16 v13.h, 1, v13.h
 	v_and_b16 v14.h, 1, v14.h
 	v_and_b16 v15.h, 1, v15.h
-	v_cmp_eq_u16_e64 s19, 1, v19.l
-	v_cmp_eq_u16_e64 s20, 1, v18.l
-	v_cmp_eq_u16_e64 s21, 1, v18.h
-	v_cmp_eq_u16_e64 s34, 1, v10.l
-	v_cmp_eq_u16_e64 s35, 1, v12.l
-	v_cmp_eq_u16_e64 s36, 1, v13.l
-	v_cmp_eq_u16_e64 s37, 1, v14.l
-	v_cmp_eq_u16_e64 s38, 1, v15.l
-	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v139, 0xff800000, v11, s33
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v169, v151, v138
-	.loc	1 881 25                        ; attention.py:881:25
-	v_cmp_eq_u16_e64 s39, 1, v16.l
-	v_cmp_eq_u16_e64 s30, 1, v17.l
-	v_cmp_eq_u16_e64 s23, 1, v9.h
-	v_cmp_eq_u16_e64 s24, 1, v10.h
-	v_cmp_eq_u16_e64 s31, 1, v17.h
 	v_and_b16 v16.h, 1, v16.h
+	v_cmp_eq_u16_e64 s25, 1, v19.l
 	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v138, 0xff800000, v147, s19
-	v_cndmask_b32_e64 v145, 0xff800000, v164, s20
-	v_cndmask_b32_e64 v147, 0xff800000, v166, s21
+	v_cndmask_b32_e64 v168, 0xff800000, v188, s26
 	.loc	1 881 25                        ; attention.py:881:25
-	v_cmp_eq_u16_e64 s22, 1, v19.h
+	v_cmp_eq_u16_e64 s27, 1, v9.l
 	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v151, 0xff800000, v175, s16
-	v_cndmask_b32_e64 v153, 0xff800000, v178, s17
-	v_cndmask_b32_e64 v164, 0xff800000, v183, s18
-	v_cndmask_b32_e64 v166, 0xff800000, v189, s15
-	v_cndmask_b32_e64 v168, 0xff800000, v192, s7
-	v_cndmask_b32_e64 v146, 0xff800000, v154, s34
-	v_cndmask_b32_e64 v175, 0xff800000, v185, s10
-	v_cndmask_b32_e64 v148, 0xff800000, v165, s35
-	v_cndmask_b32_e64 v178, 0xff800000, v171, s11
-	v_cndmask_b32_e64 v152, 0xff800000, v174, s37
-	v_cndmask_b32_e64 v154, 0xff800000, v176, s38
-	v_cndmask_b32_e64 v185, 0xff800000, v169, s14
-	v_cndmask_b32_e64 v165, 0xff800000, v187, s39
-	v_cndmask_b32_e64 v169, 0xff800000, v193, s23
-	v_cndmask_b32_e64 v171, 0xff800000, v186, s24
+	v_cndmask_b32_e64 v170, 0xff800000, v191, s19
+	v_cndmask_b32_e64 v172, 0xff800000, v196, s15
+	v_cndmask_b32_e64 v188, 0xff800000, v198, s16
+	v_cndmask_b32_e64 v191, 0xff800000, v200, s17
+	v_cndmask_b32_e64 v193, 0xff800000, v202, s18
+	v_cndmask_b32_e64 v195, 0xff800000, v204, s20
+	v_cndmask_b32_e64 v198, 0xff800000, v206, s5
+	v_cndmask_b32_e64 v171, 0xff800000, v189, s29
+	v_cndmask_b32_e64 v173, 0xff800000, v192, s21
+	v_cndmask_b32_e64 v189, 0xff800000, v197, s22
+	v_cndmask_b32_e64 v192, 0xff800000, v199, s23
+	v_cndmask_b32_e64 v210, 0xff800000, v194, s13
+	v_cndmask_b32_e64 v194, 0xff800000, v201, s24
+	v_cndmask_b32_e64 v196, 0xff800000, v203, s38
+	v_cndmask_b32_e64 v199, 0xff800000, v211, s30
 	.loc	1 881 25                        ; attention.py:881:25
-	v_cmp_eq_u16_e64 s25, 1, v12.h
-	v_cmp_eq_u16_e64 s26, 1, v13.h
-	v_cmp_eq_u16_e64 s27, 1, v14.h
-	v_cmp_eq_u16_e64 s28, 1, v15.h
+	v_cmp_eq_u16_e64 s39, 1, v18.h
+	v_cmp_eq_u16_e64 s28, 1, v11.l
 	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v186, 0xff800000, v200, s31
-	.loc	1 880 25                        ; attention.py:880:25
-	v_fmac_f32_e32 v199, v150, v137
-	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v150, 0xff800000, v167, s36
-	v_cndmask_b32_e64 v167, 0xff800000, v190, s30
-	v_cndmask_b32_e64 v149, 0xff800000, v173, s22
-	v_cndmask_b32_e64 v170, 0xff800000, v188, s8
-	v_cndmask_b32_e64 v172, 0xff800000, v191, s9
-	v_cndmask_b32_e64 v180, 0xff800000, v179, s12
-	v_cndmask_b32_e64 v182, 0xff800000, v182, s13
-	v_cndmask_b32_e64 v173, 0xff800000, v194, s25
-	v_cndmask_b32_e64 v176, 0xff800000, v197, s26
-	v_cndmask_b32_e64 v179, 0xff800000, v155, s27
-	v_cndmask_b32_e64 v181, 0xff800000, v198, s28
+	v_cndmask_b32_e64 v166, 0xff800000, v20, s25
+	v_cndmask_b32_e64 v167, 0xff800000, v10, s27
+	v_cndmask_b32_e64 v200, 0xff800000, v213, s8
+	v_cndmask_b32_e64 v212, 0xff800000, v209, s14
 	.loc	1 881 25                        ; attention.py:881:25
-	v_cmp_eq_u16_e64 s29, 1, v16.h
+	v_cmp_eq_u16_e64 s31, 1, v11.h
+	v_cmp_eq_u16_e64 s33, 1, v12.h
+	v_cmp_eq_u16_e64 s34, 1, v13.h
+	v_cmp_eq_u16_e64 s35, 1, v14.h
+	v_cmp_eq_u16_e64 s36, 1, v15.h
+	v_cmp_eq_u16_e64 s37, 1, v16.h
+	.loc	1 882 26                        ; attention.py:882:26
+	v_cndmask_b32_e64 v213, 0xff800000, v223, s39
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v137, v152, v153, v154
-	v_max3_f32 v155, v164, v165, v166
-	v_max3_f32 v174, v167, v168, v169
-	v_max_f32_e32 v190, v138, v139
-	v_max3_f32 v191, v146, v147, v148
+	v_max3_f32 v18, v189, v191, v192
+	v_max3_f32 v19, v193, v194, v195
+	v_max3_f32 v20, v196, v198, v199
 .Ltmp2:
 	.loc	1 882 26                        ; attention.py:882:26
+	v_cndmask_b32_e64 v169, 0xff800000, v187, s28
 	s_waitcnt lgkmcnt(0)
 	s_barrier
+	v_cndmask_b32_e64 v202, 0xff800000, v216, s9
+	v_cndmask_b32_e64 v204, 0xff800000, v217, s10
+	v_cndmask_b32_e64 v206, 0xff800000, v205, s11
+	v_cndmask_b32_e64 v208, 0xff800000, v207, s12
+	v_cndmask_b32_e64 v201, 0xff800000, v214, s31
+	v_cndmask_b32_e64 v203, 0xff800000, v215, s33
+	v_cndmask_b32_e64 v205, 0xff800000, v218, s34
+	v_cndmask_b32_e64 v209, 0xff800000, v221, s36
+	v_cndmask_b32_e64 v211, 0xff800000, v222, s37
 .Ltmp3:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v187, v170, v171, v172
-	v_max3_f32 v188, v173, v175, v176
-	v_max3_f32 v189, v178, v179, v180
-	v_max3_f32 v192, v149, v150, v151
-	v_max_f32_e32 v194, v185, v186
+	v_max_f32_e32 v217, v212, v213
 .Ltmp4:
 	.loc	1 882 26                        ; attention.py:882:26
-	v_cndmask_b32_e64 v183, 0xff800000, v199, s29
-	ds_store_b64 v20, v[138:139]
-	ds_store_b64 v70, v[145:146]
-	ds_store_b64 v71, v[147:148]
-	ds_store_b64 v72, v[149:150]
-	ds_store_b64 v73, v[151:152]
-	ds_store_b64 v74, v[153:154]
-	ds_store_b64 v75, v[164:165]
-	ds_store_b64 v76, v[166:167]
-	ds_store_b64 v77, v[168:169]
-	ds_store_b64 v78, v[170:171]
-	ds_store_b64 v79, v[172:173]
-	ds_store_b64 v80, v[175:176]
-	ds_store_b64 v81, v[178:179]
-	ds_store_b64 v82, v[180:181]
-	ds_store_b64 v83, v[182:183]
-	ds_store_b64 v84, v[185:186]
+	v_cndmask_b32_e64 v207, 0xff800000, v220, s35
+	ds_store_b64 v147, v[166:167]
+	ds_store_b64 v80, v[168:169]
+	ds_store_b64 v81, v[170:171]
+	ds_store_b64 v82, v[172:173]
+	ds_store_b64 v83, v[188:189]
+	ds_store_b64 v84, v[191:192]
+	ds_store_b64 v85, v[193:194]
+	ds_store_b64 v86, v[195:196]
+	ds_store_b64 v87, v[198:199]
+	ds_store_b64 v88, v[200:201]
+	ds_store_b64 v89, v[202:203]
+	ds_store_b64 v90, v[204:205]
+	ds_store_b64 v91, v[206:207]
+	ds_store_b64 v92, v[208:209]
+	ds_store_b64 v93, v[210:211]
+	ds_store_b64 v94, v[212:213]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_2addr_b64 v[9:12], v85 offset1:16
+	.loc	1 890 30                        ; attention.py:890:30
+	buffer_load_b128 v[13:16], v219, s[68:71], 0 offen
 .Ltmp5:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v193, v181, v182
-	v_max3_f32 v137, v137, v155, v174
-	v_max3_f32 v155, v190, v145, v191
-	v_max3_f32 v174, v187, v188, v189
+	v_max3_f32 v218, v18, v19, v20
 .Ltmp6:
 	.loc	1 890 30                        ; attention.py:890:30
-	s_clause 0x1
-	buffer_load_b128 v[13:16], v195, s[68:71], 0 offen
-	buffer_load_b128 v[17:20], v196, s[68:71], 0 offen
+	buffer_load_b128 v[17:20], v17, s[68:71], 0 offen
 .Ltmp7:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v187, v193, v183, v194
+	v_max_f32_e32 v197, v166, v167
+	v_max3_f32 v214, v169, v170, v171
+	v_max3_f32 v146, v200, v201, v202
+	v_max3_f32 v147, v203, v204, v205
+	v_max3_f32 v187, v206, v207, v208
+	v_max3_f32 v215, v172, v173, v188
 .Ltmp8:
-	.loc	1 890 30                        ; attention.py:890:30
-	s_waitcnt lgkmcnt(0)
+	.loc	1 882 26                        ; attention.py:882:26
+	ds_load_2addr_b64 v[9:12], v95 offset1:16
 .Ltmp9:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v137, v155, v192, v137
+	v_max_f32_e32 v216, v209, v210
+	v_max3_f32 v197, v197, v168, v214
+	v_max3_f32 v146, v146, v147, v187
 .Ltmp10:
-	.loc	1 890 30                        ; attention.py:890:30
-	s_barrier
-	.loc	1 818 13                        ; attention.py:818:13
-	s_add_i32 s55, s55, 64
-	.loc	1 890 30                        ; attention.py:890:30
-	s_waitcnt vmcnt(1)
-	ds_store_b128 v47, v[13:16]
-	s_waitcnt vmcnt(0)
-	ds_store_b128 v47, v[17:20] offset:4096
-.Ltmp11:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v137, v137, v174, v187
-	v_dual_max_f32 v174, v11, v11 :: v_dual_max_f32 v187, v9, v9
-.Ltmp12:
+	.loc	1 884 24                        ; attention.py:884:24
+	v_max_f32_e32 v179, v144, v144
 	.loc	1 890 30                        ; attention.py:890:30
 	s_waitcnt lgkmcnt(0)
+.Ltmp11:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max3_f32 v147, v216, v211, v217
+	v_max3_f32 v187, v197, v215, v218
+.Ltmp12:
+	.loc	1 890 30                        ; attention.py:890:30
 	s_barrier
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_1)
-.Ltmp13:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_permlanex16_b32 v155, v137, s75, 0xfedcba98 op_sel:[1,0]
-.Ltmp14:
 	.loc	1 818 13                        ; attention.py:818:13
 	s_cmp_lt_i32 s55, s72
-	.loc	1 884 24                        ; attention.py:884:24
-	v_max3_f32 v137, v115, v137, v155
-	s_delay_alu instid0(VALU_DEP_1)
+	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+.Ltmp13:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max3_f32 v146, v187, v146, v147
+.Ltmp14:
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
+	v_permlanex16_b32 v147, v146, s74, 0xfedcba98 op_sel:[1,0]
 .Ltmp15:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_dual_max_f32 v155, v187, v174 :: v_dual_sub_f32 v138, v138, v137
+	v_max_f32_e32 v187, v11, v11
+	v_max_f32_e32 v197, v9, v9
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
 .Ltmp16:
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v186, v186, v137
-	v_sub_f32_e32 v174, v176, v137
-	v_sub_f32_e32 v176, v178, v137
-	v_sub_f32_e32 v178, v179, v137
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v138, v138
-	v_exp_f32_e32 v186, v186
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v179, v180, v137
-	v_sub_f32_e32 v180, v181, v137
+	.loc	1 884 24                        ; attention.py:884:24
+	v_max3_f32 v146, v139, v146, v147
 .Ltmp17:
-	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max3_f32 v155, v155, v10, v12
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max_f32_e32 v147, v197, v187
+	s_delay_alu instid0(VALU_DEP_2)
 .Ltmp18:
 	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v146, v146, v137
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v178, v178
-	s_delay_alu instid0(TRANS32_DEP_3) | instskip(NEXT) | instid1(TRANS32_DEP_2)
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v138, 0, v138, s19
-	v_cndmask_b32_e64 v186, 0, v186, s31
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_mov_b16_e64 v120.l, v138.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v149, v149, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v159.l, v186.h
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_4)
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v178, 0, v178, s27
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v120, 1, v120
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v149, v149
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v159, 1, v159
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(VALU_DEP_3)
-	v_mov_b16_e64 v163.l, v178.h
-	v_cmp_o_f32_e64 s31, v178, v178
-	v_add3_u32 v120, v138, v120, 0x7fff
-	v_and_b32_e32 v163, 1, v163
-	s_delay_alu instid0(TRANS32_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v149, 0, v149, s22
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v126.l, v149.h
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v165, v165, v137 :: v_dual_and_b32 v126, 1, v126
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v165, v165
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_add3_u32 v126, v149, v126, 0x7fff
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v165, 0, v165, s39
-	s_delay_alu instid0(VALU_DEP_1) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v131.l, v165.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v172, v172, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s19, v165, v165
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_and_b32_e32 v131, 1, v131
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v172, v172
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(TRANS32_DEP_1)
-	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v131, v165, v131, 0x7fff
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v172, 0, v172, s9
-	s_delay_alu instid0(VALU_DEP_1)
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v144.l, v172.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v181, v182, v137
+	v_sub_f32_e32 v197, v198, v146
+	v_sub_f32_e32 v198, v201, v146
+	v_sub_f32_e32 v201, v202, v146
+	v_sub_f32_e32 v202, v205, v146
+	v_sub_f32_e32 v205, v206, v146
+	v_sub_f32_e32 v206, v209, v146
 	.loc	1 885 74                        ; attention.py:885:74
-	v_sub_f32_e32 v182, v115, v137
+	v_sub_f32_e32 v209, v139, v146
 .Ltmp19:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_e32 v115, v155
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max3_f32 v147, v147, v10, v12
 .Ltmp20:
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v146, v146
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v144, 1, v144
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v181, v181
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v166, v166, v146
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
 	.loc	1 885 61                        ; attention.py:885:61
-	v_exp_f32_e32 v182, v182
+	v_exp_f32_e32 v209, v209
 .Ltmp21:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_dpp v115, v115 row_xmask:8 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_1) | instskip(NEXT) | instid1(VALU_DEP_1)
+	v_mov_b32_e32 v139, v147
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)
 .Ltmp22:
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v148, v148, v137 :: v_dual_max_f32 v115, v115, v115
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v148, v148
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v166, v166, v137
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v146, 0, v146, s34
-	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-	.loc	1 885 25 is_stmt 1              ; attention.py:885:25
-	v_cndmask_b32_e64 v182, 0, v182, s40
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v147, v147, v137
-	v_sub_f32_e32 v145, v145, v137
-	v_sub_f32_e32 v152, v152, v137
-	v_dual_sub_f32 v139, v139, v137 :: v_dual_mul_f32 v4, v4, v182
-	.loc	1 895 23                        ; attention.py:895:23
-	v_mul_f32_e32 v8, v8, v182
 	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v147, v147
-	.loc	1 895 23                        ; attention.py:895:23
-	v_mul_f32_e32 v6, v6, v182
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v145, v145
-	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
-	v_cndmask_b32_e64 v148, 0, v148, s35
-	.loc	1 895 23 is_stmt 1              ; attention.py:895:23
-	v_mul_f32_e32 v3, v3, v182
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v152, v152
-	v_exp_f32_e32 v139, v139
+	v_exp_f32_e32 v166, v166
 .Ltmp23:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v115, v155, v115
-.Ltmp24:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v123.l, v148.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v168, v168, v137
-	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
-	v_cndmask_b32_e64 v147, 0, v147, s21
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v164, v164, v137 :: v_dual_mul_f32 v7, v7, v182
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v145, 0, v145, s20
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_and_b32_e32 v123, 1, v123
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_3) | instid1(VALU_DEP_3)
-	v_mov_b16_e64 v124.l, v147.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v153, v153, v137
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v168, v168
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_mov_b16_e64 v122.l, v145.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v151, v151, v137 :: v_dual_and_b32 v124, 1, v124
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_3)
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v153, v153
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v152, 0, v152, s37
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_and_b32_e32 v122, 1, v122
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_2) | instid1(TRANS32_DEP_3)
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v151, v151
-	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
-	v_cndmask_b32_e64 v139, 0, v139, s33
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_mov_b16_e64 v121.l, v146.h
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v168, 0, v168, s7
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v127.l, v152.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v170, v170, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v117.l, v139.h
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v153, 0, v153, s17
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v136.l, v168.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v175, v175, v137
-	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
-	v_cndmask_b32_e64 v151, 0, v151, s16
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_and_b32_e32 v127, 1, v127
-	v_mov_b16_e64 v130.l, v153.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v169, v169, v137 :: v_dual_and_b32 v136, 1, v136
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v128.l, v151.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v167, v167, v137 :: v_dual_and_b32 v130, 1, v130
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
-	v_exp_f32_e32 v169, v169
-	v_exp_f32_e32 v175, v175
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_and_b32_e32 v128, 1, v128
-	s_delay_alu instid0(VALU_DEP_2)
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v167, v167
-	v_exp_f32_e32 v170, v170
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v117, 1, v117
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v164, v164
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s7, v139, v139
-	v_and_b32_e32 v121, 1, v121
-	v_cmp_o_f32_e64 s9, v146, v146
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v169, 0, v169, s23
-	v_cndmask_b32_e64 v175, 0, v175, s10
-	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v117, v139, v117, 0x7fff
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v167, 0, v167, s30
-	v_cndmask_b32_e64 v170, 0, v170, s8
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v135.l, v169.h
-	v_mov_b16_e64 v177.l, v175.h
-	v_cmp_o_f32_e64 s8, v138, v138
-	v_mov_b16_e64 v132.l, v167.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v171, v171, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v135, 1, v135
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v174, v174
-	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v121, v146, v121, 0x7fff
-	v_and_b32_e32 v132, 1, v132
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v171, v171
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v117.h, 0x7fff, v117.h, s7
-	v_cndmask_b16 v117.l, 0x7fff, v120.h, s8
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v164, 0, v164, s18
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s18, v153, v153
-	v_add3_u32 v130, v153, v130, 0x7fff
-	v_cndmask_b16 v153.h, 0x7fff, v121.h, s9
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v174, 0, v174, s26
-	.loc	1 896 30                        ; attention.py:896:30
-	v_permlanex16_b32 v121, v117, s75, 0xfedcba98 op_sel:[1,0]
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v181, 0, v181, s13
-	v_cndmask_b32_e64 v171, 0, v171, s24
-	.loc	1 886 62 is_stmt 0              ; attention.py:886:62
-	v_dual_sub_f32 v150, v150, v137 :: v_dual_mul_f32 v1, v1, v182
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_mov_b16_e64 v157.l, v174.h
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_mov_b16_e64 v156.l, v181.h
-	v_mov_b16_e64 v140.l, v171.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_dual_sub_f32 v154, v154, v137 :: v_dual_mul_f32 v5, v5, v182
-	s_delay_alu instid0(VALU_DEP_4)
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v155, 1, v157
-	v_and_b32_e32 v157, 1, v177
-.Ltmp25:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_e32 v177, v115
+	v_mov_b32_dpp v139, v139 row_xmask:8 row_mask:0xf bank_mask:0xf
+.Ltmp24:
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v168, v168, v146
+	s_delay_alu instid0(TRANS32_DEP_2)
+	.loc	1 885 25                        ; attention.py:885:25
+	v_cndmask_b32_e64 v209, 0, v209, s40
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v169, v169, v146
+	v_sub_f32_e32 v171, v171, v146
+.Ltmp25:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max_f32_e32 v139, v139, v139
 .Ltmp26:
 	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v180, v180
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v140, 1, v140
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v179, v179
+	v_exp_f32_e32 v168, v168
 	.loc	1 895 23                        ; attention.py:895:23
-	v_mul_f32_e32 v2, v2, v182
+	v_mul_f32_e32 v4, v4, v209
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v169, v169
+	.loc	1 895 23                        ; attention.py:895:23
+	v_mul_f32_e32 v6, v6, v209
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v171, v171
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v166, 0, v166, s25
+	.loc	1 886 62                        ; attention.py:886:62
+	v_dual_sub_f32 v167, v167, v146 :: v_dual_mul_f32 v2, v2, v209
+	v_dual_sub_f32 v170, v170, v146 :: v_dual_mul_f32 v1, v1, v209
+	s_delay_alu instid0(TRANS32_DEP_3) | instskip(SKIP_1) | instid1(TRANS32_DEP_2)
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v168, 0, v168, s26
+	.loc	1 886 62                        ; attention.py:886:62
+	v_dual_sub_f32 v172, v172, v146 :: v_dual_mul_f32 v3, v3, v209
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v169, 0, v169, s28
+	s_delay_alu instid0(TRANS32_DEP_1) | instskip(SKIP_2) | instid1(VALU_DEP_4)
+	v_cndmask_b32_e64 v171, 0, v171, s29
+	.loc	1 886 62                        ; attention.py:886:62
+	v_dual_sub_f32 v188, v188, v146 :: v_dual_mul_f32 v5, v5, v209
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v148.l, v166.h
+	v_mov_b16_e64 v149.l, v169.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v187, v189, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v150.l, v168.h
+	v_mov_b16_e64 v153.l, v171.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v189, v192, v146
+	v_dual_sub_f32 v192, v194, v146 :: v_dual_mul_f32 v7, v7, v209
+	v_dual_sub_f32 v194, v196, v146 :: v_dual_max_f32 v139, v147, v139
+	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
+	v_exp_f32_e32 v167, v167
+	v_exp_f32_e32 v170, v170
+	v_exp_f32_e32 v172, v172
+	v_exp_f32_e32 v188, v188
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_and_b32_e32 v147, 1, v148
+	v_and_b32_e32 v148, 1, v149
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v187, v187
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v149, 1, v150
+	v_and_b32_e32 v150, 1, v153
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v189, v189
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v167, 0, v167, s27
+	v_cndmask_b32_e64 v170, 0, v170, s19
+	v_cndmask_b32_e64 v172, 0, v172, s15
+	v_cndmask_b32_e64 v188, 0, v188, s16
+	.loc	1 886 62                        ; attention.py:886:62
+	v_dual_sub_f32 v173, v173, v146 :: v_dual_mul_f32 v8, v8, v209
+	s_delay_alu instid0(TRANS32_DEP_2) | instskip(SKIP_2) | instid1(TRANS32_DEP_1)
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v187, 0, v187, s22
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v145.l, v167.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v196, v199, v146
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v189, 0, v189, s23
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v154.l, v170.h
+	v_mov_b16_e64 v152.l, v172.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v191, v191, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v155.l, v187.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v193, v193, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v156.l, v188.h
+	v_mov_b16_e64 v157.l, v189.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v195, v195, v146
+	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
+	v_exp_f32_e32 v173, v173
+	v_exp_f32_e32 v192, v192
+	v_exp_f32_e32 v194, v194
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_and_b32_e32 v145, 1, v145
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v196, v196
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v153, 1, v154
+	v_and_b32_e32 v152, 1, v152
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v191, v191
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v154, 1, v155
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v193, v193
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v155, 1, v156
+	v_and_b32_e32 v156, 1, v157
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v195, v195
+	v_exp_f32_e32 v198, v198
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v173, 0, v173, s21
+	v_cndmask_b32_e64 v192, 0, v192, s24
+	v_cndmask_b32_e64 v194, 0, v194, s38
+	v_cndmask_b32_e64 v191, 0, v191, s17
+	v_cndmask_b32_e64 v196, 0, v196, s30
+	v_cndmask_b32_e64 v193, 0, v193, s18
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v151.l, v173.h
+	v_mov_b16_e64 v159.l, v192.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v195, 0, v195, s20
+	v_cndmask_b32_e64 v198, 0, v198, s31
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v158.l, v191.h
+	v_mov_b16_e64 v160.l, v193.h
+	v_mov_b16_e64 v161.l, v194.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v199, v200, v146
+	v_dual_sub_f32 v200, v203, v146 :: v_dual_and_b32 v151, 1, v151
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v162.l, v195.h
+	v_mov_b16_e64 v163.l, v196.h
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v202, v202
+	s_delay_alu instid0(VALU_DEP_3)
+	v_exp_f32_e32 v200, v200
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v165.l, v198.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v203, v204, v146
+	v_sub_f32_e32 v204, v207, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v157, 1, v158
+	v_and_b32_e32 v158, 1, v159
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v197, v197
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v159, 1, v160
+	v_and_b32_e32 v160, 1, v161
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v199, v199
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v161, 1, v162
+	v_and_b32_e32 v162, 1, v163
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v201, v201
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v200, 0, v200, s33
+	v_cndmask_b32_e64 v202, 0, v202, s34
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v204, v204
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v197, 0, v197, s5
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v212, v212, v146
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v175.l, v200.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v199, 0, v199, s8
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v177.l, v202.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v207, v208, v146
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v201, 0, v201, s9
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v164.l, v197.h
+	v_mov_b16_e64 v174.l, v199.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v204, 0, v204, s35
+	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
+	v_exp_f32_e32 v212, v212
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v176.l, v201.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_dual_sub_f32 v208, v211, v146 :: v_dual_and_b32 v163, 1, v164
+	.loc	1 886 49 is_stmt 0              ; attention.py:886:49
+	v_exp_f32_e32 v206, v206
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_and_b32_e32 v164, 1, v165
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v203, v203
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v165, 1, v174
+	v_and_b32_e32 v174, 1, v175
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v205, v205
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v175, 1, v176
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v208, v208
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v176, 1, v177
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v207, v207
+	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
+	v_cndmask_b32_e64 v206, 0, v206, s36
+	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
+	v_mov_b16_e64 v180.l, v204.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v203, 0, v203, s10
+	v_cndmask_b32_e64 v212, 0, v212, s14
+	.loc	1 896 30                        ; attention.py:896:30
+	v_cmp_o_f32_e64 s5, v167, v167
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v205, 0, v205, s11
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v182.l, v206.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v208, 0, v208, s37
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v178.l, v203.h
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v207, 0, v207, s12
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v181.l, v205.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v211, v213, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v184.l, v208.h
+	.loc	1 886 62                        ; attention.py:886:62
+	v_sub_f32_e32 v210, v210, v146
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v183.l, v207.h
+	v_and_b32_e32 v177, 1, v178
+	v_and_b32_e32 v178, 1, v180
+	v_and_b32_e32 v180, 1, v181
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v211, v211
+	.loc	1 896 30                        ; attention.py:896:30
+	v_and_b32_e32 v181, 1, v182
+	v_and_b32_e32 v182, 1, v183
+	v_and_b32_e32 v183, 1, v184
+	.loc	1 886 49                        ; attention.py:886:49
+	v_exp_f32_e32 v210, v210
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v190.l, v212.h
+	v_cmp_o_f32_e64 s8, v166, v166
+	v_add3_u32 v145, v167, v145, 0x7fff
+	v_add3_u32 v147, v166, v147, 0x7fff
+	v_cmp_o_f32_e64 s9, v169, v169
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v211, 0, v211, s39
+	.loc	1 896 30                        ; attention.py:896:30
+	v_add3_u32 v148, v169, v148, 0x7fff
+	v_cndmask_b16 v145.h, 0x7fff, v145.h, s5
+	v_cndmask_b16 v145.l, 0x7fff, v147.h, s8
+	.loc	1 886 33                        ; attention.py:886:33
+	v_cndmask_b32_e64 v210, 0, v210, s13
+	.loc	1 896 30                        ; attention.py:896:30
+	v_mov_b16_e64 v186.l, v211.h
+	v_cmp_o_f32_e64 s12, v170, v170
+	v_add3_u32 v153, v170, v153, 0x7fff
+	v_add3_u32 v170, v204, v178, 0x7fff
+	v_mov_b16_e64 v185.l, v210.h
+	v_cndmask_b16 v178.h, 0x7fff, v148.h, s9
+	v_permlanex16_b32 v148, v145, s74, 0xfedcba98 op_sel:[1,0]
+	v_cmp_o_f32_e64 s10, v168, v168
+	v_cmp_o_f32_e64 s11, v171, v171
+	v_and_b32_e32 v184, 1, v185
+	v_and_b32_e32 v185, 1, v186
+	v_and_b32_e32 v186, 1, v190
 .Ltmp27:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_dpp v177, v177 row_xmask:4 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v190, v139
 .Ltmp28:
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v150, v150
-	v_exp_f32_e32 v166, v166
-	v_exp_f32_e32 v154, v154
 	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v133.l, v164.h
+	v_add3_u32 v149, v168, v149, 0x7fff
+	v_cmp_o_f32_e64 s27, v200, v200
+	v_cmp_o_f32_e64 s28, v201, v201
+	v_cmp_o_f32_e64 s29, v202, v202
 .Ltmp29:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v120, v177, v177
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
+	v_mov_b32_dpp v190, v190 row_xmask:4 row_mask:0xf bank_mask:0xf
 .Ltmp30:
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v180, 0, v180, s28
 	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v141.l, v170.h
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v179, 0, v179, s12
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s24, v168, v168
+	v_cmp_o_f32_e64 s30, v203, v203
+	v_add3_u32 v150, v171, v150, 0x7fff
+	v_add3_u32 v166, v200, v174, 0x7fff
+	v_add3_u32 v167, v201, v175, 0x7fff
 .Ltmp31:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v115, v115, v120
+	v_max_f32_e32 v147, v190, v190
 .Ltmp32:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v162.l, v180.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v185, v185, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v158.l, v179.h
-	v_perm_b32 v120, v121, v117, v110
-	v_perm_b32 v121, v121, v117, v112
-	v_and_b32_e32 v162, 1, v162
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v185, v185
+	v_add3_u32 v168, v202, v176, 0x7fff
+	v_cndmask_b16 v178.l, 0x7fff, v149.h, s10
+	v_cmp_o_f32_e64 s13, v173, v173
+	v_cmp_o_f32_e64 s14, v172, v172
 .Ltmp33:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_dual_mov_b32 v117, v115 :: v_dual_and_b32 v158, 1, v158
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max_f32_e32 v139, v139, v147
 .Ltmp34:
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v150, 0, v150, s36
-	v_cndmask_b32_e64 v166, 0, v166, s15
-	v_cndmask_b32_e64 v154, 0, v154, s38
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s26, v170, v170
+	v_perm_b32 v147, v148, v145, v120
+	v_perm_b32 v148, v148, v145, v136
+	v_cmp_o_f32_e64 s16, v188, v188
+	v_cmp_o_f32_e64 s17, v189, v189
 .Ltmp35:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_dpp v117, v117 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v145, v139
 .Ltmp36:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v156, 1, v156
-	v_mov_b16_e64 v125.l, v150.h
-	s_delay_alu instid0(TRANS32_DEP_1)
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v185, 0, v185, s14
-	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v134.l, v166.h
+	v_cmp_o_f32_e64 s31, v204, v204
+	v_cmp_o_f32_e64 s33, v205, v205
+	v_cmp_o_f32_e64 s34, v206, v206
+	v_cmp_o_f32_e64 s35, v207, v207
 .Ltmp37:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v117, v117, v117
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
+	v_mov_b32_dpp v145, v145 row_xmask:2 row_mask:0xf bank_mask:0xf
 .Ltmp38:
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v173, v173, v137
 	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v129.l, v154.h
-	v_mov_b16_e64 v184.l, v185.h
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_cmp_o_f32_e64 s36, v208, v208
+	v_cmp_o_f32_e64 s37, v210, v210
+	v_cmp_o_f32_e64 s38, v211, v211
+	v_cmp_o_f32_e64 s39, v212, v212
 .Ltmp39:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_dual_max_f32 v115, v115, v117 :: v_dual_and_b32 v134, 1, v134
+	v_max_f32_e32 v145, v145, v145
 .Ltmp40:
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v173, v173
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v136, v168, v136, 0x7fff
-	s_delay_alu instid0(VALU_DEP_3)
-	v_and_b32_e32 v182, 1, v184
-	v_add3_u32 v138, v171, v140, 0x7fff
+	v_add3_u32 v151, v173, v151, 0x7fff
+	v_add3_u32 v152, v172, v152, 0x7fff
+	v_add3_u32 v155, v188, v155, 0x7fff
+	v_add3_u32 v156, v189, v156, 0x7fff
 .Ltmp41:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_e32 v117, v115
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max_f32_e32 v139, v139, v145
 .Ltmp42:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s10, v145, v145
-	v_add3_u32 v122, v145, v122, 0x7fff
-	v_add3_u32 v146, v178, v163, 0x7fff
-	v_cmp_o_f32_e64 s20, v164, v164
+	v_add3_u32 v171, v205, v180, 0x7fff
+	v_add3_u32 v173, v207, v182, 0x7fff
+	v_add3_u32 v174, v208, v183, 0x7fff
+	v_add3_u32 v175, v210, v184, 0x7fff
 .Ltmp43:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
-	v_mov_b32_dpp v117, v117 row_xmask:1 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v145, v139
 .Ltmp44:
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v173, 0, v173, s25
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s25, v171, v171
-	v_cmp_o_f32_e64 s21, v167, v167
-	v_cmp_o_f32_e64 s22, v166, v166
+	v_cndmask_b16 v180.h, 0x7fff, v150.h, s11
+	v_cndmask_b16 v188.h, 0x7fff, v166.h, s27
+	v_cndmask_b16 v188.l, 0x7fff, v167.h, s28
+	v_cndmask_b16 v189.h, 0x7fff, v168.h, s29
 .Ltmp45:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v117, v117, v117
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:883:29 ]
+	v_mov_b32_dpp v145, v145 row_xmask:1 row_mask:0xf bank_mask:0xf
 .Ltmp46:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_mov_b16_e64 v143.l, v173.h
-	v_cmp_o_f32_e64 s27, v173, v173
-	v_cmp_o_f32_e64 s23, v169, v169
-	v_add3_u32 v132, v167, v132, 0x7fff
+	v_permlanex16_b32 v150, v178, s74, 0xfedcba98 op_sel:[1,0]
+	v_cmp_o_f32_e64 s15, v187, v187
+	v_cmp_o_f32_e64 s18, v191, v191
+	v_cmp_o_f32_e64 s19, v192, v192
 .Ltmp47:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
-	v_max_f32_e32 v115, v115, v117
+	v_max_f32_e32 v145, v145, v145
 .Ltmp48:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v143, 1, v143
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v176, v176
+	v_cmp_o_f32_e64 s20, v193, v193
+	v_cmp_o_f32_e64 s21, v194, v194
+	v_cmp_o_f32_e64 s22, v195, v195
+	v_cmp_o_f32_e64 s23, v196, v196
+.Ltmp49:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:883:29 ] ]
+	v_max_f32_e32 v139, v139, v145
+.Ltmp50:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v134, v166, v134, 0x7fff
-	v_add3_u32 v135, v169, v135, 0x7fff
+	v_add3_u32 v154, v187, v154, 0x7fff
+	v_add3_u32 v158, v192, v158, 0x7fff
+	v_add3_u32 v159, v193, v159, 0x7fff
+	v_add3_u32 v160, v194, v160, 0x7fff
 	.loc	1 884 24                        ; attention.py:884:24
-	v_max_f32_e32 v117, v116, v115
-	v_max_f32_e32 v116, v142, v115
+	v_max_f32_e32 v140, v140, v139
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v140, v173, v143, 0x7fff
-	v_cmp_o_f32_e64 s12, v147, v147
-	v_cmp_o_f32_e64 s15, v152, v152
+	v_add3_u32 v162, v196, v162, 0x7fff
+	v_cndmask_b16 v180.l, 0x7fff, v153.h, s12
+	v_cndmask_b16 v196.h, 0x7fff, v170.h, s31
+	v_cndmask_b16 v196.l, 0x7fff, v171.h, s33
 	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v9, v9, v117
-	v_sub_f32_e32 v11, v11, v117
-	v_dual_sub_f32 v10, v10, v117 :: v_dual_sub_f32 v115, v119, v116
-	.loc	1 886 33 is_stmt 0              ; attention.py:886:33
-	v_cndmask_b32_e64 v176, 0, v176, s11
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_sub_f32_e32 v9, v9, v140
+	v_sub_f32_e32 v11, v11, v140
+	v_sub_f32_e32 v10, v10, v140
+	v_sub_f32_e32 v12, v12, v140
+	.loc	1 896 30                        ; attention.py:896:30
+	v_add3_u32 v157, v191, v157, 0x7fff
 	.loc	1 886 49                        ; attention.py:886:49
 	v_exp_f32_e32 v9, v9
 	v_exp_f32_e32 v11, v11
-	s_delay_alu instid0(VALU_DEP_2)
 	v_exp_f32_e32 v10, v10
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_cmp_o_f32_e64 s30, v175, v175
-	v_mov_b16_e64 v160.l, v176.h
-	.loc	1 886 62                        ; attention.py:886:62
-	v_sub_f32_e32 v183, v183, v137
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s33, v176, v176
-	v_add3_u32 v124, v147, v124, 0x7fff
-	v_add3_u32 v127, v152, v127, 0x7fff
-	v_and_b32_e32 v160, 1, v160
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v9, 0, v9, s4
-	v_cndmask_b32_e64 v11, 0, v11, s6
-	.loc	1 886 62 is_stmt 0              ; attention.py:886:62
-	v_sub_f32_e32 v12, v12, v117
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v10, 0, v10, s2
-	.loc	1 896 30 is_stmt 1              ; attention.py:896:30
-	v_add3_u32 v145, v176, v160, 0x7fff
-	v_cndmask_b16 v160.l, 0x7fff, v136.h, s24
-.Ltmp49:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v9, v9, v11
-.Ltmp50:
-	.loc	1 886 49                        ; attention.py:886:49
 	v_exp_f32_e32 v12, v12
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v136.h, 0x7fff, v138.h, s25
-	v_cndmask_b16 v138.h, 0x7fff, v140.h, s27
-	v_cndmask_b16 v140.h, 0x7fff, v146.h, s31
-	.loc	1 886 49                        ; attention.py:886:49
-	v_exp_f32_e32 v183, v183
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v140.l, 0x7fff, v145.h, s33
-	v_add3_u32 v147, v179, v158, 0x7fff
-	v_add3_u32 v152, v186, v159, 0x7fff
-	v_cndmask_b16 v158.h, 0x7fff, v131.h, s19
-	v_cndmask_b16 v159.h, 0x7fff, v132.h, s21
+	v_add3_u32 v161, v195, v161, 0x7fff
+	v_cndmask_b16 v204.l, 0x7fff, v173.h, s35
+	v_cndmask_b16 v205.h, 0x7fff, v174.h, s36
+	v_cndmask_b16 v205.l, 0x7fff, v175.h, s37
+	v_permlanex16_b32 v168, v188, s74, 0xfedcba98 op_sel:[1,0]
+	v_perm_b32 v149, v150, v178, v120
 	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v12, 0, v12, s5
+	v_cndmask_b32_e64 v9, 0, v9, s4
+	v_cndmask_b32_e64 v11, 0, v11, s7
+	v_cndmask_b32_e64 v10, 0, v10, s2
+	v_cndmask_b32_e64 v12, 0, v12, s6
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v159.l, 0x7fff, v134.h, s22
-	v_cndmask_b16 v160.h, 0x7fff, v135.h, s23
-	v_cmp_o_f32_e64 s11, v148, v148
-	.loc	1 886 33                        ; attention.py:886:33
-	v_cndmask_b32_e64 v183, 0, v183, s29
+	v_perm_b32 v150, v150, v178, v136
+	v_cmp_o_f32_e64 s24, v197, v197
 .Ltmp51:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v10, v10, v12
+	v_add_f32_e32 v9, v9, v11
 .Ltmp52:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s29, v174, v174
-	v_permlanex16_b32 v135, v159, s75, 0xfedcba98 op_sel:[1,0]
-	v_cmp_o_f32_e64 s13, v150, v150
-	v_mov_b16_e64 v161.l, v183.h
+	.loc	1 890 30                        ; attention.py:890:30
+	s_waitcnt vmcnt(1)
+	v_mov_b16_e32 v11.l, v15.l
 .Ltmp53:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v9, v9, v10
+	v_add_f32_e32 v10, v10, v12
 .Ltmp54:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v125, 1, v125
-	v_cmp_o_f32_e64 s14, v149, v149
-	v_cmp_o_f32_e64 s28, v172, v172
-	s_delay_alu instid0(VALU_DEP_4)
+	.loc	1 890 30                        ; attention.py:890:30
+	s_waitcnt vmcnt(0)
+	v_mov_b16_e32 v11.h, v19.l
+	v_mov_b16_e32 v12.l, v16.l
+	v_mov_b16_e32 v12.h, v20.l
+	v_mov_b16_e32 v19.l, v15.h
 .Ltmp55:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_dual_mov_b32 v10, v9 :: v_dual_and_b32 v161, 1, v161
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
+	v_add_f32_e32 v9, v9, v10
 .Ltmp56:
+	.loc	1 890 30                        ; attention.py:890:30
+	v_mov_b16_e32 v20.l, v16.h
 	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s34, v180, v180
-	v_cmp_o_f32_e64 s35, v179, v179
-	v_cmp_o_f32_e64 s37, v181, v181
-	v_add3_u32 v123, v148, v123, 0x7fff
+	v_cmp_o_f32_e64 s25, v198, v198
+	v_cmp_o_f32_e64 s26, v199, v199
+	v_add3_u32 v163, v197, v163, 0x7fff
 .Ltmp57:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_dpp v10, v10 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v10, v9
 .Ltmp58:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v125, v150, v125, 0x7fff
-	v_add3_u32 v148, v180, v162, 0x7fff
-	v_add3_u32 v149, v181, v156, 0x7fff
-	v_add3_u32 v150, v183, v161, 0x7fff
+	v_add3_u32 v169, v203, v177, 0x7fff
+	v_add3_u32 v177, v212, v186, 0x7fff
+	v_add3_u32 v164, v198, v164, 0x7fff
+	v_add3_u32 v165, v199, v165, 0x7fff
 .Ltmp59:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v9, v9, v10
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
+	v_mov_b32_dpp v10, v10 row_xmask:8 row_mask:0xf bank_mask:0xf
 .Ltmp60:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v129, 1, v129
-	v_perm_b32 v134, v135, v159, v110
-	v_perm_b32 v135, v135, v159, v112
-	v_cmp_o_f32_e64 s16, v151, v151
+	v_cndmask_b16 v189.l, 0x7fff, v169.h, s30
+	v_cndmask_b16 v182.h, 0x7fff, v154.h, s15
+	v_cndmask_b16 v182.l, 0x7fff, v155.h, s16
+	v_cndmask_b16 v183.h, 0x7fff, v156.h, s17
 .Ltmp61:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_e32 v10, v9
-.Ltmp62:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cmp_o_f32_e64 s17, v154, v154
-	v_add3_u32 v128, v151, v128, 0x7fff
-	v_add3_u32 v129, v154, v129, 0x7fff
-	v_cndmask_b16 v153.l, 0x7fff, v122.h, s10
-.Ltmp63:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_dpp v10, v10 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp64:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v154.h, 0x7fff, v123.h, s11
-	v_cndmask_b16 v154.l, 0x7fff, v124.h, s12
-	v_cndmask_b16 v156.h, 0x7fff, v127.h, s15
-	v_cndmask_b16 v156.l, 0x7fff, v128.h, s16
-.Ltmp65:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
 	v_add_f32_e32 v9, v9, v10
-.Ltmp66:
+.Ltmp62:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v133, 1, v133
-	v_permlanex16_b32 v123, v153, s75, 0xfedcba98 op_sel:[1,0]
-	v_cmp_o_f32_e64 s36, v183, v183
-	v_cmp_o_f32_e64 s38, v186, v186
-.Ltmp67:
+	v_permlanex16_b32 v170, v189, s74, 0xfedcba98 op_sel:[1,0]
+	v_cndmask_b16 v183.l, 0x7fff, v157.h, s18
+	v_cndmask_b16 v184.h, 0x7fff, v158.h, s19
+	v_cndmask_b16 v184.l, 0x7fff, v159.h, s20
+.Ltmp63:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
 	v_mov_b32_e32 v10, v9
-.Ltmp68:
+.Ltmp64:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v133, v164, v133, 0x7fff
-	v_cmp_o_f32_e64 s39, v185, v185
-	v_add3_u32 v151, v185, v182, 0x7fff
-	v_perm_b32 v122, v123, v153, v110
+	v_add3_u32 v172, v206, v181, 0x7fff
+	v_cndmask_b16 v181.h, 0x7fff, v151.h, s13
+	v_cndmask_b16 v181.l, 0x7fff, v152.h, s14
+	v_cndmask_b16 v206.l, 0x7fff, v177.h, s39
+.Ltmp65:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
+	v_mov_b32_dpp v10, v10 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp66:
+	.loc	1 896 30                        ; attention.py:896:30
+	v_cndmask_b16 v204.h, 0x7fff, v172.h, s34
+	v_permlanex16_b32 v152, v180, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v154, v181, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v197, v196, s74, 0xfedcba98 op_sel:[1,0]
+.Ltmp67:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
+	v_add_f32_e32 v145, v9, v10
+.Ltmp68:
+	.loc	1 890 30                        ; attention.py:890:30
+	v_mov_b16_e32 v9.l, v13.l
+	v_mov_b16_e32 v9.h, v17.l
+	v_mov_b16_e32 v17.l, v13.h
+	v_mov_b16_e32 v10.l, v14.l
+	v_mov_b16_e32 v10.h, v18.l
+	v_mov_b16_e32 v18.l, v14.h
+	ds_store_b32 v141, v9
+	ds_store_b32 v121, v17
+	ds_store_b32 v122, v10
+	ds_store_b32 v123, v18
+	ds_store_b32 v124, v11
+	ds_store_b32 v125, v19
+	ds_store_b32 v126, v12
+	ds_store_b32 v127, v20
+	s_waitcnt lgkmcnt(0)
+	s_barrier
+	ds_load_b128 v[9:12], v142
+	ds_load_b128 v[13:16], v128
+	.loc	1 884 24                        ; attention.py:884:24
+	v_max_f32_e32 v18, v179, v139
+	.loc	1 896 30                        ; attention.py:896:30
+	v_add3_u32 v176, v211, v185, 0x7fff
 .Ltmp69:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_dpp v10, v10 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v17, v145
 .Ltmp70:
 	.loc	1 896 30                        ; attention.py:896:30
-	v_and_b32_e32 v141, 1, v141
-	v_cndmask_b16 v158.l, 0x7fff, v133.h, s20
-	v_perm_b32 v123, v123, v153, v112
-	v_cndmask_b16 v182.h, 0x7fff, v150.h, s36
-	v_cndmask_b16 v182.l, 0x7fff, v149.h, s37
-	v_add3_u32 v139, v170, v141, 0x7fff
-	v_add3_u32 v141, v172, v144, 0x7fff
-	v_permlanex16_b32 v133, v158, s75, 0xfedcba98 op_sel:[1,0]
-	v_cndmask_b16 v141.l, 0x7fff, v147.h, s35
-	v_cndmask_b16 v183.h, 0x7fff, v152.h, s38
-	v_cndmask_b16 v136.l, 0x7fff, v139.h, s26
-	v_cndmask_b16 v138.l, 0x7fff, v141.h, s28
-	v_perm_b32 v132, v133, v158, v110
-	v_perm_b32 v133, v133, v158, v112
-	v_cndmask_b16 v141.h, 0x7fff, v148.h, s34
-	v_permlanex16_b32 v146, v136, s75, 0xfedcba98 op_sel:[1,0]
-	v_cndmask_b16 v183.l, 0x7fff, v151.h, s39
-	v_permlanex16_b32 v148, v138, s75, 0xfedcba98 op_sel:[1,0]
-	.loc	1 885 61                        ; attention.py:885:61
-	v_exp_f32_e32 v17, v115
+	v_cndmask_b16 v185.h, 0x7fff, v160.h, s21
+	v_cndmask_b16 v185.l, 0x7fff, v161.h, s22
+	v_perm_b32 v167, v168, v188, v120
+	v_cndmask_b16 v206.h, 0x7fff, v176.h, s38
+	.loc	1 890 30                        ; attention.py:890:30
+	ds_load_b128 v[171:174], v129
+	ds_load_b128 v[175:178], v130
 	.loc	1 896 30                        ; attention.py:896:30
-	v_permlanex16_b32 v152, v140, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v145, v146, v136, v110
-	v_perm_b32 v146, v146, v136, v112
+	v_perm_b32 v168, v168, v188, v136
+	v_perm_b32 v169, v170, v189, v120
+	v_perm_b32 v170, v170, v189, v136
 .Ltmp71:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v136, v9, v10
-.Ltmp72:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_permlanex16_b32 v184, v141, s75, 0xfedcba98 op_sel:[1,0]
-	v_permlanex16_b32 v185, v182, s75, 0xfedcba98 op_sel:[1,0]
-	v_permlanex16_b32 v186, v183, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v147, v148, v138, v110
-.Ltmp73:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_e32 v18, v136
-.Ltmp74:
+	v_mov_b32_dpp v17, v17 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp72:
+	.loc	1 890 30                        ; attention.py:890:30
+	ds_load_b128 v[188:191], v131
+	ds_load_b128 v[192:195], v132
 	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v143, v174, v155, 0x7fff
-	v_cndmask_b16 v155.h, 0x7fff, v125.h, s13
-	v_cndmask_b16 v155.l, 0x7fff, v126.h, s14
-	v_permlanex16_b32 v125, v154, s75, 0xfedcba98 op_sel:[1,0]
+	v_cndmask_b16 v186.h, 0x7fff, v162.h, s23
+	v_cndmask_b16 v186.l, 0x7fff, v163.h, s24
+	v_cndmask_b16 v187.h, 0x7fff, v164.h, s25
+	v_cndmask_b16 v187.l, 0x7fff, v165.h, s26
+	v_permlanex16_b32 v156, v182, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v158, v183, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v160, v184, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v162, v185, s74, 0xfedcba98 op_sel:[1,0]
+	v_perm_b32 v151, v152, v180, v120
+	v_perm_b32 v152, v152, v180, v136
+	v_perm_b32 v153, v154, v181, v120
+	v_perm_b32 v154, v154, v181, v136
+	v_perm_b32 v180, v197, v196, v120
+	v_perm_b32 v181, v197, v196, v136
+	.loc	1 885 74                        ; attention.py:885:74
+	v_sub_f32_e32 v19, v144, v18
+.Ltmp73:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
+	v_add_f32_e32 v17, v145, v17
+.Ltmp74:
+	.loc	1 890 30                        ; attention.py:890:30
+	ds_load_b128 v[196:199], v133
+	ds_load_b128 v[200:203], v134
+	.loc	1 896 30                        ; attention.py:896:30
+	v_permlanex16_b32 v164, v186, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v166, v187, s74, 0xfedcba98 op_sel:[1,0]
+	v_perm_b32 v155, v156, v182, v120
+	v_perm_b32 v156, v156, v182, v136
+	v_perm_b32 v157, v158, v183, v120
+	v_perm_b32 v158, v158, v183, v136
+	v_perm_b32 v159, v160, v184, v120
+	v_perm_b32 v160, v160, v184, v136
+	v_perm_b32 v161, v162, v185, v120
+	v_perm_b32 v162, v162, v185, v136
+	.loc	1 885 61                        ; attention.py:885:61
+	v_exp_f32_e32 v19, v19
 .Ltmp75:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:887:24 ]
-	v_mov_b32_dpp v18, v18 row_xmask:1 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v20, v17
 .Ltmp76:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_cndmask_b16 v139.h, 0x7fff, v143.h, s29
-	v_perm_b32 v148, v148, v138, v112
-	v_permlanex16_b32 v127, v155, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v124, v125, v154, v110
-.Ltmp77:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
-	v_add_f32_e32 v18, v136, v18
-.Ltmp78:
-	.loc	1 896 30                        ; attention.py:896:30
-	v_add3_u32 v144, v175, v157, 0x7fff
-	v_cndmask_b16 v157.h, 0x7fff, v129.h, s17
-	v_cndmask_b16 v157.l, 0x7fff, v130.h, s18
-	v_permlanex16_b32 v129, v156, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v125, v125, v154, v112
-	v_cndmask_b16 v139.l, 0x7fff, v144.h, s30
-	v_permlanex16_b32 v144, v160, s75, 0xfedcba98 op_sel:[1,0]
-	v_permlanex16_b32 v131, v157, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v126, v127, v155, v110
-	v_perm_b32 v127, v127, v155, v112
-	v_permlanex16_b32 v150, v139, s75, 0xfedcba98 op_sel:[1,0]
-	v_perm_b32 v143, v144, v160, v110
-	v_perm_b32 v144, v144, v160, v112
-	.loc	1 890 30                        ; attention.py:890:30
-	ds_load_u16_d16 v9, v46
-	ds_load_u16_d16 v10, v46 offset:256
-	ds_load_u16_d16 v11, v46 offset:512
-	ds_load_u16_d16 v12, v46 offset:768
-	ds_load_u16_d16 v13, v46 offset:1024
-	ds_load_u16_d16 v14, v46 offset:1280
-	ds_load_u16_d16 v15, v46 offset:1536
-	ds_load_u16_d16 v16, v46 offset:1792
-	ds_load_u16_d16 v158, v46 offset:2048
-	ds_load_u16_d16 v159, v46 offset:2304
-	ds_load_u16_d16 v160, v46 offset:2560
-	ds_load_u16_d16 v161, v46 offset:2816
-	ds_load_u16_d16 v162, v46 offset:3072
-	ds_load_u16_d16 v163, v46 offset:3328
-	ds_load_u16_d16 v164, v46 offset:3584
-	ds_load_u16_d16 v165, v46 offset:3840
-	ds_load_u16_d16 v166, v46 offset:4096
-	ds_load_u16_d16 v167, v46 offset:4352
-	ds_load_u16_d16 v168, v46 offset:4608
-	ds_load_u16_d16 v169, v46 offset:4864
-	ds_load_u16_d16 v170, v46 offset:5120
-	ds_load_u16_d16 v171, v46 offset:5376
-	ds_load_u16_d16 v172, v46 offset:5632
-	ds_load_u16_d16 v173, v46 offset:5888
-	ds_load_u16_d16 v174, v46 offset:6144
-	ds_load_u16_d16 v175, v46 offset:6400
-	ds_load_u16_d16 v176, v46 offset:6656
-	ds_load_u16_d16 v177, v46 offset:6912
-	ds_load_u16_d16 v178, v46 offset:7168
-	ds_load_u16_d16 v179, v46 offset:7424
-	ds_load_u16_d16 v180, v46 offset:7680
-	ds_load_u16_d16 v181, v46 offset:7936
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v9, v46 offset:128
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v10, v46 offset:384
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v11, v46 offset:640
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v12, v46 offset:896
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v13, v46 offset:1152
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v14, v46 offset:1408
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v15, v46 offset:1664
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v16, v46 offset:1920
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v158, v46 offset:2176
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v159, v46 offset:2432
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v160, v46 offset:2688
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v161, v46 offset:2944
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v162, v46 offset:3200
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v163, v46 offset:3456
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v164, v46 offset:3712
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v165, v46 offset:3968
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v166, v46 offset:4224
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v167, v46 offset:4480
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v168, v46 offset:4736
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v169, v46 offset:4992
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v170, v46 offset:5248
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v171, v46 offset:5504
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v172, v46 offset:5760
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v173, v46 offset:6016
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v174, v46 offset:6272
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v175, v46 offset:6528
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v176, v46 offset:6784
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v177, v46 offset:7040
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v178, v46 offset:7296
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v179, v46 offset:7552
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v180, v46 offset:7808
-	s_waitcnt lgkmcnt(31)
-	ds_load_u16_d16_hi v181, v46 offset:8064
-	.loc	1 896 30                        ; attention.py:896:30
-	v_perm_b32 v128, v129, v156, v110
-	v_perm_b32 v129, v129, v156, v112
-	v_perm_b32 v130, v131, v157, v110
-	v_perm_b32 v131, v131, v157, v112
-	.loc	1 896 23 is_stmt 0              ; attention.py:896:23
-	s_waitcnt lgkmcnt(24)
-	v_wmma_f32_16x16x16_bf16 v[1:8], v[9:16], v[120:127], v[1:8]
-	.loc	1 896 30                        ; attention.py:896:30
-	v_perm_b32 v149, v150, v139, v110
-	v_perm_b32 v150, v150, v139, v112
-	.loc	1 885 25 is_stmt 1              ; attention.py:885:25
-	v_cmp_neq_f32_e64 s2, 0xff800000, v119
-	.loc	1 896 30                        ; attention.py:896:30
-	v_perm_b32 v151, v152, v140, v110
-	.loc	1 896 23 is_stmt 0              ; attention.py:896:23
-	s_waitcnt lgkmcnt(16)
-	v_wmma_f32_16x16x16_bf16 v[1:8], v[158:165], v[128:135], v[1:8]
-	.loc	1 896 30                        ; attention.py:896:30
-	v_perm_b32 v152, v152, v140, v112
-	v_perm_b32 v153, v184, v141, v110
-	v_perm_b32 v154, v184, v141, v112
-	v_perm_b32 v155, v185, v182, v110
-	v_perm_b32 v156, v185, v182, v112
-	v_perm_b32 v157, v186, v183, v110
-	v_perm_b32 v158, v186, v183, v112
-	.loc	1 885 25 is_stmt 1              ; attention.py:885:25
-	v_cndmask_b32_e64 v9, 0, v17, s2
 	.loc	1 896 23                        ; attention.py:896:23
-	s_waitcnt lgkmcnt(8)
-	v_wmma_f32_16x16x16_bf16 v[1:8], v[166:173], v[143:150], v[1:8]
-	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
-	v_dual_mov_b32 v115, v137 :: v_dual_fmac_f32 v18, v118, v9
+	s_waitcnt lgkmcnt(6)
+	v_wmma_f32_16x16x16_bf16 v[1:8], v[9:16], v[147:154], v[1:8]
+	.loc	1 896 30 is_stmt 0              ; attention.py:896:30
+	v_permlanex16_b32 v207, v204, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v208, v205, s74, 0xfedcba98 op_sel:[1,0]
+	v_permlanex16_b32 v209, v206, s74, 0xfedcba98 op_sel:[1,0]
+	v_perm_b32 v163, v164, v186, v120
+	v_perm_b32 v164, v164, v186, v136
+	v_perm_b32 v165, v166, v187, v120
+	v_perm_b32 v166, v166, v187, v136
+.Ltmp77:
+	.loc	2 293 12 is_stmt 1              ; standard.py:293:12 @[ attention.py:887:24 ]
+	v_mov_b32_dpp v20, v20 row_xmask:1 row_mask:0xf bank_mask:0xf
+.Ltmp78:
+	.loc	1 896 23                        ; attention.py:896:23
+	s_waitcnt lgkmcnt(4)
+	v_wmma_f32_16x16x16_bf16 v[1:8], v[171:178], v[155:162], v[1:8]
+	.loc	1 885 25                        ; attention.py:885:25
+	v_cmp_neq_f32_e64 s2, 0xff800000, v144
+	.loc	1 896 30                        ; attention.py:896:30
+	v_perm_b32 v182, v207, v204, v120
+	v_perm_b32 v183, v207, v204, v136
+	v_perm_b32 v184, v208, v205, v120
+	v_perm_b32 v185, v208, v205, v136
+	v_perm_b32 v186, v209, v206, v120
+	v_perm_b32 v187, v209, v206, v136
+	.loc	1 885 25                        ; attention.py:885:25
+	v_cndmask_b32_e64 v9, 0, v19, s2
+.Ltmp79:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:887:24 ] ]
+	v_add_f32_e32 v19, v17, v20
+.Ltmp80:
+	.loc	1 896 23                        ; attention.py:896:23
+	s_waitcnt lgkmcnt(2)
+	v_wmma_f32_16x16x16_bf16 v[1:8], v[188:195], v[163:170], v[1:8]
+	v_mov_b32_e32 v139, v146
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	.loc	1 897 23                        ; attention.py:897:23
+	v_fmac_f32_e32 v19, v143, v9
+	.loc	1 896 23                        ; attention.py:896:23
 	s_waitcnt lgkmcnt(0)
-	v_wmma_f32_16x16x16_bf16 v[1:8], v[174:181], v[151:158], v[1:8]
+	v_wmma_f32_16x16x16_bf16 v[1:8], v[196:203], v[180:187], v[1:8]
 	.loc	1 818 13                        ; attention.py:818:13
 	s_cbranch_scc1 .LBB0_2
 	s_branch .LBB0_4
@@ -2051,26 +2028,26 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.loc	1 0 13 is_stmt 0                ; attention.py:0:13
 	v_mov_b32_e32 v8, 0
 	s_delay_alu instid0(VALU_DEP_1)
-	v_dual_mov_b32 v116, 0xff800000 :: v_dual_mov_b32 v7, v8
+	v_dual_mov_b32 v18, 0xff800000 :: v_dual_mov_b32 v7, v8
 	v_mov_b32_e32 v6, v8
 	v_mov_b32_e32 v5, v8
 	v_mov_b32_e32 v4, v8
 	v_mov_b32_e32 v3, v8
 	v_mov_b32_e32 v2, v8
 	v_mov_b32_e32 v1, v8
-	v_mov_b32_e32 v18, v8
+	v_mov_b32_e32 v19, v8
 .LBB0_4:                                ; %._crit_edge
 	.loc	1 1028 26 is_stmt 1             ; attention.py:1028:26
 	v_cmp_eq_u32_e32 vcc_lo, 0, v38
 	s_mov_b32 s1, 0x76543210
-.Ltmp79:
+.Ltmp81:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_and_b32_e32 v11, 28, v39
+	v_lshrrev_b32_e32 v10, 3, v0
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-.Ltmp80:
+.Ltmp82:
 	.loc	1 1028 17                       ; attention.py:1028:17
-	v_dual_cndmask_b32 v9, 0xff800000, v116 :: v_dual_cndmask_b32 v12, 0, v18
+	v_dual_cndmask_b32 v9, 0xff800000, v18 :: v_dual_cndmask_b32 v12, 0, v19
 	.loc	1 1033 26                       ; attention.py:1033:26
 	v_cmp_eq_u32_e32 vcc_lo, 0, v36
 	.loc	1 1038 13                       ; attention.py:1038:13
@@ -2078,302 +2055,308 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.loc	1 1025 31                       ; attention.py:1025:31
 	s_mul_i32 s54, s54, s3
 	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_4)
-.Ltmp81:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_permlanex16_b32 v10, v9, s1, 0xfedcba98 op_sel:[1,0]
-.Ltmp82:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_permlanex16_b32 v13, v12, s1, 0xfedcba98 op_sel:[1,0]
 .Ltmp83:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_add_nc_u32_e32 v11, 0, v11
+	v_permlanex16_b32 v11, v9, s1, 0xfedcba98 op_sel:[1,0]
 .Ltmp84:
-	.loc	1 1033 17                       ; attention.py:1033:17
-	v_dual_cndmask_b32 v1, 0, v1 :: v_dual_cndmask_b32 v14, 0, v6
-.Ltmp85:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
-	v_dual_max_f32 v10, v10, v10 :: v_dual_max_f32 v9, v9, v9
+	v_dual_max_f32 v9, v9, v9 :: v_dual_and_b32 v10, 28, v10
+.Ltmp85:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	v_permlanex16_b32 v13, v12, s1, 0xfedcba98 op_sel:[1,0]
 .Ltmp86:
 	.loc	1 1033 17                       ; attention.py:1033:17
-	v_cndmask_b32_e32 v2, 0, v2, vcc_lo
+	v_cndmask_b32_e32 v3, 0, v3, vcc_lo
 .Ltmp87:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1031:29 ] ]
-	v_dual_add_f32 v12, v12, v13 :: v_dual_cndmask_b32 v3, 0, v3
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_max_f32_e32 v11, v11, v11
 .Ltmp88:
+	.loc	1 1033 17                       ; attention.py:1033:17
+	v_dual_cndmask_b32 v1, 0, v1 :: v_dual_cndmask_b32 v2, 0, v2
+.Ltmp89:
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
+	v_add_nc_u32_e32 v10, 0, v10
+.Ltmp90:
 	.loc	1 1036 13                       ; attention.py:1036:13
 	v_or_b32_e32 v21, v21, v35
 	s_delay_alu instid0(VALU_DEP_4)
-.Ltmp89:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
-	v_max_f32_e32 v9, v9, v10
-.Ltmp90:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_lshl_add_u32 v10, v37, 2, 0
 .Ltmp91:
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_dual_max_f32 v9, v9, v11 :: v_dual_add_f32 v12, v12, v13
+.Ltmp92:
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
+	v_lshl_add_u32 v11, v37, 2, 0
+.Ltmp93:
 	.loc	1 1024 32                       ; attention.py:1024:32
 	s_add_i32 s0, s43, 2
 	.loc	1 1025 31                       ; attention.py:1025:31
 	s_add_i32 s1, s41, s54
-	.loc	1 1036 13                       ; attention.py:1036:13
-	s_mov_b32 s2, exec_lo
-.Ltmp92:
+.Ltmp94:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	ds_store_b32 v11, v9
+	ds_store_b32 v10, v9
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b32 v9, v10
-.Ltmp93:
+	ds_load_b32 v9, v11
+.Ltmp95:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_store_b32 v11, v12
-.Ltmp94:
-	.loc	1 1033 17                       ; attention.py:1033:17
-	v_cndmask_b32_e32 v12, 0, v4, vcc_lo
-.Ltmp95:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_dual_mov_b32 v4, v1 :: v_dual_cndmask_b32 v13, 0, v5
-	v_mov_b32_e32 v6, v3
-.Ltmp96:
-	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1031:29 ]
+	ds_store_b32 v10, v12
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	ds_load_b32 v10, v10
+	ds_load_b32 v10, v11
+.Ltmp96:
+	.loc	1 1033 17                       ; attention.py:1033:17
+	v_dual_cndmask_b32 v12, 0, v4 :: v_dual_mov_b32 v11, v3
 .Ltmp97:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_dual_mov_b32 v5, v2 :: v_dual_mov_b32 v16, v12
-	v_mov_b32_dpp v4, v4 row_xmask:8 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v6, v6 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_dual_mov_b32 v4, v1 :: v_dual_cndmask_b32 v13, 0, v5
+	v_dual_mov_b32 v5, v2 :: v_dual_cndmask_b32 v14, 0, v6
 .Ltmp98:
-	.loc	1 1025 30 is_stmt 1             ; attention.py:1025:30
+	.loc	1 1025 30                       ; attention.py:1025:30
 	s_mul_i32 s0, s1, s0
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_3) | instid1(VALU_DEP_4)
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_2)
 .Ltmp99:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v5, v5 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v4, v4 row_xmask:8 row_mask:0xf bank_mask:0xf
 .Ltmp100:
-	.loc	1 1033 17                       ; attention.py:1033:17
-	v_cndmask_b32_e32 v15, 0, v7, vcc_lo
+	.loc	1 1036 13                       ; attention.py:1036:13
+	s_mov_b32 s2, exec_lo
 .Ltmp101:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v1, v1, v4
-	v_dual_add_f32 v3, v3, v6 :: v_dual_max_f32 v4, v9, v9
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v5, v5 row_xmask:8 row_mask:0xf bank_mask:0xf
 .Ltmp102:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_dual_mov_b32 v7, v9 :: v_dual_add_f32 v2, v2, v5
+	.loc	1 1033 17                       ; attention.py:1033:17
+	v_dual_cndmask_b32 v15, 0, v7 :: v_dual_cndmask_b32 v8, 0, v8
 .Ltmp103:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v16, v16 row_xmask:8 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_dual_mov_b32 v11, v3 :: v_dual_cndmask_b32 v8, 0, v8
+	v_mov_b32_e32 v18, v14
 .Ltmp104:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_mov_b32_dpp v7, v7 row_xmask:4 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_mov_b32_e32 v6, v9
 .Ltmp105:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v12, v12, v16
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v11, v11 row_xmask:8 row_mask:0xf bank_mask:0xf
 .Ltmp106:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v11, v11 row_xmask:4 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	v_dual_mov_b32 v9, v2 :: v_dual_max_f32 v6, v7, v7
-	v_mov_b32_e32 v20, v8
-	v_mov_b32_e32 v16, v12
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_add_f32_e32 v2, v2, v5
 .Ltmp107:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
-	s_waitcnt lgkmcnt(0)
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_dual_max_f32 v4, v4, v6 :: v_dual_mov_b32 v5, v10
-.Ltmp108:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v20, v20 row_xmask:8 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_mov_b32_dpp v16, v16 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp109:
+	v_mov_b32_e32 v20, v8
+	v_mov_b32_dpp v18, v18 row_xmask:8 row_mask:0xf bank_mask:0xf
+.Ltmp108:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_mov_b32_e32 v6, v4
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_mov_b32_dpp v6, v6 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp109:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_add_f32_e32 v3, v3, v11
+	v_add_f32_e32 v1, v1, v4
 .Ltmp110:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_mov_b32_dpp v5, v5 row_xmask:4 row_mask:0xf bank_mask:0xf
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_dual_max_f32 v4, v9, v9 :: v_dual_mov_b32 v19, v15
 .Ltmp111:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v8, v8, v20
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_add_f32_e32 v12, v12, v16
+	v_add_f32_e32 v14, v14, v18
 .Ltmp112:
-	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_mov_b32_dpp v6, v6 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_max_f32_e32 v6, v6, v6
 .Ltmp113:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1031:29 ] ]
-	v_dual_add_f32 v5, v10, v5 :: v_dual_add_f32 v10, v3, v11
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	s_waitcnt lgkmcnt(0)
+	v_mov_b32_e32 v5, v10
 .Ltmp114:
+	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_e32 v11, v3
+	v_mov_b32_dpp v19, v19 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v20, v20 row_xmask:8 row_mask:0xf bank_mask:0xf
+.Ltmp115:
+	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_dual_max_f32 v4, v4, v6 :: v_dual_mov_b32 v7, v1
+.Ltmp116:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	v_mov_b32_dpp v5, v5 row_xmask:4 row_mask:0xf bank_mask:0xf
+.Ltmp117:
+	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v11, v11 row_xmask:4 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_dual_mov_b32 v9, v2 :: v_dual_mov_b32 v6, v4
+	v_mov_b32_dpp v7, v7 row_xmask:4 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp118:
+	.loc	2 263 12 is_stmt 1              ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1031:29 ] ]
+	v_dual_add_f32 v5, v10, v5 :: v_dual_add_f32 v10, v3, v11
+.Ltmp119:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
 	v_mov_b32_dpp v9, v9 row_xmask:4 row_mask:0xf bank_mask:0xf
-	v_dual_mov_b32 v7, v1 :: v_dual_max_f32 v6, v6, v6
-	v_mov_b32_e32 v20, v8
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_mov_b32_e32 v18, v10
-.Ltmp115:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v2, v2, v9
-	s_delay_alu instid0(VALU_DEP_4)
-.Ltmp116:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v7, v7 row_xmask:4 row_mask:0xf bank_mask:0xf
-.Ltmp117:
-	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
-	v_max_f32_e32 v9, v4, v6
-.Ltmp118:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v20, v20 row_xmask:4 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v18, v18 row_xmask:2 row_mask:0xf bank_mask:0xf
-.Ltmp119:
-	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_mov_b32_e32 v3, v5
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_4)
 .Ltmp120:
-	.loc	2 263 12 is_stmt 1              ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_dual_add_f32 v1, v1, v7 :: v_dual_mov_b32 v16, v12
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_add_f32_e32 v4, v10, v18
-.Ltmp121:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_mov_b32_dpp v3, v3 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
-.Ltmp122:
-	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_dual_mov_b32 v11, v1 :: v_dual_mov_b32 v18, v14
-	v_mov_b32_dpp v16, v16 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_dual_mov_b32 v6, v4 :: v_dual_add_f32 v7, v5, v3
-	v_mov_b32_dpp v11, v11 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_mov_b32_dpp v18, v18 row_xmask:8 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v6, v6 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-.Ltmp123:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_dual_mov_b32 v10, v7 :: v_dual_add_f32 v1, v1, v11
-.Ltmp124:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_e32 v17, v2
-.Ltmp125:
-	.loc	2 263 12 is_stmt 1              ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_dual_add_f32 v14, v14, v18 :: v_dual_mov_b32 v19, v15
-.Ltmp126:
 	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_mov_b32_e32 v11, v9
+	v_mov_b32_dpp v6, v6 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp121:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v15, v15, v19 :: v_dual_mov_b32 v18, v14
+.Ltmp122:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_e32 v17, v10
 	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
-.Ltmp127:
+.Ltmp123:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v2, v2, v9 :: v_dual_add_f32 v1, v1, v7
+.Ltmp124:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
-	v_mov_b32_dpp v10, v10 row_xmask:1 row_mask:0xf bank_mask:0xf
-.Ltmp128:
+	v_dual_mov_b32 v3, v5 :: v_dual_max_f32 v6, v6, v6
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp125:
 	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
 	v_mov_b32_dpp v17, v17 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_4)
-	v_mov_b32_e32 v18, v14
-	v_mov_b32_dpp v19, v19 row_xmask:8 row_mask:0xf bank_mask:0xf
-.Ltmp129:
-	.loc	2 191 16 is_stmt 1              ; standard.py:191:16 @[ attention.py:1027:29 ]
-	v_mov_b32_dpp v11, v11 row_xmask:1 row_mask:0xf bank_mask:0xf
-.Ltmp130:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v3, v2, v17
-.Ltmp131:
+	v_dual_mov_b32 v16, v2 :: v_dual_mov_b32 v11, v1
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp126:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	v_mov_b32_dpp v3, v3 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp127:
+	.loc	2 170 12 is_stmt 1              ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
+	v_dual_max_f32 v9, v4, v6 :: v_dual_add_f32 v4, v10, v17
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+.Ltmp128:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_e32 v17, v13
+	v_mov_b32_dpp v16, v16 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v11, v11 row_xmask:2 row_mask:0xf bank_mask:0xf
 	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-.Ltmp132:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v15, v15, v19
-.Ltmp133:
+.Ltmp129:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1031:29 ] ]
+	v_dual_add_f32 v7, v5, v3 :: v_dual_add_f32 v8, v8, v20
+.Ltmp130:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
 	v_mov_b32_dpp v18, v18 row_xmask:4 row_mask:0xf bank_mask:0xf
-	v_dual_mov_b32 v2, v1 :: v_dual_mov_b32 v5, v3
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_mov_b32_dpp v17, v17 row_xmask:8 row_mask:0xf bank_mask:0xf
-	v_dual_mov_b32 v19, v15 :: v_dual_add_f32 v14, v14, v18
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
-	v_mov_b32_dpp v2, v2 row_xmask:1 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v5, v5 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+.Ltmp131:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_add_f32_e32 v3, v2, v16
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_2) | instid1(VALU_DEP_3)
+	v_dual_add_f32 v1, v1, v11 :: v_dual_mov_b32 v16, v12
+.Ltmp132:
+	.loc	2 191 16                        ; standard.py:191:16 @[ attention.py:1027:29 ]
+	v_dual_mov_b32 v11, v9 :: v_dual_mov_b32 v6, v4
+.Ltmp133:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	v_mov_b32_e32 v10, v7
 .Ltmp134:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v13, v13, v17
+	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_e32 v2, v1
+	s_delay_alu instid0(VALU_DEP_4)
+	v_mov_b32_dpp v16, v16 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v5, v3
 .Ltmp135:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v19, v19 row_xmask:4 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_mov_b32_e32 v17, v13
+	.loc	2 191 16 is_stmt 1              ; standard.py:191:16 @[ attention.py:1027:29 ]
+	v_mov_b32_dpp v11, v11 row_xmask:1 row_mask:0xf bank_mask:0xf
 .Ltmp136:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v15, v15, v19
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1031:29 ]
+	v_mov_b32_dpp v10, v10 row_xmask:1 row_mask:0xf bank_mask:0xf
 .Ltmp137:
-	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_e32 v19, v14
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
-	v_mov_b32_dpp v17, v17 row_xmask:4 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v19, v19 row_xmask:2 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
+	.loc	2 293 12 is_stmt 0              ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v2, v2 row_xmask:1 row_mask:0xf bank_mask:0xf
 .Ltmp138:
-	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v13, v13, v17
-	v_dual_add_f32 v17, v8, v20 :: v_dual_add_f32 v14, v14, v19
+	.loc	2 263 12 is_stmt 1              ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v12, v12, v16 :: v_dual_mov_b32 v17, v13
 .Ltmp139:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_e32 v20, v15
+	v_mov_b32_dpp v5, v5 row_xmask:1 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v6, v6 row_xmask:1 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v20, v8
+	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_mov_b32_e32 v16, v12
+	v_mov_b32_dpp v17, v17 row_xmask:8 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v20, v20 row_xmask:4 row_mask:0xf bank_mask:0xf
 	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_mov_b32_e32 v18, v13
-	v_mov_b32_e32 v22, v17
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_mov_b32_dpp v20, v20 row_xmask:2 row_mask:0xf bank_mask:0xf
-	v_mov_b32_dpp v18, v18 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v16, v16 row_xmask:4 row_mask:0xf bank_mask:0xf
 .Ltmp140:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v8, v12, v16
-	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_add_f32_e32 v13, v13, v17
+	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_2)
 .Ltmp141:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_mov_b32_dpp v22, v22 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_dual_mov_b32 v19, v15 :: v_dual_add_f32 v12, v12, v16
+	v_mov_b32_e32 v17, v13
+	s_delay_alu instid0(VALU_DEP_2) | instskip(SKIP_1) | instid1(VALU_DEP_3)
+	v_mov_b32_dpp v19, v19 row_xmask:4 row_mask:0xf bank_mask:0xf
 .Ltmp142:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
-	v_add_f32_e32 v15, v15, v20
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
-	v_dual_add_f32 v13, v13, v18 :: v_dual_mov_b32 v12, v8
-	v_dual_add_f32 v17, v17, v22 :: v_dual_mov_b32 v18, v14
-	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_3)
+	v_add_f32_e32 v14, v14, v18
 .Ltmp143:
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
-	v_dual_mov_b32 v19, v15 :: v_dual_mov_b32 v16, v13
+	v_mov_b32_dpp v17, v17 row_xmask:4 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp144:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v15, v15, v19 :: v_dual_mov_b32 v16, v12
+.Ltmp145:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_e32 v19, v14
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp146:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_add_f32_e32 v13, v13, v17
+	v_dual_add_f32 v17, v8, v20 :: v_dual_mov_b32 v20, v15
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+.Ltmp147:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v16, v16 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_dpp v19, v19 row_xmask:2 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_mov_b32_e32 v18, v13
+	v_mov_b32_dpp v20, v20 row_xmask:2 row_mask:0xf bank_mask:0xf
+	v_mov_b32_e32 v22, v17
+	s_delay_alu instid0(VALU_DEP_3) | instskip(SKIP_1) | instid1(VALU_DEP_4)
+	v_mov_b32_dpp v18, v18 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp148:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_add_f32_e32 v8, v12, v16
+	v_add_f32_e32 v15, v15, v20
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+.Ltmp149:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_dpp v22, v22 row_xmask:2 row_mask:0xf bank_mask:0xf
+.Ltmp150:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v14, v14, v19 :: v_dual_add_f32 v13, v13, v18
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_2)
+.Ltmp151:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_dual_mov_b32 v12, v8 :: v_dual_mov_b32 v19, v15
+.Ltmp152:
+	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
+	v_dual_add_f32 v17, v17, v22 :: v_dual_mov_b32 v18, v14
+	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_3)
+.Ltmp153:
+	.loc	2 293 12                        ; standard.py:293:12 @[ attention.py:1032:29 ]
+	v_mov_b32_e32 v16, v13
 	v_mov_b32_dpp v12, v12 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_3) | instskip(NEXT) | instid1(VALU_DEP_4)
+	s_delay_alu instid0(VALU_DEP_4) | instskip(NEXT) | instid1(VALU_DEP_4)
+	v_mov_b32_dpp v19, v19 row_xmask:1 row_mask:0xf bank_mask:0xf
 	v_mov_b32_e32 v20, v17
 	v_mov_b32_dpp v18, v18 row_xmask:1 row_mask:0xf bank_mask:0xf
-	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_4)
-	v_mov_b32_dpp v19, v19 row_xmask:1 row_mask:0xf bank_mask:0xf
 	v_mov_b32_dpp v16, v16 row_xmask:1 row_mask:0xf bank_mask:0xf
+	s_delay_alu instid0(VALU_DEP_3)
 	v_mov_b32_dpp v20, v20 row_xmask:1 row_mask:0xf bank_mask:0xf
-.Ltmp144:
+.Ltmp154:
 	.loc	1 1036 13                       ; attention.py:1036:13
 	v_cmpx_eq_u32_e32 0, v21
 	s_cbranch_execz .LBB0_6
 ; %bb.5:
-.Ltmp145:
+.Ltmp155:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
 	v_max_f32_e32 v11, v11, v11
 	v_dual_max_f32 v9, v9, v9 :: v_dual_add_f32 v10, v7, v10
-.Ltmp146:
+.Ltmp156:
 	.loc	1 1036 13                       ; attention.py:1036:13
 	s_ashr_i32 s1, s0, 31
 	v_mov_b32_e32 v7, 0
 	s_lshl_b64 s[4:5], s[0:1], 2
 	s_delay_alu instid0(VALU_DEP_2)
-.Ltmp147:
+.Ltmp157:
 	.loc	2 170 12                        ; standard.py:170:12 @[ standard.py:191:16 @[ attention.py:1027:29 ] ]
 	v_max_f32_e32 v9, v9, v11
-.Ltmp148:
+.Ltmp158:
 	.loc	1 1036 13                       ; attention.py:1036:13
 	s_add_u32 s4, s52, s4
 	s_addc_u32 s5, s53, s5
@@ -2382,27 +2365,27 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 .LBB0_6:                                ; %.critedge
 	.loc	1 0 13 is_stmt 0                ; attention.py:0:13
 	s_or_b32 exec_lo, exec_lo, s2
-.Ltmp149:
+.Ltmp159:
 	.loc	2 263 12 is_stmt 1              ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
 	v_dual_add_f32 v6, v4, v6 :: v_dual_add_f32 v5, v3, v5
-.Ltmp150:
+.Ltmp160:
 	.loc	1 1038 13                       ; attention.py:1038:13
 	v_and_b32_e32 v3, 0xc0, v34
-.Ltmp151:
+.Ltmp161:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
 	v_dual_add_f32 v7, v8, v12 :: v_dual_add_f32 v4, v1, v2
-.Ltmp152:
+.Ltmp162:
 	.loc	1 1038 13                       ; attention.py:1038:13
 	v_and_b32_e32 v8, 0xe0, v32
 	v_and_b32_e32 v1, 28, v32
 	v_and_b32_e32 v2, 32, v33
-.Ltmp153:
+.Ltmp163:
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention.py:1032:29 ] ]
 	v_dual_add_f32 v20, v17, v20 :: v_dual_add_nc_u32 v3, 0, v3
 	s_delay_alu instid0(VALU_DEP_4) | instskip(SKIP_1) | instid1(VALU_DEP_3)
 	v_dual_add_f32 v19, v15, v19 :: v_dual_add_nc_u32 v8, 0, v8
 	v_dual_add_f32 v18, v14, v18 :: v_dual_add_f32 v17, v13, v16
-.Ltmp154:
+.Ltmp164:
 	.loc	1 1038 13                       ; attention.py:1038:13
 	v_add3_u32 v1, v3, v2, v1
 	.loc	1 760 21                        ; attention.py:760:21
@@ -2434,7 +2417,7 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	s_nop 0
 	s_sendmsg sendmsg(MSG_DEALLOC_VGPRS)
 	s_endpgm
-.Ltmp155:
+.Ltmp165:
 	.section	.rodata,"a",@progbits
 	.p2align	6, 0x0
 	.amdhsa_kernel amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4
@@ -2455,8 +2438,8 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 		.amdhsa_system_sgpr_workgroup_id_z 0
 		.amdhsa_system_sgpr_workgroup_info 0
 		.amdhsa_system_vgpr_workitem_id 0
-		.amdhsa_next_free_vgpr 218
-		.amdhsa_next_free_sgpr 76
+		.amdhsa_next_free_vgpr 247
+		.amdhsa_next_free_sgpr 75
 		.amdhsa_reserve_vcc 1
 		.amdhsa_float_round_mode_32 0
 		.amdhsa_float_round_mode_16_64 0
@@ -2483,9 +2466,9 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.size	amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4, .Lfunc_end0-amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4
 	.cfi_endproc
                                         ; -- End function
-	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.num_vgpr, 218
+	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.num_vgpr, 247
 	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.num_agpr, 0
-	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.numbered_sgpr, 76
+	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.numbered_sgpr, 75
 	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.num_named_barrier, 0
 	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.private_seg_size, 0
 	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.uses_vcc, 1
@@ -2495,19 +2478,19 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.set amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.has_indirect_call, 0
 	.section	.AMDGPU.csdata,"",@progbits
 ; Kernel info:
-; codeLenInByte = 11316
-; TotalNumSgprs: 78
-; NumVgprs: 218
+; codeLenInByte = 10956
+; TotalNumSgprs: 77
+; NumVgprs: 247
 ; ScratchSize: 0
 ; MemoryBound: 0
 ; FloatMode: 240
 ; IeeeMode: 1
 ; LDSByteSize: 0 bytes/workgroup (compile time only)
 ; SGPRBlocks: 0
-; VGPRBlocks: 27
-; NumSGPRsForWavesPerEU: 78
-; NumVGPRsForWavesPerEU: 218
-; Occupancy: 6
+; VGPRBlocks: 30
+; NumSGPRsForWavesPerEU: 77
+; NumVGPRsForWavesPerEU: 247
+; Occupancy: 5
 ; WaveLimiterHint : 0
 ; COMPUTE_PGM_RSRC2:SCRATCH_EN: 0
 ; COMPUTE_PGM_RSRC2:USER_SGPR: 2
@@ -2716,8 +2699,6 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.quad	.Ltmp11-.Lfunc_begin0
 	.quad	.Ltmp12-.Lfunc_begin0
 	.quad	.Ltmp13-.Lfunc_begin0
-	.quad	.Ltmp14-.Lfunc_begin0
-	.quad	.Ltmp15-.Lfunc_begin0
 	.quad	.Ltmp16-.Lfunc_begin0
 	.quad	.Ltmp17-.Lfunc_begin0
 	.quad	.Ltmp18-.Lfunc_begin0
@@ -2751,6 +2732,8 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.quad	.Ltmp46-.Lfunc_begin0
 	.quad	.Ltmp47-.Lfunc_begin0
 	.quad	.Ltmp48-.Lfunc_begin0
+	.quad	.Ltmp49-.Lfunc_begin0
+	.quad	.Ltmp50-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges1:
@@ -2766,29 +2749,31 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.quad	.Ltmp10-.Lfunc_begin0
 	.quad	.Ltmp11-.Lfunc_begin0
 	.quad	.Ltmp12-.Lfunc_begin0
+	.quad	.Ltmp13-.Lfunc_begin0
+	.quad	.Ltmp14-.Lfunc_begin0
 	.quad	.Ltmp15-.Lfunc_begin0
 	.quad	.Ltmp16-.Lfunc_begin0
 	.quad	.Ltmp17-.Lfunc_begin0
 	.quad	.Ltmp18-.Lfunc_begin0
-	.quad	.Ltmp23-.Lfunc_begin0
-	.quad	.Ltmp24-.Lfunc_begin0
-	.quad	.Ltmp29-.Lfunc_begin0
-	.quad	.Ltmp30-.Lfunc_begin0
+	.quad	.Ltmp19-.Lfunc_begin0
+	.quad	.Ltmp20-.Lfunc_begin0
+	.quad	.Ltmp25-.Lfunc_begin0
+	.quad	.Ltmp26-.Lfunc_begin0
 	.quad	.Ltmp31-.Lfunc_begin0
 	.quad	.Ltmp32-.Lfunc_begin0
-	.quad	.Ltmp37-.Lfunc_begin0
-	.quad	.Ltmp38-.Lfunc_begin0
+	.quad	.Ltmp33-.Lfunc_begin0
+	.quad	.Ltmp34-.Lfunc_begin0
 	.quad	.Ltmp39-.Lfunc_begin0
 	.quad	.Ltmp40-.Lfunc_begin0
-	.quad	.Ltmp45-.Lfunc_begin0
-	.quad	.Ltmp46-.Lfunc_begin0
+	.quad	.Ltmp41-.Lfunc_begin0
+	.quad	.Ltmp42-.Lfunc_begin0
 	.quad	.Ltmp47-.Lfunc_begin0
 	.quad	.Ltmp48-.Lfunc_begin0
+	.quad	.Ltmp49-.Lfunc_begin0
+	.quad	.Ltmp50-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges2:
-	.quad	.Ltmp49-.Lfunc_begin0
-	.quad	.Ltmp50-.Lfunc_begin0
 	.quad	.Ltmp51-.Lfunc_begin0
 	.quad	.Ltmp52-.Lfunc_begin0
 	.quad	.Ltmp53-.Lfunc_begin0
@@ -2817,108 +2802,116 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.quad	.Ltmp76-.Lfunc_begin0
 	.quad	.Ltmp77-.Lfunc_begin0
 	.quad	.Ltmp78-.Lfunc_begin0
+	.quad	.Ltmp79-.Lfunc_begin0
+	.quad	.Ltmp80-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges3:
-	.quad	.Ltmp49-.Lfunc_begin0
-	.quad	.Ltmp50-.Lfunc_begin0
 	.quad	.Ltmp51-.Lfunc_begin0
 	.quad	.Ltmp52-.Lfunc_begin0
 	.quad	.Ltmp53-.Lfunc_begin0
 	.quad	.Ltmp54-.Lfunc_begin0
-	.quad	.Ltmp59-.Lfunc_begin0
-	.quad	.Ltmp60-.Lfunc_begin0
-	.quad	.Ltmp65-.Lfunc_begin0
-	.quad	.Ltmp66-.Lfunc_begin0
-	.quad	.Ltmp71-.Lfunc_begin0
-	.quad	.Ltmp72-.Lfunc_begin0
-	.quad	.Ltmp77-.Lfunc_begin0
-	.quad	.Ltmp78-.Lfunc_begin0
+	.quad	.Ltmp55-.Lfunc_begin0
+	.quad	.Ltmp56-.Lfunc_begin0
+	.quad	.Ltmp61-.Lfunc_begin0
+	.quad	.Ltmp62-.Lfunc_begin0
+	.quad	.Ltmp67-.Lfunc_begin0
+	.quad	.Ltmp68-.Lfunc_begin0
+	.quad	.Ltmp73-.Lfunc_begin0
+	.quad	.Ltmp74-.Lfunc_begin0
+	.quad	.Ltmp79-.Lfunc_begin0
+	.quad	.Ltmp80-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges4:
-	.quad	.Ltmp79-.Lfunc_begin0
-	.quad	.Ltmp80-.Lfunc_begin0
 	.quad	.Ltmp81-.Lfunc_begin0
 	.quad	.Ltmp82-.Lfunc_begin0
 	.quad	.Ltmp83-.Lfunc_begin0
-	.quad	.Ltmp84-.Lfunc_begin0
 	.quad	.Ltmp85-.Lfunc_begin0
-	.quad	.Ltmp86-.Lfunc_begin0
+	.quad	.Ltmp87-.Lfunc_begin0
+	.quad	.Ltmp88-.Lfunc_begin0
 	.quad	.Ltmp89-.Lfunc_begin0
+	.quad	.Ltmp90-.Lfunc_begin0
 	.quad	.Ltmp91-.Lfunc_begin0
-	.quad	.Ltmp92-.Lfunc_begin0
 	.quad	.Ltmp93-.Lfunc_begin0
-	.quad	.Ltmp102-.Lfunc_begin0
-	.quad	.Ltmp103-.Lfunc_begin0
+	.quad	.Ltmp94-.Lfunc_begin0
+	.quad	.Ltmp95-.Lfunc_begin0
 	.quad	.Ltmp104-.Lfunc_begin0
 	.quad	.Ltmp105-.Lfunc_begin0
-	.quad	.Ltmp107-.Lfunc_begin0
 	.quad	.Ltmp108-.Lfunc_begin0
 	.quad	.Ltmp109-.Lfunc_begin0
 	.quad	.Ltmp110-.Lfunc_begin0
+	.quad	.Ltmp111-.Lfunc_begin0
 	.quad	.Ltmp112-.Lfunc_begin0
 	.quad	.Ltmp113-.Lfunc_begin0
+	.quad	.Ltmp115-.Lfunc_begin0
+	.quad	.Ltmp116-.Lfunc_begin0
+	.quad	.Ltmp120-.Lfunc_begin0
+	.quad	.Ltmp121-.Lfunc_begin0
+	.quad	.Ltmp127-.Lfunc_begin0
+	.quad	.Ltmp128-.Lfunc_begin0
+	.quad	.Ltmp132-.Lfunc_begin0
+	.quad	.Ltmp133-.Lfunc_begin0
+	.quad	.Ltmp135-.Lfunc_begin0
+	.quad	.Ltmp136-.Lfunc_begin0
+	.quad	.Ltmp155-.Lfunc_begin0
+	.quad	.Ltmp156-.Lfunc_begin0
+	.quad	.Ltmp157-.Lfunc_begin0
+	.quad	.Ltmp158-.Lfunc_begin0
+	.quad	0
+	.quad	0
+.Ldebug_ranges5:
+	.quad	.Ltmp84-.Lfunc_begin0
+	.quad	.Ltmp85-.Lfunc_begin0
+	.quad	.Ltmp87-.Lfunc_begin0
+	.quad	.Ltmp88-.Lfunc_begin0
+	.quad	.Ltmp91-.Lfunc_begin0
+	.quad	.Ltmp92-.Lfunc_begin0
+	.quad	.Ltmp110-.Lfunc_begin0
+	.quad	.Ltmp111-.Lfunc_begin0
+	.quad	.Ltmp112-.Lfunc_begin0
+	.quad	.Ltmp113-.Lfunc_begin0
+	.quad	.Ltmp115-.Lfunc_begin0
+	.quad	.Ltmp116-.Lfunc_begin0
+	.quad	.Ltmp127-.Lfunc_begin0
+	.quad	.Ltmp128-.Lfunc_begin0
+	.quad	.Ltmp155-.Lfunc_begin0
+	.quad	.Ltmp156-.Lfunc_begin0
+	.quad	.Ltmp157-.Lfunc_begin0
+	.quad	.Ltmp158-.Lfunc_begin0
+	.quad	0
+	.quad	0
+.Ldebug_ranges6:
+	.quad	.Ltmp85-.Lfunc_begin0
+	.quad	.Ltmp86-.Lfunc_begin0
+	.quad	.Ltmp95-.Lfunc_begin0
+	.quad	.Ltmp96-.Lfunc_begin0
+	.quad	.Ltmp113-.Lfunc_begin0
+	.quad	.Ltmp114-.Lfunc_begin0
+	.quad	.Ltmp116-.Lfunc_begin0
 	.quad	.Ltmp117-.Lfunc_begin0
 	.quad	.Ltmp118-.Lfunc_begin0
+	.quad	.Ltmp119-.Lfunc_begin0
+	.quad	.Ltmp124-.Lfunc_begin0
+	.quad	.Ltmp125-.Lfunc_begin0
 	.quad	.Ltmp126-.Lfunc_begin0
 	.quad	.Ltmp127-.Lfunc_begin0
 	.quad	.Ltmp129-.Lfunc_begin0
 	.quad	.Ltmp130-.Lfunc_begin0
-	.quad	.Ltmp145-.Lfunc_begin0
-	.quad	.Ltmp146-.Lfunc_begin0
-	.quad	.Ltmp147-.Lfunc_begin0
-	.quad	.Ltmp148-.Lfunc_begin0
-	.quad	0
-	.quad	0
-.Ldebug_ranges5:
-	.quad	.Ltmp85-.Lfunc_begin0
-	.quad	.Ltmp86-.Lfunc_begin0
-	.quad	.Ltmp89-.Lfunc_begin0
-	.quad	.Ltmp90-.Lfunc_begin0
-	.quad	.Ltmp107-.Lfunc_begin0
-	.quad	.Ltmp108-.Lfunc_begin0
-	.quad	.Ltmp117-.Lfunc_begin0
-	.quad	.Ltmp118-.Lfunc_begin0
-	.quad	.Ltmp145-.Lfunc_begin0
-	.quad	.Ltmp146-.Lfunc_begin0
-	.quad	.Ltmp147-.Lfunc_begin0
-	.quad	.Ltmp148-.Lfunc_begin0
-	.quad	0
-	.quad	0
-.Ldebug_ranges6:
-	.quad	.Ltmp82-.Lfunc_begin0
-	.quad	.Ltmp83-.Lfunc_begin0
-	.quad	.Ltmp87-.Lfunc_begin0
-	.quad	.Ltmp88-.Lfunc_begin0
-	.quad	.Ltmp93-.Lfunc_begin0
-	.quad	.Ltmp94-.Lfunc_begin0
-	.quad	.Ltmp96-.Lfunc_begin0
-	.quad	.Ltmp97-.Lfunc_begin0
-	.quad	.Ltmp110-.Lfunc_begin0
-	.quad	.Ltmp111-.Lfunc_begin0
-	.quad	.Ltmp113-.Lfunc_begin0
-	.quad	.Ltmp114-.Lfunc_begin0
-	.quad	.Ltmp119-.Lfunc_begin0
-	.quad	.Ltmp120-.Lfunc_begin0
-	.quad	.Ltmp121-.Lfunc_begin0
-	.quad	.Ltmp122-.Lfunc_begin0
-	.quad	.Ltmp123-.Lfunc_begin0
-	.quad	.Ltmp124-.Lfunc_begin0
-	.quad	.Ltmp127-.Lfunc_begin0
-	.quad	.Ltmp128-.Lfunc_begin0
+	.quad	.Ltmp133-.Lfunc_begin0
+	.quad	.Ltmp134-.Lfunc_begin0
+	.quad	.Ltmp136-.Lfunc_begin0
+	.quad	.Ltmp137-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges7:
-	.quad	.Ltmp87-.Lfunc_begin0
-	.quad	.Ltmp88-.Lfunc_begin0
-	.quad	.Ltmp113-.Lfunc_begin0
-	.quad	.Ltmp114-.Lfunc_begin0
+	.quad	.Ltmp118-.Lfunc_begin0
+	.quad	.Ltmp119-.Lfunc_begin0
+	.quad	.Ltmp129-.Lfunc_begin0
+	.quad	.Ltmp130-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges8:
-	.quad	.Ltmp95-.Lfunc_begin0
-	.quad	.Ltmp96-.Lfunc_begin0
 	.quad	.Ltmp97-.Lfunc_begin0
 	.quad	.Ltmp98-.Lfunc_begin0
 	.quad	.Ltmp99-.Lfunc_begin0
@@ -2928,66 +2921,72 @@ amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_h
 	.quad	.Ltmp103-.Lfunc_begin0
 	.quad	.Ltmp104-.Lfunc_begin0
 	.quad	.Ltmp105-.Lfunc_begin0
-	.quad	.Ltmp107-.Lfunc_begin0
 	.quad	.Ltmp108-.Lfunc_begin0
 	.quad	.Ltmp109-.Lfunc_begin0
+	.quad	.Ltmp110-.Lfunc_begin0
 	.quad	.Ltmp111-.Lfunc_begin0
 	.quad	.Ltmp112-.Lfunc_begin0
 	.quad	.Ltmp114-.Lfunc_begin0
+	.quad	.Ltmp115-.Lfunc_begin0
 	.quad	.Ltmp117-.Lfunc_begin0
 	.quad	.Ltmp118-.Lfunc_begin0
 	.quad	.Ltmp119-.Lfunc_begin0
 	.quad	.Ltmp120-.Lfunc_begin0
 	.quad	.Ltmp121-.Lfunc_begin0
-	.quad	.Ltmp122-.Lfunc_begin0
-	.quad	.Ltmp123-.Lfunc_begin0
 	.quad	.Ltmp124-.Lfunc_begin0
+	.quad	.Ltmp125-.Lfunc_begin0
 	.quad	.Ltmp126-.Lfunc_begin0
 	.quad	.Ltmp128-.Lfunc_begin0
 	.quad	.Ltmp129-.Lfunc_begin0
 	.quad	.Ltmp130-.Lfunc_begin0
-	.quad	.Ltmp144-.Lfunc_begin0
-	.quad	.Ltmp149-.Lfunc_begin0
-	.quad	.Ltmp150-.Lfunc_begin0
-	.quad	.Ltmp151-.Lfunc_begin0
-	.quad	.Ltmp152-.Lfunc_begin0
-	.quad	.Ltmp153-.Lfunc_begin0
+	.quad	.Ltmp132-.Lfunc_begin0
+	.quad	.Ltmp134-.Lfunc_begin0
+	.quad	.Ltmp135-.Lfunc_begin0
+	.quad	.Ltmp137-.Lfunc_begin0
 	.quad	.Ltmp154-.Lfunc_begin0
+	.quad	.Ltmp159-.Lfunc_begin0
+	.quad	.Ltmp160-.Lfunc_begin0
+	.quad	.Ltmp161-.Lfunc_begin0
+	.quad	.Ltmp162-.Lfunc_begin0
+	.quad	.Ltmp163-.Lfunc_begin0
+	.quad	.Ltmp164-.Lfunc_begin0
 	.quad	0
 	.quad	0
 .Ldebug_ranges9:
-	.quad	.Ltmp101-.Lfunc_begin0
-	.quad	.Ltmp102-.Lfunc_begin0
-	.quad	.Ltmp105-.Lfunc_begin0
 	.quad	.Ltmp106-.Lfunc_begin0
+	.quad	.Ltmp107-.Lfunc_begin0
+	.quad	.Ltmp109-.Lfunc_begin0
+	.quad	.Ltmp110-.Lfunc_begin0
 	.quad	.Ltmp111-.Lfunc_begin0
 	.quad	.Ltmp112-.Lfunc_begin0
-	.quad	.Ltmp115-.Lfunc_begin0
-	.quad	.Ltmp116-.Lfunc_begin0
-	.quad	.Ltmp120-.Lfunc_begin0
 	.quad	.Ltmp121-.Lfunc_begin0
-	.quad	.Ltmp125-.Lfunc_begin0
-	.quad	.Ltmp126-.Lfunc_begin0
-	.quad	.Ltmp130-.Lfunc_begin0
+	.quad	.Ltmp122-.Lfunc_begin0
+	.quad	.Ltmp123-.Lfunc_begin0
+	.quad	.Ltmp124-.Lfunc_begin0
 	.quad	.Ltmp131-.Lfunc_begin0
 	.quad	.Ltmp132-.Lfunc_begin0
-	.quad	.Ltmp133-.Lfunc_begin0
-	.quad	.Ltmp134-.Lfunc_begin0
-	.quad	.Ltmp135-.Lfunc_begin0
-	.quad	.Ltmp136-.Lfunc_begin0
-	.quad	.Ltmp137-.Lfunc_begin0
 	.quad	.Ltmp138-.Lfunc_begin0
 	.quad	.Ltmp139-.Lfunc_begin0
 	.quad	.Ltmp140-.Lfunc_begin0
 	.quad	.Ltmp141-.Lfunc_begin0
 	.quad	.Ltmp142-.Lfunc_begin0
 	.quad	.Ltmp143-.Lfunc_begin0
+	.quad	.Ltmp144-.Lfunc_begin0
+	.quad	.Ltmp145-.Lfunc_begin0
+	.quad	.Ltmp146-.Lfunc_begin0
+	.quad	.Ltmp147-.Lfunc_begin0
+	.quad	.Ltmp148-.Lfunc_begin0
 	.quad	.Ltmp149-.Lfunc_begin0
 	.quad	.Ltmp150-.Lfunc_begin0
 	.quad	.Ltmp151-.Lfunc_begin0
 	.quad	.Ltmp152-.Lfunc_begin0
 	.quad	.Ltmp153-.Lfunc_begin0
-	.quad	.Ltmp154-.Lfunc_begin0
+	.quad	.Ltmp159-.Lfunc_begin0
+	.quad	.Ltmp160-.Lfunc_begin0
+	.quad	.Ltmp161-.Lfunc_begin0
+	.quad	.Ltmp162-.Lfunc_begin0
+	.quad	.Ltmp163-.Lfunc_begin0
+	.quad	.Ltmp164-.Lfunc_begin0
 	.quad	0
 	.quad	0
 	.section	.debug_str,"MS",@progbits,1
@@ -3105,12 +3104,12 @@ amdhsa.kernels:
     .max_flat_workgroup_size: 256
     .name:           amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4
     .private_segment_fixed_size: 0
-    .sgpr_count:     78
+    .sgpr_count:     77
     .sgpr_spill_count: 0
     .symbol:         amd_strix_halo_gfx1151_attention_fwd_int4xbf16_bf16_full_bfloat16_d64_dv64_hq8_hkv8_lq1_lk2048_bm16_bn64_w8_s1_ds4.kd
     .uniform_work_group_size: 1
     .uses_dynamic_stack: false
-    .vgpr_count:     218
+    .vgpr_count:     247
     .vgpr_spill_count: 0
     .wavefront_size: 32
     .workgroup_processor_mode: 1

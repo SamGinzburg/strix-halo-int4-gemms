@@ -1,5 +1,6 @@
 {
   "device": "AMD Radeon 8060S Graphics (gfx1151)",
+  "triton_git_revision": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "arithmetic": {
     "lhs_storage": "packed signed INT4",
     "rhs_storage": "packed signed INT4",
@@ -11,7 +12,7 @@
     "split_k": 1
   },
   "input_distribution": "randn BF16 fake-quantized to signed INT4 with scale 0.1",
-  "measurement": "median triton.testing.do_bench runtime; 25 ms warmup; 100 ms repetition; prepacked operands and preallocated BF16 output",
+  "measurement": "median triton.testing.do_bench runtime; 100 ms warmup; 400 ms repetition; prepacked operands and preallocated BF16 output",
   "numerical_gate": {
     "atol": 0.001,
     "rtol": 0.001,
@@ -24,60 +25,56 @@
       "shape": [14336, 3072, 1024],
       "layout": "NT",
       "kernel_id": "gfx1151_int4xint4_nt_sc256_none_bm64_bn128_bk128_gm4_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 1.3954180479049683,
-      "tops": 64.6360517920881
+      "runtime_ms": 1.3955399990081787,
+      "tops": 64.63040348546211
     },
     {
       "operation": "combined_qkv_gate_dx",
       "shape": [14336, 1024, 3072],
       "layout": "NN",
       "kernel_id": "gfx1151_int4xint4_nn_sc256_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 1.3871020078659058,
-      "tops": 65.02356186101007
+      "runtime_ms": 1.3845200538635254,
+      "tops": 65.14482254288143
     },
     {
       "operation": "combined_qkv_gate_dw",
       "shape": [3072, 1024, 14336],
       "layout": "TN",
       "kernel_id": "gfx1151_int4xint4_tn_sc256_none_bm16_bn512_bk32_gm4_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 2.1845799684524536,
-      "tops": 41.28679861506431,
-      "previous_runtime_ms": 2.383031,
-      "runtime_improvement_percent": 8.33
+      "runtime_ms": 2.177527904510498,
+      "tops": 41.420508563482876
     },
     {
       "operation": "output_forward",
       "shape": [14336, 1024, 1024],
       "layout": "NT",
       "kernel_id": "gfx1151_int4xint4_nt_sc256_none_bm64_bn128_bk128_gm4_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 0.4881959855556488,
-      "tops": 61.583404947054724
+      "runtime_ms": 0.4867140054702759,
+      "tops": 61.77091830951244
     },
     {
       "operation": "output_dx",
       "shape": [14336, 1024, 1024],
       "layout": "NN",
       "kernel_id": "gfx1151_int4xint4_nn_sc256_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 0.498214989900589,
-      "tops": 60.344974923373854
+      "runtime_ms": 0.4993169903755188,
+      "tops": 60.211792611722146
     },
     {
       "operation": "output_dw",
       "shape": [1024, 1024, 14336],
       "layout": "TN",
       "kernel_id": "gfx1151_int4xint4_tn_sc256_none_bm64_bn512_bk32_gm4_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 0.7672799825668335,
-      "tops": 39.183572822299226,
-      "previous_runtime_ms": 0.916079,
-      "runtime_improvement_percent": 16.24
+      "runtime_ms": 0.7678830027580261,
+      "tops": 39.152801877389585
     },
     {
       "operation": "fallback_packed_qkv_forward",
       "shape": [14336, 2048, 1024],
       "layout": "NT",
       "kernel_id": "gfx1151_int4xint4_nt_sc256_none_bm64_bn128_bk128_gm1_w16_s2_weu2_sk1_evenk",
-      "runtime_ms": 0.9692990183830261,
-      "tops": 62.0340483211336
+      "runtime_ms": 0.9648920297622681,
+      "tops": 62.31737882508454
     }
   ]
 }

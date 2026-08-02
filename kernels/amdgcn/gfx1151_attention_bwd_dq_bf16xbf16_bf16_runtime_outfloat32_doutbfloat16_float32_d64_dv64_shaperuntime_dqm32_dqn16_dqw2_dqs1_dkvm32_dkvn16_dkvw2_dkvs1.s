@@ -960,7 +960,7 @@ amd_strix_halo_gfx1151_attention_bwd_dq_bf16xbf16_bf16_runtime_outfloat32_doutbf
 	.loc	1 159 29                        ; attention_backward.py:159:29
 	v_and_or_b32 v25, 0x70, v113, v114
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention_backward.py:176:17 ]
 	v_lshlrev_b32_e32 v117, 1, v115
 	s_delay_alu instid0(VALU_DEP_2) | instskip(NEXT) | instid1(VALU_DEP_1)

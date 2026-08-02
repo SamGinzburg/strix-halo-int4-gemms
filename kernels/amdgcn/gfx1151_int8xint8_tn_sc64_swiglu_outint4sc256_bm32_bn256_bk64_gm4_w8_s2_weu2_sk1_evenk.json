@@ -4,8 +4,8 @@
   "amdgcn_stats": {
     "iu4_wmma": 0,
     "iu8_wmma": 64,
-    "lines": 5514,
-    "waitcnt": 381
+    "lines": 4477,
+    "waitcnt": 121
   },
   "amdgcn_symbol": "amd_strix_halo_gfx1151_int8xint8_tn_sc64_swiglu_outint4sc256_bm32_bn256_bk64_gm4_w8_s2_weu2_sk1_evenk",
   "arch": "gfx1151",
@@ -56,7 +56,7 @@
   "scale_dtype": "bfloat16",
   "schedule": "standard",
   "shape_specialization": "runtime",
-  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "status": "generated",
   "tile": {
     "block_k": 64,

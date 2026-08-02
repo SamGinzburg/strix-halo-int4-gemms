@@ -114,6 +114,23 @@ def _load_dispatch_library_cached(library_path_value: str) -> ctypes.CDLL:
         ctypes.c_void_p,
     ]
     library.amd_strix_halo_kernels_launch_hsaco.restype = ctypes.c_int
+    library.amd_strix_halo_kernels_launch_raw_hsaco.argtypes = [
+        ctypes.c_char_p,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_size_t,
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.c_uint32,
+        ctypes.c_uint64,
+    ]
+    library.amd_strix_halo_kernels_launch_raw_hsaco.restype = ctypes.c_int
     library.amd_strix_halo_kernels_launch_ragged_fwd_hsaco.argtypes = [
         ctypes.c_char_p,
         ctypes.c_char_p,
@@ -514,6 +531,89 @@ def launch_hsaco(
         int(k),
         ctypes.c_void_p(0),
         ctypes.c_void_p(0),
+    )
+    if rc != 0:
+        raise RuntimeError(_library_last_error(library))
+
+
+_RAW_HSACO_ARGUMENT_TYPES: dict[str, Any] = {
+    "pointer": ctypes.c_void_p,
+    "i32": ctypes.c_int32,
+    "u32": ctypes.c_uint32,
+    "i64": ctypes.c_int64,
+    "u64": ctypes.c_uint64,
+    "fp32": ctypes.c_float,
+    "fp64": ctypes.c_double,
+}
+
+
+def _raw_hsaco_argument_storage(
+    arguments: tuple[tuple[str, int | float], ...],
+) -> tuple[list[Any], Any, int]:
+    if not arguments:
+        raise ValueError("raw HSACO launch requires at least one argument")
+    if len(arguments) > 62:
+        raise ValueError("raw HSACO launch supports at most 62 visible arguments")
+    storage: list[Any] = []
+    device_pointer_mask = 0
+    for index, argument in enumerate(arguments):
+        if not isinstance(argument, tuple) or len(argument) != 2:
+            raise TypeError("each raw HSACO argument must be a (kind, value) tuple")
+        kind, value = argument
+        ctype = _RAW_HSACO_ARGUMENT_TYPES.get(kind)
+        if ctype is None:
+            raise ValueError(f"unsupported raw HSACO argument kind {kind!r}")
+        if kind == "pointer":
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise TypeError("raw HSACO pointer values must be non-negative Python ints")
+            device_pointer_mask |= 1 << index
+        elif kind.startswith(("i", "u")):
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"raw HSACO {kind} values must be Python ints")
+        elif isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"raw HSACO {kind} values must be Python floats")
+        storage.append(ctype(value))
+    # Triton AMD kernels carry two hidden global-buffer parameters. They are
+    # null for kernels that do not request global/profile scratch storage.
+    storage.extend((ctypes.c_void_p(0), ctypes.c_void_p(0)))
+    params_type = ctypes.c_void_p * len(storage)
+    params = params_type(
+        *(ctypes.cast(ctypes.byref(value), ctypes.c_void_p) for value in storage)
+    )
+    return storage, params, device_pointer_mask
+
+
+def launch_raw_hsaco(
+    *,
+    hsaco_path: str | Path,
+    symbol: str,
+    device_index: int,
+    grid: tuple[int, int, int],
+    block: tuple[int, int, int],
+    shared_memory_bytes: int,
+    stream_handle: int,
+    arguments: tuple[tuple[str, int | float], ...],
+    library_path: str | Path | None = None,
+) -> None:
+    """Launch a metadata-defined Triton HSACO ABI on the current HIP stream."""
+
+    storage, params, pointer_mask = _raw_hsaco_argument_storage(arguments)
+    library = load_dispatch_library(library_path)
+    rc = library.amd_strix_halo_kernels_launch_raw_hsaco(
+        str(hsaco_path).encode(),
+        symbol.encode(),
+        int(device_index),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+        int(block[0]),
+        int(block[1]),
+        int(block[2]),
+        int(shared_memory_bytes),
+        int(stream_handle),
+        params,
+        len(storage),
+        pointer_mask,
     )
     if rc != 0:
         raise RuntimeError(_library_last_error(library))

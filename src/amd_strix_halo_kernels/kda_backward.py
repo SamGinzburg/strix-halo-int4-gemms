@@ -678,7 +678,9 @@ def kimi_delta_attention_backward(
     grad_query_normalized: Any | None = None,
     grad_key_normalized: Any | None = None,
     config: KimiDeltaAttentionConfig | None = None,
+    backend: str = "triton",
     use_reference: bool = False,
+    use_precompiled: bool | None = None,
 ) -> tuple[Any, Any, Any, Any, Any, Any | None]:
     """Explicit KDA backward returning logical FP32 gradients.
 
@@ -687,6 +689,10 @@ def kimi_delta_attention_backward(
     codes and scales are treated as fixed. The optimized path reconstructs
     per-token recurrent states from an FP32 chunk-boundary cache. For graph
     capture, pass that cache and every output/scratch tensor explicitly.
+    ``backend="gluon"`` selects the tuned explicit-layout recurrent
+    kernel while retaining the same FP32 workspaces and checkpoint contract.
+    ``use_precompiled`` follows the forward API: auto-select, disable, or
+    require the installed native gfx1151 KDA artifact set.
     """
 
     torch = _torch()
@@ -696,6 +702,16 @@ def kimi_delta_attention_backward(
     ):
         if not isinstance(flag, bool):
             raise TypeError(f"{name} must be a Python bool")
+    if not isinstance(backend, str):
+        raise TypeError("backend must be a Python str")
+    if backend not in {"triton", "gluon"}:
+        raise ValueError("backend must be 'triton' or 'gluon'")
+    if use_precompiled is not None and not isinstance(use_precompiled, bool):
+        raise TypeError("use_precompiled must be a Python bool or None")
+    if use_reference and use_precompiled is True:
+        raise ValueError("use_reference=True cannot be combined with use_precompiled=True")
+    if backend != "gluon" and use_precompiled is True:
+        raise ValueError("use_precompiled=True requires backend='gluon'")
     (
         qk_int4,
         value_int4,
@@ -782,6 +798,75 @@ def kimi_delta_attention_backward(
         config = KimiDeltaAttentionConfig()
     elif not isinstance(config, KimiDeltaAttentionConfig):
         raise TypeError("config must be a KimiDeltaAttentionConfig or None")
+    use_native = False
+    native_jobs: dict[str, Any] = {}
+    if backend == "gluon" and use_precompiled is not False:
+        from .kda_artifacts import (
+            KDA_BACKWARD_NORMALIZE,
+            KDA_BACKWARD_PREPROCESS,
+            KDA_BACKWARD_RECURRENT,
+            KDA_FORWARD,
+            KdaArtifactJob,
+        )
+        from .kda_native import (
+            is_precompiled_kda_workload,
+            precompiled_kda_available,
+        )
+
+        native_jobs = {
+            KDA_BACKWARD_PREPROCESS: KdaArtifactJob(
+                KDA_BACKWARD_PREPROCESS,
+                qk_int4=qk_int4,
+            ),
+            KDA_BACKWARD_RECURRENT: KdaArtifactJob(
+                KDA_BACKWARD_RECURRENT,
+                value_int4=value_int4,
+            ),
+            KDA_BACKWARD_NORMALIZE: KdaArtifactJob(
+                KDA_BACKWARD_NORMALIZE,
+                qk_int4=qk_int4,
+            ),
+        }
+        if state_cache is None:
+            native_jobs[KDA_FORWARD] = KdaArtifactJob(
+                KDA_FORWARD,
+                qk_int4=qk_int4,
+                value_int4=value_int4,
+                store_state_cache=True,
+            )
+        native_supported = (
+            is_precompiled_kda_workload(
+                batch=batch,
+                sequence=sequence,
+                heads=heads,
+                head_dim=logical_head_dim,
+                value_dim=logical_value_dim,
+                value_block=config.value_block,
+                checkpoint_interval=config.checkpoint_interval,
+                needs_state_cache=True,
+            )
+            and not config.chunked
+            and initial_state is None
+            and grad_final_state is None
+            and normalize_qk
+            and grad_output.dtype == torch.bfloat16
+            and log_decay.dtype == torch.float32
+            and beta.dtype == torch.float32
+        )
+        artifacts_available = native_supported and all(
+            precompiled_kda_available(job) for job in native_jobs.values()
+        )
+        if use_precompiled is True and not native_supported:
+            raise ValueError(
+                "precompiled KDA backward requires positive B/H, "
+                "1 <= T <= 2048, D=Dv=128, value_block=64, "
+                "checkpoint_interval=4, normalized Q/K, BF16 dOutput, FP32 "
+                "gates, no initial/final-state gradient, and RDNA "
+                "3.5-addressable runtime buffers"
+            )
+        if use_precompiled is True and not artifacts_available:
+            raise RuntimeError("the required precompiled KDA backward artifact set is not installed")
+        use_native = artifacts_available
     capturing = torch.cuda.is_current_stream_capturing()
     num_checkpoints = _cdiv(sequence, config.checkpoint_interval) + 1
     cache_shape = (
@@ -813,6 +898,8 @@ def kimi_delta_attention_backward(
             normalize_qk=normalize_qk,
             state_cache=state_cache,
             config=config,
+            backend=backend,
+            use_precompiled=use_native,
         )
     else:
         _require_tensor(torch, "state_cache", state_cache)
@@ -952,77 +1039,207 @@ def kimi_delta_attention_backward(
     dummy = grad_query
     block_d = _next_power_of_two(logical_head_dim)
     rows = batch * sequence * heads
-    _kda_qk_preprocess_kernel()[(rows,)](
-        query,
-        key,
-        query_scale if query_scale is not None else dummy,
-        key_scale if key_scale is not None else dummy,
-        grad_query,
-        grad_key,
-        rows,
-        logical_head_dim,
-        int(query.shape[-1]),
-        BLOCK_D=block_d,
-        QK_INT4=qk_int4,
-        NORMALIZE_QK=normalize_qk,
-        num_warps=config.num_warps,
-        num_stages=config.num_stages,
+    query_scale_argument = query_scale if query_scale is not None else query
+    key_scale_argument = key_scale if key_scale is not None else key
+    if use_native:
+        from .kda_artifacts import KDA_BACKWARD_PREPROCESS
+        from .kda_native import launch_precompiled_kda
+
+        launch_precompiled_kda(
+            native_jobs[KDA_BACKWARD_PREPROCESS],
+            values={
+                "query": query,
+                "key": key,
+                "query_scale": query_scale_argument,
+                "key_scale": key_scale_argument,
+                "query_logical": grad_query,
+                "key_logical": grad_key,
+                "rows": rows,
+                "head_dim": logical_head_dim,
+                "packed_head_dim": int(query.shape[-1]),
+            },
+            reference_tensor=query,
+            grid=(rows, 1),
+        )
+    else:
+        _kda_qk_preprocess_kernel()[(rows,)](
+            query,
+            key,
+            query_scale if query_scale is not None else dummy,
+            key_scale if key_scale is not None else dummy,
+            grad_query,
+            grad_key,
+            rows,
+            logical_head_dim,
+            int(query.shape[-1]),
+            BLOCK_D=block_d,
+            QK_INT4=qk_int4,
+            NORMALIZE_QK=normalize_qk,
+            num_warps=4 if backend == "gluon" else config.num_warps,
+            num_stages=config.num_stages,
+        )
+    backward_value_block = (
+        min(64, _next_power_of_two(logical_value_dim))
+        if backend == "gluon"
+        else config.backward_value_block
     )
     grid = (
         batch * heads,
-        _cdiv(logical_value_dim, config.backward_value_block),
+        _cdiv(logical_value_dim, backward_value_block),
     )
-    _kda_backward_kernel()[grid](
-        grad_query,
-        grad_key,
-        value,
-        log_decay,
-        beta,
-        value_scale if value_scale is not None else dummy,
-        grad_output,
-        grad_final_state if grad_final_state is not None else dummy,
-        state_cache,
-        grad_query_normalized,
-        grad_key_normalized,
-        grad_value,
-        grad_log_decay,
-        grad_beta,
-        grad_initial_state if grad_initial_state is not None else dummy,
-        sequence,
-        heads,
-        logical_head_dim,
-        logical_value_dim,
-        int(value.shape[-1]),
-        num_checkpoints,
-        resolved_scale,
-        BLOCK_D=block_d,
-        BLOCK_V=config.backward_value_block,
-        CHECKPOINT_INTERVAL=config.checkpoint_interval,
-        LOOP_STAGES=config.num_stages,
-        VALUE_INT4=value_int4,
-        HAS_GRAD_FINAL_STATE=grad_final_state is not None,
-        STORE_GRAD_INITIAL_STATE=grad_initial_state is not None,
-        num_warps=config.num_warps,
-        num_stages=config.num_stages,
+    value_scale_argument = value_scale if value_scale is not None else value
+    grad_final_state_argument = (
+        grad_final_state if grad_final_state is not None else dummy
     )
-    _kda_qk_normalization_backward_kernel()[(rows,)](
-        query,
-        key,
-        query_scale if query_scale is not None else dummy,
-        key_scale if key_scale is not None else dummy,
-        grad_query_normalized,
-        grad_key_normalized,
-        grad_query,
-        grad_key,
-        rows,
-        logical_head_dim,
-        int(query.shape[-1]),
-        BLOCK_D=block_d,
-        QK_INT4=qk_int4,
-        NORMALIZE_QK=normalize_qk,
-        num_warps=config.num_warps,
-        num_stages=config.num_stages,
+    grad_initial_state_argument = (
+        grad_initial_state if grad_initial_state is not None else dummy
     )
+    if use_native:
+        from .kda_artifacts import KDA_BACKWARD_RECURRENT
+        from .kda_native import (
+            kda_precompiled_cache_tail,
+            launch_precompiled_kda,
+        )
+
+        launch_precompiled_kda(
+            native_jobs[KDA_BACKWARD_RECURRENT],
+            values={
+                "query_logical_workspace": grad_query,
+                "key_logical_workspace": grad_key,
+                "value": value,
+                "log_decay": log_decay,
+                "beta": beta,
+                "value_scale": value_scale_argument,
+                "grad_output": grad_output,
+                "grad_final_state": grad_final_state_argument,
+                "state_cache": state_cache,
+                "state_cache_tail": kda_precompiled_cache_tail(state_cache),
+                "grad_query_normalized": grad_query_normalized,
+                "grad_key_normalized": grad_key_normalized,
+                "grad_value": grad_value,
+                "grad_log_decay": grad_log_decay,
+                "grad_beta": grad_beta,
+                "grad_initial_state": grad_initial_state_argument,
+                "sequence": sequence,
+                "heads": heads,
+                "head_dim": logical_head_dim,
+                "value_dim": logical_value_dim,
+                "packed_value_dim": int(value.shape[-1]),
+                "num_checkpoints": num_checkpoints,
+                "output_scale": resolved_scale,
+            },
+            reference_tensor=query,
+            grid=grid,
+        )
+    elif backend == "gluon":
+        from .kda_gluon_backward import launch_kda_gluon_backward
+
+        launch_kda_gluon_backward(
+            grid=grid,
+            query_logical_workspace=grad_query,
+            key_logical_workspace=grad_key,
+            value=value,
+            log_decay=log_decay,
+            beta=beta,
+            value_scale=value_scale_argument,
+            grad_output=grad_output,
+            grad_final_state=grad_final_state_argument,
+            state_cache=state_cache,
+            grad_query_normalized=grad_query_normalized,
+            grad_key_normalized=grad_key_normalized,
+            grad_value=grad_value,
+            grad_log_decay=grad_log_decay,
+            grad_beta=grad_beta,
+            grad_initial_state=grad_initial_state_argument,
+            sequence=sequence,
+            heads=heads,
+            head_dim=logical_head_dim,
+            value_dim=logical_value_dim,
+            packed_value_dim=int(value.shape[-1]),
+            num_checkpoints=num_checkpoints,
+            output_scale=resolved_scale,
+            block_d=block_d,
+            block_v=backward_value_block,
+            checkpoint_interval=config.checkpoint_interval,
+            value_int4=value_int4,
+            has_grad_final_state=grad_final_state is not None,
+            store_grad_initial_state=grad_initial_state is not None,
+        )
+    else:
+        _kda_backward_kernel()[grid](
+            grad_query,
+            grad_key,
+            value,
+            log_decay,
+            beta,
+            value_scale_argument,
+            grad_output,
+            grad_final_state_argument,
+            state_cache,
+            grad_query_normalized,
+            grad_key_normalized,
+            grad_value,
+            grad_log_decay,
+            grad_beta,
+            grad_initial_state_argument,
+            sequence,
+            heads,
+            logical_head_dim,
+            logical_value_dim,
+            int(value.shape[-1]),
+            num_checkpoints,
+            resolved_scale,
+            BLOCK_D=block_d,
+            BLOCK_V=backward_value_block,
+            CHECKPOINT_INTERVAL=config.checkpoint_interval,
+            LOOP_STAGES=config.num_stages,
+            VALUE_INT4=value_int4,
+            HAS_GRAD_FINAL_STATE=grad_final_state is not None,
+            STORE_GRAD_INITIAL_STATE=grad_initial_state is not None,
+            num_warps=config.num_warps,
+            num_stages=config.num_stages,
+        )
+    if use_native:
+        from .kda_artifacts import KDA_BACKWARD_NORMALIZE
+        from .kda_native import launch_precompiled_kda
+
+        launch_precompiled_kda(
+            native_jobs[KDA_BACKWARD_NORMALIZE],
+            values={
+                "query": query,
+                "key": key,
+                "query_scale": query_scale_argument,
+                "key_scale": key_scale_argument,
+                "grad_query_normalized": grad_query_normalized,
+                "grad_key_normalized": grad_key_normalized,
+                "grad_query": grad_query,
+                "grad_key": grad_key,
+                "rows": rows,
+                "head_dim": logical_head_dim,
+                "packed_head_dim": int(query.shape[-1]),
+            },
+            reference_tensor=query,
+            grid=(rows, 1),
+        )
+    else:
+        _kda_qk_normalization_backward_kernel()[(rows,)](
+            query,
+            key,
+            query_scale if query_scale is not None else dummy,
+            key_scale if key_scale is not None else dummy,
+            grad_query_normalized,
+            grad_key_normalized,
+            grad_query,
+            grad_key,
+            rows,
+            logical_head_dim,
+            int(query.shape[-1]),
+            BLOCK_D=block_d,
+            QK_INT4=qk_int4,
+            NORMALIZE_QK=normalize_qk,
+            num_warps=4 if backend == "gluon" else config.num_warps,
+            num_stages=config.num_stages,
+        )
     return (
         grad_query,
         grad_key,

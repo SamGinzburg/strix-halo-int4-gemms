@@ -31,6 +31,7 @@ from amd_strix_halo_kernels import (
     default_ragged_dot_candidates,
 )
 from amd_strix_halo_kernels.benchmarking import BenchmarkShape
+from amd_strix_halo_kernels.artifacts import installed_triton_commit
 
 
 @dataclass(frozen=True, slots=True)
@@ -339,6 +340,7 @@ def main(argv: list[str] | None = None) -> int:
 
     best = max(records, key=lambda record: record["tops"])
     output = {
+        "triton_git_revision": installed_triton_commit(),
         "records": records,
         "failures": failures,
         "best": best,

@@ -1,0 +1,75 @@
+{
+  "record_schema": 1,
+  "device": "AMD Radeon 8060S Graphics",
+  "torch": "2.9.1+rocm7.2.0.git7e1940d4",
+  "hip": "7.2.26015-fc0010cf6a",
+  "triton": "3.7.0",
+  "triton_git_revision": "90b278e643ff80203d7da41412a9b6aef7c0b0b5",
+  "shape": {"batch": 4, "heads": 32, "head_dim": 128, "value_dim": 128},
+  "measurement": {
+    "warmup_ms": 100,
+    "rep_ms": 400,
+    "prepacked_inputs": true,
+    "preallocated_outputs": true,
+    "kda_backends": ["packaged_gluon", "gluon_jit"],
+    "sdpa_backend": "package_triton_jit",
+    "causal": true
+  },
+  "numerical_gate": {
+    "maximum_recorded_absolute_error": 1.430511474609375e-06,
+    "atol": 0.001,
+    "rtol": 0.001
+  },
+  "records": [
+    {
+      "sequence": 128,
+      "kda_backend": "packaged_gluon",
+      "kda_ms": {"bf16": 0.3234870135784149, "int4-qk": 0.30068400502204895, "int4-v": 0.31891900300979614, "int4-all": 0.33286499977111816},
+      "sdpa_ms": {"bf16": 0.1756889969110489, "int4-qk": 0.09674099832773209, "int4-v": 0.1243939995765686, "int4-all": 0.08888699859380722},
+      "failure_count": 0
+    },
+    {
+      "sequence": 256,
+      "kda_backend": "packaged_gluon",
+      "kda_ms": {"bf16": 0.6292610168457031, "int4-qk": 0.6079009771347046, "int4-v": 0.6263359785079956, "int4-all": 0.6586359739303589},
+      "sdpa_ms": {"bf16": 0.34741199016571045, "int4-qk": 0.17236299812793732, "int4-v": 0.2598080039024353, "int4-all": 0.16851599514484406},
+      "failure_count": 0
+    },
+    {
+      "sequence": 512,
+      "kda_backend": "packaged_gluon",
+      "kda_ms": {"bf16": 1.2529120445251465, "int4-qk": 1.1763279438018799, "int4-v": 1.2359999418258667, "int4-all": 1.3102600574493408},
+      "sdpa_ms": {"bf16": 0.6541079878807068, "int4-qk": 0.3322240114212036, "int4-v": 0.7853950262069702, "int4-all": 0.4449149966239929},
+      "failure_count": 0
+    },
+    {
+      "sequence": 1024,
+      "kda_backend": "packaged_gluon",
+      "kda_ms": {"bf16": 2.5061440467834473, "int4-qk": 2.36167311668396, "int4-v": 2.4569718837738037, "int4-all": 2.6204380989074707},
+      "sdpa_ms": {"bf16": 1.6522610187530518, "int4-qk": 0.9298650026321411, "int4-v": 1.7619470357894897, "int4-all": 1.547664999961853},
+      "failure_count": 0
+    },
+    {
+      "sequence": 2048,
+      "kda_backend": "packaged_gluon",
+      "kda_ms": {"bf16": 5.1020588874816895, "int4-qk": 4.759975910186768, "int4-v": 4.983034133911133, "int4-all": 5.290933132171631},
+      "sdpa_ms": {"bf16": 5.689280033111572, "int4-qk": 3.38788104057312, "int4-v": 6.593898773193359, "int4-all": 5.836758136749268},
+      "failure_count": 0
+    },
+    {
+      "sequence": 4096,
+      "kda_backend": "gluon_jit",
+      "kda_ms": {"bf16": 10.50367546081543, "int4-qk": 9.842795372009277, "int4-v": 10.3071870803833, "int4-all": 10.763843536376953},
+      "sdpa_ms": {"bf16": 20.62992286682129, "int4-qk": 13.593515396118164, "int4-v": 25.469566345214844, "int4-all": 22.797832489013672},
+      "failure_count": 0
+    },
+    {
+      "sequence": 8192,
+      "kda_backend": "gluon_jit",
+      "kda_ms": {"bf16": 21.312963485717773, "int4-qk": 20.165771484375, "int4-v": 21.092952728271484, "int4-all": 21.879587173461914},
+      "sdpa_ms": {"bf16": 79.67086029052734, "int4-qk": 53.16254806518555, "int4-v": 100.41716766357422, "int4-all": 89.78047943115234},
+      "failure_count": 0,
+      "notes": "confirmation repeat"
+    }
+  ]
+}

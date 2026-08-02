@@ -246,7 +246,7 @@ amd_strix_halo_gfx1151_attention_bwd_dq_int4xint4_none_causal_outfloat32_doutflo
 	ds_bpermute_b32 v5, v4, v44
 	ds_bpermute_b32 v4, v4, v45
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention_backward.py:176:17 ] ]
 	s_waitcnt vmcnt(6)
 	v_dual_fmac_f32 v43, v48, v39 :: v_dual_mul_f32 v44, v51, v34

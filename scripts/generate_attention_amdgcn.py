@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,6 +23,7 @@ add_local_package_to_path()
 from amd_strix_halo_kernels.artifacts import (  # noqa: E402
     clean_generated_outputs,
     display_path,
+    installed_triton_commit,
     scrub_local_debug_paths,
     uniquify_amdgcn_symbols,
     write_triton_text_artifacts,
@@ -116,19 +116,8 @@ def _triton_checkout_root(triton: Any) -> Path | None:
 
 
 def _triton_commit(triton: Any) -> str | None:
-    checkout = _triton_checkout_root(triton)
-    if checkout is None:
-        return None
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(checkout), "rev-parse", "HEAD"],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except Exception:
-        return None
-    return result.stdout.strip()
+    del triton
+    return installed_triton_commit()
 
 
 def _cdiv(value: int, divisor: int) -> int:

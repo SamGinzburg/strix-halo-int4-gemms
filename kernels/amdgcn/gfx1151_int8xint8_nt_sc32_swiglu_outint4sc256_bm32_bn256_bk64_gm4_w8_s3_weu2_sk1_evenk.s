@@ -21,7 +21,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_swiglu_outint4sc256_bm32_bn256_bk64_gm4
 	v_lshlrev_b32_e32 v137, 1, v0
 	v_lshlrev_b32_e32 v138, 5, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:347:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s25, 0xff
@@ -625,7 +625,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_swiglu_outint4sc256_bm32_bn256_bk64_gm4
 	s_add_i32 s28, s28, -1
 	s_add_i32 s30, s30, 64
 	s_cmp_lg_u32 s28, 0
-	.loc	1 392 24                        ; generate_amdgcn.py:392:24
+	.loc	1 390 22                        ; generate_amdgcn.py:390:22
 	s_waitcnt vmcnt(2)
 	ds_store_b16 v151, v9 offset:34816
 	s_waitcnt lgkmcnt(0)
@@ -646,7 +646,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_swiglu_outint4sc256_bm32_bn256_bk64_gm4
 	v_dual_cndmask_b32 v157, 0x80000000, v10 :: v_dual_mul_f32 v216, v153, v29
 	ds_load_b128 v[9:12], v142 offset:34816
 	ds_load_b128 v[13:16], v142 offset:34832
-	.loc	1 396 33                        ; generate_amdgcn.py:396:33
+	.loc	1 394 31                        ; generate_amdgcn.py:394:31
 	s_waitcnt lgkmcnt(0)
 	s_barrier
 	.loc	1 392 24                        ; generate_amdgcn.py:392:24
@@ -718,7 +718,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_swiglu_outint4sc256_bm32_bn256_bk64_gm4
 	v_fmac_f32_e32 v124, v21, v64
 	v_fmac_f32_e32 v106, v29, v167
 	v_fmac_f32_e32 v86, v39, v16
-	.loc	1 396 33                        ; generate_amdgcn.py:396:33
+	.loc	1 394 31                        ; generate_amdgcn.py:394:31
 	s_waitcnt vmcnt(0)
 	ds_store_b16 v151, v155 offset:34816
 	s_waitcnt lgkmcnt(0)
@@ -731,6 +731,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_swiglu_outint4sc256_bm32_bn256_bk64_gm4
 	buffer_load_u16 v224, v224, s[0:3], 0 offen
 	.loc	1 396 33                        ; generate_amdgcn.py:396:33
 	v_mul_f32_e32 v153, v153, v180
+	.loc	1 394 31                        ; generate_amdgcn.py:394:31
 	ds_load_b128 v[173:176], v142 offset:34816
 	ds_load_b128 v[177:180], v142 offset:34832
 	.loc	1 374 26                        ; generate_amdgcn.py:374:26

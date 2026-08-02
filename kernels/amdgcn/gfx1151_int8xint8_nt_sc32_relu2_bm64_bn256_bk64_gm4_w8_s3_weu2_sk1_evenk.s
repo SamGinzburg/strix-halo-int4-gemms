@@ -19,7 +19,7 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk
 	s_abs_i32 s7, s2
 	v_and_b32_e32 v13, 16, v0
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 43 13                         ; standard.py:43:13 @[ generate_amdgcn.py:347:17 ]
 	s_waitcnt lgkmcnt(0)
 	s_add_i32 s4, s15, 0xff
@@ -592,11 +592,11 @@ amd_strix_halo_gfx1151_int8xint8_nt_sc32_relu2_bm64_bn256_bk64_gm4_w8_s3_weu2_sk
 	v_dual_mul_f32 v119, v119, v165 :: v_dual_mul_f32 v124, v124, v166
 	v_mul_f32_e32 v102, v102, v164
 	v_mul_f32_e32 v103, v103, v164
+	.loc	1 390 22                        ; generate_amdgcn.py:390:22
 	s_waitcnt vmcnt(0)
 	ds_store_b16 v88, v92 offset:20480
 	s_waitcnt lgkmcnt(0)
 	s_barrier
-	.loc	1 390 22                        ; generate_amdgcn.py:390:22
 	ds_load_b128 v[92:95], v53 offset:20480
 	ds_load_b128 v[96:99], v53 offset:20496
 	s_waitcnt lgkmcnt(1)

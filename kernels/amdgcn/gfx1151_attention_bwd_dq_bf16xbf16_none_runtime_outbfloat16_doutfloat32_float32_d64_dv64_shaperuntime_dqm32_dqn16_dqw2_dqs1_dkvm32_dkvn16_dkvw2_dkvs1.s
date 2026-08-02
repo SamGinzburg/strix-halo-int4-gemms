@@ -977,7 +977,7 @@ amd_strix_halo_gfx1151_attention_bwd_dq_bf16xbf16_none_runtime_outbfloat16_doutf
 	s_waitcnt vmcnt(12)
 	v_dual_mul_f32 v122, v91, v47 :: v_dual_mul_f32 v123, v90, v48
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 293 12                        ; standard.py:293:12 @[ attention_backward.py:176:17 ]
 	v_mov_b32_dpp v68, v68 row_shr:8 row_mask:0xf bank_mask:0xf bound_ctrl:1
 	v_mov_b32_dpp v120, v120 row_shr:8 row_mask:0xf bank_mask:0xf bound_ctrl:1

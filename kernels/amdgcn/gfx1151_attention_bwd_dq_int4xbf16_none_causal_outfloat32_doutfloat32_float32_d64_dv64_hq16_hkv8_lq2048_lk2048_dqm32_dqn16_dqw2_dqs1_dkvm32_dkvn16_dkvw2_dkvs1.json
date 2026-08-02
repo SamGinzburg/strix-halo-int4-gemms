@@ -154,13 +154,8 @@
     "query_heads": 16,
     "query_length": 2048
   },
-  "source_triton_commit": "0da3c5a751b2d03461e961b62dc3598f85884617",
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
   "status": "generated",
-  "triton_artifacts": {
-    "llir": "kernels/triton/gfx1151_attention_bwd_dq_int4xbf16_none_causal_outfloat32_doutfloat32_float32_d64_dv64_hq16_hkv8_lq2048_lk2048_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.llir",
-    "source": "kernels/triton/gfx1151_attention_bwd_dq_int4xbf16_none_causal_outfloat32_doutfloat32_float32_d64_dv64_hq16_hkv8_lq2048_lk2048_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.py",
-    "ttgir": "kernels/triton/gfx1151_attention_bwd_dq_int4xbf16_none_causal_outfloat32_doutfloat32_float32_d64_dv64_hq16_hkv8_lq2048_lk2048_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.ttgir",
-    "ttir": "kernels/triton/gfx1151_attention_bwd_dq_int4xbf16_none_causal_outfloat32_doutfloat32_float32_d64_dv64_hq16_hkv8_lq2048_lk2048_dqm32_dqn16_dqw2_dqs1_dkvm32_dkvn16_dkvw2_dkvs1.ttir"
-  },
+  "triton_artifacts": {},
   "value_dim": 64
 }

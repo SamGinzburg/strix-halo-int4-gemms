@@ -353,7 +353,7 @@ amd_strix_halo_gfx1151_attention_bwd_dq_int4xint4_none_local_outfloat32_doutbflo
 	v_cndmask_b32_e64 v158, v2, v1, s5
 	v_cndmask_b32_e64 v160, v1, v2, s5
 .Ltmp1:
-	.file	2 "<triton>/python/triton/language" "standard.py"
+	.file	2 "<repo>/.venv/lib/python3.12/site-packages/triton/language" "standard.py"
 	.loc	2 263 12                        ; standard.py:263:12 @[ standard.py:293:12 @[ attention_backward.py:176:17 ] ]
 	v_fmac_f32_e32 v4, v6, v70
 .Ltmp2:

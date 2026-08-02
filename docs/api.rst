@@ -20,7 +20,7 @@ families:
 * ``kimi_delta_attention(...)`` and ``kimi_delta_attention_backward(...)``
   provide explicit recurrent Kimi Delta Attention forward/backward over
   ``[B,T,H,D]``. Q/K and V independently accept BF16 or row-scaled packed
-  INT4 input storage.
+  INT4 input storage, with Triton and tuned gfx1151 Gluon backends.
 * ``explicit_mm(..., kernel=...)`` launches the exact dense
   ``KernelMetadata`` entry supplied by the caller.
 * ``torch_gemm(...)`` is the same explicit dense dispatch exposed as a
@@ -396,6 +396,15 @@ BF16/FP32 ``grad_output`` so the native pointer ABI is dtype-exact. Only
 regeneration and uncovered fallbacks require the custom Strix Halo Triton
 fork.
 
+Precompiled attention fixes ``D=Dv=64`` but does not otherwise require one
+batch/head/length shape: the generic objects keep ``B``, ``Hq``, ``Hkv``,
+``Lq``, and ``Lk`` runtime, subject to the ordinary GQA and input validation
+rules and the packaged launch-config set. Exact forward profiles additionally
+specialize ``(Hq,Hkv,Lq,Lk)`` as ``(8,8,512,512)``,
+``(16,8,2048,2048)``, or ``(8,8,1,2048)``. Backward has generic runtime-shape
+objects and an exact ``(16,8,2048,2048)`` profile. Batch remains runtime even
+for those exact head/length profiles.
+
 Kimi Delta Attention Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -422,14 +431,43 @@ integer codes and scales are fixed representation metadata. An optional
 The optimized APIs reject tensors with ``requires_grad=True`` so an omitted
 explicit backward call cannot silently produce an incomplete autograd graph.
 
+Both explicit APIs accept ``backend="triton"`` or ``backend="gluon"``.
+Triton is the compatibility default. Gluon JIT requires the pinned Strix Halo
+fork; packaged Gluon does not. Both use explicit gfx1151 vector/state layouts plus RDNA
+buffer operations. With ``backend="gluon"``, ``use_precompiled=None``
+automatically selects an installed compatible artifact, ``True`` requires packaged
+coverage, and ``False`` forces Gluon JIT. ``use_precompiled=True`` is invalid
+with the Triton or reference backends. Chunked compact-WY execution is
+Triton-only.
+
+The packaged profile keeps positive ``B``/``H`` and ``1 <= T <= 2048``
+runtime, and specializes
+``D=Dv=128,value_block=64,checkpoint_interval=4``, normalized Q/K, BF16 output
+and upstream gradient, FP32 ``log_decay``/``beta``, and no initial/final-state
+path. Artifact names retain the ``B=4,T=2048,H=32`` generation shape for
+provenance; it is not a runtime-shape requirement. The 14 objects cover four forward BF16/INT4 QK-by-V
+representations with and without checkpoint-cache writes plus BF16/INT4
+variants of each backward preprocess, recurrent, and normalization phase.
+Uncovered shapes or options fall back only when ``use_precompiled`` is not
+``True``.
+
+gfx1151 is RDNA 3.5 and its buffer descriptors use a 32-bit byte offset. The
+runtime gate verifies ordinary tensor spans and, when a checkpoint cache is
+used, verifies both halves of the compile-time 127-batch-head cache split. At
+``T=2048`` the current two-descriptor ABI supports at most 254 batch-heads for
+training/cache writes; shorter sequences can support more. Forward without a
+cache does not pay that cache-specific limit. ``T>2048`` requires a separate
+cache-split generation profile rather than reusing this object unsafely.
+
 Backward reconstructs token states from an FP32 checkpoint cache. Smaller
 ``checkpoint_interval`` values trade memory for less replay work. At the
 measured ``B=4,T=2048,H=32,D=Dv=128`` training shape,
-``checkpoint_interval=4``, ``value_block=64``, and
-``backward_value_block=16`` are the measured settings. Forward and backward
-tiles are independent because the reverse recurrence has materially higher
-register pressure. ``num_stages=2`` pipelines recurrent token loads. A state
-cache uses shape
+``checkpoint_interval=4`` and ``value_block=64`` are the measured Gluon
+settings. Gluon automatically uses two forward waves with a 64-wide value
+tile and four backward waves with a 64-wide value tile at ``Dv=128``. The
+``backward_value_block``, ``num_warps``, and ``num_stages`` fields remain
+Triton tuning controls and do not override Gluon's measured internal layouts.
+A state cache uses shape
 ``[B,H,ceil(T/checkpoint_interval)+1,D,Dv]``. If it is omitted outside graph
 capture, backward allocates and populates it automatically.
 
@@ -444,7 +482,7 @@ capture, backward allocates and populates it automatically.
 
    q4, q_scale, head_dim = quantize_kda_int4(query)
    k4, k_scale, _ = quantize_kda_int4(key)
-   output, final_state = kimi_delta_attention(
+   output, _ = kimi_delta_attention(
        q4,
        k4,
        value,
@@ -453,12 +491,12 @@ capture, backward allocates and populates it automatically.
        query_scale=q_scale,
        key_scale=k_scale,
        head_dim=head_dim,
-       output_final_state=True,
        config=KimiDeltaAttentionConfig(
            value_block=64,
-           backward_value_block=16,
            checkpoint_interval=4,
        ),
+       backend="gluon",
+       use_precompiled=True,
    )
    grads = kimi_delta_attention_backward(
        q4,
@@ -472,9 +510,10 @@ capture, backward allocates and populates it automatically.
        head_dim=head_dim,
        config=KimiDeltaAttentionConfig(
            value_block=64,
-           backward_value_block=16,
            checkpoint_interval=4,
        ),
+       backend="gluon",
+       use_precompiled=True,
    )
 
 For CUDAGraph capture, preallocate ``out`` and any requested ``final_state``
@@ -482,16 +521,21 @@ or ``state_cache``. Backward additionally requires the cache, every applicable
 gradient output, and FP32 ``grad_query_normalized`` and
 ``grad_key_normalized`` scratch tensors. Captured tests cover all four
 BF16/INT4 QK-by-V modes. Output and scratch buffers may not alias inputs or one
-another.
+another. The target checkpoint cache is 4.008 GiB, which exceeds one RDNA
+buffer descriptor's 32-bit byte-offset range. Gluon transparently divides it
+between two descriptors in one recurrent launch; this paging also applies
+during capture and replay.
 
 ``use_reference=True`` and the two ``reference_kimi_delta_attention*``
 functions provide the independent FP32 oracle. Tests cover dense/tail
 sequences, zero-norm Q/K, initial/final state, all representation modes, and
 graph replay. Optimized forward, final state, and all gradient tensors are
 required to match the representation-matched oracle at
-``rtol=atol=1e-3``. The measured worst absolute errors are ``8.95e-8``
-forward, ``2.39e-7`` final state, and ``1.32e-6`` backward. Backward
-materializes normalized logical Q/K once into the caller-provided dQ/dK
+``rtol=atol=1e-3``. The measured worst oracle errors are ``8.95e-8``
+forward, ``2.39e-7`` final state, and ``1.43e-6`` backward. On the full target
+shape, Gluon and Triton differ by at most ``2.45e-4`` forward and ``1.79e-7``
+backward. Backward materializes normalized logical Q/K once into the
+caller-provided dQ/dK
 buffers before the recurrent pass, then overwrites those buffers with final
 gradients in the normalization epilogue. This reuse adds no graph-time
 allocation. Cross-value-tile FP32 reductions use relaxed atomics because no
@@ -501,7 +545,8 @@ ordering relationship exists between independent partial sums.
 for compiler experiments. It currently requires BF16 V, BF16 output, and a
 checkpoint interval of 16, plus FP32 ``w_workspace`` and ``u_workspace`` for
 allocation-free capture. It measured slower than the recurrent kernel on
-gfx1151 and is therefore not the default.
+gfx1151, is available only with ``backend="triton"``, and is therefore not the
+default.
 
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

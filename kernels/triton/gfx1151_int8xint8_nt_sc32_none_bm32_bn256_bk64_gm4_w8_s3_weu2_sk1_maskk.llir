@@ -304,11 +304,11 @@ define amdgpu_kernel void @_int8_scaled_gemm(ptr addrspace(1) inreg readonly cap
   %287 = shl i32 %286, 1, !dbg !60
   %288 = select i1 %276, i32 %287, i32 -2147483648, !dbg !60
   %289 = tail call i16 @llvm.amdgcn.raw.ptr.buffer.load.i16(ptr addrspace(8) %106, i32 %288, i32 0, i32 0), !dbg !60
-  store i16 %289, ptr addrspace(3) %116, align 2, !dbg !14
-  tail call void @llvm.amdgcn.s.waitcnt(i32 64519), !dbg !14
-  tail call void @llvm.amdgcn.s.barrier(), !dbg !14
-  %290 = load <8 x i16>, ptr addrspace(3) %118, align 16, !dbg !14
-  %291 = load <8 x i16>, ptr addrspace(3) %119, align 16, !dbg !14
+  store i16 %289, ptr addrspace(3) %116, align 2, !dbg !60
+  tail call void @llvm.amdgcn.s.waitcnt(i32 64519), !dbg !60
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !60
+  %290 = load <8 x i16>, ptr addrspace(3) %118, align 16, !dbg !60
+  %291 = load <8 x i16>, ptr addrspace(3) %119, align 16, !dbg !60
   %292 = extractelement <8 x i16> %290, i64 0, !dbg !60
   %293 = zext i16 %292 to i32, !dbg !60
   %294 = shl nuw i32 %293, 16, !dbg !60
@@ -1307,7 +1307,7 @@ attributes #8 = { convergent mustprogress nocallback nocreateundeforpoison nofre
 !16 = !DILocation(line: 345, column: 13, scope: !4)
 !17 = !DILocation(line: 43, column: 13, scope: !18, inlinedAt: !20)
 !18 = distinct !DILexicalBlockFile(scope: !4, file: !19, discriminator: 0)
-!19 = !DIFile(filename: "standard.py", directory: "<triton>/python/triton/language")
+!19 = !DIFile(filename: "standard.py", directory: "<repo>/.venv/lib/python3.12/site-packages/triton/language")
 !20 = !DILocation(line: 346, column: 17, scope: !21)
 !21 = distinct !DILexicalBlockFile(scope: !4, file: !1, discriminator: 0)
 !22 = !DILocation(line: 43, column: 12, scope: !18, inlinedAt: !20)

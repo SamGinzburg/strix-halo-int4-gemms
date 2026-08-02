@@ -161,7 +161,9 @@ def reference_kimi_delta_attention_backward(
 
 
 @lru_cache(maxsize=1)
-def _kda_backward_kernel() -> Any:
+def _kda_qk_preprocess_kernel() -> Any:
+    """Materialize logical normalized Q/K once for all value tiles."""
+
     _, tl = _triton()
     import triton
 
@@ -169,11 +171,95 @@ def _kda_backward_kernel() -> Any:
     def kernel(
         query,
         key,
+        query_scale,
+        key_scale,
+        query_logical,
+        key_logical,
+        rows,
+        head_dim,
+        packed_head_dim,
+        BLOCK_D: tl.constexpr,
+        QK_INT4: tl.constexpr,
+        NORMALIZE_QK: tl.constexpr,
+    ):
+        row_index = tl.program_id(0)
+        offsets_d = tl.arange(0, BLOCK_D)
+        mask_d = offsets_d < head_dim
+        if QK_INT4:
+            packed_offsets = row_index * packed_head_dim + offsets_d // 2
+            query_bytes = tl.load(
+                query + packed_offsets,
+                mask=mask_d,
+                other=0,
+            )
+            key_bytes = tl.load(
+                key + packed_offsets,
+                mask=mask_d,
+                other=0,
+            )
+            query_nibbles = tl.where(
+                offsets_d % 2 == 0,
+                query_bytes & 0xF,
+                (query_bytes >> 4) & 0xF,
+            ).to(tl.int32)
+            key_nibbles = tl.where(
+                offsets_d % 2 == 0,
+                key_bytes & 0xF,
+                (key_bytes >> 4) & 0xF,
+            ).to(tl.int32)
+            query_raw = tl.where(
+                query_nibbles >= 8,
+                query_nibbles - 16,
+                query_nibbles,
+            ).to(tl.float32) * tl.load(query_scale + row_index)
+            key_raw = tl.where(
+                key_nibbles >= 8,
+                key_nibbles - 16,
+                key_nibbles,
+            ).to(tl.float32) * tl.load(key_scale + row_index)
+        else:
+            qk_offsets = row_index * head_dim + offsets_d
+            query_raw = tl.load(
+                query + qk_offsets,
+                mask=mask_d,
+                other=0.0,
+            ).to(tl.float32)
+            key_raw = tl.load(
+                key + qk_offsets,
+                mask=mask_d,
+                other=0.0,
+            ).to(tl.float32)
+        if NORMALIZE_QK:
+            query_norm = tl.sqrt(tl.sum(query_raw * query_raw, axis=0))
+            key_norm = tl.sqrt(tl.sum(key_raw * key_raw, axis=0))
+            query_raw = query_raw / tl.maximum(query_norm, 1.0e-12)
+            key_raw = key_raw / tl.maximum(key_norm, 1.0e-12)
+        tl.store(
+            query_logical + row_index * head_dim + offsets_d,
+            query_raw,
+            mask=mask_d,
+        )
+        tl.store(
+            key_logical + row_index * head_dim + offsets_d,
+            key_raw,
+            mask=mask_d,
+        )
+
+    return kernel
+
+
+@lru_cache(maxsize=1)
+def _kda_backward_kernel() -> Any:
+    _, tl = _triton()
+    import triton
+
+    @triton.jit
+    def kernel(
+        query_logical_workspace,
+        key_logical_workspace,
         value,
         log_decay,
         beta,
-        query_scale,
-        key_scale,
         value_scale,
         grad_output,
         grad_final_state,
@@ -187,7 +273,6 @@ def _kda_backward_kernel() -> Any:
         sequence,
         heads,
         head_dim,
-        packed_head_dim,
         value_dim,
         packed_value_dim,
         num_checkpoints,
@@ -195,11 +280,10 @@ def _kda_backward_kernel() -> Any:
         BLOCK_D: tl.constexpr,
         BLOCK_V: tl.constexpr,
         CHECKPOINT_INTERVAL: tl.constexpr,
-        QK_INT4: tl.constexpr,
+        LOOP_STAGES: tl.constexpr,
         VALUE_INT4: tl.constexpr,
         HAS_GRAD_FINAL_STATE: tl.constexpr,
         STORE_GRAD_INITIAL_STATE: tl.constexpr,
-        NORMALIZE_QK: tl.constexpr,
     ):
         batch_head = tl.program_id(0)
         value_block = tl.program_id(1)
@@ -222,7 +306,11 @@ def _kda_backward_kernel() -> Any:
         else:
             grad_state = tl.zeros((BLOCK_D, BLOCK_V), dtype=tl.float32)
 
-        for reverse_index in range(0, sequence):
+        for reverse_index in tl.range(
+            0,
+            sequence,
+            num_stages=LOOP_STAGES,
+        ):
             token = sequence - reverse_index - 1
             chunk_index = token // CHECKPOINT_INTERVAL
             cache_offsets = (
@@ -245,42 +333,11 @@ def _kda_backward_kernel() -> Any:
                 replay_row = (
                     (batch_index * sequence + replay_token) * heads + head_index
                 )
-                if QK_INT4:
-                    replay_packed = replay_row * packed_head_dim + offsets_d // 2
-                    replay_key_bytes = tl.load(
-                        key + replay_packed,
-                        mask=mask_d & replay_active,
-                        other=0,
-                    )
-                    replay_key_nibbles = tl.where(
-                        offsets_d % 2 == 0,
-                        replay_key_bytes & 0xF,
-                        (replay_key_bytes >> 4) & 0xF,
-                    ).to(tl.int32)
-                    replay_key_codes = tl.where(
-                        replay_key_nibbles >= 8,
-                        replay_key_nibbles - 16,
-                        replay_key_nibbles,
-                    )
-                    replay_key = replay_key_codes.to(tl.float32) * tl.load(
-                        key_scale + replay_row,
-                        mask=replay_active,
-                        other=0.0,
-                    )
-                else:
-                    replay_key = tl.load(
-                        key + replay_row * head_dim + offsets_d,
-                        mask=mask_d & replay_active,
-                        other=0.0,
-                    ).to(tl.float32)
-                if NORMALIZE_QK:
-                    replay_key_norm = tl.sqrt(
-                        tl.sum(replay_key * replay_key, axis=0)
-                    )
-                    replay_key = replay_key / tl.maximum(
-                        replay_key_norm,
-                        1.0e-12,
-                    )
+                replay_key = tl.load(
+                    key_logical_workspace + replay_row * head_dim + offsets_d,
+                    mask=mask_d & replay_active,
+                    other=0.0,
+                ).to(tl.float32)
                 if VALUE_INT4:
                     replay_v_packed = (
                         replay_row * packed_value_dim + offsets_v // 2
@@ -339,53 +396,17 @@ def _kda_backward_kernel() -> Any:
                 )
 
             row_index = (batch_index * sequence + token) * heads + head_index
-            if QK_INT4:
-                packed_offsets = row_index * packed_head_dim + offsets_d // 2
-                query_bytes = tl.load(query + packed_offsets, mask=mask_d, other=0)
-                key_bytes = tl.load(key + packed_offsets, mask=mask_d, other=0)
-                query_nibbles = tl.where(
-                    offsets_d % 2 == 0,
-                    query_bytes & 0xF,
-                    (query_bytes >> 4) & 0xF,
-                ).to(tl.int32)
-                key_nibbles = tl.where(
-                    offsets_d % 2 == 0,
-                    key_bytes & 0xF,
-                    (key_bytes >> 4) & 0xF,
-                ).to(tl.int32)
-                query_codes = tl.where(
-                    query_nibbles >= 8,
-                    query_nibbles - 16,
-                    query_nibbles,
-                )
-                key_codes = tl.where(
-                    key_nibbles >= 8,
-                    key_nibbles - 16,
-                    key_nibbles,
-                )
-                query_raw = query_codes.to(tl.float32) * tl.load(
-                    query_scale + row_index
-                )
-                key_raw = key_codes.to(tl.float32) * tl.load(key_scale + row_index)
-            else:
-                qk_offsets = row_index * head_dim + offsets_d
-                query_raw = tl.load(
-                    query + qk_offsets,
-                    mask=mask_d,
-                    other=0.0,
-                ).to(tl.float32)
-                key_raw = tl.load(
-                    key + qk_offsets,
-                    mask=mask_d,
-                    other=0.0,
-                ).to(tl.float32)
-            query_logical = query_raw
-            key_logical = key_raw
-            if NORMALIZE_QK:
-                query_norm = tl.sqrt(tl.sum(query_raw * query_raw, axis=0))
-                key_norm = tl.sqrt(tl.sum(key_raw * key_raw, axis=0))
-                query_logical = query_raw / tl.maximum(query_norm, 1.0e-12)
-                key_logical = key_raw / tl.maximum(key_norm, 1.0e-12)
+            qk_offsets = row_index * head_dim + offsets_d
+            query_logical = tl.load(
+                query_logical_workspace + qk_offsets,
+                mask=mask_d,
+                other=0.0,
+            ).to(tl.float32)
+            key_logical = tl.load(
+                key_logical_workspace + qk_offsets,
+                mask=mask_d,
+                other=0.0,
+            ).to(tl.float32)
             if VALUE_INT4:
                 packed_v_offsets = row_index * packed_value_dim + offsets_v // 2
                 value_bytes = tl.load(
@@ -458,11 +479,13 @@ def _kda_backward_kernel() -> Any:
                 grad_query_normalized + row_index * head_dim + offsets_d,
                 grad_query_partial,
                 mask=mask_d,
+                sem="relaxed",
             )
             tl.atomic_add(
                 grad_key_normalized + row_index * head_dim + offsets_d,
                 grad_key_partial,
                 mask=mask_d,
+                sem="relaxed",
             )
             tl.store(
                 grad_value + row_index * value_dim + offsets_v,
@@ -473,8 +496,13 @@ def _kda_backward_kernel() -> Any:
                 grad_log_decay + row_index * head_dim + offsets_d,
                 grad_decay_partial,
                 mask=mask_d,
+                sem="relaxed",
             )
-            tl.atomic_add(grad_beta + row_index, grad_beta_partial)
+            tl.atomic_add(
+                grad_beta + row_index,
+                grad_beta_partial,
+                sem="relaxed",
+            )
 
         if STORE_GRAD_INITIAL_STATE:
             tl.store(
@@ -923,15 +951,33 @@ def kimi_delta_attention_backward(
         )
     dummy = grad_query
     block_d = _next_power_of_two(logical_head_dim)
-    grid = (batch * heads, _cdiv(logical_value_dim, config.value_block))
-    _kda_backward_kernel()[grid](
+    rows = batch * sequence * heads
+    _kda_qk_preprocess_kernel()[(rows,)](
         query,
         key,
+        query_scale if query_scale is not None else dummy,
+        key_scale if key_scale is not None else dummy,
+        grad_query,
+        grad_key,
+        rows,
+        logical_head_dim,
+        int(query.shape[-1]),
+        BLOCK_D=block_d,
+        QK_INT4=qk_int4,
+        NORMALIZE_QK=normalize_qk,
+        num_warps=config.num_warps,
+        num_stages=config.num_stages,
+    )
+    grid = (
+        batch * heads,
+        _cdiv(logical_value_dim, config.backward_value_block),
+    )
+    _kda_backward_kernel()[grid](
+        grad_query,
+        grad_key,
         value,
         log_decay,
         beta,
-        query_scale if query_scale is not None else dummy,
-        key_scale if key_scale is not None else dummy,
         value_scale if value_scale is not None else dummy,
         grad_output,
         grad_final_state if grad_final_state is not None else dummy,
@@ -945,23 +991,20 @@ def kimi_delta_attention_backward(
         sequence,
         heads,
         logical_head_dim,
-        int(query.shape[-1]),
         logical_value_dim,
         int(value.shape[-1]),
         num_checkpoints,
         resolved_scale,
         BLOCK_D=block_d,
-        BLOCK_V=config.value_block,
+        BLOCK_V=config.backward_value_block,
         CHECKPOINT_INTERVAL=config.checkpoint_interval,
-        QK_INT4=qk_int4,
+        LOOP_STAGES=config.num_stages,
         VALUE_INT4=value_int4,
         HAS_GRAD_FINAL_STATE=grad_final_state is not None,
         STORE_GRAD_INITIAL_STATE=grad_initial_state is not None,
-        NORMALIZE_QK=normalize_qk,
         num_warps=config.num_warps,
         num_stages=config.num_stages,
     )
-    rows = batch * sequence * heads
     _kda_qk_normalization_backward_kernel()[(rows,)](
         query,
         key,

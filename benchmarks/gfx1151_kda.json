@@ -22,18 +22,19 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 32,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 10.803318977355957,
-      "effective_tops": 2.7829198725888364,
+      "runtime_ms": 8.798916816711426,
+      "effective_tops": 3.4168718375538227,
       "numerical_gate": {
         "forward_max_abs": 3.725290298461914e-08,
         "final_state_max_abs": 1.7881393432617188e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 9.5367431640625e-07,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -49,17 +50,18 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 16,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 166.68304443359375,
+      "runtime_ms": 143.88108825683594,
       "numerical_gate": {
         "forward_max_abs": 3.725290298461914e-08,
         "final_state_max_abs": 1.7881393432617188e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 9.5367431640625e-07,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -76,18 +78,19 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 32,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 10.174259185791016,
-      "effective_tops": 2.9549838000969464,
+      "runtime_ms": 8.770862579345703,
+      "effective_tops": 3.42780094888259,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 1.3113021850585938e-06,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -103,17 +106,74 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 16,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 165.3982391357422,
+      "runtime_ms": 141.70582580566406,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 1.3113021850585938e-06,
+        "atol": 0.001,
+        "rtol": 0.001
+      },
+      "notes": "FP32 logical gradients; forward checkpoint construction excluded"
+    },
+    {
+      "mode": "int4-v",
+      "phase": "forward",
+      "shape": {
+        "batch": 4,
+        "sequence": 2048,
+        "heads": 32,
+        "head_dim": 128,
+        "value_dim": 128
+      },
+      "config": {
+        "value_block": 64,
+        "backward_value_block": 16,
+        "checkpoint_interval": 4,
+        "num_warps": 4,
+        "num_stages": 2,
+        "chunked": false
+      },
+      "runtime_ms": 8.919061660766602,
+      "effective_tops": 3.3708446264307925,
+      "numerical_gate": {
+        "forward_max_abs": 8.940696716308594e-08,
+        "final_state_max_abs": 2.384185791015625e-07,
+        "backward_max_abs": 9.5367431640625e-07,
+        "atol": 0.001,
+        "rtol": 0.001
+      }
+    },
+    {
+      "mode": "int4-v",
+      "phase": "backward",
+      "shape": {
+        "batch": 4,
+        "sequence": 2048,
+        "heads": 32,
+        "head_dim": 128,
+        "value_dim": 128
+      },
+      "config": {
+        "value_block": 64,
+        "backward_value_block": 16,
+        "checkpoint_interval": 4,
+        "num_warps": 4,
+        "num_stages": 2,
+        "chunked": false
+      },
+      "runtime_ms": 142.5959014892578,
+      "numerical_gate": {
+        "forward_max_abs": 8.940696716308594e-08,
+        "final_state_max_abs": 2.384185791015625e-07,
+        "backward_max_abs": 9.5367431640625e-07,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -130,18 +190,19 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 32,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 10.310714721679688,
-      "effective_tops": 2.9158765307301837,
+      "runtime_ms": 8.771865844726562,
+      "effective_tops": 3.4274089007043154,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 1.1920928955078125e-06,
         "atol": 0.001,
         "rtol": 0.001
       }
@@ -157,17 +218,18 @@
         "value_dim": 128
       },
       "config": {
-        "value_block": 16,
+        "value_block": 64,
+        "backward_value_block": 16,
         "checkpoint_interval": 4,
         "num_warps": 4,
-        "num_stages": 1,
+        "num_stages": 2,
         "chunked": false
       },
-      "runtime_ms": 166.8910369873047,
+      "runtime_ms": 141.74795532226562,
       "numerical_gate": {
         "forward_max_abs": 4.470348358154297e-08,
         "final_state_max_abs": 2.384185791015625e-07,
-        "backward_max_abs": 1.9073486328125e-06,
+        "backward_max_abs": 1.1920928955078125e-06,
         "atol": 0.001,
         "rtol": 0.001
       },
@@ -184,7 +246,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 15.788516998291016,
+      "runtime_ms": 15.787433624267578,
       "notes": "output allocation included"
     },
     {
@@ -196,7 +258,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 4.260036945343018,
+      "runtime_ms": 4.267651081085205,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -208,7 +270,19 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 3.653017997741699,
+      "runtime_ms": 3.67325496673584,
+      "notes": "preallocated output; Triton JIT backend"
+    },
+    {
+      "name": "package_sdpa_int4-v_causal_forward",
+      "shape": {
+        "batch": 4,
+        "sequence": 2048,
+        "heads": 32,
+        "head_dim": 128,
+        "value_dim": 128
+      },
+      "runtime_ms": 6.643950939178467,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -220,7 +294,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 5.777084827423096,
+      "runtime_ms": 5.800487995147705,
       "notes": "preallocated output; Triton JIT backend"
     },
     {
@@ -232,7 +306,7 @@
         "head_dim": 128,
         "value_dim": 128
       },
-      "runtime_ms": 67.94197845458984,
+      "runtime_ms": 67.92874145507812,
       "notes": "FP32 Q/K/V gradients; forward excluded"
     }
   ],

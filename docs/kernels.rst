@@ -248,17 +248,23 @@ Kimi Delta Attention JIT
 KDA is currently a Triton-JIT family rather than part of the packaged HSACO
 matrix. The default forward launch assigns one program to a batch/head/value
 tile and scans tokens while retaining its FP32 ``D x value_block`` state tile.
-Q/K L2 normalization, log-decay application, the delta-rule residual, and the
-output projection are fused into that scan. BF16 and row-scaled packed INT4
-Q/K are selected at compile time; BF16 and packed INT4 V are independently
-selected. Packed operands are unpacked and scaled in registers.
+The measured default uses a 64-wide value tile and two-stage ``tl.range`` load
+pipelining. Q/K L2 normalization, log-decay application, the delta-rule
+residual, and the output projection are fused into that scan. BF16 and
+row-scaled packed INT4 Q/K are selected at compile time; BF16 and packed INT4
+V are independently selected. Packed operands are unpacked and scaled in
+registers.
 
-Backward assigns the same value ownership, scans tokens in reverse, and
-reconstructs ``S_(t-1)`` from FP32 chunk-boundary checkpoints. dV and optional
-dInitialState stores have one owner. Partial dQ, dK, dLogDecay, and dBeta are
-FP32 atomic reductions across value tiles; a second kernel applies the exact
-L2-normalization derivative to dQ/dK. Checkpoint interval and value tile expose
-the memory/recompute/occupancy tradeoff through ``KimiDeltaAttentionConfig``.
+Backward uses an independent 16-wide value tile, scans tokens in reverse, and
+reconstructs ``S_(t-1)`` from FP32 chunk-boundary checkpoints. A preprocessing
+kernel materializes logical normalized Q/K once into the eventual dQ/dK output
+buffers, avoiding repeated dequantization and normalization across value tiles
+and checkpoint replay. dV and optional dInitialState stores have one owner.
+Partial dQ, dK, dLogDecay, and dBeta use relaxed FP32 atomic reductions across
+value tiles; a final kernel applies the exact L2-normalization derivative and
+overwrites the temporary Q/K buffers with dQ/dK. Checkpoint interval and the
+independent forward/backward value tiles expose the memory/recompute/occupancy
+tradeoff through ``KimiDeltaAttentionConfig``.
 
 The compact-WY research path prepares 16-token W/U factors and evaluates the
 chunk recurrence with IEEE FP32 dot products. It remains opt-in because its

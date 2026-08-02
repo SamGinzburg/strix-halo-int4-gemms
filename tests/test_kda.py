@@ -78,6 +78,10 @@ def test_kda_config_rejects_invalid_values() -> None:
         KimiDeltaAttentionConfig(checkpoint_interval=True)
     with pytest.raises(ValueError, match="must not exceed 64"):
         KimiDeltaAttentionConfig(value_block=128)
+    with pytest.raises(ValueError, match="backward_value_block"):
+        KimiDeltaAttentionConfig(backward_value_block=3)
+    with pytest.raises(ValueError, match="backward_value_block"):
+        KimiDeltaAttentionConfig(backward_value_block=128)
 
 
 def test_quantize_kda_int4_round_trip_layout() -> None:
@@ -248,7 +252,11 @@ def test_kda_backward_matches_autograd_oracle(
         scale=1.0 / math.sqrt(query.shape[-1]),
         initial_state=initial_state,
         grad_final_state=grad_final_state,
-        config=KimiDeltaAttentionConfig(value_block=4, checkpoint_interval=4),
+        config=KimiDeltaAttentionConfig(
+            value_block=4,
+            backward_value_block=4,
+            checkpoint_interval=4,
+        ),
     )
     actual = kimi_delta_attention_backward(
         query_arg,

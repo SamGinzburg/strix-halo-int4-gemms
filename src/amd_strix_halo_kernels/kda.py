@@ -10,16 +10,18 @@ from typing import Any
 class KimiDeltaAttentionConfig:
     """Launch configuration for recurrent Kimi Delta Attention.
 
-    ``value_block`` partitions the value dimension across independent programs.
-    ``checkpoint_interval`` controls the optional FP32 state cache consumed by
-    the explicit backward API. ``chunked`` opts into the experimental
-    compact-WY implementation; recurrent execution is the measured default.
+    ``value_block`` and ``backward_value_block`` independently partition the
+    value dimension for forward and backward. ``checkpoint_interval`` controls
+    the optional FP32 state cache consumed by the explicit backward API.
+    ``chunked`` opts into the experimental compact-WY implementation;
+    recurrent execution is the measured default.
     """
 
-    value_block: int = 32
+    value_block: int = 64
+    backward_value_block: int = 16
     checkpoint_interval: int = 16
     num_warps: int = 4
-    num_stages: int = 1
+    num_stages: int = 2
     chunked: bool = False
 
     def __post_init__(self) -> None:
@@ -27,6 +29,7 @@ class KimiDeltaAttentionConfig:
             raise TypeError("chunked must be a Python bool")
         for name, value in (
             ("value_block", self.value_block),
+            ("backward_value_block", self.backward_value_block),
             ("checkpoint_interval", self.checkpoint_interval),
             ("num_warps", self.num_warps),
             ("num_stages", self.num_stages),
@@ -35,12 +38,16 @@ class KimiDeltaAttentionConfig:
                 raise TypeError(f"{name} must be a positive Python int")
             if value <= 0:
                 raise ValueError(f"{name} must be positive")
-        if self.value_block & (self.value_block - 1):
-            raise ValueError("value_block must be a power of two")
+        for name, value in (
+            ("value_block", self.value_block),
+            ("backward_value_block", self.backward_value_block),
+        ):
+            if value & (value - 1):
+                raise ValueError(f"{name} must be a power of two")
+            if value > 64:
+                raise ValueError(f"{name} must not exceed 64")
         if self.checkpoint_interval & (self.checkpoint_interval - 1):
             raise ValueError("checkpoint_interval must be a power of two")
-        if self.value_block > 64:
-            raise ValueError("value_block must not exceed 64")
         if self.checkpoint_interval > 64:
             raise ValueError("checkpoint_interval must not exceed 64")
 
@@ -829,6 +836,7 @@ def _kda_forward_kernel() -> Any:
         BLOCK_D: tl.constexpr,
         BLOCK_V: tl.constexpr,
         CHECKPOINT_INTERVAL: tl.constexpr,
+        LOOP_STAGES: tl.constexpr,
         QK_INT4: tl.constexpr,
         VALUE_INT4: tl.constexpr,
         HAS_INITIAL_STATE: tl.constexpr,
@@ -869,7 +877,11 @@ def _kda_forward_kernel() -> Any:
                 mask=mask_d[:, None] & mask_v[None, :],
             )
 
-        for token in range(0, sequence):
+        for token in tl.range(
+            0,
+            sequence,
+            num_stages=LOOP_STAGES,
+        ):
             row_index = (batch_index * sequence + token) * heads + head_index
             if QK_INT4:
                 packed_offsets = row_index * packed_head_dim + offsets_d // 2
@@ -1133,9 +1145,7 @@ def kimi_delta_attention(
     for name, tensor, shape in workspace_specs:
         if not use_chunked:
             if tensor is not None:
-                raise ValueError(
-                    f"{name} requires config.checkpoint_interval=16"
-                )
+                raise ValueError(f"{name} requires config.chunked=True")
             resolved_workspaces.append(None)
             continue
         if tensor is None:
@@ -1289,6 +1299,7 @@ def kimi_delta_attention(
                 BLOCK_D=block_d,
                 BLOCK_V=config.value_block,
                 CHECKPOINT_INTERVAL=config.checkpoint_interval,
+                LOOP_STAGES=config.num_stages,
                 QK_INT4=qk_int4,
                 VALUE_INT4=value_int4,
                 HAS_INITIAL_STATE=initial_state is not None,
@@ -1325,6 +1336,7 @@ def kimi_delta_attention(
         BLOCK_D=block_d,
         BLOCK_V=config.value_block,
         CHECKPOINT_INTERVAL=config.checkpoint_interval,
+        LOOP_STAGES=config.num_stages,
         QK_INT4=qk_int4,
         VALUE_INT4=value_int4,
         HAS_INITIAL_STATE=initial_state is not None,

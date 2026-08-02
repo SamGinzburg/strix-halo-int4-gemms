@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         action="append",
-        choices=("bf16", "int4-qk", "int4-all"),
+        choices=("bf16", "int4-qk", "int4-v", "int4-all"),
         default=[],
         help="operand representation; repeat to select multiple modes",
     )
@@ -58,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         type=int,
         default=[],
-        help="candidate value tile; repeat to tune (default: 2,4,8,16)",
+        help="candidate forward value tile; repeat to tune (default: 16,32,64)",
     )
     parser.add_argument("--checkpoint-interval", type=int, default=16)
     parser.add_argument(
@@ -68,6 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="value tile used for backward (independent of forward tuning)",
     )
     parser.add_argument("--num-warps", type=int, default=4)
+    parser.add_argument("--num-stages", type=int, default=2)
     parser.add_argument(
         "--chunked",
         action="store_true",
@@ -152,7 +153,7 @@ def _representation(
 ) -> tuple[tuple[Any, ...], dict[str, Any]]:
     query, key, value, log_decay, beta = logical
     kwargs: dict[str, Any] = {}
-    if mode != "bf16":
+    if mode in {"int4-qk", "int4-all"}:
         query, query_scale, head_dim = quantize_kda_int4(query)
         key, key_scale, _ = quantize_kda_int4(key)
         kwargs.update(
@@ -160,7 +161,7 @@ def _representation(
             key_scale=key_scale,
             head_dim=head_dim,
         )
-    if mode == "int4-all":
+    if mode in {"int4-v", "int4-all"}:
         value, value_scale, value_dim = quantize_kda_int4(value)
         kwargs.update(value_scale=value_scale, value_dim=value_dim)
     return (query, key, value, log_decay, beta), kwargs
@@ -249,8 +250,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if not torch.cuda.is_available() or torch.version.hip is None:
         raise RuntimeError("KDA benchmarks require a ROCm torch CUDA/HIP device")
-    modes = tuple(args.mode) if args.mode else ("bf16", "int4-qk", "int4-all")
-    value_blocks = tuple(args.value_block) if args.value_block else (2, 4, 8, 16)
+    modes = (
+        tuple(args.mode)
+        if args.mode
+        else ("bf16", "int4-qk", "int4-v", "int4-all")
+    )
+    value_blocks = tuple(args.value_block) if args.value_block else (16, 32, 64)
     logical = _logical_operands(torch, shape, seed=20260801)
     records: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
@@ -294,6 +299,7 @@ def main(argv: list[str] | None = None) -> int:
                     value_block=value_block,
                     checkpoint_interval=args.checkpoint_interval,
                     num_warps=args.num_warps,
+                    num_stages=args.num_stages,
                     chunked=args.chunked,
                 )
                 runtime_ms = _median_bench(
@@ -335,9 +341,11 @@ def main(argv: list[str] | None = None) -> int:
             continue
         _, best_config = best
         backward_config = KimiDeltaAttentionConfig(
-            value_block=args.backward_value_block,
+            value_block=best_config.value_block,
+            backward_value_block=args.backward_value_block,
             checkpoint_interval=args.checkpoint_interval,
             num_warps=args.num_warps,
+            num_stages=args.num_stages,
         )
         checkpoints = math.ceil(shape.sequence / best_config.checkpoint_interval) + 1
         state_cache = torch.empty(
@@ -423,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "mode": mode,
                     "phase": "backward",
-                    "value_block": backward_config.value_block,
+                    "backward_value_block": backward_config.backward_value_block,
                     "error": repr(exc),
                 }
             )
@@ -471,6 +479,15 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         value_int4, value_scale = quantize_attention_value_int4(value_sdpa)
+        attention_modes.append(
+            (
+                "int4-v",
+                query_sdpa,
+                key_sdpa,
+                value_int4,
+                {"value_scale": value_scale},
+            )
+        )
         attention_modes.append(
             (
                 "int4-all",

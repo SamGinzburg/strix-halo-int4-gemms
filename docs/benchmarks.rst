@@ -800,54 +800,69 @@ included. Package SDPA and KDA timings use preallocated outputs.
      - Effective TOPS
      - Comparison
    * - BF16 forward
-     - ``VB32_CI4_W4``
-     - 10.803319 ms
-     - 2.7829
-     - 1.46x faster than PyTorch BF16 SDPA; 2.54x slower than package BF16 SDPA
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 8.798917 ms
+     - 3.4169
+     - 1.79x faster than PyTorch BF16 SDPA; 2.06x slower than package BF16 SDPA
    * - INT4 Q/K + BF16 V forward
-     - ``VB32_CI4_W4``
-     - 10.174259 ms
-     - 2.9550
-     - 1.55x faster than PyTorch BF16 SDPA; 2.79x slower than package INT4-QK SDPA
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 8.770863 ms
+     - 3.4278
+     - 1.80x faster than PyTorch BF16 SDPA; 2.39x slower than package INT4-QK SDPA
+   * - BF16 Q/K + INT4 V forward
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 8.919062 ms
+     - 3.3708
+     - 1.77x faster than PyTorch BF16 SDPA; 1.34x slower than package INT4-V SDPA
    * - INT4 Q/K/V forward
-     - ``VB32_CI4_W4``
-     - 10.310715 ms
-     - 2.9159
-     - 1.53x faster than PyTorch BF16 SDPA; 1.78x slower than package INT4 SDPA
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 8.771866 ms
+     - 3.4274
+     - 1.80x faster than PyTorch BF16 SDPA; 1.51x slower than package INT4 SDPA
    * - BF16 backward
-     - ``VB16_CI4_W4``
-     - 166.683044 ms
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 143.881088 ms
      - --
-     - 2.45x slower than package BF16 SDPA backward
+     - 2.10x slower than package BF16 SDPA backward
    * - INT4 Q/K + BF16 V backward
-     - ``VB16_CI4_W4``
-     - 165.398239 ms
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 141.705826 ms
+     - --
+     - logical FP32 gradients
+   * - BF16 Q/K + INT4 V backward
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 142.595901 ms
      - --
      - logical FP32 gradients
    * - INT4 Q/K/V backward
-     - ``VB16_CI4_W4``
-     - 166.891037 ms
+     - ``VB64_BVB16_CI4_W4_S2``
+     - 141.747955 ms
      - --
      - logical FP32 gradients
 
-The BF16 PyTorch, package-BF16, package-INT4-QK, and package-all-INT4 forward
-baselines were 15.788517, 4.260037, 3.653018, and 5.777085 ms. Package BF16
-SDPA backward was 67.941978 ms with forward excluded. The recurrent algorithm
+The BF16 PyTorch, package-BF16, package-INT4-QK, package-INT4-V, and
+package-all-INT4 forward baselines were 15.787434, 4.267651, 3.673255,
+6.643951, and 5.800488 ms. Package BF16 SDPA backward was 67.928741 ms with
+forward excluded. The recurrent algorithm
 is linear in sequence length, but at 2K its per-head ``D*Dv`` state update is
 not yet faster than this repository's tuned quadratic SDPA. Ratios across
 different algorithms are latency comparisons, not equivalent-operation TOPS
 comparisons. KDA effective TOPS counts seven state-sized operations per token.
 
 Every mode first runs a reduced representation-matched numerical gate. The
-largest observed absolute differences were ``4.48e-8`` for output,
-``2.39e-7`` for final state, and ``1.91e-6`` over dQ/dK/dV/dLogDecay/dBeta,
+largest observed absolute differences were ``8.95e-8`` for output,
+``2.39e-7`` for final state, and ``1.32e-6`` over dQ/dK/dV/dLogDecay/dBeta,
 all passing ``rtol=atol=1e-3``. Separate tests cover initial-state gradients,
 nonmultiple-of-16 tails, zero-norm Q/K, and CUDAGraph replay in all four
 BF16/INT4 QK-by-V combinations.
 
-Checkpoint interval 4 improves backward from 252.916 ms at interval 16 to
-about 165--167 ms, at the cost of a four-times-larger FP32 state cache (about
-4 GiB for this shape). The compact-WY chunk experiment is opt-in: its
+Compared with the preceding checked-in run, two-stage recurrent load
+pipelining and the 64-wide forward tile reduce forward latency by
+13.8--18.6% over the prior three-mode records. One-time normalized-Q/K
+preprocessing plus relaxed FP32 atomics reduce backward latency by
+13.7--15.1%. Checkpoint interval 4 remains the
+measured backward choice, at the cost of an FP32 state cache of about 4 GiB
+for this shape. The compact-WY chunk experiment is opt-in: its
 per-dimension exponential preparation measured slower on gfx1151 and is not
 used by default.
 
@@ -911,9 +926,12 @@ comparison (the command defaults to ``B=4,T=2048,H=32,D=Dv=128``):
 
    TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
      uv run --extra rocm-triton-fork python scripts/benchmark_kda.py \
-       --value-block 32 \
+       --value-block 64 \
        --backward-value-block 16 \
-       --checkpoint-interval 4
+       --checkpoint-interval 4 \
+       --num-stages 2 \
+       --warmup-ms 25 \
+       --rep-ms 100
 
 Use ``--dtype bf16`` with any of those commands to tune the development-only
 BF16×INT4 path with on-the-fly activation quantization. All three tuners check

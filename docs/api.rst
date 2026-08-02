@@ -425,8 +425,11 @@ explicit backward call cannot silently produce an incomplete autograd graph.
 Backward reconstructs token states from an FP32 checkpoint cache. Smaller
 ``checkpoint_interval`` values trade memory for less replay work. At the
 measured ``B=4,T=2048,H=32,D=Dv=128`` training shape,
-``checkpoint_interval=4,value_block=16`` is the faster backward setting;
-``value_block=32`` is the faster forward setting. A state cache uses shape
+``checkpoint_interval=4``, ``value_block=64``, and
+``backward_value_block=16`` are the measured settings. Forward and backward
+tiles are independent because the reverse recurrence has materially higher
+register pressure. ``num_stages=2`` pipelines recurrent token loads. A state
+cache uses shape
 ``[B,H,ceil(T/checkpoint_interval)+1,D,Dv]``. If it is omitted outside graph
 capture, backward allocates and populates it automatically.
 
@@ -451,7 +454,11 @@ capture, backward allocates and populates it automatically.
        key_scale=k_scale,
        head_dim=head_dim,
        output_final_state=True,
-       config=KimiDeltaAttentionConfig(value_block=32),
+       config=KimiDeltaAttentionConfig(
+           value_block=64,
+           backward_value_block=16,
+           checkpoint_interval=4,
+       ),
    )
    grads = kimi_delta_attention_backward(
        q4,
@@ -464,7 +471,8 @@ capture, backward allocates and populates it automatically.
        key_scale=k_scale,
        head_dim=head_dim,
        config=KimiDeltaAttentionConfig(
-           value_block=16,
+           value_block=64,
+           backward_value_block=16,
            checkpoint_interval=4,
        ),
    )
@@ -481,8 +489,13 @@ functions provide the independent FP32 oracle. Tests cover dense/tail
 sequences, zero-norm Q/K, initial/final state, all representation modes, and
 graph replay. Optimized forward, final state, and all gradient tensors are
 required to match the representation-matched oracle at
-``rtol=atol=1e-3``. The measured worst absolute errors are ``4.48e-8``
-forward, ``2.39e-7`` final state, and ``1.91e-6`` backward.
+``rtol=atol=1e-3``. The measured worst absolute errors are ``8.95e-8``
+forward, ``2.39e-7`` final state, and ``1.32e-6`` backward. Backward
+materializes normalized logical Q/K once into the caller-provided dQ/dK
+buffers before the recurrent pass, then overwrites those buffers with final
+gradients in the normalization epilogue. This reuse adds no graph-time
+allocation. Cross-value-tile FP32 reductions use relaxed atomics because no
+ordering relationship exists between independent partial sums.
 
 ``KimiDeltaAttentionConfig.chunked=True`` exposes a compact-WY research path
 for compiler experiments. It currently requires BF16 V, BF16 output, and a

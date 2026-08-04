@@ -381,7 +381,8 @@ representation-matched oracle at ``rtol=atol=1e-3``. BF16 output may also
 differ by one BF16 ULP at larger magnitudes.
 
 The wheel includes 532 forward objects, four split-decode reducers, and 256
-backward objects for ``D=Dv=64``. ``use_precompiled=None`` selects an exact
+backward objects for the standard ``D=Dv=64`` profile, plus 15 BF16 MLA
+objects at ``D=192,Dv=128``. ``use_precompiled=None`` selects an exact
 measured profile first,
 then generic native coverage, and finally JIT; ``True`` requires packaged
 coverage, and ``False`` forces JIT. Native coverage includes all four QK-by-V
@@ -396,14 +397,14 @@ BF16/FP32 ``grad_output`` so the native pointer ABI is dtype-exact. Only
 regeneration and uncovered fallbacks require the custom Strix Halo Triton
 fork.
 
-Precompiled attention fixes ``D=Dv=64`` but does not otherwise require one
+The standard precompiled attention profile fixes ``D=Dv=64`` but does not otherwise require one
 batch/head/length shape: the generic objects keep ``B``, ``Hq``, ``Hkv``,
 ``Lq``, and ``Lk`` runtime, subject to the ordinary GQA and input validation
 rules and the packaged launch-config set. Exact forward profiles additionally
 specialize ``(Hq,Hkv,Lq,Lk)`` as ``(8,8,512,512)``,
 ``(16,8,2048,2048)``, or ``(8,8,1,2048)``. Backward has generic runtime-shape
 objects and an exact ``(16,8,2048,2048)`` profile. Batch remains runtime even
-for those exact head/length profiles.
+for those exact head/length profiles. The MLA profile is described below.
 
 Kimi Delta Attention Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -440,12 +441,12 @@ coverage, and ``False`` forces Gluon JIT. ``use_precompiled=True`` is invalid
 with the Triton or reference backends. Chunked compact-WY execution is
 Triton-only.
 
-The packaged profile keeps positive ``B``/``H`` and ``1 <= T <= 2048``
-runtime, and specializes
-``D=Dv=128,value_block=64,checkpoint_interval=4``, normalized Q/K, BF16 output
+The packaged profiles keep positive ``B``/``H`` and ``1 <= T <= 2048``
+runtime, and specialize
+``D=Dv=128,value_block=64,checkpoint_interval`` to either 4 or 8, normalized Q/K, BF16 output
 and upstream gradient, FP32 ``log_decay``/``beta``, and no initial/final-state
 path. Artifact names retain the ``B=4,T=2048,H=32`` generation shape for
-provenance; it is not a runtime-shape requirement. The 14 objects cover four forward BF16/INT4 QK-by-V
+provenance; it is not a runtime-shape requirement. Each 14-object profile covers four forward BF16/INT4 QK-by-V
 representations with and without checkpoint-cache writes plus BF16/INT4
 variants of each backward preprocess, recurrent, and normalization phase.
 Uncovered shapes or options fall back only when ``use_precompiled`` is not
@@ -467,6 +468,9 @@ settings. Gluon automatically uses two forward waves with a 64-wide value
 tile and four backward waves with a 64-wide value tile at ``Dv=128``. The
 ``backward_value_block``, ``num_warps``, and ``num_stages`` fields remain
 Triton tuning controls and do not override Gluon's measured internal layouts.
+The CI8 profile is generated from the Qwen B7/T2048/H48 workload, splits the
+cache after 255 batch-head slices, and safely covers Qwen's 336 batch-head
+training cache across two RDNA 3.5 descriptor pages.
 A state cache uses shape
 ``[B,H,ceil(T/checkpoint_interval)+1,D,Dv]``. If it is omitted outside graph
 capture, backward allocates and populates it automatically.
@@ -547,6 +551,79 @@ checkpoint interval of 16, plus FP32 ``w_workspace`` and ``u_workspace`` for
 allocation-free capture. It measured slower than the recurrent kernel on
 gfx1151, is available only with ``backend="triton"``, and is therefore not the
 default.
+
+Qwen Gated DeltaNet Contract
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``qwen_gated_delta_net(...)`` consumes Q/K in ``[B,T,Hqk,D]`` order, V in
+``[B,T,Hv,Dv]``, and scalar ``log_decay``/``beta`` in ``[B,T,Hv]`` order.
+``Hv`` must be divisible by ``Hqk``. Q/K heads are repeated in contiguous
+groups to ``Hv`` before the recurrence. The default shape descriptor
+``QwenGatedDeltaNetShape`` records the Qwen3.6-27B training profile
+``B=7,T=2048,Hqk=16,Hv=48,D=Dv=128``.
+
+Q/K and V independently accept contiguous BF16 or packed INT4 plus the same
+BF16 per-row scale representation used by KDA. ``log_decay`` and ``beta`` are
+already activated scalar gates. This low-level API starts after Qwen's causal
+convolution and input projections and ends before its RMSNorm-gated output
+projection.
+
+``qwen_gated_delta_net_backward(...)`` returns
+``(dQ,dK,dV,dLogDecay,dBeta,dInitialState)`` as logical FP32 gradients. It
+sums gradients from repeated value-head groups into the original Q/K heads
+and reduces KDA's per-channel decay derivative to Qwen's scalar gate. Packed
+codes and scales are fixed representation metadata.
+
+The default Qwen config is ``value_block=64,checkpoint_interval=8``. With
+``backend="gluon"`` the wheel's CI8 profile is selected automatically or may
+be required with ``use_precompiled=True``. The wrapper rejects a cache launch
+before dispatch if it would need more than the two available descriptor pages;
+callers may increase the interval or use Triton JIT instead. Explicit grouped
+Q/K, decay, scale, output/cache, normalized-gradient, and logical-gradient
+workspaces make forward/backward CUDAGraph capture allocation-free.
+
+Multi-Head Latent Attention Contract
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``multi_head_latent_attention(...)`` implements DeepSeek-style decompressed
+training MLA, not a Qwen attention layer. Inputs are BF16
+``query_nope[B,H,Lq,Dn]``, ``query_rope[B,H,Lq,Dr]``,
+``compressed_kv[B,Lk,C]``, ``key_rope[B,Lk,Dr]``, and
+``kv_up_weight[H,Dn+Dv,C]``. The operation computes per-head latent K/V in
+BF16, concatenates the no-RoPE and shared RoPE key components, then invokes
+flash-style attention without materializing ``Q @ K^T``. The current API is
+BF16-only; it does not accept packed INT4 latent or projection inputs.
+
+Causal, local, causal-local, boolean/additive masks, unequal Lq/Lk, and
+``query_position_offset`` are forwarded to the attention kernel.
+``MultiHeadLatentAttentionShape`` defaults to the DeepSeek-V3/R1 training
+dimensions ``B=4,Lq=Lk=2048,H=128,C=512,Dn=128,Dr=64,Dv=128``. The attention
+phase therefore uses ``Dqk=192,Dv=128``.
+
+``multi_head_latent_attention_backward(...)`` is explicit and returns FP32
+``(dQ_nope,dQ_rope,dCompressedKV,dK_rope,dKVUpWeight)``. The compressed-KV
+gradient includes both key and value paths, and the shared RoPE-key gradient
+sums all heads. Optimized forward rejects ``requires_grad=True`` inputs so the
+explicit training contract cannot silently create an incomplete autograd
+graph.
+
+The wheel contains one runtime-shape plus four exact-semantic forward objects
+and matching dQ/dK-dV backward pairs at D192/Dv128. The exact profile fixes
+``Hq=Hkv=128,Lq=Lk=2048`` while keeping batch runtime; the generic objects keep
+heads and lengths runtime. Forward defaults to ``BM64_BN32_W4_S2`` and
+backward to ``DQM32_DQN32_W4/DKVM32_DKVN16_W2``. Only BF16 saved output and
+BF16 upstream gradient are packaged for this MLA profile; other dtypes fall
+back unless native dispatch is required.
+
+For CUDAGraph capture, preallocate ``out``, ``query_workspace``,
+``key_workspace``, ``value_workspace``, and ``kv_workspace``. Backward also
+requires the three attention-gradient workspaces, combined KV gradient, FP32
+weight/latent conversion buffers, projection reduction buffers, five output
+gradients, and attention ``lse``/``delta``. Workspaces are shape/dtype/device
+validated and may not alias sources or one another. Dense, causal, local,
+boolean/additive-mask, unequal-length, forward/backward, and graph-replay tests
+use ``rtol=atol=1e-3`` against the package reference; the BF16 reference is
+also compared with PyTorch SDPA at the same tolerance.
 
 Standard Backward Contract
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -656,6 +733,28 @@ Surface APIs
 .. autofunction:: amd_strix_halo_kernels.reference_kimi_delta_attention_backward
 
 .. autofunction:: amd_strix_halo_kernels.quantize_kda_int4
+
+.. autofunction:: amd_strix_halo_kernels.qwen_gated_delta_net
+
+.. autofunction:: amd_strix_halo_kernels.qwen_gated_delta_net_backward
+
+.. autofunction:: amd_strix_halo_kernels.reference_qwen_gated_delta_net
+
+.. autofunction:: amd_strix_halo_kernels.reference_qwen_gated_delta_net_backward
+
+.. autoclass:: amd_strix_halo_kernels.QwenGatedDeltaNetShape
+   :members:
+
+.. autofunction:: amd_strix_halo_kernels.multi_head_latent_attention
+
+.. autofunction:: amd_strix_halo_kernels.multi_head_latent_attention_backward
+
+.. autofunction:: amd_strix_halo_kernels.reference_multi_head_latent_attention
+
+.. autofunction:: amd_strix_halo_kernels.reference_multi_head_latent_attention_backward
+
+.. autoclass:: amd_strix_halo_kernels.MultiHeadLatentAttentionShape
+   :members:
 
 .. autofunction:: amd_strix_halo_kernels.reference_scaled_dot_product_attention
 

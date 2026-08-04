@@ -1,0 +1,159 @@
+{
+  "accumulation_dtype": "float32",
+  "amdgcn_stats": {
+    "buffer_load": 4,
+    "buffer_store": 2,
+    "lines": 884,
+    "waitcnt": 14
+  },
+  "amdgcn_symbol": "amd_strix_halo_gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8",
+  "arch": "gfx1151",
+  "asm_keys": [
+    "amdgcn",
+    "hsaco",
+    "llir",
+    "source",
+    "ttgir",
+    "ttir"
+  ],
+  "config": {
+    "cache_split_batch_head": 255,
+    "checkpoint_interval": 8,
+    "num_checkpoints": 257,
+    "value_block": 64
+  },
+  "family": "kimi_delta_attention",
+  "generation_shape": {
+    "batch": 7,
+    "head_dim": 128,
+    "heads": 48,
+    "sequence": 2048,
+    "value_dim": 128
+  },
+  "kernel_arg_layout": {
+    "arguments": [
+      {
+        "kind": "pointer",
+        "name": "query",
+        "offset": 0,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "key",
+        "offset": 8,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "query_scale",
+        "offset": 16,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "key_scale",
+        "offset": 24,
+        "size": 8,
+        "type": "*bf16"
+      },
+      {
+        "kind": "pointer",
+        "name": "grad_query_normalized",
+        "offset": 32,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "grad_key_normalized",
+        "offset": 40,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "grad_query",
+        "offset": 48,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "pointer",
+        "name": "grad_key",
+        "offset": 56,
+        "size": 8,
+        "type": "*fp32"
+      },
+      {
+        "kind": "scalar",
+        "name": "rows",
+        "offset": 64,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "head_dim",
+        "offset": 68,
+        "size": 4,
+        "type": "i32"
+      },
+      {
+        "kind": "scalar",
+        "name": "packed_head_dim",
+        "offset": 72,
+        "size": 4,
+        "type": "i32"
+      }
+    ],
+    "hidden_global_buffer_offsets": [
+      80,
+      88
+    ]
+  },
+  "kernel_id": "gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8",
+  "launch_metadata": {
+    "dynamic_grid": 1,
+    "grid_x": 688128,
+    "grid_y": 1,
+    "grid_z": 1,
+    "num_ctas": 1,
+    "num_warps": 4,
+    "persistent": 0,
+    "shared_memory_bytes": 16
+  },
+  "mode": "bf16-bf16",
+  "normalize_qk": true,
+  "output_dtype": null,
+  "phase": "backward_normalize",
+  "profile": "qwen36",
+  "qk_dtype": "bfloat16",
+  "runtime_constraints": {
+    "batch_min": 1,
+    "heads_min": 1,
+    "max_buffer_descriptor_bytes": 4294967296,
+    "sequence_max": 2048,
+    "sequence_min": 1
+  },
+  "shape_specialization": {
+    "batch": "runtime",
+    "head_dim": 128,
+    "heads": "runtime",
+    "sequence": "runtime",
+    "value_dim": 128
+  },
+  "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7",
+  "status": "generated",
+  "stores_state_cache": false,
+  "triton_artifacts": {
+    "llir": "kernels/triton/gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8.llir",
+    "source": "kernels/triton/gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8.py",
+    "ttgir": "kernels/triton/gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8.ttgir",
+    "ttir": "kernels/triton/gfx1151_kda_bwd_norm_bf16_b7_t2048_h48_d128_dv128_vb64_ci8.ttir"
+  },
+  "value_dtype": "bfloat16"
+}

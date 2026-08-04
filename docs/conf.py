@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 project = "AMD Strix Halo Kernels"
 copyright = "2026"
 author = "AMD Strix Halo Kernels contributors"
-release = "0.2.0"
+release = "0.3.0"
 
 extensions = [
     "sphinx.ext.autodoc",

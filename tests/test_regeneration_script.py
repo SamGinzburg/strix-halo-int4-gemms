@@ -180,6 +180,7 @@ def test_generate_attention_amdgcn_help_does_not_compile_kernels() -> None:
     )
 
     assert "Generate precompiled gfx1151 fused-attention artifacts" in result.stdout
+    assert "--profile" in result.stdout
     assert "--mask-dtype" in result.stdout
     assert "--output-dtype" in result.stdout
 
@@ -194,6 +195,7 @@ def test_generate_kda_amdgcn_help_does_not_compile_kernels() -> None:
 
     assert "Generate precompiled gfx1151 KDA artifacts" in result.stdout
     assert "--phase" in result.stdout
+    assert "--profile" in result.stdout
     assert "--clean" in result.stdout
 
 
@@ -215,6 +217,13 @@ def test_kda_generator_catalog_is_complete_and_unique() -> None:
     assert sum(job.phase == KDA_BACKWARD_PREPROCESS for job in jobs) == 2
     assert sum(job.phase == KDA_BACKWARD_RECURRENT for job in jobs) == 2
     assert sum(job.phase == KDA_BACKWARD_NORMALIZE for job in jobs) == 2
+
+    qwen_jobs = kda_precompiled_jobs(profiles=("qwen36",))
+    qwen_kernel_ids = tuple(kda_kernel_id(job) for job in qwen_jobs)
+    assert len(qwen_jobs) == len(set(qwen_kernel_ids)) == 14
+    assert {job.profile for job in qwen_jobs} == {"qwen36"}
+    assert {job.checkpoint_interval for job in qwen_jobs} == {8}
+    assert all("_b7_t2048_h48_" in kernel_id for kernel_id in qwen_kernel_ids)
 
 
 def test_attention_generator_catalog_is_complete_and_unique() -> None:
@@ -289,6 +298,18 @@ def test_attention_generator_catalog_is_complete_and_unique() -> None:
     assert len(jobs) == 792
     assert len(kernel_ids) == len(set(kernel_ids))
 
+    mla_jobs = module.build_jobs(
+        phases=(ATTENTION_FORWARD, *ATTENTION_BACKWARD_PHASES),
+        modes=("bf16-bf16",),
+        mask_dtypes=("none",),
+        output_dtypes=("bfloat16",),
+        profile="mla",
+    )
+    assert len(mla_jobs) == 15
+    assert {(job.head_dim, job.value_dim) for job in mla_jobs} == {(192, 128)}
+    assert sum(isinstance(job, module.ForwardJob) for job in mla_jobs) == 5
+    assert sum(isinstance(job, module.BackwardJob) for job in mla_jobs) == 10
+
 
 def test_attention_runtime_scalar_mask_validates_specialized_abi() -> None:
     from amd_strix_halo_kernels.attention_artifacts import (
@@ -326,7 +347,7 @@ def test_attention_runtime_scalar_mask_validates_specialized_abi() -> None:
 def test_checked_in_attention_artifact_matrix_has_valid_runtime_abi() -> None:
     metadata_paths = sorted((REPO_ROOT / "kernels" / "amdgcn").glob("gfx1151_attention_*.json"))
     assembly_paths = sorted((REPO_ROOT / "kernels" / "amdgcn").glob("gfx1151_attention_*.s"))
-    assert len(metadata_paths) == len(assembly_paths) == 792
+    assert len(metadata_paths) == len(assembly_paths) == 807
 
     phases = []
     for metadata_path in metadata_paths:
@@ -339,16 +360,24 @@ def test_checked_in_attention_artifact_matrix_has_valid_runtime_abi() -> None:
         assert len(layout["hidden_global_buffer_offsets"]) == 2
         assert (REPO_ROOT / "kernels" / "amdgcn" / f"{metadata['kernel_id']}.s").exists()
 
-    assert phases.count("forward") == 532
+    assert phases.count("forward") == 537
     assert phases.count("decode_reduce") == 4
-    assert phases.count("backward_dq") == 128
-    assert phases.count("backward_dkv") == 128
+    assert phases.count("backward_dq") == 133
+    assert phases.count("backward_dkv") == 133
     summary = json.loads(
         (REPO_ROOT / "kernels" / "amdgcn" / "attention_generation_summary.json").read_text()
     )
     assert summary["selected_jobs"] == summary["generated_count"] == 792
+    assert summary["profile"] == "standard"
     assert summary["failure_count"] == 0
     assert summary["failures"] == []
+    mla_summary = json.loads(
+        (REPO_ROOT / "kernels" / "amdgcn" / "mla_generation_summary.json").read_text()
+    )
+    assert mla_summary["selected_jobs"] == mla_summary["generated_count"] == 15
+    assert mla_summary["profile"] == "mla"
+    assert mla_summary["failure_count"] == 0
+    assert mla_summary["failures"] == []
 
 
 def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
@@ -360,12 +389,13 @@ def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
     )
 
     amdgcn_dir = REPO_ROOT / "kernels" / "amdgcn"
-    jobs = kda_precompiled_jobs()
-    expected_ids = {kda_kernel_id(job) for job in jobs}
+    jobs = kda_precompiled_jobs(profiles=("standard", "qwen36"))
+    jobs_by_id = {kda_kernel_id(job): job for job in jobs}
+    expected_ids = set(jobs_by_id)
     metadata_paths = sorted(amdgcn_dir.glob("gfx1151_kda_*.json"))
     assembly_paths = sorted(amdgcn_dir.glob("gfx1151_kda_*.s"))
 
-    assert len(expected_ids) == len(metadata_paths) == len(assembly_paths) == 14
+    assert len(expected_ids) == len(metadata_paths) == len(assembly_paths) == 28
     assert {path.stem for path in metadata_paths} == expected_ids
     assert {path.stem for path in assembly_paths} == expected_ids
 
@@ -373,6 +403,7 @@ def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
     assert source_commit is not None and len(source_commit) == 40
     for metadata_path in metadata_paths:
         metadata = json.loads(metadata_path.read_text())
+        job = jobs_by_id[metadata["kernel_id"]]
         layout = metadata["kernel_arg_layout"]
         arguments = layout["arguments"]
         assert tuple(argument["name"] for argument in arguments) == KDA_ARGUMENT_NAMES[
@@ -391,9 +422,9 @@ def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
             "value_dim": 128,
         }
         assert metadata["generation_shape"] == {
-            "batch": 4,
+            "batch": job.generation_batch,
             "sequence": 2048,
-            "heads": 32,
+            "heads": job.generation_heads,
             "head_dim": 128,
             "value_dim": 128,
         }
@@ -408,8 +439,17 @@ def test_checked_in_kda_artifact_matrix_has_valid_runtime_abi() -> None:
     summary = json.loads((amdgcn_dir / "kda_generation_summary.json").read_text())
     assert summary["source_triton_commit"] == source_commit
     assert summary["selected_jobs"] == summary["generated_count"] == 14
+    assert summary["profile"] == "standard"
     assert summary["failure_count"] == 0
     assert summary["failures"] == []
+    qwen_summary = json.loads(
+        (amdgcn_dir / "qwen36_gated_delta_net_generation_summary.json").read_text()
+    )
+    assert qwen_summary["source_triton_commit"] == source_commit
+    assert qwen_summary["selected_jobs"] == qwen_summary["generated_count"] == 14
+    assert qwen_summary["profile"] == "qwen36"
+    assert qwen_summary["failure_count"] == 0
+    assert qwen_summary["failures"] == []
 
 
 def test_checked_in_benchmarks_record_exact_triton_revision() -> None:
@@ -423,6 +463,9 @@ def test_checked_in_benchmarks_record_exact_triton_revision() -> None:
         "gfx1151_attention.json",
         "gfx1151_projection_training.json",
         "gfx1151_kda.json",
+        "gfx1151_qwen36_gated_delta_net.json",
+        "gfx1151_mla.json",
+        "gfx1151_mla_local512.json",
     ):
         payload = json.loads((REPO_ROOT / "benchmarks" / name).read_text())
         assert payload["triton_git_revision"] == source_commit
@@ -1056,6 +1099,32 @@ def test_benchmark_ragged_dot_help_does_not_require_torch() -> None:
     assert "--mode" in result.stdout
     assert "--split-k" in result.stdout
     assert "--bwd-output-dtype" in result.stdout
+
+
+def test_benchmark_qwen_gated_delta_net_help() -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / "benchmark_gated_delta_net.py"), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Qwen3.6 grouped-head Gated DeltaNet" in result.stdout
+    assert "--precompiled" in result.stdout
+    assert "--checkpoint-interval" in result.stdout
+
+
+def test_benchmark_mla_help() -> None:
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / "benchmark_mla.py"), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "DeepSeek-style training MLA" in result.stdout
+    assert "--precompiled" in result.stdout
+    assert "--window-left" in result.stdout
 
 
 def test_tune_swiglu_help_does_not_require_torch() -> None:

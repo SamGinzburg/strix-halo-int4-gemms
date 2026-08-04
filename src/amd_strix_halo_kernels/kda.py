@@ -1337,17 +1337,25 @@ def kimi_delta_attention(
     use_native = False
     native_job = None
     if backend == "gluon" and use_precompiled is not False:
-        from .kda_artifacts import KDA_FORWARD, KdaArtifactJob
+        from .kda_artifacts import KDA_FORWARD, KdaArtifactJob, kda_artifact_profile
         from .kda_native import (
             is_precompiled_kda_workload,
             precompiled_kda_available,
         )
 
-        native_job = KdaArtifactJob(
-            KDA_FORWARD,
-            qk_int4=qk_int4,
-            value_int4=value_int4,
-            store_state_cache=state_cache is not None,
+        native_profile = kda_artifact_profile(
+            checkpoint_interval=config.checkpoint_interval
+        )
+        native_job = (
+            None
+            if native_profile is None
+            else KdaArtifactJob(
+                KDA_FORWARD,
+                qk_int4=qk_int4,
+                value_int4=value_int4,
+                store_state_cache=state_cache is not None,
+                profile=native_profile,
+            )
         )
         native_supported = (
             is_precompiled_kda_workload(
@@ -1368,11 +1376,15 @@ def kimi_delta_attention(
             and log_decay.dtype == torch.float32
             and beta.dtype == torch.float32
         )
-        artifact_available = native_supported and precompiled_kda_available(native_job)
+        artifact_available = (
+            native_supported
+            and native_job is not None
+            and precompiled_kda_available(native_job)
+        )
         if use_precompiled is True and not native_supported:
             raise ValueError(
                 "precompiled KDA requires positive B/H, 1 <= T <= 2048, "
-                "D=Dv=128, value_block=64, checkpoint_interval=4, normalized "
+                "D=Dv=128, value_block=64, checkpoint_interval in {4, 8}, normalized "
                 "Q/K, FP32 gates, BF16 output, no initial/final state, and "
                 "RDNA 3.5-addressable runtime buffers"
             )
@@ -1388,7 +1400,7 @@ def kimi_delta_attention(
         fp32_dummy = log_decay
         native_cache = state_cache if state_cache is not None else fp32_dummy
         cache_tail = (
-            kda_precompiled_cache_tail(state_cache)
+            kda_precompiled_cache_tail(state_cache, native_job)
             if state_cache is not None
             else fp32_dummy
         )

@@ -11,7 +11,7 @@ Install the wheel into an environment that has ROCm PyTorch:
 
 .. code-block:: bash
 
-   uv pip install dist/amd_strix_halo_kernels-0.2.0-py3-none-linux_x86_64.whl
+   uv pip install dist/amd_strix_halo_kernels-0.3.0-py3-none-linux_x86_64.whl
 
 Runtime imports and precompiled native dispatch do not require Triton. Native
 GEMM dispatch requires:

@@ -9,14 +9,13 @@ from typing import Any
 from .kda_artifacts import (
     KDA_ARGUMENT_NAMES,
     KDA_FAMILY,
-    KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD,
-    KDA_PRECOMPILED_CHECKPOINT_INTERVAL,
     KDA_PRECOMPILED_HEAD_DIM,
     KDA_PRECOMPILED_MAX_SEQUENCE,
     KDA_PRECOMPILED_MIN_SEQUENCE,
     KDA_PRECOMPILED_VALUE_BLOCK,
     KDA_PRECOMPILED_VALUE_DIM,
     KdaArtifactJob,
+    kda_artifact_profile,
     kda_kernel_id,
 )
 
@@ -79,6 +78,10 @@ def is_precompiled_kda_workload(
     checkpoint_interval: int,
     needs_state_cache: bool = False,
 ) -> bool:
+    profile = kda_artifact_profile(checkpoint_interval=checkpoint_interval)
+    if profile is None:
+        return False
+    profile_job = KdaArtifactJob("forward", profile=profile)
     if not (
         batch > 0
         and KDA_PRECOMPILED_MIN_SEQUENCE <= sequence <= KDA_PRECOMPILED_MAX_SEQUENCE
@@ -86,7 +89,6 @@ def is_precompiled_kda_workload(
         and head_dim == KDA_PRECOMPILED_HEAD_DIM
         and value_dim == KDA_PRECOMPILED_VALUE_DIM
         and value_block == KDA_PRECOMPILED_VALUE_BLOCK
-        and checkpoint_interval == KDA_PRECOMPILED_CHECKPOINT_INTERVAL
     ):
         return False
 
@@ -104,19 +106,28 @@ def is_precompiled_kda_workload(
     num_checkpoints = (sequence + checkpoint_interval - 1) // checkpoint_interval + 1
     cache_bytes_per_batch_head = num_checkpoints * head_dim * value_dim * 4
     batch_heads = batch * heads
-    base_batch_heads = min(batch_heads, KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD)
-    tail_batch_heads = max(0, batch_heads - KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD)
+    split_batch_head = profile_job.cache_split_batch_head
+    base_batch_heads = min(batch_heads, split_batch_head)
+    tail_batch_heads = max(0, batch_heads - split_batch_head)
     return (
         max(base_batch_heads, tail_batch_heads) * cache_bytes_per_batch_head
         <= _RDNA_BUFFER_DESCRIPTOR_BYTES
     )
 
 
-def kda_precompiled_cache_tail(state_cache: Any) -> Any:
+def kda_precompiled_cache_tail(
+    state_cache: Any,
+    job: KdaArtifactJob | None = None,
+) -> Any:
     if getattr(state_cache, "ndim", None) != 5:
         raise ValueError("state_cache must have shape [B, H, checkpoints, D, Dv]")
     batch_heads = int(state_cache.shape[0]) * int(state_cache.shape[1])
-    if batch_heads <= KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD:
+    split_batch_head = (
+        KdaArtifactJob("forward").cache_split_batch_head
+        if job is None
+        else job.cache_split_batch_head
+    )
+    if batch_heads <= split_batch_head:
         # The tail descriptor is not dereferenced for this grid.  Reusing the
         # base pointer avoids passing a null pointer for an empty slice.
         return state_cache
@@ -125,7 +136,7 @@ def kda_precompiled_cache_tail(state_cache: Any) -> Any:
         * int(state_cache.shape[3])
         * int(state_cache.shape[4])
     )
-    tail_start = KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD * elements_per_batch_head
+    tail_start = split_batch_head * elements_per_batch_head
     return state_cache.reshape(-1)[tail_start:]
 
 

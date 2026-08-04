@@ -59,6 +59,9 @@ from amd_strix_halo_kernels.attention_artifacts import (  # noqa: E402
     ATTENTION_PRECOMPILED_DECODE_SPLITS,
     ATTENTION_PRECOMPILED_HEAD_DIM,
     ATTENTION_PRECOMPILED_VALUE_DIM,
+    ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+    ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+    ATTENTION_MLA_PRECOMPILED_WORKLOAD,
     ATTENTION_SEMANTICS,
     ATTENTION_SEMANTICS_CAUSAL,
     ATTENTION_SEMANTICS_CAUSAL_LOCAL,
@@ -81,6 +84,8 @@ class ForwardJob:
     output_dtype: str
     config: Int4AttentionConfig
     workload_shape: tuple[int, int, int, int] | None
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,6 +104,8 @@ class BackwardJob:
     grad_output_dtype: str
     config: Int4AttentionBackwardConfig
     workload_shape: tuple[int, int, int, int] | None
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM
 
 
 def _triton_checkout_root(triton: Any) -> Path | None:
@@ -122,6 +129,10 @@ def _triton_commit(triton: Any) -> str | None:
 
 def _cdiv(value: int, divisor: int) -> int:
     return (value + divisor - 1) // divisor
+
+
+def _next_power_of_two(value: int) -> int:
+    return 1 << (value - 1).bit_length()
 
 
 def _launch_metadata(program: Any) -> dict[str, int]:
@@ -280,9 +291,12 @@ def compile_forward_program(job: ForwardJob) -> Any:
         key_length = 130
     else:
         query_heads, kv_heads, query_length, key_length = job.workload_shape
-    head_dim = ATTENTION_PRECOMPILED_HEAD_DIM
-    value_dim = ATTENTION_PRECOMPILED_VALUE_DIM
+    head_dim = job.head_dim
+    value_dim = job.value_dim
     packed_head_dim = head_dim // 2 if qk_int4 else 1
+    block_d = _next_power_of_two(head_dim)
+    block_d_packed = _next_power_of_two(packed_head_dim)
+    block_dv = _next_power_of_two(value_dim)
     query_dtype = torch.uint8 if qk_int4 else torch.bfloat16
     value_dtype = torch.uint8 if pv_int4 else torch.bfloat16
     query = torch.empty(
@@ -381,9 +395,9 @@ def compile_forward_program(job: ForwardJob) -> Any:
         0,
         BLOCK_M=job.config.block_m,
         BLOCK_N=job.config.block_n,
-        BLOCK_D=head_dim,
-        BLOCK_D_PACKED=packed_head_dim,
-        BLOCK_DV=value_dim,
+        BLOCK_D=block_d,
+        BLOCK_D_PACKED=block_d_packed,
+        BLOCK_DV=block_dv,
         QK_INT4=qk_int4,
         PV_INT4=pv_int4,
         MASK_KIND=_mask_kind(job.mask_dtype),
@@ -416,9 +430,12 @@ def compile_backward_program(job: BackwardJob) -> Any:
         query_length, key_length = 65, 130
     else:
         query_heads, kv_heads, query_length, key_length = job.workload_shape
-    head_dim = ATTENTION_PRECOMPILED_HEAD_DIM
-    value_dim = ATTENTION_PRECOMPILED_VALUE_DIM
+    head_dim = job.head_dim
+    value_dim = job.value_dim
     packed_head_dim = head_dim // 2 if qk_int4 else 1
+    block_d = _next_power_of_two(head_dim)
+    block_d_packed = _next_power_of_two(packed_head_dim)
+    block_dv = _next_power_of_two(value_dim)
     query_dtype = torch.uint8 if qk_int4 else torch.bfloat16
     value_dtype = torch.uint8 if pv_int4 else torch.bfloat16
     query = torch.empty(
@@ -503,9 +520,9 @@ def compile_backward_program(job: BackwardJob) -> Any:
     is_causal, has_window = _semantic_flags(job.semantics)
     specialize_runtime_args = job.workload_shape is not None
     static_kwargs = {
-        "BLOCK_D": head_dim,
-        "BLOCK_D_PACKED": packed_head_dim,
-        "BLOCK_DV": value_dim,
+        "BLOCK_D": block_d,
+        "BLOCK_D_PACKED": block_d_packed,
+        "BLOCK_DV": block_dv,
         "QK_INT4": qk_int4,
         "PV_INT4": pv_int4,
         "MASK_KIND": _mask_kind(job.mask_dtype),
@@ -634,8 +651,8 @@ def _write_artifacts(
             mask_dtype=job.mask_dtype,
             semantics=job.semantics,
             output_dtype=job.output_dtype,
-            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
-            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            head_dim=job.head_dim,
+            value_dim=job.value_dim,
             config=job.config,
             workload_shape=job.workload_shape,
         )
@@ -647,8 +664,8 @@ def _write_artifacts(
             semantics=job.semantics,
             output_dtype=job.output_dtype,
             grad_output_dtype=job.grad_output_dtype,
-            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
-            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            head_dim=job.head_dim,
+            value_dim=job.value_dim,
             config=job.config,
             workload_shape=job.workload_shape,
         )
@@ -698,8 +715,8 @@ def _write_artifacts(
             mask_dtype=job.mask_dtype,
             semantics=job.semantics,
             output_dtype=job.output_dtype,
-            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
-            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            head_dim=job.head_dim,
+            value_dim=job.value_dim,
             config=job.config,
             workload_shape=job.workload_shape,
             amdgcn_symbol=amdgcn_symbol,
@@ -729,8 +746,8 @@ def _write_artifacts(
             semantics=job.semantics,
             output_dtype=job.output_dtype,
             grad_output_dtype=job.grad_output_dtype,
-            head_dim=ATTENTION_PRECOMPILED_HEAD_DIM,
-            value_dim=ATTENTION_PRECOMPILED_VALUE_DIM,
+            head_dim=job.head_dim,
+            value_dim=job.value_dim,
             config=job.config,
             workload_shape=job.workload_shape,
             amdgcn_symbol=amdgcn_symbol,
@@ -779,7 +796,98 @@ def build_jobs(
     modes: Iterable[str],
     mask_dtypes: Iterable[str],
     output_dtypes: Iterable[str],
+    profile: str = "standard",
 ) -> tuple[ForwardJob | BackwardJob | ReduceJob, ...]:
+    if profile not in {"standard", "mla"}:
+        raise ValueError("profile must be 'standard' or 'mla'")
+    if profile == "mla":
+        selected_phases = set(phases)
+        selected_modes = set(modes)
+        selected_masks = set(mask_dtypes)
+        selected_outputs = set(output_dtypes)
+        if (
+            "bf16-bf16" not in selected_modes
+            or ATTENTION_MASK_NONE not in selected_masks
+            or ATTENTION_OUTPUT_BF16 not in selected_outputs
+        ):
+            return ()
+        forward_config = Int4AttentionConfig(
+            block_m=64,
+            block_n=32,
+            num_warps=4,
+            num_stages=2,
+        )
+        backward_config = Int4AttentionBackwardConfig(
+            block_m=32,
+            block_n=32,
+            num_warps=4,
+            num_stages=1,
+            dkv_block_m=32,
+            dkv_block_n=16,
+            dkv_num_warps=2,
+            dkv_num_stages=1,
+        )
+        mla_jobs: list[ForwardJob | BackwardJob | ReduceJob] = []
+        if ATTENTION_FORWARD in selected_phases:
+            mla_jobs.append(
+                ForwardJob(
+                    "bf16-bf16",
+                    ATTENTION_MASK_NONE,
+                    None,
+                    ATTENTION_OUTPUT_BF16,
+                    forward_config,
+                    None,
+                    ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+                    ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+                )
+            )
+            for semantics in ATTENTION_SEMANTICS:
+                mla_jobs.append(
+                    ForwardJob(
+                        "bf16-bf16",
+                        ATTENTION_MASK_NONE,
+                        semantics,
+                        ATTENTION_OUTPUT_BF16,
+                        forward_config,
+                        ATTENTION_MLA_PRECOMPILED_WORKLOAD,
+                        ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+                        ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+                    )
+                )
+        for phase in ATTENTION_BACKWARD_PHASES:
+            if phase not in selected_phases:
+                continue
+            mla_jobs.append(
+                BackwardJob(
+                    phase,
+                    "bf16-bf16",
+                    ATTENTION_MASK_NONE,
+                    None,
+                    ATTENTION_OUTPUT_BF16,
+                    ATTENTION_OUTPUT_BF16,
+                    backward_config,
+                    None,
+                    ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+                    ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+                )
+            )
+            for semantics in ATTENTION_SEMANTICS:
+                mla_jobs.append(
+                    BackwardJob(
+                        phase,
+                        "bf16-bf16",
+                        ATTENTION_MASK_NONE,
+                        semantics,
+                        ATTENTION_OUTPUT_BF16,
+                        ATTENTION_OUTPUT_BF16,
+                        backward_config,
+                        ATTENTION_MLA_PRECOMPILED_WORKLOAD,
+                        ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+                        ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+                    )
+                )
+        return tuple(mla_jobs)
+
     jobs: list[ForwardJob | BackwardJob | ReduceJob] = []
     if ATTENTION_FORWARD in phases:
         for mode in modes:
@@ -861,6 +969,12 @@ def build_jobs(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate precompiled gfx1151 fused-attention artifacts.")
     parser.add_argument(
+        "--profile",
+        choices=("standard", "mla"),
+        default="standard",
+        help="artifact profile (MLA emits BF16 D192/Dv128 production kernels)",
+    )
+    parser.add_argument(
         "--phase",
         action="append",
         choices=(ATTENTION_FORWARD, ATTENTION_DECODE_REDUCE, *ATTENTION_BACKWARD_PHASES),
@@ -897,6 +1011,7 @@ def main(argv: list[str] | None = None) -> int:
         modes=modes,
         mask_dtypes=mask_dtypes,
         output_dtypes=output_dtypes,
+        profile=args.profile,
     )
     if args.limit is not None:
         jobs = jobs[: args.limit]
@@ -933,6 +1048,7 @@ def main(argv: list[str] | None = None) -> int:
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     summary = {
         "family": "fused_attention",
+        "profile": args.profile,
         "arch": "gfx1151",
         "source_triton_commit": _triton_commit(triton),
         "selected_jobs": len(jobs),

@@ -30,15 +30,11 @@ from amd_strix_halo_kernels.kda_artifacts import (  # noqa: E402
     KDA_ARGUMENT_NAMES,
     KDA_FORWARD,
     KDA_PHASES,
-    KDA_PRECOMPILED_BATCH,
-    KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD,
-    KDA_PRECOMPILED_CHECKPOINT_INTERVAL,
     KDA_PRECOMPILED_HEAD_DIM,
-    KDA_PRECOMPILED_HEADS,
-    KDA_PRECOMPILED_NUM_CHECKPOINTS,
     KDA_PRECOMPILED_SEQUENCE,
     KDA_PRECOMPILED_VALUE_BLOCK,
     KDA_PRECOMPILED_VALUE_DIM,
+    KDA_PROFILES,
     KdaArtifactJob,
     kda_kernel_id,
     kda_metadata_dict,
@@ -172,7 +168,7 @@ def _compile_forward(torch: Any, job: KdaArtifactJob) -> tuple[Any, tuple[int, i
         value_warps=1,
     )
     grid = (
-        KDA_PRECOMPILED_BATCH * KDA_PRECOMPILED_HEADS,
+        job.generation_batch * job.generation_heads,
         KDA_PRECOMPILED_VALUE_DIM // KDA_PRECOMPILED_VALUE_BLOCK,
     )
     program = kda_gluon_forward_kernel().warmup(
@@ -190,16 +186,16 @@ def _compile_forward(torch: Any, job: KdaArtifactJob) -> tuple[Any, tuple[int, i
         state,
         state,
         KDA_PRECOMPILED_SEQUENCE,
-        KDA_PRECOMPILED_HEADS,
+        job.generation_heads,
         KDA_PRECOMPILED_HEAD_DIM,
         KDA_PRECOMPILED_HEAD_DIM // 2 if job.qk_int4 else KDA_PRECOMPILED_HEAD_DIM,
         KDA_PRECOMPILED_VALUE_DIM,
         KDA_PRECOMPILED_VALUE_DIM // 2 if job.value_int4 else KDA_PRECOMPILED_VALUE_DIM,
-        KDA_PRECOMPILED_NUM_CHECKPOINTS,
+        job.num_checkpoints,
         KDA_PRECOMPILED_HEAD_DIM**-0.5,
         BLOCK_D=KDA_PRECOMPILED_HEAD_DIM,
         BLOCK_V=KDA_PRECOMPILED_VALUE_BLOCK,
-        CHECKPOINT_INTERVAL=KDA_PRECOMPILED_CHECKPOINT_INTERVAL,
+        CHECKPOINT_INTERVAL=job.checkpoint_interval,
         QK_INT4=job.qk_int4,
         VALUE_INT4=job.value_int4,
         HAS_INITIAL_STATE=False,
@@ -208,7 +204,7 @@ def _compile_forward(torch: Any, job: KdaArtifactJob) -> tuple[Any, tuple[int, i
         NORMALIZE_QK=True,
         OUTPUT_BF16=True,
         STORE_OUTPUT=True,
-        CACHE_SPLIT_BATCH_HEAD=KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD,
+        CACHE_SPLIT_BATCH_HEAD=job.cache_split_batch_head,
         USE_SPLIT_CACHE=job.store_state_cache,
         USE_FLAT_CACHE=False,
         STATE_LAYOUT=state_layout,
@@ -232,7 +228,7 @@ def _compile_preprocess_or_normalize(
     query = torch.empty(1, device="cuda", dtype=qk_dtype)
     scale = torch.empty(1, device="cuda", dtype=torch.bfloat16)
     workspace = torch.empty(1, device="cuda", dtype=torch.float32)
-    rows = KDA_PRECOMPILED_BATCH * KDA_PRECOMPILED_SEQUENCE * KDA_PRECOMPILED_HEADS
+    rows = job.generation_batch * KDA_PRECOMPILED_SEQUENCE * job.generation_heads
     packed_head_dim = KDA_PRECOMPILED_HEAD_DIM // 2 if job.qk_int4 else KDA_PRECOMPILED_HEAD_DIM
     grid = (rows, 1)
     if job.phase == KDA_BACKWARD_PREPROCESS:
@@ -286,7 +282,7 @@ def _compile_backward_recurrent(torch: Any, job: KdaArtifactJob) -> tuple[Any, t
         value_warps=1,
     )
     grid = (
-        KDA_PRECOMPILED_BATCH * KDA_PRECOMPILED_HEADS,
+        job.generation_batch * job.generation_heads,
         KDA_PRECOMPILED_VALUE_DIM // KDA_PRECOMPILED_VALUE_BLOCK,
     )
     program = kda_gluon_backward_kernel().warmup(
@@ -307,19 +303,19 @@ def _compile_backward_recurrent(torch: Any, job: KdaArtifactJob) -> tuple[Any, t
         workspace,
         workspace,
         KDA_PRECOMPILED_SEQUENCE,
-        KDA_PRECOMPILED_HEADS,
+        job.generation_heads,
         KDA_PRECOMPILED_HEAD_DIM,
         KDA_PRECOMPILED_VALUE_DIM,
         KDA_PRECOMPILED_VALUE_DIM // 2 if job.value_int4 else KDA_PRECOMPILED_VALUE_DIM,
-        KDA_PRECOMPILED_NUM_CHECKPOINTS,
+        job.num_checkpoints,
         KDA_PRECOMPILED_HEAD_DIM**-0.5,
         BLOCK_D=KDA_PRECOMPILED_HEAD_DIM,
         BLOCK_V=KDA_PRECOMPILED_VALUE_BLOCK,
-        CHECKPOINT_INTERVAL=KDA_PRECOMPILED_CHECKPOINT_INTERVAL,
+        CHECKPOINT_INTERVAL=job.checkpoint_interval,
         VALUE_INT4=job.value_int4,
         HAS_GRAD_FINAL_STATE=False,
         STORE_GRAD_INITIAL_STATE=False,
-        CACHE_SPLIT_BATCH_HEAD=KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD,
+        CACHE_SPLIT_BATCH_HEAD=job.cache_split_batch_head,
         USE_SPLIT_CACHE=True,
         USE_FLAT_CACHE=False,
         STATE_LAYOUT=state_layout,
@@ -410,6 +406,12 @@ def _write_artifacts(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate precompiled gfx1151 KDA artifacts.")
     parser.add_argument("--phase", action="append", choices=KDA_PHASES)
+    parser.add_argument(
+        "--profile",
+        action="append",
+        choices=KDA_PROFILES,
+        help="artifact profile; repeat to generate more than one (default: standard)",
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_AMDGCN_DIR)
     parser.add_argument("--triton-out-dir", type=Path, default=DEFAULT_TRITON_DIR)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
@@ -427,7 +429,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.limit is not None and args.limit <= 0:
         raise ValueError("--limit must be positive")
     phases = set(args.phase or KDA_PHASES)
-    jobs = tuple(job for job in kda_precompiled_jobs() if job.phase in phases)
+    jobs = tuple(
+        job
+        for job in kda_precompiled_jobs(profiles=tuple(args.profile or ("standard",)))
+        if job.phase in phases
+    )
     if args.limit is not None:
         jobs = jobs[: args.limit]
     removed = 0
@@ -459,6 +465,7 @@ def main(argv: list[str] | None = None) -> int:
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     summary = {
         "family": "kimi_delta_attention",
+        "profile": args.profile,
         "arch": "gfx1151",
         "source_triton_commit": installed_triton_commit(),
         "selected_jobs": len(jobs),

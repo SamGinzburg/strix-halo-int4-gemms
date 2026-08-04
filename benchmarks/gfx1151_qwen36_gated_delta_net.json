@@ -1,0 +1,243 @@
+{
+  "device": "AMD Radeon 8060S Graphics",
+  "failures": [],
+  "hip_version": "7.2.26015-fc0010cf6a",
+  "production_model": "Qwen/Qwen3.6-27B",
+  "records": [
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "effective_tops": 4.201398892693678,
+      "mode": "bf16",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.1457672119140625e-06,
+        "rtol": 0.001
+      },
+      "phase": "forward",
+      "precompiled": "require",
+      "runtime_ms": 18.784225463867188,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "mode": "bf16",
+      "notes": "FP32 logical gradients; checkpoint construction excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.1457672119140625e-06,
+        "rtol": 0.001
+      },
+      "phase": "backward",
+      "precompiled": "require",
+      "runtime_ms": 227.92262268066406,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "effective_tops": 5.149498010012477,
+      "mode": "int4-qk",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.86102294921875e-06,
+        "rtol": 0.001
+      },
+      "phase": "forward",
+      "precompiled": "require",
+      "runtime_ms": 15.325770378112793,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "mode": "int4-qk",
+      "notes": "FP32 logical gradients; checkpoint construction excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.86102294921875e-06,
+        "rtol": 0.001
+      },
+      "phase": "backward",
+      "precompiled": "require",
+      "runtime_ms": 225.01034545898438,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "effective_tops": 4.365823964481793,
+      "mode": "int4-v",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.0265579223632812e-06,
+        "rtol": 0.001
+      },
+      "phase": "forward",
+      "precompiled": "require",
+      "runtime_ms": 18.0767765045166,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "mode": "int4-v",
+      "notes": "FP32 logical gradients; checkpoint construction excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 2.0265579223632812e-06,
+        "rtol": 0.001
+      },
+      "phase": "backward",
+      "precompiled": "require",
+      "runtime_ms": 235.59054565429688,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "effective_tops": 4.624445253221957,
+      "mode": "int4-all",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 3.814697265625e-06,
+        "rtol": 0.001
+      },
+      "phase": "forward",
+      "precompiled": "require",
+      "runtime_ms": 17.06583595275879,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    },
+    {
+      "backend": "gluon",
+      "config": {
+        "backward_value_block": 16,
+        "checkpoint_interval": 8,
+        "chunked": false,
+        "num_stages": 2,
+        "num_warps": 4,
+        "value_block": 64
+      },
+      "mode": "int4-all",
+      "notes": "FP32 logical gradients; checkpoint construction excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 3.814697265625e-06,
+        "rtol": 0.001
+      },
+      "phase": "backward",
+      "precompiled": "require",
+      "runtime_ms": 234.56370544433594,
+      "shape": {
+        "batch": 7,
+        "head_dim": 128,
+        "query_key_heads": 16,
+        "sequence": 2048,
+        "value_dim": 128,
+        "value_heads": 48
+      }
+    }
+  ],
+  "schema_version": 1,
+  "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+  "triton_git_revision": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7"
+}

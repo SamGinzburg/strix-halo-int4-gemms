@@ -1357,8 +1357,7 @@ def int4_scaled_dot_product_attention(
         ATTENTION_MASK_NONE,
         ATTENTION_OUTPUT_BF16,
         ATTENTION_OUTPUT_FP32,
-        ATTENTION_PRECOMPILED_HEAD_DIM,
-        ATTENTION_PRECOMPILED_VALUE_DIM,
+        ATTENTION_PRECOMPILED_DIMENSIONS,
         ATTENTION_SEMANTICS_CAUSAL,
         ATTENTION_SEMANTICS_CAUSAL_LOCAL,
         ATTENTION_SEMANTICS_FULL,
@@ -1392,11 +1391,13 @@ def int4_scaled_dot_product_attention(
         artifact_semantics = ATTENTION_SEMANTICS_LOCAL
     else:
         artifact_semantics = ATTENTION_SEMANTICS_FULL
-    dimensions_covered = (
-        logical_head_dim == ATTENTION_PRECOMPILED_HEAD_DIM
-        and value_dim == ATTENTION_PRECOMPILED_VALUE_DIM
+    dimensions_covered = (logical_head_dim, value_dim) in ATTENTION_PRECOMPILED_DIMENSIONS
+    config_covered = is_precompiled_attention_config(
+        mode,
+        config,
+        head_dim=logical_head_dim,
+        value_dim=value_dim,
     )
-    config_covered = is_precompiled_attention_config(mode, config)
     forward_kernel_id = None
     reduce_kernel_id = None
     artifacts_available = False
@@ -1404,7 +1405,12 @@ def int4_scaled_dot_product_attention(
         workload_shape = (query_heads, kv_heads, query_length, key_length)
         workload_candidates: tuple[tuple[tuple[int, int, int, int] | None, str | None], ...] = (
             ((workload_shape, artifact_semantics), (None, None))
-            if workload_shape in attention_precompiled_workload_shapes(config)
+            if workload_shape
+            in attention_precompiled_workload_shapes(
+                config,
+                head_dim=logical_head_dim,
+                value_dim=value_dim,
+            )
             else ((None, None),)
         )
         for candidate_workload_shape, candidate_semantics in workload_candidates:
@@ -1434,7 +1440,8 @@ def int4_scaled_dot_product_attention(
 
     if use_precompiled is True and not dimensions_covered:
         raise ValueError(
-            "precompiled attention currently requires head_dim=64 and value_dim=64; "
+            "precompiled attention requires (head_dim, value_dim) in "
+            f"{ATTENTION_PRECOMPILED_DIMENSIONS}; "
             f"got head_dim={logical_head_dim}, value_dim={value_dim}"
         )
     if use_precompiled is True and not config_covered:

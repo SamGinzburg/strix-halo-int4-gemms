@@ -935,6 +935,94 @@ widened to ``buffer_load_b128``. Smaller backward tiles avoid those spills but
 require more value-tile programs and measured slower; the 64-wide mapping is
 the latency winner.
 
+Qwen3.6 Gated DeltaNet and MLA Production Profiles
+--------------------------------------------------
+
+The Qwen Gated DeltaNet record uses the model's B7/T2048/Hqk16/Hv48/D128/Dv128
+training shape. Inputs are prepacked where applicable, expansion/output/cache
+and gradient buffers are preallocated, and packaged Gluon CI8 dispatch is
+required. Backward excludes checkpoint construction. Every row first passes a
+representation-matched forward/backward gate at ``rtol=atol=1e-3``.
+
+.. list-table:: Qwen3.6-27B GDN production results
+   :header-rows: 1
+
+   * - Storage
+     - Forward
+     - Effective TOPS
+     - Backward
+     - Maximum absolute gate error
+   * - BF16
+     - 18.784225 ms
+     - 4.2014
+     - 227.922623 ms
+     - 2.15e-6
+   * - INT4 Q/K + BF16 V
+     - 15.325770 ms
+     - 5.1495
+     - 225.010345 ms
+     - 2.86e-6
+   * - BF16 Q/K + INT4 V
+     - 18.076777 ms
+     - 4.3658
+     - 235.590546 ms
+     - 2.03e-6
+   * - INT4 Q/K/V
+     - 17.065836 ms
+     - 4.6244
+     - 234.563705 ms
+     - 3.82e-6
+
+CI8 improves the measured BF16 backward by 31.1% versus the earlier CI16
+diagnostic (226.45 versus 328.57 ms in the tuning pass) and is the smallest
+tested interval that fits B7/H48 in the current two-descriptor cache ABI. CI4
+would require three descriptor pages and is rejected before launch; the
+diagnostic that preceded the guard produced a GPU page fault, which is why the
+page-count validation is part of the public adapter. Machine-readable results
+are in ``benchmarks/gfx1151_qwen36_gated_delta_net.json``.
+
+The MLA records use DeepSeek-V3/R1 dimensions B4/L2048/H128/C512/Dn128/Dr64/
+Dv128 with BF16 operands and output, FP32 accumulation/gradients, and packaged
+D192/Dv128 attention dispatch required. The package timing includes BF16
+latent up-projection and operand materialization. Backward excludes forward but
+includes explicit projection-gradient composition.
+
+.. list-table:: MLA production results
+   :header-rows: 1
+
+   * - Workload
+     - Forward
+     - Dense-equivalent throughput
+     - Backward
+     - Numerical gate
+   * - Full causal
+     - 74.507111 ms
+     - 22.1357 TOPS
+     - 834.878296 ms
+     - rtol=atol=1e-3
+   * - Causal local-512
+     - 54.479393 ms
+     - 30.2732 effective TOPS
+     - 521.352600 ms
+     - rtol=atol=1e-3
+
+The local throughput is dense-equivalent: it retains the full-attention
+operation numerator so bounded-window latency can be compared at one shape.
+The actual local arithmetic is lower. The full record's largest reduced gate
+absolute error is 1.01e-3 but passes the combined 1e-3 absolute/relative
+criterion; local's maximum is 8.20e-4.
+
+The matched PyTorch composition reruns the same BF16 latent up-projection and
+materialization and measured 988.098267 ms; its SDPA-only portion measured
+957.565918 ms. The package full forward is 13.26x faster on this installed
+ROCm stack. PyTorch emitted its experimental memory-efficient-attention warning
+and selected a slow D192 path, so this is not presented as a portable backend
+speedup. MLA backward is numerically ready but its 834.88 ms latency shows the
+remaining performance gap: FP32 attention gradients plus per-head latent and
+per-batch weight-gradient intermediates dominate. Source records are
+``benchmarks/gfx1151_mla.json`` and
+``benchmarks/gfx1151_mla_local512.json``.
+
 Correctness Notes
 -----------------
 

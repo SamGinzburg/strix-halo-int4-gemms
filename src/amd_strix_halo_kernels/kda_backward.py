@@ -807,33 +807,42 @@ def kimi_delta_attention_backward(
             KDA_BACKWARD_RECURRENT,
             KDA_FORWARD,
             KdaArtifactJob,
+            kda_artifact_profile,
         )
         from .kda_native import (
             is_precompiled_kda_workload,
             precompiled_kda_available,
         )
 
-        native_jobs = {
-            KDA_BACKWARD_PREPROCESS: KdaArtifactJob(
-                KDA_BACKWARD_PREPROCESS,
-                qk_int4=qk_int4,
-            ),
-            KDA_BACKWARD_RECURRENT: KdaArtifactJob(
-                KDA_BACKWARD_RECURRENT,
-                value_int4=value_int4,
-            ),
-            KDA_BACKWARD_NORMALIZE: KdaArtifactJob(
-                KDA_BACKWARD_NORMALIZE,
-                qk_int4=qk_int4,
-            ),
-        }
-        if state_cache is None:
-            native_jobs[KDA_FORWARD] = KdaArtifactJob(
-                KDA_FORWARD,
-                qk_int4=qk_int4,
-                value_int4=value_int4,
-                store_state_cache=True,
-            )
+        native_profile = kda_artifact_profile(
+            checkpoint_interval=config.checkpoint_interval
+        )
+        if native_profile is not None:
+            native_jobs = {
+                KDA_BACKWARD_PREPROCESS: KdaArtifactJob(
+                    KDA_BACKWARD_PREPROCESS,
+                    qk_int4=qk_int4,
+                    profile=native_profile,
+                ),
+                KDA_BACKWARD_RECURRENT: KdaArtifactJob(
+                    KDA_BACKWARD_RECURRENT,
+                    value_int4=value_int4,
+                    profile=native_profile,
+                ),
+                KDA_BACKWARD_NORMALIZE: KdaArtifactJob(
+                    KDA_BACKWARD_NORMALIZE,
+                    qk_int4=qk_int4,
+                    profile=native_profile,
+                ),
+            }
+            if state_cache is None:
+                native_jobs[KDA_FORWARD] = KdaArtifactJob(
+                    KDA_FORWARD,
+                    qk_int4=qk_int4,
+                    value_int4=value_int4,
+                    store_state_cache=True,
+                    profile=native_profile,
+                )
         native_supported = (
             is_precompiled_kda_workload(
                 batch=batch,
@@ -848,6 +857,7 @@ def kimi_delta_attention_backward(
             and not config.chunked
             and initial_state is None
             and grad_final_state is None
+            and native_profile is not None
             and normalize_qk
             and grad_output.dtype == torch.bfloat16
             and log_decay.dtype == torch.float32
@@ -860,7 +870,7 @@ def kimi_delta_attention_backward(
             raise ValueError(
                 "precompiled KDA backward requires positive B/H, "
                 "1 <= T <= 2048, D=Dv=128, value_block=64, "
-                "checkpoint_interval=4, normalized Q/K, BF16 dOutput, FP32 "
+                "checkpoint_interval in {4, 8}, normalized Q/K, BF16 dOutput, FP32 "
                 "gates, no initial/final-state gradient, and RDNA "
                 "3.5-addressable runtime buffers"
             )
@@ -1113,7 +1123,10 @@ def kimi_delta_attention_backward(
                 "grad_output": grad_output,
                 "grad_final_state": grad_final_state_argument,
                 "state_cache": state_cache,
-                "state_cache_tail": kda_precompiled_cache_tail(state_cache),
+                "state_cache_tail": kda_precompiled_cache_tail(
+                    state_cache,
+                    native_jobs[KDA_BACKWARD_RECURRENT],
+                ),
                 "grad_query_normalized": grad_query_normalized,
                 "grad_key_normalized": grad_key_normalized,
                 "grad_value": grad_value,

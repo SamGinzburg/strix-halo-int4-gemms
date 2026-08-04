@@ -81,6 +81,24 @@ def test_precompiled_kda_workload_enforces_cache_descriptor_span() -> None:
     )
 
 
+def test_qwen36_ci8_profile_covers_production_cache_span() -> None:
+    values = {
+        "batch": 7,
+        "sequence": 2048,
+        "heads": 48,
+        "head_dim": 128,
+        "value_dim": 128,
+        "value_block": 64,
+        "checkpoint_interval": 8,
+        "needs_state_cache": True,
+    }
+
+    assert is_precompiled_kda_workload(**values)
+    assert not is_precompiled_kda_workload(
+        **{**values, "checkpoint_interval": 16}
+    )
+
+
 class _FlatCache:
     def __getitem__(self, index: slice) -> slice:
         return index
@@ -104,6 +122,12 @@ def test_precompiled_kda_cache_tail_uses_runtime_checkpoint_stride() -> None:
     tail = kda_precompiled_cache_tail(split)
     assert isinstance(tail, slice)
     assert tail.start == 127 * 7 * 128 * 128
+
+    qwen_job = KdaArtifactJob(KDA_FORWARD, profile="qwen36")
+    qwen_split = _Cache((7, 48, 257, 128, 128))
+    qwen_tail = kda_precompiled_cache_tail(qwen_split, qwen_job)
+    assert isinstance(qwen_tail, slice)
+    assert qwen_tail.start == 255 * 257 * 128 * 128
 
     with pytest.raises(ValueError, match="state_cache must have shape"):
         kda_precompiled_cache_tail(SimpleNamespace(ndim=4))

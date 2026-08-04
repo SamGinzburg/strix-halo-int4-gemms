@@ -17422,6 +17422,7 @@
     }
   ],
   "generated_count": 792,
+  "profile": "standard",
   "removed_before_generation": 1584,
   "selected_jobs": 792,
   "source_triton_commit": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7"

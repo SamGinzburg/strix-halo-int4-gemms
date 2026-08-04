@@ -1,0 +1,110 @@
+{
+  "baselines": [
+    {
+      "name": "torch_sdpa_bf16_attention_only",
+      "notes": "latent up-projection excluded; output allocation included",
+      "runtime_ms": 957.56591796875,
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    },
+    {
+      "name": "torch_bf16_mla_composition",
+      "notes": "same BF16 latent up-projection and operand materialization; PyTorch SDPA output allocation included",
+      "runtime_ms": 988.0982666015625,
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    }
+  ],
+  "device": "AMD Radeon 8060S Graphics",
+  "failures": [],
+  "hip_version": "7.2.26015-fc0010cf6a",
+  "production_profile": "DeepSeek-V3/R1 MLA dimensions",
+  "records": [
+    {
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "effective_tops": 22.135705283397666,
+      "name": "package_mla_forward",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 0.0010096430778503418,
+        "rtol": 0.001
+      },
+      "precompiled": "require",
+      "runtime_ms": 74.50711059570312,
+      "semantics": {
+        "is_causal": true,
+        "window_size": null
+      },
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    },
+    {
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "dkv_block_m": 32,
+        "dkv_block_n": 16,
+        "dkv_num_stages": 1,
+        "dkv_num_warps": 2,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "name": "package_mla_backward",
+      "notes": "FP32 logical gradients; forward excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 0.0010096430778503418,
+        "rtol": 0.001
+      },
+      "precompiled": "require",
+      "runtime_ms": 834.8782958984375,
+      "semantics": {
+        "is_causal": true,
+        "window_size": null
+      },
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    }
+  ],
+  "schema_version": 1,
+  "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+  "triton_git_revision": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7"
+}

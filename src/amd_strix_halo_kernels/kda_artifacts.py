@@ -35,6 +35,18 @@ KDA_PRECOMPILED_NUM_CHECKPOINTS = (
     KDA_PRECOMPILED_SEQUENCE // KDA_PRECOMPILED_CHECKPOINT_INTERVAL + 1
 )
 KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD = 127
+KDA_PROFILE_STANDARD = "standard"
+KDA_PROFILE_QWEN36 = "qwen36"
+KDA_PROFILES = (KDA_PROFILE_STANDARD, KDA_PROFILE_QWEN36)
+KDA_QWEN36_PRECOMPILED_BATCH = 7
+KDA_QWEN36_PRECOMPILED_HEADS = 48
+KDA_QWEN36_PRECOMPILED_CHECKPOINT_INTERVAL = 8
+KDA_QWEN36_PRECOMPILED_NUM_CHECKPOINTS = (
+    KDA_PRECOMPILED_SEQUENCE // KDA_QWEN36_PRECOMPILED_CHECKPOINT_INTERVAL + 1
+)
+# CI=8 gives each B/H cache slice 257 * 128 * 128 FP32 elements, so 255
+# slices fit in one 32-bit RDNA 3.5 buffer-descriptor page.
+KDA_QWEN36_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD = 255
 KDA_ARGUMENT_NAMES = {
     KDA_FORWARD: (
         "query",
@@ -121,10 +133,13 @@ class KdaArtifactJob:
     qk_int4: bool = False
     value_int4: bool = False
     store_state_cache: bool = False
+    profile: str = KDA_PROFILE_STANDARD
 
     def __post_init__(self) -> None:
         if self.phase not in KDA_PHASES:
             raise ValueError(f"unsupported KDA artifact phase {self.phase!r}")
+        if self.profile not in KDA_PROFILES:
+            raise ValueError(f"unsupported KDA artifact profile {self.profile!r}")
         if self.phase != KDA_FORWARD and self.store_state_cache:
             raise ValueError("only KDA forward artifacts can store the state cache")
         if self.phase in {KDA_BACKWARD_PREPROCESS, KDA_BACKWARD_NORMALIZE} and self.value_int4:
@@ -136,27 +151,100 @@ class KdaArtifactJob:
     def mode(self) -> str:
         return kda_mode(qk_int4=self.qk_int4, value_int4=self.value_int4)
 
+    @property
+    def generation_batch(self) -> int:
+        return (
+            KDA_QWEN36_PRECOMPILED_BATCH
+            if self.profile == KDA_PROFILE_QWEN36
+            else KDA_PRECOMPILED_BATCH
+        )
 
-def kda_precompiled_jobs() -> tuple[KdaArtifactJob, ...]:
+    @property
+    def generation_heads(self) -> int:
+        return (
+            KDA_QWEN36_PRECOMPILED_HEADS
+            if self.profile == KDA_PROFILE_QWEN36
+            else KDA_PRECOMPILED_HEADS
+        )
+
+    @property
+    def checkpoint_interval(self) -> int:
+        return (
+            KDA_QWEN36_PRECOMPILED_CHECKPOINT_INTERVAL
+            if self.profile == KDA_PROFILE_QWEN36
+            else KDA_PRECOMPILED_CHECKPOINT_INTERVAL
+        )
+
+    @property
+    def num_checkpoints(self) -> int:
+        return (
+            KDA_QWEN36_PRECOMPILED_NUM_CHECKPOINTS
+            if self.profile == KDA_PROFILE_QWEN36
+            else KDA_PRECOMPILED_NUM_CHECKPOINTS
+        )
+
+    @property
+    def cache_split_batch_head(self) -> int:
+        return (
+            KDA_QWEN36_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD
+            if self.profile == KDA_PROFILE_QWEN36
+            else KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD
+        )
+
+
+def kda_precompiled_jobs(
+    *, profiles: Iterable[str] = (KDA_PROFILE_STANDARD,)
+) -> tuple[KdaArtifactJob, ...]:
     jobs: list[KdaArtifactJob] = []
-    for qk_int4 in (False, True):
-        for value_int4 in (False, True):
-            for store_state_cache in (False, True):
-                jobs.append(
-                    KdaArtifactJob(
-                        KDA_FORWARD,
-                        qk_int4=qk_int4,
-                        value_int4=value_int4,
-                        store_state_cache=store_state_cache,
+    selected_profiles = tuple(profiles)
+    if any(profile not in KDA_PROFILES for profile in selected_profiles):
+        raise ValueError(f"profiles must be drawn from {KDA_PROFILES}")
+    for profile in selected_profiles:
+        for qk_int4 in (False, True):
+            for value_int4 in (False, True):
+                for store_state_cache in (False, True):
+                    jobs.append(
+                        KdaArtifactJob(
+                            KDA_FORWARD,
+                            qk_int4=qk_int4,
+                            value_int4=value_int4,
+                            store_state_cache=store_state_cache,
+                            profile=profile,
+                        )
                     )
+        for qk_int4 in (False, True):
+            jobs.append(
+                KdaArtifactJob(
+                    KDA_BACKWARD_PREPROCESS,
+                    qk_int4=qk_int4,
+                    profile=profile,
                 )
-    for qk_int4 in (False, True):
-        jobs.append(KdaArtifactJob(KDA_BACKWARD_PREPROCESS, qk_int4=qk_int4))
-    for value_int4 in (False, True):
-        jobs.append(KdaArtifactJob(KDA_BACKWARD_RECURRENT, value_int4=value_int4))
-    for qk_int4 in (False, True):
-        jobs.append(KdaArtifactJob(KDA_BACKWARD_NORMALIZE, qk_int4=qk_int4))
+            )
+        for value_int4 in (False, True):
+            jobs.append(
+                KdaArtifactJob(
+                    KDA_BACKWARD_RECURRENT,
+                    value_int4=value_int4,
+                    profile=profile,
+                )
+            )
+        for qk_int4 in (False, True):
+            jobs.append(
+                KdaArtifactJob(
+                    KDA_BACKWARD_NORMALIZE,
+                    qk_int4=qk_int4,
+                    profile=profile,
+                )
+            )
     return tuple(jobs)
+
+
+def kda_artifact_profile(*, checkpoint_interval: int) -> str | None:
+    if checkpoint_interval == KDA_PRECOMPILED_CHECKPOINT_INTERVAL:
+        return KDA_PROFILE_STANDARD
+    if checkpoint_interval == KDA_QWEN36_PRECOMPILED_CHECKPOINT_INTERVAL:
+        return KDA_PROFILE_QWEN36
+    return None
 
 
 def kda_kernel_id(job: KdaArtifactJob, *, arch: str = ARCH) -> str:
@@ -173,10 +261,10 @@ def kda_kernel_id(job: KdaArtifactJob, *, arch: str = ARCH) -> str:
         phase = "bwd_norm"
         mode = "int4" if job.qk_int4 else "bf16"
     return (
-        f"{arch}_kda_{phase}_{mode}_b{KDA_PRECOMPILED_BATCH}_"
-        f"t{KDA_PRECOMPILED_SEQUENCE}_h{KDA_PRECOMPILED_HEADS}_"
+        f"{arch}_kda_{phase}_{mode}_b{job.generation_batch}_"
+        f"t{KDA_PRECOMPILED_SEQUENCE}_h{job.generation_heads}_"
         f"d{KDA_PRECOMPILED_HEAD_DIM}_dv{KDA_PRECOMPILED_VALUE_DIM}_"
-        f"vb{KDA_PRECOMPILED_VALUE_BLOCK}_ci{KDA_PRECOMPILED_CHECKPOINT_INTERVAL}"
+        f"vb{KDA_PRECOMPILED_VALUE_BLOCK}_ci{job.checkpoint_interval}"
     )
 
 
@@ -195,6 +283,7 @@ def kda_metadata_dict(
         "kernel_id": kernel_id,
         "family": KDA_FAMILY,
         "phase": job.phase,
+        "profile": job.profile,
         "arch": ARCH,
         "mode": job.mode,
         "qk_dtype": "int4" if job.qk_int4 else "bfloat16",
@@ -211,9 +300,9 @@ def kda_metadata_dict(
             "value_dim": KDA_PRECOMPILED_VALUE_DIM,
         },
         "generation_shape": {
-            "batch": KDA_PRECOMPILED_BATCH,
+            "batch": job.generation_batch,
             "sequence": KDA_PRECOMPILED_SEQUENCE,
-            "heads": KDA_PRECOMPILED_HEADS,
+            "heads": job.generation_heads,
             "head_dim": KDA_PRECOMPILED_HEAD_DIM,
             "value_dim": KDA_PRECOMPILED_VALUE_DIM,
         },
@@ -226,9 +315,9 @@ def kda_metadata_dict(
         },
         "config": {
             "value_block": KDA_PRECOMPILED_VALUE_BLOCK,
-            "checkpoint_interval": KDA_PRECOMPILED_CHECKPOINT_INTERVAL,
-            "num_checkpoints": KDA_PRECOMPILED_NUM_CHECKPOINTS,
-            "cache_split_batch_head": KDA_PRECOMPILED_CACHE_SPLIT_BATCH_HEAD,
+            "checkpoint_interval": job.checkpoint_interval,
+            "num_checkpoints": job.num_checkpoints,
+            "cache_split_batch_head": job.cache_split_batch_head,
         },
         "asm_keys": sorted(asm_keys),
         "status": "generated",

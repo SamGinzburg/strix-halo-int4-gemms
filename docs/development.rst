@@ -105,16 +105,36 @@ Regenerate the runtime-shape KDA family separately:
    TRITON_CHECKOUT=/path/to/triton
    uv run --project "$TRITON_CHECKOUT" python scripts/generate_kda_amdgcn.py --clean
 
-The KDA generator emits 14 objects: four forward BF16/INT4 QK-by-V modes with
+Generate the additional Qwen3.6 CI8 Gated DeltaNet profile without cleaning
+the standard CI4 family:
+
+.. code-block:: bash
+
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_kda_amdgcn.py \
+     --profile qwen36 \
+     --summary kernels/amdgcn/qwen36_gated_delta_net_generation_summary.json
+
+Generate the BF16 MLA D192/Dv128 runtime and production profiles without
+cleaning the D64 attention family:
+
+.. code-block:: bash
+
+   uv run --project "$TRITON_CHECKOUT" python scripts/generate_attention_amdgcn.py \
+     --profile mla \
+     --triton-out-dir kernels/triton \
+     --summary kernels/amdgcn/mla_generation_summary.json
+
+Each KDA generator profile emits 14 objects: four forward BF16/INT4 QK-by-V modes with
 and without checkpoint-cache writes, plus BF16/INT4 variants for each backward
 preprocess, recurrent, and normalization phase. They specialize
-``D=Dv=128,value_block=64,checkpoint_interval=4`` and keep positive B/H plus
+``D=Dv=128,value_block=64`` and checkpoint interval 4 (standard) or 8
+(Qwen3.6), and keep positive B/H plus
 ``1 <= T <= 2048`` runtime. ``B4/T2048/H32`` in each artifact ID is the
 generation/provenance shape, not an exact dispatch constraint. KDA cleanup is
 restricted to ``gfx1151_kda_*``.
 
-The current totals are 3,062 dense, 302 ragged, 792 attention, and 14 KDA
-artifacts (4,170 packaged HSACOs).
+The current totals are 3,062 dense, 302 ragged, 807 attention/MLA, and 28
+KDA/GDN artifacts (4,199 packaged HSACOs).
 
 Regenerate the complete attention timing database on gfx1151 with prepacked
 inputs and the experimental ROCm PyTorch SDPA baseline enabled:
@@ -152,6 +172,23 @@ Regenerate the target-shape KDA benchmark with packaged dispatch required:
        --value-block 64 --checkpoint-interval 4 \
        --warmup-ms 100 --rep-ms 400 \
        --output benchmarks/gfx1151_kda.json
+
+Regenerate the Qwen3.6 GDN and DeepSeek-style MLA production records from a
+built wheel by setting ``AMD_STRIX_HALO_NATIVE_ROOT`` to the extracted package
+root, then run:
+
+.. code-block:: bash
+
+   uv run python scripts/benchmark_gated_delta_net.py \
+     --precompiled require \
+     --output benchmarks/gfx1151_qwen36_gated_delta_net.json
+   uv run python scripts/benchmark_mla.py \
+     --precompiled require --block-m 64 --block-n 32 \
+     --output benchmarks/gfx1151_mla.json
+   uv run python scripts/benchmark_mla.py \
+     --precompiled require --block-m 64 --block-n 32 \
+     --window-left 512 --skip-torch \
+     --output benchmarks/gfx1151_mla_local512.json
 
 Backward artifacts are emitted as separate ``backward_dq`` and
 ``backward_dkv`` phases. Each phase includes generic and exact 2048-token GQA

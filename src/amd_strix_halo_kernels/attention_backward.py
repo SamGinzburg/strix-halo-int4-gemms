@@ -969,10 +969,6 @@ def int4_scaled_dot_product_attention_backward(
         raise ValueError("optimized attention backward supports head_dim and value_dim up to 256")
     left, right = window if window is not None else (0, 0)
     softmax_scale = _softmax_scale(scale, logical_head_dim)
-    specialize_profile = (query_heads, kv_heads, query_length, key_length) in {
-        (8, 8, 512, 512),
-        (16, 8, 2048, 2048),
-    }
     from .attention_artifacts import (
         ATTENTION_BACKWARD_DKV,
         ATTENTION_BACKWARD_DQ,
@@ -982,17 +978,22 @@ def int4_scaled_dot_product_attention_backward(
         ATTENTION_MASK_NONE,
         ATTENTION_OUTPUT_BF16,
         ATTENTION_OUTPUT_FP32,
-        ATTENTION_PRECOMPILED_HEAD_DIM,
-        ATTENTION_PRECOMPILED_VALUE_DIM,
+        ATTENTION_PRECOMPILED_DIMENSIONS,
         ATTENTION_SEMANTICS_CAUSAL,
         ATTENTION_SEMANTICS_CAUSAL_LOCAL,
         ATTENTION_SEMANTICS_FULL,
         ATTENTION_SEMANTICS_LOCAL,
         attention_backward_kernel_id,
         attention_mode,
+        attention_precompiled_backward_workload_shapes,
         is_precompiled_attention_backward_config,
         launch_precompiled_attention_backward,
         precompiled_attention_backward_available,
+    )
+    workload_shape = (query_heads, kv_heads, query_length, key_length)
+    specialize_profile = workload_shape in attention_precompiled_backward_workload_shapes(
+        head_dim=logical_head_dim,
+        value_dim=value_dim,
     )
 
     if attn_mask is None:
@@ -1018,17 +1019,17 @@ def int4_scaled_dot_product_attention_backward(
     artifact_grad_output_dtype = (
         ATTENTION_OUTPUT_BF16 if grad_output.dtype == torch.bfloat16 else ATTENTION_OUTPUT_FP32
     )
-    dimensions_covered = (
-        logical_head_dim == ATTENTION_PRECOMPILED_HEAD_DIM
-        and value_dim == ATTENTION_PRECOMPILED_VALUE_DIM
+    dimensions_covered = (logical_head_dim, value_dim) in ATTENTION_PRECOMPILED_DIMENSIONS
+    config_covered = is_precompiled_attention_backward_config(
+        config,
+        head_dim=logical_head_dim,
+        value_dim=value_dim,
     )
-    config_covered = is_precompiled_attention_backward_config(config)
     backward_kernel_ids: tuple[str, str] | None = None
     artifacts_available = False
     if dimensions_covered and config_covered:
         candidates = []
-        workload_shape = (query_heads, kv_heads, query_length, key_length)
-        if workload_shape == (16, 8, 2048, 2048) and mask_dtype == ATTENTION_MASK_NONE:
+        if specialize_profile and mask_dtype == ATTENTION_MASK_NONE:
             candidates.append((artifact_semantics, workload_shape))
         candidates.append((None, None))
         for candidate_semantics, candidate_shape in candidates:
@@ -1068,8 +1069,9 @@ def int4_scaled_dot_product_attention_backward(
                 break
     if use_precompiled is True and not dimensions_covered:
         raise ValueError(
-            "precompiled attention backward currently requires head_dim=64 and "
-            f"value_dim=64; got head_dim={logical_head_dim}, value_dim={value_dim}"
+            "precompiled attention backward requires (head_dim, value_dim) in "
+            f"{ATTENTION_PRECOMPILED_DIMENSIONS}; got "
+            f"head_dim={logical_head_dim}, value_dim={value_dim}"
         )
     if use_precompiled is True and not config_covered:
         raise ValueError(

@@ -41,6 +41,13 @@ ATTENTION_SEMANTICS = (
 )
 ATTENTION_PRECOMPILED_HEAD_DIM = 64
 ATTENTION_PRECOMPILED_VALUE_DIM = 64
+ATTENTION_MLA_PRECOMPILED_HEAD_DIM = 192
+ATTENTION_MLA_PRECOMPILED_VALUE_DIM = 128
+ATTENTION_PRECOMPILED_DIMENSIONS = (
+    (ATTENTION_PRECOMPILED_HEAD_DIM, ATTENTION_PRECOMPILED_VALUE_DIM),
+    (ATTENTION_MLA_PRECOMPILED_HEAD_DIM, ATTENTION_MLA_PRECOMPILED_VALUE_DIM),
+)
+ATTENTION_MLA_PRECOMPILED_WORKLOAD = (128, 128, 2048, 2048)
 
 # These are the default-dispatch and measured-winner configurations recorded
 # in benchmarks/gfx1151_attention*.json. Generic artifacts keep shapes and
@@ -74,6 +81,10 @@ ATTENTION_PRECOMPILED_DECODE_SPLITS = (4, 8)
 ATTENTION_PRECOMPILED_BACKWARD_CONFIGS = (
     # Spill-free measured winner for both full and bounded attention.
     (32, 16, 2, 1, 32, 16, 2, 1),
+)
+ATTENTION_MLA_PRECOMPILED_CONFIGS = ((64, 32, 4, 2, 1),)
+ATTENTION_MLA_PRECOMPILED_BACKWARD_CONFIGS = (
+    (32, 32, 4, 1, 32, 16, 2, 1),
 )
 ATTENTION_FORWARD_RUNTIME_SCALAR_ARGS = (
     "batch",
@@ -154,10 +165,33 @@ def attention_backward_config_label(config: Any) -> str:
     )
 
 
-def attention_precompiled_workload_shapes(config: Any) -> tuple[tuple[int, int, int, int], ...]:
+def attention_precompiled_workload_shapes(
+    config: Any,
+    *,
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM,
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM,
+) -> tuple[tuple[int, int, int, int], ...]:
+    if (head_dim, value_dim) == (
+        ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+        ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+    ):
+        return (ATTENTION_MLA_PRECOMPILED_WORKLOAD,)
     if int(config.decode_splits) > 1:
         return ((8, 8, 1, 2048),)
     return ((8, 8, 512, 512), (16, 8, 2048, 2048))
+
+
+def attention_precompiled_backward_workload_shapes(
+    *,
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM,
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM,
+) -> tuple[tuple[int, int, int, int], ...]:
+    if (head_dim, value_dim) == (
+        ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+        ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+    ):
+        return (ATTENTION_MLA_PRECOMPILED_WORKLOAD,)
+    return ((16, 8, 2048, 2048),)
 
 
 def attention_mode(*, qk_int4: bool, pv_int4: bool) -> str:
@@ -241,7 +275,16 @@ def attention_backward_kernel_id(
         raise ValueError(f"unsupported saved attention output dtype {output_dtype!r}")
     if grad_output_dtype not in ATTENTION_OUTPUT_DTYPES:
         raise ValueError(f"unsupported attention grad_output dtype {grad_output_dtype!r}")
-    if attention_backward_config_tuple(config) not in ATTENTION_PRECOMPILED_BACKWARD_CONFIGS:
+    supported_backward_configs = (
+        ATTENTION_MLA_PRECOMPILED_BACKWARD_CONFIGS
+        if (head_dim, value_dim)
+        == (
+            ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+            ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+        )
+        else ATTENTION_PRECOMPILED_BACKWARD_CONFIGS
+    )
+    if attention_backward_config_tuple(config) not in supported_backward_configs:
         raise ValueError(f"unsupported attention backward config {config!r}")
     if workload_shape is not None and (len(workload_shape) != 4 or min(workload_shape) <= 0):
         raise ValueError("attention workload specialization values must be four positive ints")
@@ -279,12 +322,39 @@ def attention_reduce_kernel_id(
     return f"{arch}_attention_reduce_{output_dtype}_dv{value_dim}_ds{decode_splits}"
 
 
-def is_precompiled_attention_config(mode: str, config: Any) -> bool:
+def is_precompiled_attention_config(
+    mode: str,
+    config: Any,
+    *,
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM,
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM,
+) -> bool:
+    if (head_dim, value_dim) == (
+        ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+        ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+    ):
+        return mode == "bf16-bf16" and (
+            attention_config_tuple(config) in ATTENTION_MLA_PRECOMPILED_CONFIGS
+        )
     return attention_config_tuple(config) in ATTENTION_PRECOMPILED_CONFIGS.get(mode, ())
 
 
-def is_precompiled_attention_backward_config(config: Any) -> bool:
-    return attention_backward_config_tuple(config) in ATTENTION_PRECOMPILED_BACKWARD_CONFIGS
+def is_precompiled_attention_backward_config(
+    config: Any,
+    *,
+    head_dim: int = ATTENTION_PRECOMPILED_HEAD_DIM,
+    value_dim: int = ATTENTION_PRECOMPILED_VALUE_DIM,
+) -> bool:
+    configs = (
+        ATTENTION_MLA_PRECOMPILED_BACKWARD_CONFIGS
+        if (head_dim, value_dim)
+        == (
+            ATTENTION_MLA_PRECOMPILED_HEAD_DIM,
+            ATTENTION_MLA_PRECOMPILED_VALUE_DIM,
+        )
+        else ATTENTION_PRECOMPILED_BACKWARD_CONFIGS
+    )
+    return attention_backward_config_tuple(config) in configs
 
 
 def attention_forward_metadata_dict(

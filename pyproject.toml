@@ -1,7 +1,7 @@
 [project]
 name = "amd-strix-halo-kernels"
-version = "0.2.0"
-description = "Quantized int4/int8 GEMM kernels for AMD Strix Halo (gfx1151), with a kernel registry and generation tooling"
+version = "0.3.0"
+description = "Quantized GEMM, attention, and recurrent kernels for AMD Strix Halo (gfx1151)"
 readme = "README.md"
 authors = [
     { name = "Sam Ginzburg", email = "ginzburg.sam@gmail.com" }
@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = []
-keywords = ["amd", "rocm", "strix-halo", "int4", "gemm", "mma"]
+keywords = ["amd", "rocm", "strix-halo", "int4", "gemm", "attention", "mma"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

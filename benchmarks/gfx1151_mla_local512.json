@@ -1,0 +1,85 @@
+{
+  "baselines": [],
+  "device": "AMD Radeon 8060S Graphics",
+  "failures": [],
+  "hip_version": "7.2.26015-fc0010cf6a",
+  "production_profile": "DeepSeek-V3/R1 MLA dimensions",
+  "records": [
+    {
+      "config": {
+        "block_m": 64,
+        "block_n": 32,
+        "decode_splits": 1,
+        "num_stages": 2,
+        "num_warps": 4
+      },
+      "effective_tops": 30.273234532943487,
+      "name": "package_mla_forward",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 0.0008199512958526611,
+        "rtol": 0.001
+      },
+      "precompiled": "require",
+      "runtime_ms": 54.479393005371094,
+      "semantics": {
+        "is_causal": true,
+        "window_size": [
+          512,
+          0
+        ]
+      },
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    },
+    {
+      "config": {
+        "block_m": 32,
+        "block_n": 32,
+        "dkv_block_m": 32,
+        "dkv_block_n": 16,
+        "dkv_num_stages": 1,
+        "dkv_num_warps": 2,
+        "num_stages": 1,
+        "num_warps": 4
+      },
+      "name": "package_mla_backward",
+      "notes": "FP32 logical gradients; forward excluded",
+      "numerical_gate": {
+        "atol": 0.001,
+        "max_abs": 0.0008199512958526611,
+        "rtol": 0.001
+      },
+      "precompiled": "require",
+      "runtime_ms": 521.3526000976562,
+      "semantics": {
+        "is_causal": true,
+        "window_size": [
+          512,
+          0
+        ]
+      },
+      "shape": {
+        "batch": 4,
+        "heads": 128,
+        "key_length": 2048,
+        "latent_dim": 512,
+        "qk_nope_dim": 128,
+        "qk_rope_dim": 64,
+        "query_length": 2048,
+        "value_dim": 128
+      }
+    }
+  ],
+  "schema_version": 1,
+  "torch_version": "2.9.1+rocm7.2.0.git7e1940d4",
+  "triton_git_revision": "28d04c3f9f23db9a7f9c80906d00667b53e7a7d7"
+}

@@ -4,9 +4,9 @@ Kernels and Launch Contract
 Generated Matrix
 ----------------
 
-The checked-in native matrix contains 4,170 artifacts: 3,062 dense generated
-kernels, 302 ragged generated artifacts, 792 fused-attention artifacts, and 14
-runtime-B/H/T KDA artifacts:
+The checked-in native matrix contains 4,199 artifacts: 3,062 dense generated
+kernels, 302 ragged generated artifacts, 807 fused-attention/MLA artifacts,
+and 28 runtime-B/H/T KDA/GDN artifacts:
 
 * dense dtypes: ``int4 x int4`` and ``int8 x int8``;
 * packaged native layouts: ``NN``, ``NT``, and ``TN``;
@@ -443,6 +443,31 @@ Int4 subchannel kernels use ``tl.dot_scaled`` for packed int4 MMA into i32,
 then apply the BF16 LHS/RHS subchannel scales once per completed subchannel
 partial. This preserves subchannel scaled-dot semantics without repeating the
 same scale multiply for every BK partial.
+
+GDN and MLA Native Profiles
+---------------------------
+
+Qwen Gated DeltaNet reuses the exact FP32 KDA recurrent kernels after a
+grouped-head adapter expands Hqk to Hv and scalar decay to D channels. The
+Qwen native profile specializes D=Dv=128, VB64, and CI8 while leaving positive
+B/H and ``1 <= T <= 2048`` runtime. Its checkpoint cache is split after 255
+batch-head slices so the B7/H48/T2048 production cache fits across two RDNA
+3.5 32-bit descriptor pages. All four BF16/INT4 QK-by-V modes have cache and
+no-cache forward objects plus the required preprocess/recurrent/normalization
+backward phases.
+
+Training MLA materializes BF16 latent K/V with a batched matrix multiply and
+uses the attention kernel at logical Dqk=192/Dv=128. Triton pads the compile
+block to D=256 while retaining logical D=192 in strides, masks, metadata, and
+the native scalar ABI. The packaged profile contains a runtime-shape object
+and exact H128/L2048 full/causal/local/causal-local objects for forward and
+both backward ownership phases. The exact profile specializes semantic and
+head/sequence control flow; batch remains runtime.
+
+Both families accumulate recurrent/attention arithmetic and logical gradients
+in FP32 where required and store BF16 forward outputs. The generated metadata
+records logical dimensions separately from padded compile blocks and validates
+the visible plus hidden Triton pointer ABI before CMake assembles HSACO.
 
 Triton Fork
 -----------

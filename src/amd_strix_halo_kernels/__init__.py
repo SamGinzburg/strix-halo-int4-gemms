@@ -28,6 +28,13 @@ from .autotune import (
     generated_shape_for_kernel,
 )
 from .benchmarking import BenchmarkDatabase, BenchmarkRecord, BenchmarkShape
+from .gated_delta_net import (
+    QwenGatedDeltaNetShape,
+    qwen_gated_delta_net,
+    qwen_gated_delta_net_backward,
+    reference_qwen_gated_delta_net,
+    reference_qwen_gated_delta_net_backward,
+)
 from .kda import (
     KimiDeltaAttentionConfig,
     kimi_delta_attention,
@@ -55,6 +62,13 @@ from .metadata import (
     ScaleMode,
     ScaleSpec,
     TileConfig,
+)
+from .mla import (
+    MultiHeadLatentAttentionShape,
+    multi_head_latent_attention,
+    multi_head_latent_attention_backward,
+    reference_multi_head_latent_attention,
+    reference_multi_head_latent_attention_backward,
 )
 from .native import (
     NativeRuntimeStatus,
@@ -114,10 +128,12 @@ __all__ = [
     "Int4AttentionConfig",
     "Int4AttentionBackwardConfig",
     "KimiDeltaAttentionConfig",
+    "MultiHeadLatentAttentionShape",
     "NativeRuntimeStatus",
     "OperandDType",
     "OutputDType",
     "QuantizedInt4Tensor",
+    "QwenGatedDeltaNetShape",
     "RaggedAutotuneCandidate",
     "RaggedAutotuneResult",
     "RaggedBwdGroupInfo",
@@ -158,6 +174,8 @@ __all__ = [
     "launch_hsaco",
     "mm",
     "mixed_dtype_registry",
+    "multi_head_latent_attention",
+    "multi_head_latent_attention_backward",
     "native_library_path",
     "prepare_ragged_bwd_group_info",
     "prepare_ragged_group_info",
@@ -165,6 +183,8 @@ __all__ = [
     "quantize_attention_value_int4",
     "quantize_int4_output",
     "quantize_kda_int4",
+    "qwen_gated_delta_net",
+    "qwen_gated_delta_net_backward",
     "ragged_group_info_capacity",
     "ragged_dot_int4_bwd",
     "ragged_dot_int4_bwd_accum",
@@ -173,6 +193,10 @@ __all__ = [
     "reference_scaled_dot_product_attention_backward",
     "reference_kimi_delta_attention",
     "reference_kimi_delta_attention_backward",
+    "reference_multi_head_latent_attention",
+    "reference_multi_head_latent_attention_backward",
+    "reference_qwen_gated_delta_net",
+    "reference_qwen_gated_delta_net_backward",
     "register_torch_ops",
     "torch_gemm",
 ]

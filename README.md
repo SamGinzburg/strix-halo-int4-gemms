@@ -46,7 +46,7 @@ uv build --wheel
 Install the wheel into an environment with ROCm PyTorch:
 
 ```bash
-uv pip install dist/amd_strix_halo_kernels-0.2.0-py3-none-linux_x86_64.whl
+uv pip install dist/amd_strix_halo_kernels-0.3.0-py3-none-linux_x86_64.whl
 ```
 
 Runtime import does not require Triton. Native dispatch requires a compatible
@@ -124,6 +124,10 @@ Primary imports are available from `amd_strix_halo_kernels`:
 | `kimi_delta_attention(...)` | Causal KDA forward with BF16/INT4 operands and packaged exact-profile Gluon or JIT execution. |
 | `kimi_delta_attention_backward(...)` | Explicit FP32 logical KDA gradients with packaged exact-profile Gluon or JIT execution. |
 | `quantize_kda_int4(...)` | Per-token signed-INT4 quantization of the last KDA dimension. |
+| `qwen_gated_delta_net(...)` | Qwen 3.5/3.6 grouped-head Gated DeltaNet forward with BF16 or packed-INT4 Q/K and V. |
+| `qwen_gated_delta_net_backward(...)` | Explicit logical FP32 gradients for the Qwen grouped-head recurrence. |
+| `multi_head_latent_attention(...)` | DeepSeek-style BF16 training MLA with partial RoPE, causal/local/masked attention, and packaged D192/Dv128 HSACO. |
+| `multi_head_latent_attention_backward(...)` | Explicit FP32 MLA gradients for queries, compressed KV, shared RoPE key, and KV up-projection weights. |
 | `explicit_mm(..., kernel=...)` | Dispatch a specific registry kernel. |
 | `ragged_dot_int4(...)` | Forward grouped ragged packed-int4 dot. Uses packaged HSACO for generated configs when available, with Triton-JIT fallback. |
 | `ragged_dot_int4_bwd(...)` | K-ragged split-K grouped packed-int4 dot with automatic tuned JIT/exact-native BF16 dispatch and explicit backend control. |
@@ -982,11 +986,124 @@ the default. Reproduce the Gluon table with
 `TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 uv run --extra rocm-triton-fork python scripts/benchmark_kda.py --backend gluon --precompiled require --value-block 64 --checkpoint-interval 4 --warmup-ms 100 --rep-ms 400`;
 machine-readable results are in `benchmarks/gfx1151_kda.json`.
 
+## Qwen 3.6 Gated DeltaNet
+
+`qwen_gated_delta_net(...)` adapts Qwen 3.5/3.6's grouped-head delta rule to
+the proven KDA recurrence. Its logical inputs are Q/K `[B,T,Hqk,D]`, V
+`[B,T,Hv,Dv]`, and scalar `log_decay`/`beta` `[B,T,Hv]`, with
+`Hv % Hqk == 0`. The production defaults are Qwen3.6-27B training dimensions
+`B=7,T=2048,Hqk=16,Hv=48,D=Dv=128`. Q/K heads are repeated in contiguous
+groups to the value-head count, matching the model architecture; backward
+sums those repeated dQ/dK groups and reduces the per-channel decay gradient
+back to the scalar Qwen contract.
+
+Q/K and V may independently be BF16 or the output of
+`quantize_kda_int4(...)`. Packed scales are BF16 and gradients refer to the
+logical dequantized operands. The operation consumes post-convolution Q/K/V
+and already activated gates; causal convolution, surrounding projections,
+RMSNorm, and output gating remain model-layer operations.
+
+```python
+from amd_strix_halo_kernels import qwen_gated_delta_net
+
+output, final_state = qwen_gated_delta_net(
+    query,
+    key,
+    value,
+    log_decay,
+    beta,
+    output_final_state=True,
+    backend="gluon",
+    use_precompiled=True,
+)
+```
+
+The packaged Qwen profile uses `value_block=64,checkpoint_interval=8` and
+keeps positive B/H plus `1 <= T <= 2048` runtime. CI=8 is both the measured
+backward winner for this B/H shape and the smallest tested interval whose
+checkpoint cache fits the current two-descriptor RDNA 3.5 ABI. Fourteen new
+objects cover all four BF16/INT4 QK-by-V combinations, cache/no-cache forward,
+and every backward phase. Artifact IDs retain B7/T2048/H48 as generation
+provenance. During CUDAGraph capture, callers preallocate the documented
+group-expansion, output/cache, and gradient workspaces; forward/backward replay
+is tested in addition to the underlying native KDA graph path.
+
+| Qwen GDN storage | Native CI8 forward | Effective TOPS | Native CI8 backward |
+| --- | ---: | ---: | ---: |
+| BF16 | 18.784 ms | 4.201 | 227.923 ms |
+| INT4 Q/K + BF16 V | **15.326 ms** | **5.149** | **225.010 ms** |
+| BF16 Q/K + INT4 V | 18.077 ms | 4.366 | 235.591 ms |
+| INT4 Q/K/V | 17.066 ms | 4.624 | 234.564 ms |
+
+All rows use the exact production shape, prepacked operands, preallocated
+buffers, BF16 output/upstream gradient, FP32 recurrence/gradients, and required
+wheel HSACO dispatch. Every representation passed `rtol=atol=1e-3`; the
+largest reduced-oracle absolute error was `3.82e-6`. See
+`benchmarks/gfx1151_qwen36_gated_delta_net.json`.
+
+## Multi-Head Latent Attention
+
+`multi_head_latent_attention(...)` implements decompressed training-form MLA.
+It accepts BF16 `query_nope[B,H,Lq,Dn]`, `query_rope[B,H,Lq,Dr]`, shared
+`compressed_kv[B,Lk,C]`, shared `key_rope[B,Lk,Dr]`, and
+`kv_up_weight[H,Dn+Dv,C]`. It materializes BF16 K/V from the latent cache,
+concatenates the partial-RoPE components, then uses the flash-style attention
+kernel without materializing the score matrix. Causal, local, causal-local,
+boolean/additive masks, unequal query/key lengths, and cached query offsets are
+supported. This MLA API is BF16; it does not claim an INT4 latent/projection
+contract.
+
+The production profile follows DeepSeek-V3/R1 dimensions—not Qwen—at
+`B=4,Lq=Lk=2048,H=128,C=512,Dn=128,Dr=64,Dv=128`, so the fused attention
+phase has `Dqk=192,Dv=128`. `multi_head_latent_attention_backward(...)`
+returns FP32 `(dQ_nope,dQ_rope,dCompressedKV,dK_rope,dKVUpWeight)` and includes
+both key and value paths through the compressed latent. The explicit API does
+not register implicit autograd.
+
+```python
+from amd_strix_halo_kernels import multi_head_latent_attention
+
+output = multi_head_latent_attention(
+    query_nope,
+    query_rope,
+    compressed_kv,
+    key_rope,
+    kv_up_weight,
+    is_causal=True,
+    window_size=(512, 0),  # omit for full causal attention
+    use_precompiled=True,
+)
+```
+
+Fifteen packaged D192/Dv128 objects provide generic runtime-shape and exact
+H128/L2048 full/causal/local/causal-local forward and backward dispatch. The
+measured default is `BM64_BN32_W4_S2` forward and
+`DQM32_DQN32_W4/DKVM32_DKVN16_W2` backward. Stable `out` plus the four
+operand workspaces make forward allocation-free during graph replay; backward
+also requires its FP32 attention/projection gradient and LSE/delta buffers.
+
+| MLA production workload | BF16 native runtime | Dense-equivalent throughput | Numerical gate |
+| --- | ---: | ---: | ---: |
+| Full causal forward | 74.507 ms | 22.136 TOPS | `rtol=atol=1e-3` |
+| Full causal backward, forward excluded | 834.878 ms | — | `rtol=atol=1e-3` |
+| Causal local-512 forward | 54.479 ms | 30.273 effective TOPS | `rtol=atol=1e-3` |
+| Causal local-512 backward, forward excluded | 521.353 ms | — | `rtol=atol=1e-3` |
+
+The matched PyTorch BF16 composition measured 988.098 ms, versus 74.507 ms
+for package MLA (13.26x). This comparison is real for the installed ROCm
+stack but not a universal PyTorch speedup: PyTorch warned that memory-efficient
+attention is experimental and selected a slow D=192 path. The package record
+includes latent up-projection/materialization; the separate PyTorch SDPA-only
+measurement was 957.566 ms. MLA backward is correct but still dominated by
+FP32 attention and explicit projection-gradient intermediates, so it remains
+an optimization target. See `benchmarks/gfx1151_mla.json` and
+`benchmarks/gfx1151_mla_local512.json`.
+
 ## Kernel Coverage
 
-The checked-in matrix currently contains 4,170 native artifacts: 3,062 dense
-generated kernels, 302 ragged generated artifacts, 792 fused-attention
-artifacts, and 14 runtime-B/H/T KDA artifacts:
+The checked-in matrix currently contains 4,199 native artifacts: 3,062 dense
+generated kernels, 302 ragged generated artifacts, 807 fused-attention/MLA
+artifacts, and 28 runtime-B/H/T KDA/GDN artifacts:
 
 - dense dtypes: `int4 x int4`, `int8 x int8`,
 - packaged native layouts: `NN`, `NT`, `TN`,
@@ -1011,8 +1128,9 @@ artifacts, and 20 exact 4096-capacity BF16 wide-store NN/TN artifacts. Together
 with 160 forward artifacts and two specialized `bwd_accum` FP32/BF16
 artifacts, this forms the 302-artifact ragged matrix.
 
-Attention contributes 532 forward artifacts, four decode reducers, and 256
-backward artifacts at `D=Dv=64`. Its physical input combinations are
+Attention contributes the existing 532 forward artifacts, four decode
+reducers, and 256 backward artifacts at `D=Dv=64`, plus 15 BF16 MLA
+D192/Dv128 forward/backward objects. Its physical input combinations are
 BF16/BF16, INT4/BF16,
 BF16/INT4, and INT4/INT4 for QK/V; forward variants cover no mask and
 bool/BF16/FP32 mask pointers with BF16 or FP32 output. Generic variants retain
@@ -1022,10 +1140,10 @@ Backward packages both dQ and dK/dV phases, FP32 logical gradients, and all
 BF16/FP32 saved-output and `grad_output` pointer types so native dispatch never
 reinterprets one storage type as another.
 
-KDA packages eight forward objects (four BF16/INT4 QK-by-V representations,
-with and without checkpoint-cache writes) and six backward phase objects. Its
-exact CI4 profile and automatic/required/JIT selection contract are documented
-in the preceding section.
+KDA packages two 14-object profiles. Each has eight forward objects (four
+BF16/INT4 QK-by-V representations, with and without checkpoint-cache writes)
+and six backward phase objects. The original runtime CI4 profile and Qwen
+production CI8 profile are selected by the requested checkpoint interval.
 
 Non-split dense kernels can write BF16 or fused packed INT4 plus BF16 sc256
 scales. Split-K dense kernels write FP32 because their partial tiles are
